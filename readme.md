@@ -8,5 +8,9 @@ https://pota.quack.uy/
 
 ## See also
 
-- https://www.npmjs.com/package/pota
+## See also
+
+- https://pota.quack.uy/
 - https://github.com/potaorg/pota
+- https://github.com/potaorg/templates
+- https://www.npmjs.com/package/pota
