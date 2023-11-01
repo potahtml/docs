@@ -8,8 +8,6 @@ https://pota.quack.uy/
 
 ## See also
 
-## See also
-
 - https://pota.quack.uy/
 - https://github.com/potaorg/pota
 - https://github.com/potaorg/templates
