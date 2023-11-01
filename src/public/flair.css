@@ -290,6 +290,12 @@ hr {
 	scrollbar-width: thin;
 }
 
+/* cursor  */
+
+[flair~='cursor-hand'] {
+	cursor: pointer;
+}
+
 /* selection  */
 
 [flair~='selection-none'] {
@@ -297,8 +303,24 @@ hr {
 	-webkit-user-select: none;
 	user-select: none;
 }
+[flair~='vertical'] {
+	display: flex;
+}
 [flair~='center'] {
 	display: flex;
+}
+
+/* vertical */
+[flair~='vertical'],
+[flair~='row'][flair~='vertical'] {
+	align-content: center;
+	align-items: center;
+}
+
+[flair~='col'][flair~='vertical'],
+[flair~='column'][flair~='vertical'] {
+	justify-content: center;
+	justify-items: center;
 }
 
 /* center */

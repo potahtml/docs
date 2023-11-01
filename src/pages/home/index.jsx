@@ -4,7 +4,17 @@ export default function Home() {
 	return (
 		<>
 			<Header>
-				<h1 id="pota">pota</h1>
+				<h1
+					id="pota"
+					flair="row center"
+				>
+					pota
+					<span flair="grow" />
+					<img
+						src="/public/logo.svg"
+						style="width:1em;opacity:.8"
+					/>
+				</h1>
 				<p>
 					<b>pota</b> is a <em>small</em> and pluggable Reactive Web
 					Renderer. Although its compiler-less, it includes a babel
@@ -108,15 +118,11 @@ export default function Home() {
 				</p>
 			</Section>
 
-			<Section title="TODO">
-				<ol>
-					<li>
-						Add a <mark>store</mark>
-					</li>
-					<li>
-						Write a compiler for making the output of JSX less verbose
-					</li>
-				</ol>
+			<Section title="Logo">
+				<p>
+					Logo kindly provided by{' '}
+					<a href="https://github.com/boredofnames">@boredofnames</a>
+				</p>
 			</Section>
 			<footer>
 				<small>-- Tito</small>
