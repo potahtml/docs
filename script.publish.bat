@@ -1,8 +1,8 @@
 
 :: save changes
-git add --all
-git commit -m "update"
-
+call git add --all
+call git commit -m "update"
+call git push
 
 :: build docs
 call npm run build
