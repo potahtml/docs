@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "outDir": "./dist",
+    "paths": {
+      "#main": ["./src/lib/@main.jsx"]
+    },
+
+    "allowJs": true,
+    "checkJs": true,
+    "strict": true,
+
+    "module": "NodeNext",
+    "target": "ESNext",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "moduleResolution": "nodenext",
+    "resolveJsonModule": true,
+
+    "jsx": "react-jsx",
+    "jsxImportSource": "pota",
+
+    "sourceMap": true,
+
+    "types": ["vite/client", "pota"]
+  },
+  "exclude": ["./dist/*", "node_modules"]
+}

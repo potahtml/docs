@@ -1,0 +1,14 @@
+.bench {
+	display: inline-block;
+	position: fixed;
+
+	bottom: 5px;
+	color: #7a828b;
+
+	right: 5px;
+	font-size: 12px;
+	width: auto;
+}
+.bench::before {
+	content: attr(data-render);
+}

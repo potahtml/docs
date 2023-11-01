@@ -1,0 +1,24 @@
+.container {
+	width: 100%;
+	height: 100%;
+}
+
+main[data-pathname='/playground'] article > section,
+main[data-pathname='/playground'] article section,
+main[data-pathname='/playground'] article,
+main[data-pathname='/playground'] article {
+	max-width: 100%;
+}
+
+:global .monaco-editor {
+	--vscode-editor-background: transparent !important
+;
+}
+
+:global .monaco-editor .margin {
+	background-color: transparent !important; /*#0b0d11  !important;*/
+}
+
+:global .monaco-scrollable-element.editor-scrollable.vs-dark {
+	margin-left: 10px;
+}
