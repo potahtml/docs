@@ -13,9 +13,7 @@ export default function Menu() {
 			</h2>
 			<ul>
 				<li>
-					<a href="/docs/usage">
-						<s>Usage</s>
-					</a>
+					<a href="/docs/usage">Usage</a>
 				</li>
 
 				<li>
