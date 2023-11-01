@@ -14,6 +14,7 @@ call cpx "./src/public/quack.png" "./dist/public/"
 call cpx "./src/public/video.mp4" "./dist/public/"
 call cpx "./src/public/flair.css" "./dist/public/"
 call cpx "./src/public/logo.svg" "./dist/public/"
+call cpx "./src/public/logo.png" "./dist/public/"
 call cpx "./src/public/favicon.ico" "./dist/public/"
 
 :: delete published docs
