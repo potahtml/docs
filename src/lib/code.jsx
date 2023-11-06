@@ -1,32 +1,24 @@
 import styles from './code.module.css'
 
-import * as prettier from 'https://unpkg.com/prettier@3.0.3/standalone.mjs'
-import prettierPluginBabel from 'https://unpkg.com/prettier@3.0.3/plugins/babel.mjs'
-import prettierPluginEstree from 'https://unpkg.com/prettier@3.0.3/plugins/estree.mjs'
-
 import { compress } from './compress.js'
 import { Show, signal, ref, memo, effect } from 'pota'
 import { getValue } from 'pota/lib'
 
 export function Code(props) {
 	if (props.url) {
-		return (
-			window.location.href.includes('localhost')
-				? import(/* @vite-ignore */ props.url + '?raw').then(code =>
-						code.default.toString(),
-				  )
-				: fetch(props.url).then(code => code.text())
-		).then(code => {
-			return (
-				<Code
-					{...{
-						...props,
-						code: code,
-						url: null,
-					}}
-				/>
-			)
-		})
+		return fetch(props.url)
+			.then(code => code.text())
+			.then(code => {
+				return (
+					<Code
+						{...{
+							...props,
+							code: code,
+							url: null,
+						}}
+					/>
+				)
+			})
 	}
 	const [code, setCode] = signal(getValue(props.code))
 
@@ -56,10 +48,13 @@ export function Code(props) {
 }
 
 function Preview(props) {
-	return prettier
+	return globalThis.prettier
 		.format(props.code(), {
 			parser: 'babel',
-			plugins: [prettierPluginBabel, prettierPluginEstree],
+			plugins: [
+				globalThis.prettierPluginBabel,
+				globalThis.prettierPluginEstree,
+			],
 			printWidth: 55,
 			useTabs: false,
 			tabWidth: 2,
@@ -124,7 +119,7 @@ function Render(props) {
 		<section class={styles.frame}>
 			<iframe
 				ref={frame}
-				src={() => '/public/playground/index.html#' + codeURL()}
+				src={() => '/pages/preview/index.html#' + codeURL()}
 			/>
 			<aside>
 				<a
@@ -144,7 +139,7 @@ function Render(props) {
 				<a
 					href="javascript://"
 					onClick={() =>
-						window.open('/public/playground/index.html#' + codeURL())
+						window.open('/pages/preview/index.html#' + codeURL())
 					}
 				>
 					open in blank
