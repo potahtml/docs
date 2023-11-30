@@ -4,12 +4,10 @@ export default function () {
 	return (
 		<>
 			<Header title="create">
-				<p>
-					Used as a component factory for when its needed to reuse the
-					same component with different props. Handy for dynamic
-					things on JavaScript space. When used with a function it
-					untracks its body which avoids re-renders
-				</p>
+				Used as a component factory for when its needed to reuse the
+				same component with different props. Handy for dynamic things
+				on JavaScript space. When used with a function it untracks its
+				body which avoids re-renders
 			</Header>
 
 			<Section title="Arguments">

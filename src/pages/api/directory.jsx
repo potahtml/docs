@@ -20,10 +20,8 @@ export default function () {
 				</p>
 				<ol>
 					<li>
-						<a href="/api/directory/hooks/selector">
-							<b>selector</b>
-						</a>{' '}
-						- Most performant way to have an <mark>isSelected</mark>{' '}
+						<a href="/api/directory/hooks/selector">selector</a> -
+						Most performant way to have an <mark>isSelected</mark>{' '}
 						signal.
 					</li>
 				</ol>
@@ -67,14 +65,11 @@ export default function () {
 				</ol>
 			</Section>
 			<Section title="Props Plugins">
-				<ol>
-					<li>
-						Currently, the library doesnt provide any prop plugin, but
-						you can check{' '}
-						<a href="/props/propsPlugin">on this page</a> how easy is
-						to make one.
-					</li>
-				</ol>
+				<p>
+					Currently, the library doesnt provide any prop plugin, but
+					you can check <a href="/props/propsPlugin">on this page</a>{' '}
+					how easy is to make one.
+				</p>
 			</Section>
 		</>
 	)

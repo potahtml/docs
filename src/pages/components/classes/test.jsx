@@ -20,4 +20,11 @@ const dispose = render(
   <MyComponent some="prop test">hello from class!</MyComponent>,
 )
 
-render(<button onClick={dispose}>dispose</button>)
+render(
+  <button
+    name="button"
+    onClick={dispose}
+  >
+    dispose
+  </button>,
+)

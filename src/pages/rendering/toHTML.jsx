@@ -4,14 +4,12 @@ export default function () {
 	return (
 		<>
 			<Header title="toHTML">
-				<p>
-					Creates and returns HTML elements for{' '}
-					<mark>props.children</mark>. it returns a{' '}
-					<mark>DocumentFragment</mark> with the children rendered.
-					Keep in mind that using the elements on any document will
-					remove these from the DocumentFragment. Reactivity will work
-					properly as long as you move the group together.
-				</p>
+				Creates and returns HTML elements for{' '}
+				<mark>props.children</mark>. it returns a{' '}
+				<mark>DocumentFragment</mark> with the children rendered. Keep
+				in mind that using the elements on any document will remove
+				these from the DocumentFragment. Reactivity will work properly
+				as long as you move the group together.
 			</Header>
 
 			<Section title="Arguments">

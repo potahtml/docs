@@ -4,7 +4,12 @@ function App() {
   return (
     <main>
       Unrelated elements arent removed on dispose
-      <button onClick={() => dispose()}>dispose</button>
+      <button
+        name="button"
+        onClick={() => dispose()}
+      >
+        dispose
+      </button>
     </main>
   )
 }

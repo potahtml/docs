@@ -4,12 +4,10 @@ export default function () {
 	return (
 		<>
 			<Header title="on:__">
-				<p>
-					<mark>on:__</mark> is for native events. For delegated
-					events see <mark>on__</mark>. Native events are attached to
-					the <mark>element</mark> only once. Native events <b>are</b>{' '}
-					case-sensitive.
-				</p>
+				<mark>on:__</mark> is for native events. For delegated events
+				see <mark>on__</mark>. Native events are attached to the{' '}
+				<mark>element</mark> only once. Native events <b>are</b>{' '}
+				case-sensitive.
 			</Header>
 
 			<p>

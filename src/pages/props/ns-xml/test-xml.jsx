@@ -16,7 +16,7 @@ function App() {
         <image
           width="100"
           height="100"
-          xlink:href="/public/quack.png"
+          xlink:href="/assets/quack.png"
         />
         ...
       </svg>

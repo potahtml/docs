@@ -1,0 +1,53 @@
+* {
+  line-height: 1.6;
+
+  scrollbar-width: thin;
+  scrollbar-color: #202835 #0d1117;
+}
+
+body {
+  background: #0d1117;
+  color: #c9d1d9;
+  line-height: 1.4;
+  margin: 0;
+}
+
+button {
+  margin-right: 10px;
+  margin-left: 10px;
+}
+
+ul {
+  padding-left: 20px;
+}
+
+hr {
+  margin-top: 5px;
+  margin-bottom: 5px;
+  background-color: #42536b;
+}
+
+code {
+  line-height: 1.25;
+}
+
+a:link {
+  color: #58a6ff;
+}
+a:visited {
+  color: #8e96f0;
+}
+
+:global @keyframes render {
+  from {
+    background: rgba(88, 166, 255, 0.5);
+  }
+  to {
+    background: transparent;
+  }
+}
+
+:global .render {
+  animation-duration: 1s;
+  animation-name: render;
+}

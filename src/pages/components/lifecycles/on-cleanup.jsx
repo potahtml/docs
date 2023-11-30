@@ -4,10 +4,8 @@ export default function () {
 	return (
 		<>
 			<Header title="onCleanup">
-				<p>
-					<mark>onCleanup</mark> is for components that need a cleanup
-					step.
-				</p>
+				<mark>onCleanup</mark> is for components that need a cleanup
+				step.
 			</Header>
 
 			<p>

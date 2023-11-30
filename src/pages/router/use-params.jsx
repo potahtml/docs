@@ -4,11 +4,9 @@ export default function () {
 	return (
 		<>
 			<Header title="useParams">
-				<p>
-					This feature is on hold because I didnt figure out how to
-					solve the problem of when you want params related to the
-					current Route or from all rendered Routes
-				</p>
+				This feature is on hold because I didnt figure out how to
+				solve the problem of when you want params related to the
+				current Route or from all rendered Routes
 			</Header>
 			{/*
 			<H3>Arguments</H3>

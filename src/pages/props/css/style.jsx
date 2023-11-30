@@ -4,10 +4,8 @@ export default function () {
 	return (
 		<>
 			<Header title="style:__">
-				<p>
-					There are a variety of ways to set CSS Styles. To remove a
-					style set it to <mark>null</mark> or <mark>undefined</mark>
-				</p>
+				There are a variety of ways to set CSS Styles. To remove a
+				style set it to <mark>null</mark> or <mark>undefined</mark>
 			</Header>
 
 			<Section title="List">

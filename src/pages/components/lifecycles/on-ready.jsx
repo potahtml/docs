@@ -4,10 +4,8 @@ export default function () {
 	return (
 		<>
 			<Header title="onReady">
-				<p>
-					<mark>onReady</mark> is for components that need to run some
-					initialization.
-				</p>
+				<mark>onReady</mark> is for components that need to run some
+				initialization.
 			</Header>
 
 			<p>

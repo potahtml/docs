@@ -4,11 +4,9 @@ export default function () {
 	return (
 		<>
 			<Header title="template">
-				<p>
-					Handy function to make components from cached tagged
-					templates. The functionality is very basic and only supports
-					native elements as strings.
-				</p>
+				Handy function to make components from cached tagged
+				templates. The functionality is very basic and only supports
+				native elements as strings.
 			</Header>
 
 			<Section title="No JSX">

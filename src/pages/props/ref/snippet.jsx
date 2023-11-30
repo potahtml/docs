@@ -9,6 +9,7 @@ function App() {
 
   return (
     <button
+      name="button"
       ref={button}
       onClick={() => console.log(button())}
     >

@@ -71,30 +71,28 @@ function Preview(props) {
 			singleAttributePerLine: true,
 		})
 		.then(code =>
-			globalThis.shiki
-				.getHighlighter({
-					theme: 'monokai',
-					langs: ['js'],
-				})
-				.then(highlighter => (
-					<div
-						contentEditable={props.editable ? true : false}
-						spellcheck={false}
-						onInput={e => props.setCode(e.target.textContent)}
-						innerHTML={highlighter.codeToHtml(code, {
-							lang: 'js',
-						})}
-						on:paste={e => {
-							e.preventDefault()
-							document.execCommand(
-								'inserttext',
-								false,
-								e.clipboardData.getData('text/plain'),
-							)
-						}}
-					/>
-				)),
+			globalThis.shiki.then(highlighter =>
+				highlighter.codeToHtml(code, {
+					lang: 'js',
+				}),
+			),
 		)
+		.then(code => (
+			<div
+				contentEditable={props.editable ? true : false}
+				spellcheck={false}
+				onInput={e => props.setCode(e.target.textContent)}
+				innerHTML={code}
+				on:paste={e => {
+					e.preventDefault()
+					document.execCommand(
+						'inserttext',
+						false,
+						e.clipboardData.getData('text/plain'),
+					)
+				}}
+			/>
+		))
 }
 
 // RENDER

@@ -7,7 +7,7 @@ function Counter() {
   const increment = () => setCount(count => count + 1)
 
   return (
-    <button onClick={increment}>
+    <button  name="button" onClick={increment}>
       {count} / {double} /
       {() => count() % 2 == 0 ? "even" : "odd"}
     </button>

@@ -5,11 +5,9 @@ export default function () {
 	return (
 		<>
 			<Header title="render">
-				<p>
-					It renders anything into Element. It creates a tracking
-					scope using a root and returns a dispose function that when
-					called will unmount the component.
-				</p>
+				It renders anything into Element. It creates a tracking scope
+				using a root and returns a dispose function that when called
+				will unmount the component.
 			</Header>
 
 			<p>

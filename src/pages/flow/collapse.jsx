@@ -4,12 +4,10 @@ export default function () {
 	return (
 		<>
 			<Header title={<Tag>Collapse ...</Tag>}>
-				<p>
-					Similar to <Tag>Show</Tag>, it renders its children based on
-					a condition, the difference is that the element is not
-					removed from the document if the condition becomes falsy.
-					Useful for iframes, canvas, video, audio.
-				</p>
+				Similar to <Tag>Show</Tag>, it renders its children based on a
+				condition, the difference is that the element is not removed
+				from the document if the condition becomes falsy. Useful for
+				iframes, canvas, video, audio.
 			</Header>
 
 			<Section title="Attributes">

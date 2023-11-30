@@ -9,10 +9,30 @@ function App() {
       <hr />
       <section id="section3"></section>
 
-      <button onClick={() => dispose1()}>dispose 1</button>
-      <button onClick={() => dispose2()}>dispose 2</button>
-      <button onClick={() => dispose3()}>dispose 3</button>
-      <button onClick={() => dispose()}>dispose all</button>
+      <button
+        name="button"
+        onClick={() => dispose1()}
+      >
+        dispose 1
+      </button>
+      <button
+        name="button"
+        onClick={() => dispose2()}
+      >
+        dispose 2
+      </button>
+      <button
+        name="button"
+        onClick={() => dispose3()}
+      >
+        dispose 3
+      </button>
+      <button
+        name="button"
+        onClick={() => dispose()}
+      >
+        dispose all
+      </button>
     </main>
   )
 }

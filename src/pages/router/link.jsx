@@ -4,14 +4,12 @@ export default function () {
 	return (
 		<>
 			<Header title={<Tag>A ...</Tag>}>
-				<p>
-					The <Tag mark={true}>A</Tag> component can be used to create
-					links with special characters in the URL and/or with
-					specific Router features. When the <mark>href</mark> is not
-					absolute (thats it starting with <mark>/</mark>,{' '}
-					<mark>#</mark> or <mark>http</mark>) it will make the link
-					relative to the current route.
-				</p>
+				The <Tag mark={true}>A</Tag> component can be used to create
+				links with special characters in the URL and/or with specific
+				Router features. When the <mark>href</mark> is not absolute
+				(thats it starting with <mark>/</mark>, <mark>#</mark> or{' '}
+				<mark>http</mark>) it will make the link relative to the
+				current route.
 			</Header>
 
 			<Section title="Attributes">

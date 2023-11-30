@@ -39,6 +39,7 @@ function Buttons(props) {
   return (
     <>
       <button
+        name="button"
         onClick={() => {
           arr = value()
           arr.splice((arr.length / 2) | 0, 0, content())
@@ -48,6 +49,7 @@ function Buttons(props) {
         insert in middle
       </button>
       <button
+        name="button"
         onClick={() => {
           arr = value()
           arr.push(content())

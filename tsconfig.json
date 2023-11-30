@@ -21,7 +21,7 @@
 
     "sourceMap": true,
 
-    "types": ["vite/client", "pota"]
+    "types": ["pota"]
   },
   "exclude": ["./dist/*", "node_modules"]
 }

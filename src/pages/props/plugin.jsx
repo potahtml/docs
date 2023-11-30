@@ -4,11 +4,9 @@ export default function () {
 	return (
 		<>
 			<Header title="propsPlugin">
-				<p>
-					<mark>propsPlugin</mark> sets a custom prop that can be used
-					on any JSX element. This empowers JSX by allowing you to add
-					custom behaviour via props, globally.
-				</p>
+				<mark>propsPlugin</mark> sets a custom prop that can be used
+				on any JSX element. This empowers JSX by allowing you to add
+				custom behaviour via props, globally.
 			</Header>
 
 			<Section title="Snippet">

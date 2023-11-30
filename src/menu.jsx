@@ -1,5 +1,3 @@
-import './menu.module.css'
-
 import { A, navigate } from 'pota/router'
 
 export default function Menu() {
@@ -7,7 +5,7 @@ export default function Menu() {
 		<>
 			<h2
 				onClick={() => navigate('/')}
-				flair="row vertical cursor-hand"
+				flair="cursor-hand"
 			>
 				pota docs
 			</h2>

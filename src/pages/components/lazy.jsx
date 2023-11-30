@@ -4,14 +4,12 @@ export default function () {
 	return (
 		<>
 			<Header title="lazy">
-				<p>
-					lazy creates a component thats lazy loaded via a dynamic
-					import. The resulting component can be used as{' '}
-					<mark>Component(props)</mark>. Mostly used as{' '}
-					<mark>children</mark> on a <mark>Route</mark> for code
-					splitting. Promises are run with the original owner when the
-					promise returns a function.
-				</p>
+				lazy creates a component thats lazy loaded via a dynamic
+				import. The resulting component can be used as{' '}
+				<mark>Component(props)</mark>. Mostly used as{' '}
+				<mark>children</mark> on a <mark>Route</mark> for code
+				splitting. Promises are run with the original owner when the
+				promise returns a function.
 			</Header>
 
 			<Section title="Attributes">

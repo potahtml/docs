@@ -4,11 +4,8 @@ export default function () {
 	return (
 		<>
 			<Header title="useBeforeLeave">
-				<p>
-					Used to run code before leaving the route. To prevent
-					leaving the route, return false. It also works with async
-					functions
-				</p>
+				Used to run code before leaving the route. To prevent leaving
+				the route, return false. It also works with async functions
 			</Header>
 
 			<Section title="Arguments">

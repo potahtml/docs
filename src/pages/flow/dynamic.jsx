@@ -4,10 +4,8 @@ export default function () {
 	return (
 		<>
 			<Header title={<Tag>Dynamic ...</Tag>}>
-				<p>
-					Allows to create dynamic components on JSX space. For
-					JavaScript space see <mark>create</mark>.
-				</p>
+				Allows to create dynamic components on JSX space. For
+				JavaScript space see <mark>create</mark>.
 			</Header>
 
 			<Section title="Attributes">

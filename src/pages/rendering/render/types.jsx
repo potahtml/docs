@@ -55,6 +55,13 @@ const toRender = [
 
 for (const component of toRender) {
   const dispose = render(component)
-  render(<button onClick={dispose}>dispose</button>)
+  render(
+    <button
+      name="button"
+      onClick={dispose}
+    >
+      dispose
+    </button>,
+  )
   render(document.createElement('hr'))
 }

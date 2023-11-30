@@ -4,10 +4,8 @@ export default function () {
 	return (
 		<>
 			<Header title="prop:__">
-				<p>
-					Forces the attribute to be assigned to the Element as a
-					property.
-				</p>
+				Forces the attribute to be assigned to the Element as a
+				property.
 			</Header>
 
 			<Section title="Textarea">

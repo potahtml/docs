@@ -1,7 +1,5 @@
 import { Code, Header, Section } from '#main'
 
-import './usage.css'
-
 export default function () {
 	return (
 		<>
@@ -13,13 +11,17 @@ export default function () {
 			</Header>
 
 			<Section title="JavaScript">
-				<pre>
-					npx degit potaorg/templates/js pota-project
-					<br />
-					cd pota-project
-					<br />
-					npm install --include=dev
-				</pre>
+				<code>
+					<pre>
+						npx degit potaorg/templates/js pota-project
+						<br />
+						cd pota-project
+						<br />
+						npm install --include=dev
+						<br />
+						npm run dev
+					</pre>
+				</code>
 			</Section>
 
 			<Section title="Typescript">
@@ -28,15 +30,17 @@ export default function () {
 					personally do not do TypeScript. The typings on the lib are
 					a work in progress
 				</p>
-				<p>
+				<code>
 					<pre>
 						npx degit potaorg/templates/ts pota-project
 						<br />
 						cd pota-project
 						<br />
 						npm install --include=dev
+						<br />
+						npm run dev
 					</pre>
-				</p>
+				</code>
 			</Section>
 
 			<Section title="Babel Preset">
@@ -47,11 +51,11 @@ export default function () {
 					may change it to use{' '}
 					<a href="https://github.com/vobyjs/oby">Oby</a> instead
 				</p>
-				<p>
+				<code>
 					<pre>
-						{'presets: [[\'pota/babel-preset\', {"lib":"oby"}]]'}
+						{'presets: [["pota/babel-preset", {"lib":"oby"}]]'}
 					</pre>
-				</p>
+				</code>
 			</Section>
 		</>
 	)

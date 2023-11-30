@@ -4,13 +4,11 @@ export default function () {
 	return (
 		<>
 			<Header title={<Tag>Route ...</Tag>}>
-				<p>
-					Renders components based on location paths. It doesn't need
-					a wrapper, and routes can be nested. When a route is nested,
-					the paths are relative to the parent route.{' '}
-					<mark>{'<Route.Default/>'}</mark> can be used for rendering
-					a default/404 when no sibling routes match
-				</p>
+				Renders components based on location paths. It doesn't need a
+				wrapper, and routes can be nested. When a route is nested, the
+				paths are relative to the parent route.{' '}
+				<mark>{'<Route.Default/>'}</mark> can be used for rendering a
+				default/404 when no sibling routes match
 			</Header>
 
 			<Section title="Attributes">

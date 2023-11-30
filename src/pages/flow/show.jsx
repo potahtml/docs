@@ -4,10 +4,8 @@ export default function () {
 	return (
 		<>
 			<Header title={<Tag>Show ...</Tag>}>
-				<p>
-					Renders its children based on a condition. For the condition
-					to be reactive it needs to be function
-				</p>
+				Renders its children based on a condition. For the condition
+				to be reactive it needs to be function
 			</Header>
 
 			<Section title="Attributes">

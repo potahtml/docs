@@ -4,10 +4,8 @@ export default function () {
 	return (
 		<>
 			<Header title="Classes">
-				<p>
-					If for some reason make sense to use a component class, you
-					may do so by extending <mark>Component</mark>
-				</p>
+				If for some reason make sense to use a component class, you
+				may do so by extending <mark>Component</mark>
 			</Header>
 
 			<p>

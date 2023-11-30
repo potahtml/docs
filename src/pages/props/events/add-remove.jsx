@@ -4,10 +4,7 @@ export default function () {
 	return (
 		<>
 			<Header title="addEventListener / removeEventListener">
-				<p>
-					For adding and removing event listeners, delegated and
-					Native.
-				</p>
+				For adding and removing event listeners, delegated and Native.
 			</Header>
 
 			<Section title="addEventListener Arguments">

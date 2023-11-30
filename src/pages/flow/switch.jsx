@@ -4,10 +4,8 @@ export default function () {
 	return (
 		<>
 			<Header title={<Tag>Switch ...</Tag>}>
-				<p>
-					Shows the first <mark>Match</mark> that matches or a
-					fallback in case of no match
-				</p>
+				Shows the first <mark>Match</mark> that matches or a fallback
+				in case of no match
 			</Header>
 
 			<Section title="Switch Attributes">

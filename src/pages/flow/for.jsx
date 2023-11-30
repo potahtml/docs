@@ -4,10 +4,7 @@ export default function () {
 	return (
 		<>
 			<Header title={<Tag>For ...</Tag>}>
-				<p>
-					Reactive version of <mark>array.map</mark> for reactive
-					lists
-				</p>
+				Reactive version of <mark>array.map</mark> for reactive lists
 			</Header>
 
 			<Section title="Arguments">

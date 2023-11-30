@@ -14,26 +14,6 @@ import {
 import { compress, uncompress } from '../../lib/compress.js'
 import example from './example.jsx'
 
-// monaco
-import * as monaco from 'monaco-editor'
-import editor from 'monaco-editor/esm/vs/editor/editor.worker.js?worker'
-import json from 'monaco-editor/esm/vs/language/json/json.worker.js?worker'
-import css from 'monaco-editor/esm/vs/language/css/css.worker.js?worker'
-import html from 'monaco-editor/esm/vs/language/html/html.worker.js?worker'
-import ts from 'monaco-editor/esm/vs/language/typescript/ts.worker.js?worker'
-// import monokai from './monokai.js'
-
-self.MonacoEnvironment = {
-	getWorker: function (moduleId, label) {
-		if (label === 'json') return new json()
-		if (label === 'css') return new css()
-		if (label === 'html') return new html()
-		if (label === 'typescript' || label === 'javascript')
-			return new ts()
-		return new editor()
-	},
-}
-
 export default function () {
 	const container = ref()
 	const [autorun, setAutorun] = signal(true)
@@ -65,7 +45,7 @@ export default function () {
 				monaco.editor.setTheme('monokai')
 			*/
 
-			const editor = monaco.editor.create(container(), {
+			const editor = globalThis.monaco.editor.create(container(), {
 				value: untrack(code),
 				language: 'javascript',
 				fontSize: 17,
@@ -110,10 +90,7 @@ export default function () {
 		<>
 			<Header title="Playground"></Header>
 
-			<section
-				flair="row grow"
-				style="max-height:90%"
-			>
+			<section flair="row grow full">
 				<section flair="row grow">
 					<div
 						class={styles.container}
@@ -126,12 +103,10 @@ export default function () {
 						render={true}
 						preview={false}
 					/>
-					<section
-						flair="col"
-						style="top:6px;position: relative;"
-					>
+					<section flair="col">
 						<label flair="row center selection-none">
 							<input
+								name="button"
 								type="checkbox"
 								checked={autorun()}
 								onClick={() => setAutorun(checked => !checked)}
@@ -139,10 +114,9 @@ export default function () {
 							Autorun
 						</label>
 					</section>
-					<section
-						style="max-height: 100%;margin-top:10px;"
-						flair="scroll-y scroll-thin grow col"
-					>
+					<br />
+
+					<section flair="scroll-y scroll-thin grow col">
 						<CHEATSHEET />
 					</section>
 				</section>

@@ -6,6 +6,7 @@ export * from './lib/section.jsx'
 export * from './lib/header.jsx'
 
 import { Code } from './lib/code.jsx'
+
 export const CHEATSHEET = (
 	<Code
 		render={false}

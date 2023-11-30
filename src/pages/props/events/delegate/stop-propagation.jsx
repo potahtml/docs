@@ -20,6 +20,7 @@ function App(props) {
           }}
         >
           <button
+            name="button"
             onClick={event => {
               event.stopPropagation()
               render(<div>button</div>)
@@ -48,6 +49,7 @@ function App(props) {
           }}
         >
           <button
+            name="button"
             on:click={event => {
               event.stopPropagation()
               render(<div>button</div>)

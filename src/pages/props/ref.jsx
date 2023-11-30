@@ -4,11 +4,9 @@ export default function () {
 	return (
 		<>
 			<Header title="ref">
-				<p>
-					<mark>ref</mark> is a small helper for setting a{' '}
-					<mark>ref</mark> via a JSX attribute. It's a signal that can
-					be used in places like effects.
-				</p>
+				<mark>ref</mark> is a small helper for setting a{' '}
+				<mark>ref</mark> via a JSX attribute. It's a signal that can
+				be used in places like effects.
 			</Header>
 
 			<Section title="Snippet">

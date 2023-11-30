@@ -13,7 +13,7 @@
 		/>
 		<link
 			rel="icon"
-			href="/public/favicon.ico"
+			href="/favicon.ico"
 		/>
 		<meta
 			property="og:url"
@@ -34,7 +34,7 @@
 
 		<meta
 			property="og:image"
-			content="https://pota.quack.uy/public/logo.png"
+			content="https://pota.quack.uy/assets/logo.png"
 		/>
 		<meta
 			property="og:image:type"
@@ -53,17 +53,78 @@
 			content="pota"
 		/>
 
-		<script src="https://unpkg.com/shiki@0.14.5/dist/index.unpkg.iife.js"></script>
+		<link
+			rel="stylesheet"
+			href="/reset.css"
+		/>
+		<link
+			rel="stylesheet"
+			href="/assets/flair.css"
+		/>
+		<link
+			rel="stylesheet"
+			href="/dist/multi-entry.css"
+		/>
 
-		<style
-			type="text/css"
-			href="./public/flair.css"
-		></style>
+		<!-- shiki -->
+		<script
+			crossorigin="anonymous"
+			src="https://unpkg.com/shiki@0.14.5/dist/index.unpkg.iife.js"
+		></script>
+		<script
+			crossorigin="anonymous"
+			type="module"
+		>
+			globalThis.shiki = globalThis.shiki.getHighlighter({
+				theme: 'monokai',
+				langs: ['js'],
+			})
+		</script>
+
+		<!-- monaco -->
+		<link
+			rel="stylesheet"
+			data-name="vs/editor/editor.main"
+			crossorigin="anonymous"
+			href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/editor/editor.main.min.css"
+		/>
+		<script>
+			var require = {
+				paths: {
+					vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs',
+				},
+			}
+		</script>
+		<script
+			crossorigin="anonymous"
+			src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.js"
+		></script>
+		<script
+			crossorigin="anonymous"
+			src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/editor/editor.main.nls.js"
+		></script>
+		<script
+			crossorigin="anonymous"
+			src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/editor/editor.main.js"
+		></script>
+
+		<!-- prettier -->
+		<script
+			crossorigin="anonymous"
+			type="module"
+		>
+			import * as prettier from 'https://unpkg.com/prettier@3.0.3/standalone.mjs'
+			import prettierPluginBabel from 'https://unpkg.com/prettier@3.0.3/plugins/babel.mjs'
+			import prettierPluginEstree from 'https://unpkg.com/prettier@3.0.3/plugins/estree.mjs'
+			globalThis.prettier = prettier
+			globalThis.prettierPluginBabel = prettierPluginBabel
+			globalThis.prettierPluginEstree = prettierPluginEstree
+		</script>
 	</head>
 	<body>
 		<script
 			type="module"
-			src="./index.jsx"
+			src="/dist/multi-entry.js"
 		></script>
 	</body>
 </html>

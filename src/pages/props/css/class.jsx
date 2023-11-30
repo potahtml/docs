@@ -4,11 +4,9 @@ export default function () {
 	return (
 		<>
 			<Header title="class:__">
-				<p>
-					There are a variety of ways to set CSS Classes. To remove a
-					class set it to <mark>undefined</mark>, <mark>null</mark> or
-					<mark>false</mark>
-				</p>
+				There are a variety of ways to set CSS Classes. To remove a
+				class set it to <mark>undefined</mark>, <mark>null</mark> or
+				<mark>false</mark>
 			</Header>
 
 			<Section title="List">

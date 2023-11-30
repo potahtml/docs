@@ -11,8 +11,8 @@ export default function Home() {
 					pota
 					<span flair="grow" />
 					<img
-						src="/public/logo.svg"
-						style="width:1em;opacity:.8"
+						src="/assets/logo.svg"
+						style="width:1em"
 					/>
 				</h1>
 				<p>
@@ -37,14 +37,8 @@ export default function Home() {
 					rather than as a value <mark>{'{count()}'}</mark>.
 				</Code>
 			</Section>
-			<p>
-				<br />
 
-				<blockquote>
-					“kilo, these "counter" examples are a total joke.”
-				</blockquote>
-			</p>
-			<Section title="Glance">
+			<Section title="All In One">
 				<CHEATSHEET />
 			</Section>
 			<Section title="Why">

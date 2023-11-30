@@ -1,8 +1,8 @@
 globalThis.start = performance.now()
 
 // css
-import './public/flair.css'
-import styles from './index.module.css'
+import './index.module.css'
+import stylesMenu from './menu.module.css'
 
 // components
 import Routes from './routes.jsx'
@@ -18,7 +18,7 @@ const location = useLocation()
 render(() => {
 	return (
 		<main
-			flair="grow row"
+			flair="row grow"
 			data-pathname={location.pathname}
 		>
 			<svg
@@ -27,18 +27,18 @@ render(() => {
 				height="24"
 				viewBox="0 -960 960 960"
 				width="24"
-				class={styles.montevideo}
-				onClick={e => {
+				class={stylesMenu.montevideo}
+				on:click={e => {
 					e.currentTarget.nextSibling.classList.toggle('hidden')
 				}}
 			>
 				<path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z" />
 			</svg>
-			<aside flair="grow col">
-				<nav
-					flair="grow col scroll-y scroll-thin"
-					class="menu"
-				>
+			<aside
+				flair="grow col"
+				class={stylesMenu.menu}
+			>
+				<nav flair="grow col scroll-y scroll-thin">
 					<Menu />
 				</nav>
 				<footer flair="row width">
@@ -71,9 +71,7 @@ render(() => {
 				id="content"
 			>
 				<article flair="grow col">
-					{/* routes */}
 					<Routes />
-
 					<p> </p>
 				</article>
 			</section>

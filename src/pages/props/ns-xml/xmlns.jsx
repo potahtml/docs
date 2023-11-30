@@ -6,7 +6,10 @@ function App() {
   return (
     <main>
       Toggles the children of the XML tags.
-      <button onClick={() => setShowing(showing => !showing)}>
+      <button
+        name="button"
+        onClick={() => setShowing(showing => !showing)}
+      >
         toggle
       </button>
       <style>{`* {fill: currentColor;}`}</style>

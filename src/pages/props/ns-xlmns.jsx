@@ -4,11 +4,9 @@ export default function () {
 	return (
 		<>
 			<Header title="ns:__ / xmlns">
-				<p>
-					The <mark>xmlns</mark> attribute is copied to children.
-					Which means it supports by default most kinds of xmls: SVG,
-					MathML, with its fancy namespaces.
-				</p>
+				The <mark>xmlns</mark> attribute is copied to children. Which
+				means it supports by default most kinds of xmls: SVG, MathML,
+				with its fancy namespaces.
 			</Header>
 
 			<Section title="SVG">

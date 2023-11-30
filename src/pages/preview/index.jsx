@@ -11,7 +11,7 @@ new ResizeObserver(entries => {
 		}),
 		'*',
 	)
-}).observe(document.documentElement)
+}).observe(document.body)
 
 // run
 
@@ -47,14 +47,6 @@ function run() {
 
 	const script = document.createElement('script')
 	script.type = 'module'
-	/*
-		// this is nice but breaks the importmap as origin blob: differs
-		script.src = URL.createObjectURL(
-			new Blob([transform.code], {
-				type: 'text/javascript; charset=utf-8',
-			}),
-		)
-	*/
 	script.appendChild(document.createTextNode(transform.code))
 
 	document.body.textContent = ''

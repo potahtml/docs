@@ -19,8 +19,7 @@ function App() {
       <hr />
       muted, autoplay and loop video
       <video
-        src="/public/video.mp4"
-        style="max-width:100%"
+        src="/assets/video.mp4"
         loop
         autoplay
         muted
@@ -40,7 +39,7 @@ function App() {
           <image
             width="100"
             height="100"
-            xlink:href="/public/quack.png"
+            xlink:href="/assets/quack.png"
           />
           ...
         </svg>

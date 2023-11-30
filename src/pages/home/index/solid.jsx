@@ -8,8 +8,13 @@ function Counter() {
 
   return (
     <label>
-      I heard you like to click counters{' '}
-      <button onClick={increment}>{count}</button>
+      I heard you like to click counters
+      <button
+        name="button"
+        onClick={increment}
+      >
+        {count}
+      </button>
     </label>
   )
 }

@@ -4,10 +4,8 @@ export default function () {
 	return (
 		<>
 			<Header title="attr:__">
-				<p>
-					Forces the attribute to be assigned to the Element as an
-					attribute.
-				</p>
+				Forces the attribute to be assigned to the Element as an
+				attribute.
 			</Header>
 
 			<Section title="Custom Web Component">

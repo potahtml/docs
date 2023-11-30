@@ -4,14 +4,11 @@ export default function () {
 	return (
 		<>
 			<Header title="on__">
-				<p>
-					<mark>on__</mark> is for delegated events. For native events
-					see <mark>on:__</mark>. Delegated events are attached to the{' '}
-					<mark>document</mark>, then dispatched to the relevant
-					elements by walking the target parentNode.{' '}
-					<mark>currentTarget</mark> is updated to the relevant
-					target.
-				</p>
+				<mark>on__</mark> is for delegated events. For native events
+				see <mark>on:__</mark>. Delegated events are attached to the{' '}
+				<mark>document</mark>, then dispatched to the relevant
+				elements by walking the target parentNode.{' '}
+				<mark>currentTarget</mark> is updated to the relevant target.
 			</Header>
 
 			<p>

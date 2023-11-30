@@ -20,9 +20,24 @@ function Example() {
 
   return (
     <main>
-      <button onClick={add}>add event</button>
-      <button onClick={remove}>remove event</button>
-      <button ref={button}>click me</button>
+      <button
+        name="button"
+        onClick={add}
+      >
+        add event
+      </button>
+      <button
+        name="button"
+        onClick={remove}
+      >
+        remove event
+      </button>
+      <button
+        name="button"
+        ref={button}
+      >
+        click me
+      </button>
     </main>
   )
 }

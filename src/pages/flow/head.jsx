@@ -4,16 +4,17 @@ export default function () {
 	return (
 		<>
 			<Header title={<Tag>Head ...</Tag>}>
-				<p>
-					Renders its children on <mark>document.head</mark>. It
-					replaces any <mark>title</mark> and <mark>meta</mark> with{' '}
-					<mark>content</mark> and <mark>property</mark> attributes ,
-					as these tags should be unique.
-				</p>
+				Renders its children on <mark>document.head</mark>. It
+				replaces any <mark>title</mark> and <mark>meta</mark> with{' '}
+				<mark>content</mark> and <mark>property</mark> attributes , as
+				these tags should be unique.
 			</Header>
 
 			<Section title="Snippet">
-				<Code url="/pages/flow/head/snippet.jsx"></Code>
+				<Code
+					url="/pages/flow/head/snippet.jsx"
+					render={false}
+				></Code>
 			</Section>
 		</>
 	)

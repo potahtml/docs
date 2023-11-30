@@ -4,12 +4,9 @@ export default function () {
 	return (
 		<>
 			<Header title="resolve">
-				<p>
-					Utility to resolve <mark>props.children</mark>. It returns a
-					memo. This utility helps to unwrap the functions contained
-					on them. It does in a memo so functions are unwrapped only
-					once.
-				</p>
+				Utility to resolve <mark>props.children</mark>. It returns a
+				memo. This utility helps to unwrap the functions contained on
+				them. It does in a memo so functions are unwrapped only once.
 			</Header>
 
 			<p>

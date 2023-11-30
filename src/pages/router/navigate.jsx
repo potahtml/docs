@@ -10,12 +10,10 @@ export default function () {
 					</>
 				}
 			>
-				<p>
-					Used to navigate or change the location.{' '}
-					<Tag mark={true}>Navigate</Tag> tag is just the same as{' '}
-					<mark>navigate</mark> function exported as a component for
-					convenience.
-				</p>
+				Used to navigate or change the location.{' '}
+				<Tag mark={true}>Navigate</Tag> tag is just the same as{' '}
+				<mark>navigate</mark> function exported as a component for
+				convenience.
 			</Header>
 
 			<Section title="Arguments">

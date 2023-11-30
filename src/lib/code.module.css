@@ -1,29 +1,53 @@
-code {
-	font-size: 125%;
-	line-height: 1.25;
+pre {
+	background: #11161d !important;
+	outline: 0;
 	padding: 15px !important;
-	white-space: pre-wrap;
+}
+
+pre * {
+	text-decoration: initial !important;
+	font-style: normal !important;
+}
+code {
 	resize: both;
-	min-width: 100%;
 	min-height: 52px;
+	line-height: 1.25;
 }
 .code {
 	border: 1px solid rgba(5, 134, 234, 0.2);
+	position: relative;
+	padding-bottom: 1px;
+	margin-bottom: 20px;
 }
 .code,
 .code section {
 	padding-right: 0px;
 }
-pre {
-	background: #11161d !important;
-	border-bottom: 0px;
-	outline: 0;
+
+.frame {
+	background: #0d1117;
+	padding: 15px;
 }
 
-pre span[style*='underline'] {
-	text-decoration: initial !important;
+.frame aside {
+	font-size: small;
+	max-width: 100%;
+	opacity: 0.7;
+	padding: 10px;
+	padding-top: 25px;
+	padding-right: 20px;
+	text-align: right;
+	width: 100%;
+	position: absolute;
 }
-
+.frame aside a {
+	border: 0;
+}
+iframe {
+	height: 16px;
+	min-height: 16px;
+	max-width: calc(100% - 1px);
+}
 figcaption {
 	padding: 15px;
 	background: #171f26;
@@ -49,33 +73,12 @@ mark::before {
 	content: '`';
 }
 
-iframe {
-	height: 52px;
-	min-height: 52px;
-}
-.frame {
-	background: #0d1117;
-	border-top: 0px;
-	padding-bottom: 1px;
+.code div[contenteditable='true'] {
 	position: relative;
+	outline: 0;
 }
 
-.frame aside {
-	position: absolute;
-	right: 0;
-	bottom: -30px;
-	font-size: small;
-	opacity: 0.7;
-	z-index: 1;
-	padding-right: 11px;
-	max-width: fit-content;
-}
-
-.code div[contentEditable='true'] {
-	position: relative;
-}
-
-.code div[contentEditable='true']::after {
+.code div[contenteditable='true']::after {
 	content: 'Editable';
 	font-size: small;
 	opacity: 0.7;

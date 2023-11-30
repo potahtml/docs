@@ -116,6 +116,7 @@ function Buttons(props) {
     <>
       push:
       <button
+        name="button"
         onClick={() => {
           arr = value()
           arr.push(content())
@@ -125,6 +126,7 @@ function Buttons(props) {
         push - add
       </button>
       <button
+        name="button"
         onClick={() => {
           arr = value()
           arr.push(content())
@@ -135,6 +137,7 @@ function Buttons(props) {
         push+shift - add+remove
       </button>
       <button
+        name="button"
         onClick={() => {
           arr = value()
           arr.pop()
@@ -147,6 +150,7 @@ function Buttons(props) {
       <hr />
       unshift:
       <button
+        name="button"
         onClick={() => {
           arr = value()
           arr.unshift(content())
@@ -156,6 +160,7 @@ function Buttons(props) {
         unshift - add
       </button>
       <button
+        name="button"
         onClick={() => {
           arr = value()
           arr.unshift(content())
@@ -166,6 +171,7 @@ function Buttons(props) {
         unshift+pop - add+remove
       </button>
       <button
+        name="button"
         onClick={() => {
           arr = value()
           arr.unshift(content())
@@ -179,6 +185,7 @@ function Buttons(props) {
       <hr />
       removal:
       <button
+        name="button"
         onClick={() => {
           arr = value()
           arr.pop()
@@ -188,6 +195,7 @@ function Buttons(props) {
         pop - remove
       </button>
       <button
+        name="button"
         onClick={() => {
           arr = value()
           arr.shift()
@@ -197,6 +205,7 @@ function Buttons(props) {
         shift - remove
       </button>
       <button
+        name="button"
         onClick={() => {
           arr = value()
           arr.shift()
@@ -209,6 +218,7 @@ function Buttons(props) {
       <hr />
       swap:
       <button
+        name="button"
         onClick={() => {
           arr = value()
           if (arr.length < 1) return
@@ -221,6 +231,7 @@ function Buttons(props) {
         1/2 = 2/1
       </button>
       <button
+        name="button"
         onClick={() => {
           arr = value()
           if (arr.length < 2) return
@@ -233,6 +244,7 @@ function Buttons(props) {
         first/last
       </button>
       <button
+        name="button"
         onClick={() => {
           arr = value()
           if (arr.length < 3) return
@@ -245,6 +257,7 @@ function Buttons(props) {
         first next/last prev
       </button>
       <button
+        name="button"
         onClick={() => {
           arr = value()
           if (arr.length < 3) return
@@ -259,6 +272,7 @@ function Buttons(props) {
         middle
       </button>
       <button
+        name="button"
         onClick={() => {
           arr = value()
           if (arr.length < 3) return
@@ -280,6 +294,7 @@ function Buttons(props) {
       <hr />
       insertion:
       <button
+        name="button"
         onClick={() => {
           arr = value()
           arr.splice((arr.length / 2) | 0, 0, content())
@@ -289,6 +304,7 @@ function Buttons(props) {
         insert in middle
       </button>
       <button
+        name="button"
         onClick={() => {
           arr = value()
           let position = (arr.length / 2) | 0
@@ -303,6 +319,7 @@ function Buttons(props) {
       <hr />
       random:
       <button
+        name="button"
         onClick={() => {
           arr = value()
           arr.reverse()
@@ -312,6 +329,7 @@ function Buttons(props) {
         reverse
       </button>
       <button
+        name="button"
         onClick={() => {
           function shuffle(array) {
             let currentIndex = array.length,
@@ -339,6 +357,7 @@ function Buttons(props) {
         shuffle
       </button>
       <button
+        name="button"
         onClick={() => {
           let a = 1
           content = () => a++

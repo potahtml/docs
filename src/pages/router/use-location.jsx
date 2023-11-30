@@ -4,7 +4,7 @@ export default function () {
 	return (
 		<>
 			<Header title="useLocation">
-				<p>Returns location data in a reactive object</p>
+				Returns location data in a reactive object
 			</Header>
 
 			<Section title="Properties">

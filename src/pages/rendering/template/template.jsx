@@ -5,7 +5,7 @@ function Example() {
 
   setInterval(() => setCount(count => count + 1), 1_000)
 
-  const add10 = template`<button>add 10</button>`
+  const add10 = template`<button name="button">add 10</button>`
   add10.onclick = () => setCount(count => count + 10)
 
   function thisworks() {

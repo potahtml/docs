@@ -4,13 +4,11 @@ export default function () {
 	return (
 		<>
 			<Header title="lazyMemo">
-				<p>
-					A regular memo will run right away after the definition. A
-					lazy memo holds the execution till it is used. If the
-					resulting lazy memo is not used, then the function will
-					never run. Written by{' '}
-					<a href="https://github.com/fabiospampinato">Fabio</a>
-				</p>
+				A regular memo will run right away after the definition. A
+				lazy memo holds the execution till it is used. If the
+				resulting lazy memo is not used, then the function will never
+				run. Written by{' '}
+				<a href="https://github.com/fabiospampinato">Fabio</a>
 			</Header>
 
 			<Section title="Arguments">

@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<title>pota preview</title>
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1"
+		/>
+		<script
+			crossorigin="anonymous"
+			src="https://unpkg.com/@babel/standalone@7.23.2/babel.min.js"
+		></script>
+
+		<script type="importmap">
+			{
+				"imports": {
+					"pota": "/dist/preview/standalone/pota.standalone.js",
+					"pota/jsx-runtime": "/dist/preview/standalone/pota.standalone.js",
+					"pota/router": "/dist/preview/standalone/pota.standalone.js",
+					"pota/hooks": "/dist/preview/standalone/pota.standalone.js"
+				}
+			}
+		</script>
+
+		<link
+			rel="stylesheet"
+			href="/reset.css"
+		/>
+
+		<link
+			rel="stylesheet"
+			href="/assets/flair.css"
+		/>
+
+		<link
+			rel="stylesheet"
+			href="/dist/preview/multi-entry.css"
+		/>
+	</head>
+	<body>
+		<script
+			type="module"
+			src="/dist/preview/multi-entry.js"
+		></script>
+	</body>
+</html>

@@ -4,10 +4,8 @@ export default function () {
 	return (
 		<>
 			<Header title="Context">
-				<p>
-					Context holds data in the reactive context for use in
-					reactions or to avoid <em>prop drilling</em>
-				</p>
+				Context holds data in the reactive context for use in
+				reactions or to avoid <em>prop drilling</em>
 			</Header>
 
 			<Section title="Snippet">

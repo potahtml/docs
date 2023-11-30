@@ -9,7 +9,7 @@ export default function FourZeroFour() {
 				<Head>
 					<title>404 Not Found - pota</title>
 				</Head>
-				<p>throw new Error ("this should never happen")</p>
+				throw new Error ("this should never happen")
 			</Header>
 
 			<Code

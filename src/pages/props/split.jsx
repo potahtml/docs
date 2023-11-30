@@ -4,11 +4,9 @@ export default function () {
 	return (
 		<>
 			<Header title="propsSplit">
-				<p>
-					The <mark>propsSplit</mark> function helps to ungroup
-					objects. You may use destructuring instead as this library
-					doesnt use getters. This API is provided for convencience.
-				</p>
+				The <mark>propsSplit</mark> function helps to ungroup objects.
+				You may use destructuring instead as this library doesnt use
+				getters. This API is provided for convencience.
 			</Header>
 
 			<Section title="Snippet">
