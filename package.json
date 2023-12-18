@@ -1,7 +1,7 @@
 {
 	"name": "pota-docs",
 	"description": "pota docs",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"author": "Tito Bouzout",
 	"type": "module",
 	"homepage": "https://pota.quack.uy/",
@@ -26,9 +26,13 @@
 	"kompiler": {
 		"builds": [
 			{
-				"input": ["src/index.jsx"],
+				"input": [
+					"src/index.jsx"
+				],
 				"output": "src/dist/",
-				"watch": ["node_modules"],
+				"watch": [
+					"node_modules"
+				],
 				"minified": false,
 				"babel": {
 					"plugins": [
@@ -39,11 +43,17 @@
 							}
 						]
 					],
-					"presets": [["pota/babel-preset"]]
+					"presets": [
+						[
+							"pota/babel-preset"
+						]
+					]
 				}
 			},
 			{
-				"input": ["src/pages/preview/index.jsx"],
+				"input": [
+					"src/pages/preview/index.jsx"
+				],
 				"output": "src/dist/preview/",
 				"minified": false,
 				"root": false
