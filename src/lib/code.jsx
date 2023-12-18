@@ -101,7 +101,10 @@ function Preview(props) {
 window.addEventListener('message', function (e) {
 	for (const frame of document.querySelectorAll('iframe')) {
 		if (e.source === frame.contentWindow) {
-			frame.style.height = JSON.parse(e.data).height + 'px'
+			const size = JSON.parse(e.data).height
+			if (size < 600) {
+				frame.style.height = size + 'px'
+			}
 			break
 		}
 	}
