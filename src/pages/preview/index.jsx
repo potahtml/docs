@@ -52,9 +52,10 @@ function run() {
 	document.body.textContent = ''
 	document.head.appendChild(script)
 
-	const errors = document.createElement('div')
-	document.body.appendChild(errors)
 	window.onerror = function (event, source, line, col, error) {
+		const errors = document.createElement('div')
+		document.body.textContent = ''
+		document.body.appendChild(errors)
 		errors.textContent = error?.message
 	}
 }
