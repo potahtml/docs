@@ -52,6 +52,16 @@ export default function () {
 							<td>tuple to read and write values from/to a signal</td>
 						</tr>
 						<tr>
+							<td>mutable</td>
+							<td>object</td>
+							<td>object</td>
+							<td>
+								it replaces already exsisting object properties with
+								setters/getters. NOTE: new properties wont be
+								tracked/mutable
+							</td>
+						</tr>
+						<tr>
 							<td>memo</td>
 							<td>fn</td>
 							<td>signal</td>

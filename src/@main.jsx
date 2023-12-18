@@ -21,6 +21,7 @@ template, // (props)=> template\`<div>\${props.children}</div>\`
 
 // reactivity
 signal, // const [read, write] = signal(initialValue)
+mutable, // const state = mutable({some:true, thing:'bla'})
 root, // root(fn)
 effect, // effect(fn)
 renderEffect, // renderEffect(fn)
@@ -52,11 +53,12 @@ propsSplit, // const [newProps, children, divProps] = propsSplit(props, ['childr
 ref, // const button = ref(); <div ref={button}.. /> effect(()=>button())
 
 // JSX Components
+Show, // <Show when={true} fallback="ouch"/>
 Collapse, // <Collapse when={true}/>
 Dynamic, // <Dynamic component="div" children="Hola"/>
+Promised, // <Promised children={()=> new Promise(...)} fallback="Loading.."/> or Promised(()=> new Promise(...), 'Loading..')
 For, // <For each={[1, 2, 3]} children={[item => item * 1, item => item * 2]} />
 Head, // <Head><title>Hello World</title></Head>
-Show, // <Show when={true} fallback="ouch"/>
 Switch, Match,// <Switch fallback="ouch"><Match when={true}/></Switch>
 Portal, // <Portal mount={document.body}>Hola</Portal>
 

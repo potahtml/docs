@@ -9,11 +9,11 @@
 		"#main": "./src/@main.jsx"
 	},
 	"scripts": {
-		"dev": "kompiler",
-		"pota": "concurrently --kill-others \"npm:pota:*\"",
-		"pota:compiler": "kompiler",
-		"pota:source": "cpx \"../pota/**\" ./node_modules/pota/ -w",
-		"pota:standalone": "cpx \"./node_modules/pota/dist/**\" ./src/dist/preview/standalone/ -w"
+		"dev": "concurrently --kill-others \"npm:dev:*\"",
+		"dev:compiler": "kompiler",
+		"dev:source": "cpx \"../pota/**\" ./node_modules/pota/ -w",
+		"dev:standalone": "cpx \"./node_modules/pota/dist/**\" ./src/dist/preview/standalone/ -w",
+		"update": "npm update --include=dev && npm run dev"
 	},
 	"dependencies": {
 		"concurrently": "^8.2.2",
@@ -21,7 +21,7 @@
 		"dom-flair": "^6.0.49",
 		"fflate": "^0.8.1",
 		"kompiler": "^7.0.143",
-		"pota": "^0.2.2"
+		"pota": "^0.3.7"
 	},
 	"kompiler": {
 		"builds": [

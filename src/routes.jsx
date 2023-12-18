@@ -34,8 +34,8 @@ export default function Routes() {
 
 			<Route
 				path="playground$"
-				children={lazy(() =>
-					import('./pages/playground/playground.jsx'),
+				children={lazy(
+					() => import('./pages/playground/playground.jsx'),
 				)}
 			/>
 
@@ -44,20 +44,20 @@ export default function Routes() {
 
 				<Route
 					path="render$"
-					children={lazy(() =>
-						import('./pages/rendering/render.jsx'),
+					children={lazy(
+						() => import('./pages/rendering/render.jsx'),
 					)}
 				/>
 				<Route
 					path="create$"
-					children={lazy(() =>
-						import('./pages/rendering/create.jsx'),
+					children={lazy(
+						() => import('./pages/rendering/create.jsx'),
 					)}
 				/>
 				<Route
 					path="template$"
-					children={lazy(() =>
-						import('./pages/rendering/template.jsx'),
+					children={lazy(
+						() => import('./pages/rendering/template.jsx'),
 					)}
 				/>
 
@@ -66,14 +66,14 @@ export default function Routes() {
 
 					<Route
 						path="resolve$"
-						children={lazy(() =>
-							import('./pages/rendering/resolve.jsx'),
+						children={lazy(
+							() => import('./pages/rendering/resolve.jsx'),
 						)}
 					/>
 					<Route
 						path="toHTML$"
-						children={lazy(() =>
-							import('./pages/rendering/toHTML.jsx'),
+						children={lazy(
+							() => import('./pages/rendering/toHTML.jsx'),
 						)}
 					/>
 				</Route>
@@ -104,8 +104,8 @@ export default function Routes() {
 
 						<Route
 							path="selector$"
-							children={lazy(() =>
-								import('./pages/api/hooks/selector.jsx'),
+							children={lazy(
+								() => import('./pages/api/hooks/selector.jsx'),
 							)}
 						/>
 					</Route>
@@ -113,8 +113,8 @@ export default function Routes() {
 
 				<Route
 					path="lazyMemo$"
-					children={lazy(() =>
-						import('./pages/api/lib/lazy-memo.jsx'),
+					children={lazy(
+						() => import('./pages/api/lib/lazy-memo.jsx'),
 					)}
 				/>
 				<Route
@@ -128,8 +128,8 @@ export default function Routes() {
 
 				<Route
 					path="Classes$"
-					children={lazy(() =>
-						import('./pages/components/classes.jsx'),
+					children={lazy(
+						() => import('./pages/components/classes.jsx'),
 					)}
 				/>
 				<Route
@@ -142,14 +142,18 @@ export default function Routes() {
 
 					<Route
 						path="onReady$"
-						children={lazy(() =>
-							import('./pages/components/lifecycles/on-ready.jsx'),
+						children={lazy(
+							() =>
+								import('./pages/components/lifecycles/on-ready.jsx'),
 						)}
 					/>
 					<Route
 						path="onCleanup$"
-						children={lazy(() =>
-							import('./pages/components/lifecycles/on-cleanup.jsx'),
+						children={lazy(
+							() =>
+								import(
+									'./pages/components/lifecycles/on-cleanup.jsx'
+								),
 						)}
 					/>
 				</Route>
@@ -193,6 +197,11 @@ export default function Routes() {
 					params={{ path: '<Dynamic/>' }}
 					children={lazy(() => import('./pages/flow/dynamic.jsx'))}
 				/>
+				<Route
+					path=":path$"
+					params={{ path: '<Promised/>' }}
+					children={lazy(() => import('./pages/flow/promised.jsx'))}
+				/>
 			</Route>
 
 			<Route path="router/">
@@ -216,20 +225,20 @@ export default function Routes() {
 
 				<Route
 					path="useLocation$"
-					children={lazy(() =>
-						import('./pages/router/use-location.jsx'),
+					children={lazy(
+						() => import('./pages/router/use-location.jsx'),
 					)}
 				/>
 				<Route
 					path="useParams$"
-					children={lazy(() =>
-						import('./pages/router/use-params.jsx'),
+					children={lazy(
+						() => import('./pages/router/use-params.jsx'),
 					)}
 				/>
 				<Route
 					path="useBeforeLeave$"
-					children={lazy(() =>
-						import('./pages/router/use-before-leave.jsx'),
+					children={lazy(
+						() => import('./pages/router/use-before-leave.jsx'),
 					)}
 				/>
 			</Route>
@@ -265,15 +274,15 @@ export default function Routes() {
 					<Route
 						path=":path$"
 						params={{ path: 'prop:__' }}
-						children={lazy(() =>
-							import('./pages/props/attributes/prop.jsx'),
+						children={lazy(
+							() => import('./pages/props/attributes/prop.jsx'),
 						)}
 					/>
 					<Route
 						path=":path$"
 						params={{ path: 'attr:__' }}
-						children={lazy(() =>
-							import('./pages/props/attributes/attr.jsx'),
+						children={lazy(
+							() => import('./pages/props/attributes/attr.jsx'),
 						)}
 					/>
 				</Route>
@@ -284,15 +293,15 @@ export default function Routes() {
 					<Route
 						path=":path$"
 						params={{ path: 'style:__' }}
-						children={lazy(() =>
-							import('./pages/props/css/style.jsx'),
+						children={lazy(
+							() => import('./pages/props/css/style.jsx'),
 						)}
 					/>
 					<Route
 						path=":path$"
 						params={{ path: 'class:__' }}
-						children={lazy(() =>
-							import('./pages/props/css/class.jsx'),
+						children={lazy(
+							() => import('./pages/props/css/class.jsx'),
 						)}
 					/>
 				</Route>
@@ -302,14 +311,14 @@ export default function Routes() {
 
 					<Route
 						path="onMount$"
-						children={lazy(() =>
-							import('./pages/props/lifecycles/on-mount.jsx'),
+						children={lazy(
+							() => import('./pages/props/lifecycles/on-mount.jsx'),
 						)}
 					/>
 					<Route
 						path="onUnmount$"
-						children={lazy(() =>
-							import('./pages/props/lifecycles/on-unmount.jsx'),
+						children={lazy(
+							() => import('./pages/props/lifecycles/on-unmount.jsx'),
 						)}
 					/>
 				</Route>
@@ -319,15 +328,15 @@ export default function Routes() {
 
 					<Route
 						path="on__$"
-						children={lazy(() =>
-							import('./pages/props/events/delegated.jsx'),
+						children={lazy(
+							() => import('./pages/props/events/delegated.jsx'),
 						)}
 					/>
 					<Route
 						path=":path$"
 						params={{ path: 'on:__' }}
-						children={lazy(() =>
-							import('./pages/props/events/native.jsx'),
+						children={lazy(
+							() => import('./pages/props/events/native.jsx'),
 						)}
 					/>
 					<Route
@@ -335,8 +344,8 @@ export default function Routes() {
 						params={{
 							path: 'addEventListener / removeEventListener',
 						}}
-						children={lazy(() =>
-							import('./pages/props/events/add-remove.jsx'),
+						children={lazy(
+							() => import('./pages/props/events/add-remove.jsx'),
 						)}
 					/>
 				</Route>

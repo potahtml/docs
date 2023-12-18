@@ -126,6 +126,13 @@ export default function Menu() {
 								children="<Dynamic/>"
 							/>
 						</li>
+						<li>
+							<A
+								href="/flow/:page"
+								params={{ page: '<Promised/>' }}
+								children="<Promised/>"
+							/>
+						</li>
 					</ul>
 					<h4>Router</h4>
 					<ul>
