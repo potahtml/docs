@@ -145,6 +145,10 @@ wholeNumber
 						<mark>keys</mark> - Object.keys.
 					</li>
 					<li>
+						<mark>measure</mark> - measure execution time of a
+						function
+					</li>
+					<li>
 						<mark>noop</mark> - empty function.
 					</li>
 					<li>
@@ -169,6 +173,7 @@ wholeNumber
 						import {
 
 eyeDropper,
+scale,
 setAlpha,
 textColor,
 textColorWhenBackgroundIsBlack,
@@ -199,6 +204,9 @@ stopEvent
 						code="
 						import {
 
+rand,
+random,
+randomSeeded,
 randomBetween,
 randomColor,
 randomId,
