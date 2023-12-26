@@ -98,6 +98,9 @@ wholeNumber
 						to the reactive graph
 					</li>
 					<li>
+						<mark>defineProperties</mark> - Object.defineProperties.
+					</li>
+					<li>
 						<mark>defineProperty</mark> - Object.defineProperty.
 					</li>
 					<li>
@@ -156,6 +159,9 @@ wholeNumber
 						if value is <mark>undefined</mark> or else it will unwrap
 						the value and return that. This is handy for optional
 						arguments that come from objects.
+					</li>
+					<li>
+						<mark>range(start, stop, step=1)</mark>
 					</li>
 					<li>
 						<mark>removeFromArray(array, value)</mark> - Removes a

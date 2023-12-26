@@ -199,6 +199,14 @@ export default function Menu() {
 				<li>
 					<A
 						href="/props/:page"
+						params={{ page: 'bind' }}
+					>
+						bind
+					</A>
+				</li>
+				<li>
+					<A
+						href="/props/:page"
 						params={{ page: 'ns:__ / xmlns' }}
 					>
 						ns:__ / xmlns

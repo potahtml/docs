@@ -253,6 +253,11 @@ export default function Routes() {
 				/>
 				<Route
 					path=":path$"
+					params={{ path: 'bind' }}
+					children={lazy(() => import('./pages/props/bind.jsx'))}
+				/>
+				<Route
+					path=":path$"
 					params={{ path: 'ns:__ / xmlns' }}
 					children={lazy(() => import('./pages/props/ns-xlmns.jsx'))}
 				/>
