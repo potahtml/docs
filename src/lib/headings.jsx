@@ -32,6 +32,10 @@ export function H2(props) {
 
 			<Show when={props['no-meta'] === undefined}>
 				<Head>
+					<link
+						rel="canonical"
+						href={window.location.href}
+					/>
 					<title>{props.title} - pota</title>
 					<meta
 						name="description"
