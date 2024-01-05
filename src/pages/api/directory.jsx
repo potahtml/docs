@@ -286,12 +286,33 @@ timeWithSeconds
 						render={false}
 					/>
 				</p>
+				<h4>Test</h4>
+				<p>
+					<Code
+						code="
+						import {
+
+describe,
+test,
+expect,
+assertions,
+
+
+						} from 'pota/test'"
+						render={false}
+					/>
+				</p>
 			</Section>
 			<Section title="Props Plugins">
+				<p>Please note each plugin must be imported</p>
+				<h4>Bind</h4>
 				<p>
-					Currently, the library doesnt provide any prop plugin, but
-					you can check <a href="/props/propsPlugin">on this page</a>{' '}
-					how easy is to make one.
+					<ol>
+						<li>
+							<a href="/props/bind">bind</a> - automatically bind the
+							value of a form field to a signal
+						</li>
+					</ol>
 				</p>
 			</Section>
 		</>

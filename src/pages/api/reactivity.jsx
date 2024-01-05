@@ -58,7 +58,17 @@ export default function () {
 							<td>
 								it replaces already exsisting object properties with
 								setters/getters. NOTE: new properties wont be
-								tracked/mutable
+								tracked/mutable. This is NOT recursive.
+							</td>
+						</tr>
+						<tr>
+							<td>mutableDeep</td>
+							<td>object</td>
+							<td>object</td>
+							<td>
+								it replaces all object properties with
+								setters/getters. New properties are tracked/mutable.
+								This is done recursively.
 							</td>
 						</tr>
 						<tr>

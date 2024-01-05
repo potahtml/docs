@@ -258,6 +258,27 @@ export default function Routes() {
 				/>
 				<Route
 					path=":path$"
+					params={{ path: 'setNodeAttribute' }}
+					children={lazy(
+						() => import('./pages/props/set-node-attribute.jsx'),
+					)}
+				/>
+				<Route
+					path=":path$"
+					params={{ path: 'setNodeProperty' }}
+					children={lazy(
+						() => import('./pages/props/set-node-property.jsx'),
+					)}
+				/>
+				<Route
+					path=":path$"
+					params={{ path: 'setNodeStyle' }}
+					children={lazy(
+						() => import('./pages/props/set-node-style.jsx'),
+					)}
+				/>
+				<Route
+					path=":path$"
 					params={{ path: 'ns:__ / xmlns' }}
 					children={lazy(() => import('./pages/props/ns-xlmns.jsx'))}
 				/>

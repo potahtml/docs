@@ -1,16 +1,60 @@
-import { bind, render } from 'pota'
+import { render } from 'pota'
+
+import { bind } from 'pota/plugins/bind'
 
 function App() {
-  const emailAddress = bind('email@gmail.com')
+  const input = bind('email@gmail.com')
+  const select = bind('1')
+  const checkbox = bind(true)
+  const radio = bind(2)
 
   return (
-    <>
-      <input
-        name="email"
-        bind={emailAddress}
-      />{' '}
-      email: {emailAddress}
-    </>
+    <main>
+      <section>
+        <input
+          name="email"
+          bind={input}
+        />{' '}
+        email: {input}
+      </section>
+      <section>
+        <select bind={select}>
+          <option>0</option>
+          <option>1</option>
+          <option>2</option>
+        </select>
+        select: {select}
+      </section>
+      <section>
+        <input
+          type="checkbox"
+          bind={checkbox}
+        />{' '}
+        checkbox: {checkbox}
+      </section>
+      <section>
+        <label>
+          <input
+            type="radio"
+            bind={radio}
+            name="lala"
+            value="1"
+          />{' '}
+          one{' '}
+        </label>{' '}
+        <label>
+          <input
+            type="radio"
+            bind={radio}
+            name="lala"
+            value="2"
+          />{' '}
+          two{' '}
+        </label>
+        {' - '}
+        radio: {radio}
+      </section>
+    </main>
   )
 }
 

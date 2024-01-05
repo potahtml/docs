@@ -21,7 +21,9 @@ template, // (props)=> template\`<div>\${props.children}</div>\`
 
 // reactivity
 signal, // const [read, write] = signal(initialValue)
-mutable, // const state = mutable({some:true, thing:'bla'})
+mutable, // const state = mutable({some:true, thing:'bla'}) // only tracks first level
+mutableDeep, // const state = mutable({some:{thing:{deep:true}}}) // tracks all levels
+
 root, // root(fn)
 effect, // effect(fn)
 renderEffect, // renderEffect(fn)
@@ -47,10 +49,15 @@ resolve, // const cache = resolve(() => props.children)
 toHTML, // const DocFragment = toHTML(props.children)
 
 // props
+ref, // const button = ref(); <div ref={button}.. /> effect(()=>button())
+bind, // const value = bind(); <input bind={value}.. /> effect(()=>value())
+setNodeAttribute, // setNodeAttribute(node, 'data-active', signal, ns)
+setNodeProperty, // setNodeProperty(node, 'hidden', signal)
+setNodeStyle, // setNodeStyle(node, 'color', signalColor)
+
 propsPlugin, // propsPlugin('red', function(node, propName, propValue, props){node.style.color = 'red'}) <div red/>
 propsPluginNS, // propsPluginNS('red', function(node, propName, propValue, props){node.style.color = 'red'}) <div red:moo/>
 propsSplit, // const [newProps, children, divProps] = propsSplit(props, ['children'], ['id', 'class'])
-ref, // const button = ref(); <div ref={button}.. /> effect(()=>button())
 
 // JSX Components
 Show, // <Show when={true} fallback="ouch"/>

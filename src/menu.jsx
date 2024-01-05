@@ -191,11 +191,20 @@ export default function Menu() {
 				<li>
 					<A
 						href="/props/:page"
+						params={{ page: 'ns:__ / xmlns' }}
+					>
+						ns:__ / xmlns
+					</A>
+				</li>
+				<li>
+					<A
+						href="/props/:page"
 						params={{ page: 'ref' }}
 					>
 						ref
 					</A>
 				</li>
+
 				<li>
 					<A
 						href="/props/:page"
@@ -207,11 +216,28 @@ export default function Menu() {
 				<li>
 					<A
 						href="/props/:page"
-						params={{ page: 'ns:__ / xmlns' }}
+						params={{ page: 'setNodeAttribute' }}
 					>
-						ns:__ / xmlns
+						setNodeAttribute
 					</A>
 				</li>
+				<li>
+					<A
+						href="/props/:page"
+						params={{ page: 'setNodeProperty' }}
+					>
+						setNodeProperty
+					</A>
+				</li>
+				<li>
+					<A
+						href="/props/:page"
+						params={{ page: 'setNodeStyle' }}
+					>
+						setNodeStyle
+					</A>
+				</li>
+
 				<li>
 					<A
 						href="/props/:page"

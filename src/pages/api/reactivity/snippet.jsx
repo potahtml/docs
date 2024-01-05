@@ -1,6 +1,7 @@
 import {
 	signal,
 	mutable,
+	mutableDeep,
 	memo,
 	root,
 	renderEffect,
