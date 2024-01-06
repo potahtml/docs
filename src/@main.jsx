@@ -22,7 +22,7 @@ template, // (props)=> template\`<div>\${props.children}</div>\`
 // reactivity
 signal, // const [read, write] = signal(initialValue)
 mutable, // const state = mutable({some:true, thing:'bla'}) // only tracks first level
-mutableDeep, // const state = mutable({some:{thing:{deep:true}}}) // tracks all levels
+mutableDeep, // const state = mutableDeep({some:{thing:{deep:true}}}) // tracks all levels
 
 root, // root(fn)
 effect, // effect(fn)
