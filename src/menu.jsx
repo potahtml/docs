@@ -216,25 +216,25 @@ export default function Menu() {
 				<li>
 					<A
 						href="/props/:page"
-						params={{ page: 'setNodeAttribute' }}
+						params={{ page: 'setElementAttribute' }}
 					>
-						setNodeAttribute
+						setElementAttribute
 					</A>
 				</li>
 				<li>
 					<A
 						href="/props/:page"
-						params={{ page: 'setNodeProperty' }}
+						params={{ page: 'setElementProperty' }}
 					>
-						setNodeProperty
+						setElementProperty
 					</A>
 				</li>
 				<li>
 					<A
 						href="/props/:page"
-						params={{ page: 'setNodeStyle' }}
+						params={{ page: 'setElementStyle' }}
 					>
-						setNodeStyle
+						setElementStyle
 					</A>
 				</li>
 

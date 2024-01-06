@@ -13,15 +13,15 @@ export default function () {
 					<Code
 						code="
 						import {
-							selector
+							useSelector
 						} from 'pota/hooks'"
 						render={false}
 					/>
 				</p>
 				<ol>
 					<li>
-						<a href="/api/directory/hooks/selector">selector</a> -
-						Most performant way to have an <mark>isSelected</mark>{' '}
+						<a href="/api/directory/hooks/useSelector">useSelector</a>{' '}
+						- Most performant way to have an <mark>isSelected</mark>{' '}
 						signal.
 					</li>
 				</ol>

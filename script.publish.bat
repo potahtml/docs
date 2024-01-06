@@ -1,8 +1,6 @@
 
 :: save changes
 
-call npm version patch
-
 call git add --all
 call git commit -m "update docs"
 call git push

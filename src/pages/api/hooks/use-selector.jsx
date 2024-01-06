@@ -3,7 +3,7 @@ import { Code, Header, Section } from '#main'
 export default function () {
 	return (
 		<>
-			<Header title="selector">
+			<Header title="useSelector">
 				Selector is a helper to create a conditional read-only signal.
 				A signal generator. It returns a function that evaluates to
 				true when the argument matches the original signal. The
@@ -16,7 +16,7 @@ export default function () {
 					Automatically create signals for the values and returns true
 					when the value matches
 				</p>
-				<Code url="/pages/api/hooks/selector/test.jsx"></Code>
+				<Code url="/pages/api/hooks/use-selector/test.jsx"></Code>
 			</Section>
 		</>
 	)

@@ -7,6 +7,7 @@ function App() {
   const select = bind('1')
   const checkbox = bind(true)
   const radio = bind(2)
+  const contentEditable = bind('editable')
 
   return (
     <main>
@@ -53,6 +54,15 @@ function App() {
         </label>
         {' - '}
         radio: {radio}
+      </section>
+      <section>
+        <label>
+          <span
+            contentEditable="true"
+            bind={contentEditable}
+          ></span>
+        </label>
+        contentEditable: {contentEditable}
       </section>
     </main>
   )

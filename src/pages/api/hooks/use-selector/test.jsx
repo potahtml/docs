@@ -1,9 +1,9 @@
 import { render, signal, For } from 'pota'
-import { selector } from 'pota/hooks'
+import { useSelector } from 'pota/hooks'
 
 const [selected, setSelected] = signal(3)
 
-const isSelected = selector(selected)
+const isSelected = useSelector(selected)
 
 render(
   <main>

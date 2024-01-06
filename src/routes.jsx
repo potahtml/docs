@@ -103,9 +103,9 @@ export default function Routes() {
 						<NotFound />
 
 						<Route
-							path="selector$"
+							path="useSelector$"
 							children={lazy(
-								() => import('./pages/api/hooks/selector.jsx'),
+								() => import('./pages/api/hooks/use-selector.jsx'),
 							)}
 						/>
 					</Route>
@@ -258,23 +258,23 @@ export default function Routes() {
 				/>
 				<Route
 					path=":path$"
-					params={{ path: 'setNodeAttribute' }}
+					params={{ path: 'setElementAttribute' }}
 					children={lazy(
-						() => import('./pages/props/set-node-attribute.jsx'),
+						() => import('./pages/props/set-element-attribute.jsx'),
 					)}
 				/>
 				<Route
 					path=":path$"
-					params={{ path: 'setNodeProperty' }}
+					params={{ path: 'setElementProperty' }}
 					children={lazy(
-						() => import('./pages/props/set-node-property.jsx'),
+						() => import('./pages/props/set-element-property.jsx'),
 					)}
 				/>
 				<Route
 					path=":path$"
-					params={{ path: 'setNodeStyle' }}
+					params={{ path: 'setElementStyle' }}
 					children={lazy(
-						() => import('./pages/props/set-node-style.jsx'),
+						() => import('./pages/props/set-element-style.jsx'),
 					)}
 				/>
 				<Route

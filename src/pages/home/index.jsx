@@ -99,7 +99,10 @@ export default function Home() {
 						component
 					</li>
 					<li>Does not include server side rendering (SSR)</li>
-					<li>Does not include stores (possibly in the future)</li>
+					<li>
+						<s>Does not include stores (possibly in the future)</s>.
+						See <a href="/api/reactivity">Reactivity</a>
+					</li>
 				</ol>
 			</Section>
 

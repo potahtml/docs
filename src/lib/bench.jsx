@@ -1,4 +1,4 @@
-import { onReady, signal } from 'pota'
+import { onReady, signal, version } from 'pota'
 import styles from './bench.module.css'
 
 export function Bench() {
@@ -20,7 +20,7 @@ export function Bench() {
 		<section
 			title="Current / Best"
 			class={styles.bench}
-			data-render={() => renderTime() + ' / '}
+			data-render={() => 'v' + version + ' - ' + renderTime() + ' / '}
 		>
 			{best}
 		</section>
