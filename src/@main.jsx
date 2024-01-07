@@ -50,7 +50,6 @@ toHTML, // const DocFragment = toHTML(props.children)
 
 // props
 ref, // const button = ref(); <div ref={button}.. /> effect(()=>button())
-bind, // const value = bind(); <input bind={value}.. /> effect(()=>value())
 setElementAttribute, // setElementAttribute(node, 'data-active', signal, ns)
 setElementProperty, // setElementProperty(node, 'hidden', signal)
 setElementStyle, // setElementStyle(node, 'color', signalColor)
@@ -70,6 +69,7 @@ Switch, Match,// <Switch fallback="ouch"><Match when={true}/></Switch>
 Portal, // <Portal mount={document.body}>Hola</Portal>
 
 getValue, // getValue(signalMaybe)
+
 version
 } from 'pota'
 `}
