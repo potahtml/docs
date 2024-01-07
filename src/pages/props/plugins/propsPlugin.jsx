@@ -10,7 +10,7 @@ export default function () {
 			</Header>
 
 			<Section title="Snippet">
-				<Code url="/pages/props/plugin/snippet.jsx"></Code>
+				<Code url="/pages/props/plugins/propsPlugin/snippet.jsx"></Code>
 			</Section>
 		</>
 	)

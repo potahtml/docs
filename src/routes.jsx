@@ -251,11 +251,7 @@ export default function Routes() {
 					params={{ path: 'ref' }}
 					children={lazy(() => import('./pages/props/ref.jsx'))}
 				/>
-				<Route
-					path=":path$"
-					params={{ path: 'bind' }}
-					children={lazy(() => import('./pages/props/bind.jsx'))}
-				/>
+
 				<Route
 					path=":path$"
 					params={{ path: 'setElementAttribute' }}
@@ -288,12 +284,22 @@ export default function Routes() {
 					params={{ path: 'propsSplit' }}
 					children={lazy(() => import('./pages/props/split.jsx'))}
 				/>
-				<Route
-					path=":path$"
-					params={{ path: 'propsPlugin' }}
-					children={lazy(() => import('./pages/props/plugin.jsx'))}
-				/>
-
+				<Route path="plugins/">
+					<Route
+						path=":path$"
+						params={{ path: 'propsPlugin' }}
+						children={lazy(
+							() => import('./pages/props/plugins/propsPlugin.jsx'),
+						)}
+					/>
+					<Route
+						path=":path$"
+						params={{ path: 'bind' }}
+						children={lazy(
+							() => import('./pages/props/plugins/bind.jsx'),
+						)}
+					/>
+				</Route>
 				<Route path="attributes/">
 					<NotFound />
 

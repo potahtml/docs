@@ -42,6 +42,7 @@ isReactive,
 
 assign,
 contextSimple,
+defineProperties,
 defineProperty,
 empty,
 entries,
@@ -55,11 +56,13 @@ isNaN,
 isNotNullObject,
 isNullUndefined,
 keys,
+measure,
+microtask,
 noop,
 optional,
+range,
 removeFromArray,
-toArray,
-wholeNumber
+toArray
 
 						} from 'pota/lib'"
 						render={false}
@@ -119,8 +122,9 @@ wholeNumber
 						object.
 					</li>
 					<li>
-						<mark>getValue(value)</mark> - If value is a function it
-						will unwrap it recursively.
+						<mark>getValue(value, arg0, arg1, etc)</mark> - If value
+						is a function it will unwrap it recursively. arguments
+						will be forwarded to the function if any
 					</li>
 					<li>
 						<mark>hasValue(value)</mark> - Returns true when the value

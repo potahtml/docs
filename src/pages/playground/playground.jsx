@@ -23,14 +23,14 @@ export default function () {
 		window.location.hash !== ''
 			? uncompress(
 					decodeURIComponent(window.location.hash.substring(1)),
-			  ).code
+				).code
 			: example,
 	)
 
 	// update the hash
 	effect(() => {
 		if (code()) {
-			history.replaceState(
+			history.pushState(
 				undefined,
 				'',
 				'#' + encodeURIComponent(compress({ code: code() })),

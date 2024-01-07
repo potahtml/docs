@@ -4,8 +4,8 @@ export default function () {
 	return (
 		<>
 			<Header title="setElementStyle">
-				<mark>setElementStyle</mark> is a small helper for setting
-				styles on nodes that may come from signals
+				<mark>setElementStyle</mark> is a helper for setting
+				attributes that may come from reactive values
 			</Header>
 
 			<Section title="Snippet">

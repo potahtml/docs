@@ -196,6 +196,7 @@ export default function Menu() {
 						ns:__ / xmlns
 					</A>
 				</li>
+
 				<li>
 					<A
 						href="/props/:page"
@@ -205,14 +206,6 @@ export default function Menu() {
 					</A>
 				</li>
 
-				<li>
-					<A
-						href="/props/:page"
-						params={{ page: 'bind' }}
-					>
-						bind
-					</A>
-				</li>
 				<li>
 					<A
 						href="/props/:page"
@@ -246,13 +239,28 @@ export default function Menu() {
 						propsSplit
 					</A>
 				</li>
+
 				<li>
-					<A
-						href="/props/:page"
-						params={{ page: 'propsPlugin' }}
-					>
-						propsPlugin
-					</A>
+					<h4>Plugins</h4>
+
+					<ul>
+						<li>
+							<A
+								href="/props/plugins/:page"
+								params={{ page: 'propsPlugin' }}
+							>
+								propsPlugin
+							</A>
+						</li>
+						<li>
+							<A
+								href="/props/plugins/:page"
+								params={{ page: 'bind' }}
+							>
+								bind
+							</A>
+						</li>
+					</ul>
 				</li>
 
 				<li>

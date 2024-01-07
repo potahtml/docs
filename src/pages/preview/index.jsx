@@ -54,6 +54,7 @@ function run() {
 
 	window.onerror = function (event, source, line, col, error) {
 		const errors = document.createElement('div')
+		errors.classList.add('error')
 		document.body.textContent = ''
 		document.body.appendChild(errors)
 		errors.textContent = error?.message

@@ -6,7 +6,7 @@ function App() {
       <Promised fallback="Loading">
         {() => {
           return new Promise((resolve, reject) => {
-            setTimeout(() => resolve('something'), 5000)
+            setTimeout(() => resolve('Loaded'), 3000)
           })
         }}
       </Promised>
