@@ -4,10 +4,12 @@ export default function () {
 	return (
 		<>
 			<Header title="Usage">
-				We provide two vite templates for getting started with pota.
+				There are two vite templates for getting started with pota.
 				The templates are located in{' '}
 				<a href="https://github.com/potaorg/templates">github</a>.
-				Feel free to send improvements!
+				Feel free to send improvements!. The recommended way to use
+				this package is with rollup, unless you can handle vite
+				idiosyncrasies.
 			</Header>
 
 			<Section title="JavaScript">
