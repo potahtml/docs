@@ -17,7 +17,7 @@ import {
 render, // render(thing, targetEl=document.body, {clear:false, relative:false})
 create, // const Fancy = create((props)=>[1, 2, 3, props.children])
 customElement, // customElement("fancy-element", class Fancy extends HTMLElement{})
-template, // (props)=> template\`<div>\${props.children}</div>\`
+html, // (props)=> html\`<div>\${props.children}</div>\`
 
 // reactivity
 signal, // const [read, write] = signal(initialValue)

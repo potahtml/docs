@@ -1,11 +1,11 @@
-import { render, template, signal } from 'pota'
+import { render, html, signal } from 'pota'
 
 function Example() {
   const [count, setCount] = signal(0)
 
   setInterval(() => setCount(count => count + 1), 1_000)
 
-  const add10 = template`<button name="button">add 10</button>`
+  const add10 = html`<button name="button">add 10</button>`
   add10.onclick = () => setCount(count => count + 10)
 
   function thisworks() {
@@ -15,7 +15,7 @@ function Example() {
     render('you left!')
   }
 
-  return template`<div>
+  return html`<div>
     Hello, The count is: ${count}!<br />
     <i
       onclick="${thisworks}"

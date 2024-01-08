@@ -1,16 +1,15 @@
-import { render, template } from 'pota'
+import { render, html } from 'pota'
 
-const Bold = text => template`<b>${text}</b>`
+const Bold = text => html`<b>${text}</b>`
 
 function Fun(props) {
-  return template`
+  return html`
     <div>
-      ${props.message}
-        ${props.list} ${props.node}
+      ${props.message} ${props.list} ${props.node}
       <u>${props.look}</u>
       ${props.element}
     </div>
-    `
+  `
 }
 
 const example = Fun({
