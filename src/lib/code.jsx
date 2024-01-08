@@ -81,7 +81,7 @@ function Preview(props) {
 			<div
 				contentEditable={props.editable ? true : false}
 				spellcheck={false}
-				onInput={e => props.setCode(e.target.textContent)}
+				onInput={e => props.setCode(e.target.innerText)}
 				innerHTML={code}
 				on:paste={e => {
 					e.preventDefault()
