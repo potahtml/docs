@@ -5,8 +5,14 @@ function Example() {
 
   setInterval(() => setCount(count => count + 1), 1_000)
 
-  const add10 = html`<button name="button">add 10</button>`
-  add10.onclick = () => setCount(count => count + 10)
+  const add10 = html`<button
+    onclick="${() => setCount(count => count + 10)}"
+    name="button"
+  >
+    add 10
+  </button>`
+
+  add10.onmousedown = () => render(<div>onmousedown!</div>)
 
   function thisworks() {
     render('you clicked!')

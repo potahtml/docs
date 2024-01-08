@@ -15,6 +15,12 @@ function Fun() {
     <div>
       <FancyCustomBold test="${[1, 2, 3]}">
         is this bold?
+        <FancyCustomBold test="${[1, 2, 3]}">
+          is this bold?
+          <FancyCustomBold test="${[1, 2, 3]}">
+            is this bold?
+          </FancyCustomBold>
+        </FancyCustomBold>
       </FancyCustomBold>
       <u>${name}</u>
     </div>
