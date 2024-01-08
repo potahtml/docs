@@ -5,9 +5,7 @@ export default function () {
 		<>
 			<Header title="html">
 				<mark>html</mark> or <mark>template</mark>, is handy function
-				to make components from cached tagged templates. The
-				functionality is very basic and only supports native elements
-				as strings.
+				to make components from cached tagged templates.
 			</Header>
 
 			<Section title="No JSX">
