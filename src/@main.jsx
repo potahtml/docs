@@ -48,6 +48,12 @@ lazy, // const Com = lazy(()=>import('yey.jsx')) <Comp some={true}/>
 resolve, // const cache = resolve(() => props.children)
 toHTML, // const DocFragment = toHTML(props.children)
 
+// components utilitites
+makeCallback, // makeCallback(props.children) === ()=>props.children
+markComponent, // markComponent(()=> <b>this doesnt track</b>)
+isComponent, // isComponent(fn) // true for non-tracking components
+isReactive, // isReactive(fn) // true for signals
+
 // props
 ref, // const button = ref(); <div ref={button}.. /> effect(()=>button())
 setElementAttribute, // setElementAttribute(node, 'data-active', signal, ns)
@@ -70,7 +76,7 @@ Portal, // <Portal mount={document.body}>Hola</Portal>
 
 getValue, // getValue(signalMaybe)
 
-version
+version // pota version
 } from 'pota'
 `}
 	/>

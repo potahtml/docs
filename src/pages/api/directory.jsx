@@ -18,13 +18,17 @@ export default function () {
 						render={false}
 					/>
 				</p>
-				<ol>
-					<li>
-						<a href="/api/directory/hooks/useSelector">useSelector</a>{' '}
-						- Most performant way to have an <mark>isSelected</mark>{' '}
-						signal.
-					</li>
-				</ol>
+				<p>
+					<ol>
+						<li>
+							<a href="/api/directory/hooks/useSelector">
+								useSelector
+							</a>{' '}
+							- Most performant way to have an <mark>isSelected</mark>{' '}
+							signal.
+						</li>
+					</ol>
+				</p>
 			</Section>
 			<Section title="Lib">
 				<style>{`h4{margin-top:15px;margin-bottom:5px;}`}</style>
@@ -32,14 +36,6 @@ export default function () {
 					<Code
 						code="
 						import {
-
-makeCallback,
-markComponent,
-
-
-isReactive,
-
-
 assign,
 contextSimple,
 copy,
@@ -50,6 +46,7 @@ entries,
 functionState,
 getter,
 getValue,
+hasOwnProperty,
 hasValue,
 isArray,
 isExtensible,
@@ -57,6 +54,7 @@ isFunction,
 isNaN,
 isNotNullObject,
 isNullUndefined,
+isPrototypeProperty,
 keys,
 measure,
 microtask,
@@ -70,122 +68,107 @@ toArray
 						render={false}
 					/>
 				</p>
-
-				<h4>Components</h4>
-				<ol>
-					<li>
-						<mark>makeCallback(props.children)</mark> - Makes of each
-						children of <mark>props.children</mark> a function. Avoids
-						tracking on functions(uses untrack), and allows tracking
-						on signals.
-					</li>
-					<li>
-						<mark>markComponent(fn)</mark> - Prevents adding an effect
-						on rendering to a function.
-					</li>
-				</ol>
-
-				<h4>Reactivity</h4>
-				<ol>
-					<li>
-						<mark>isReactive(value)</mark> - Returns true when the
-						value is reactive. A memo or a signal.
-					</li>
-				</ol>
-
-				<h4>Standard</h4>
-				<ol>
-					<li>
-						<mark>assign</mark> - Object.assign
-					</li>
-					<li>
-						<mark>contextSimple</mark> - Like context but not attached
-						to the reactive graph
-					</li>
-					<li>
-						<mark>copy</mark> - structuredClone an object or returns
-						its value
-					</li>
-					<li>
-						<mark>defineProperties</mark> - Object.defineProperties.
-					</li>
-					<li>
-						<mark>defineProperty</mark> - Object.defineProperty.
-					</li>
-					<li>
-						<mark>empty</mark> - creates an object without a
-						prototype.
-					</li>
-					<li>
-						<mark>entries</mark> - Object.entries.
-					</li>
-					<li>
-						<mark>functionState(fn, state={})</mark> - Keeps state in
-						the function as a bind param.
-					</li>
-					<li>
-						<mark>getter(object, key, fn)</mark> - defines getter on
-						object.
-					</li>
-					<li>
-						<mark>getValue(value, arg0, arg1, etc)</mark> - If value
-						is a function it will unwrap it recursively. arguments
-						will be forwarded to the function if any
-					</li>
-					<li>
-						<mark>hasValue(value)</mark> - Returns true when the value
-						is not null and not undefined
-					</li>
-					<li>
-						<mark>isArray</mark> - Array.isArray.
-					</li>
-					<li>
-						<mark>isExtensible</mark> - Object.isExtensible.
-					</li>
-					<li>
-						<mark>isFunction</mark> - returns true when value is a
-						function.
-					</li>
-					<li>
-						<mark>isNaN</mark> - Number.isNaN.
-					</li>
-					<li>
-						<mark>isNotNullObject</mark> - Returns true when value is
-						a not null object
-					</li>
-					<li>
-						<mark>isNullUndefined</mark> - Returns true if the value
-						is null or undefined
-					</li>
-					<li>
-						<mark>keys</mark> - Object.keys.
-					</li>
-					<li>
-						<mark>measure</mark> - measure execution time of a
-						function
-					</li>
-					<li>
-						<mark>noop</mark> - empty function.
-					</li>
-					<li>
-						<mark>optional(value)</mark> - returns <mark>true</mark>{' '}
-						if value is <mark>undefined</mark> or else it will unwrap
-						the value and return that. This is handy for optional
-						arguments that come from objects.
-					</li>
-					<li>
-						<mark>range(start, stop, step=1)</mark>
-					</li>
-					<li>
-						<mark>removeFromArray(array, value)</mark> - Removes a
-						value from an array and returns the array
-					</li>
-					<li>
-						<mark>toArray</mark> - Array.from.
-					</li>
-				</ol>
-
-				<h4>Color</h4>
+				<p>
+					<ol>
+						<li>
+							<mark>assign</mark> - Object.assign
+						</li>
+						<li>
+							<mark>contextSimple</mark> - Like context but not
+							attached to the reactive graph
+						</li>
+						<li>
+							<mark>copy</mark> - structuredClone an object or returns
+							its value
+						</li>
+						<li>
+							<mark>defineProperties</mark> - Object.defineProperties.
+						</li>
+						<li>
+							<mark>defineProperty</mark> - Object.defineProperty.
+						</li>
+						<li>
+							<mark>empty</mark> - creates an object without a
+							prototype.
+						</li>
+						<li>
+							<mark>entries</mark> - Object.entries.
+						</li>
+						<li>
+							<mark>functionState(fn, state={})</mark> - Keeps state
+							in the function as a bind param.
+						</li>
+						<li>
+							<mark>getter(object, key, fn)</mark> - defines getter on
+							object.
+						</li>
+						<li>
+							<mark>getValue(value, arg0, arg1, etc)</mark> - If value
+							is a function it will unwrap it recursively. arguments
+							will be forwarded to the function if any
+						</li>
+						<li>
+							<mark>hasOwnProperty</mark> - Object.hasOwn
+						</li>
+						<li>
+							<mark>hasValue(value)</mark> - Returns true when the
+							value is not null and not undefined
+						</li>
+						<li>
+							<mark>isArray</mark> - Array.isArray.
+						</li>
+						<li>
+							<mark>isExtensible</mark> - Object.isExtensible.
+						</li>
+						<li>
+							<mark>isFunction</mark> - returns true when value is a
+							function.
+						</li>
+						<li>
+							<mark>isNaN</mark> - Number.isNaN.
+						</li>
+						<li>
+							<mark>isNotNullObject</mark> - Returns true when value
+							is a not null object
+						</li>
+						<li>
+							<mark>isNullUndefined</mark> - Returns true if the value
+							is null or undefined
+						</li>
+						<li>
+							<mark>isPrototypeProperty</mark> - returns true when
+							object has the property and is on the prototype
+						</li>
+						<li>
+							<mark>keys</mark> - Object.keys.
+						</li>
+						<li>
+							<mark>measure</mark> - measure execution time of a
+							function
+						</li>
+						<li>
+							<mark>noop</mark> - empty function.
+						</li>
+						<li>
+							<mark>optional(value)</mark> - returns <mark>true</mark>{' '}
+							if value is <mark>undefined</mark> or else it will
+							unwrap the value and return that. This is handy for
+							optional arguments that come from objects.
+						</li>
+						<li>
+							<mark>range(start, stop, step=1)</mark>
+						</li>
+						<li>
+							<mark>removeFromArray(array, value)</mark> - Removes a
+							value from an array and returns the array
+						</li>
+						<li>
+							<mark>toArray</mark> - Array.from.
+						</li>
+					</ol>
+				</p>
+			</Section>
+			<Section title="Color">
 				<p>
 					<Code
 						code="
@@ -203,8 +186,8 @@ validateColor,
 						render={false}
 					/>
 				</p>
-
-				<h4>Events</h4>
+			</Section>
+			<Section title="Events">
 				<p>
 					<Code
 						code="
@@ -216,8 +199,8 @@ stopEvent
 						render={false}
 					/>
 				</p>
-
-				<h4>Random</h4>
+			</Section>
+			<Section title="Random">
 				<p>
 					<Code
 						code="
@@ -234,8 +217,8 @@ randomId,
 						render={false}
 					/>
 				</p>
-
-				<h4>Scroll</h4>
+			</Section>
+			<Section title="Scroll">
 				<p>
 					<Code
 						code="
@@ -251,8 +234,8 @@ scrollToTopLeft,
 						render={false}
 					/>
 				</p>
-
-				<h4>Streams</h4>
+			</Section>
+			<Section title="Streams">
 				<p>
 					<Code
 						code="
@@ -264,8 +247,8 @@ stopTracks
 						render={false}
 					/>
 				</p>
-
-				<h4>Strings</h4>
+			</Section>
+			<Section title="Strings">
 				<p>
 					<Code
 						code="
@@ -285,8 +268,8 @@ wholeNumber
 						render={false}
 					/>
 				</p>
-
-				<h4>Time</h4>
+			</Section>
+			<Section title="Time">
 				<p>
 					<Code
 						code="
@@ -299,7 +282,8 @@ timeWithSeconds
 						render={false}
 					/>
 				</p>
-				<h4>Test</h4>
+			</Section>
+			<Section title="Test">
 				<p>
 					<Code
 						code="
@@ -317,8 +301,20 @@ assertions,
 				</p>
 			</Section>
 			<Section title="Props Plugins">
-				<p>Please note each plugin must be imported</p>
-				<h4>Bind</h4>
+				<p>
+					Please note each plugin must be imported separately at least
+					once to be registered as a prop to be used on JSX globally
+				</p>
+				<p>
+					<Code
+						code="
+
+ import { bind } from 'pota/plugins/bind'
+
+"
+						render={false}
+					/>
+				</p>
 				<p>
 					<ol>
 						<li>
