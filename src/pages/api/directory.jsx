@@ -42,6 +42,7 @@ isReactive,
 
 assign,
 contextSimple,
+copy,
 defineProperties,
 defineProperty,
 empty,
@@ -51,6 +52,7 @@ getter,
 getValue,
 hasValue,
 isArray,
+isExtensible,
 isFunction,
 isNaN,
 isNotNullObject,
@@ -101,6 +103,10 @@ toArray
 						to the reactive graph
 					</li>
 					<li>
+						<mark>copy</mark> - structuredClone an object or returns
+						its value
+					</li>
+					<li>
 						<mark>defineProperties</mark> - Object.defineProperties.
 					</li>
 					<li>
@@ -132,6 +138,9 @@ toArray
 					</li>
 					<li>
 						<mark>isArray</mark> - Array.isArray.
+					</li>
+					<li>
+						<mark>isExtensible</mark> - Object.isExtensible.
 					</li>
 					<li>
 						<mark>isFunction</mark> - returns true when value is a
@@ -313,8 +322,8 @@ assertions,
 				<p>
 					<ol>
 						<li>
-							<a href="/props/bind">bind</a> - automatically bind the
-							value of a form field to a signal
+							<a href="/props/plugins/bind">bind</a> - automatically
+							bind the value of a form field to a signal
 						</li>
 					</ol>
 				</p>
