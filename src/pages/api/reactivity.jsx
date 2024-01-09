@@ -132,6 +132,16 @@ export default function () {
 							</td>
 						</tr>
 						<tr>
+							<td>writableMemo</td>
+							<td>fn</td>
+							<td>signal</td>
+							<td>
+								like a memo but the function wont run unless is used
+								(lazy), and if you write to the return value it will
+								get that as a value
+							</td>
+						</tr>
+						<tr>
 							<td>withOwner</td>
 							<td>void</td>
 							<td>(fnToRun)=>fnToRun()</td>

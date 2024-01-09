@@ -9,6 +9,7 @@ import {
 	batch,
 	cleanup,
 	lazyMemo,
+	writableMemo,
 	withOwner,
 	map,
 } from 'pota'
