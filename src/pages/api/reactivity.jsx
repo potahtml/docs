@@ -72,12 +72,14 @@ export default function () {
 							</td>
 						</tr>
 						<tr>
-							<td>memo</td>
+							<td>
+								<a href="/api/memo">memo</a>
+							</td>
 							<td>fn</td>
 							<td>signal</td>
 							<td>
 								read-only signal that will update when the return
-								value of the function changes
+								value of the function changes, memos are lazy
 							</td>
 						</tr>
 						<tr>
@@ -121,16 +123,7 @@ export default function () {
 								disposed
 							</td>
 						</tr>
-						<tr>
-							<td>
-								<a href="/api/lazyMemo">lazyMemo</a>
-							</td>
-							<td>fn</td>
-							<td>signal</td>
-							<td>
-								like a memo but the function wont run unless is used
-							</td>
-						</tr>
+
 						<tr>
 							<td>writableMemo</td>
 							<td>fn</td>

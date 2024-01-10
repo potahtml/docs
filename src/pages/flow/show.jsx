@@ -84,8 +84,8 @@ export default function () {
 					<mark>false</mark>
 				</p>
 				<Code url="/pages/flow/show/fallback.jsx">
-					Fallbacks use <mark>lazyMemo</mark>, so these dont need to
-					use the children helper
+					Fallbacks use <mark>memo</mark> which are lazy, so these
+					dont need to use the children helper
 				</Code>
 			</Section>
 

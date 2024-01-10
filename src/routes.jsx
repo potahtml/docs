@@ -110,10 +110,8 @@ export default function Routes() {
 				</Route>
 
 				<Route
-					path="lazyMemo$"
-					children={lazy(
-						() => import('./pages/api/lib/lazy-memo.jsx'),
-					)}
+					path="memo$"
+					children={lazy(() => import('./pages/api/lib/memo.jsx'))}
 				/>
 				<Route
 					path="map$"

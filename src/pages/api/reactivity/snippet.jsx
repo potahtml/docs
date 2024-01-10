@@ -8,7 +8,6 @@ import {
 	effect,
 	batch,
 	cleanup,
-	lazyMemo,
 	writableMemo,
 	withOwner,
 	map,
