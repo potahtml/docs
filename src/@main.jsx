@@ -28,7 +28,7 @@ root, // root(fn)
 effect, // effect(fn)
 renderEffect, // renderEffect(fn)
 memo, // memo(fn)
-writableMemo, // writableMemo(fn)
+writableMemo, // const m = writableMemo(fn); m(true) // now "m" is "true" till memo reruns
 batch, // batch(fn)
 untrack, // untrack(fn)
 cleanup, // cleanup(fn)
