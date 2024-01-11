@@ -300,6 +300,21 @@ assertions,
 					/>
 				</p>
 			</Section>
+			<Section title="Data">
+				<p>
+					<Code
+						code="
+						import {
+
+paginate,
+paginateValues
+
+
+						} from 'pota/data'"
+						render={false}
+					/>
+				</p>
+			</Section>
 			<Section title="Props Plugins">
 				<p>
 					Please note each plugin must be imported separately at least
