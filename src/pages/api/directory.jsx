@@ -193,7 +193,8 @@ validateColor,
 						code="
 						import {
 
-stopEvent
+stopEvent,
+dispatchNativeEvent
 
 						} from 'pota/events'"
 						render={false}
