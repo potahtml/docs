@@ -31,7 +31,6 @@ export default function () {
 				</p>
 			</Section>
 			<Section title="Lib">
-				<style>{`h4{margin-top:15px;margin-bottom:5px;}`}</style>
 				<p>
 					<Code
 						code="
@@ -46,6 +45,7 @@ entries,
 functionState,
 getter,
 getValue,
+getValueElement,
 hasOwnProperty,
 hasValue,
 isArray,
@@ -106,6 +106,11 @@ toArray
 							<mark>getValue(value, arg0, arg1, etc)</mark> - If value
 							is a function it will unwrap it recursively. arguments
 							will be forwarded to the function if any
+						</li>
+						<li>
+							<mark>getValueElement(value )</mark> - Unwraps value and
+							returns element if result is a Node or undefined in the
+							case isnt a Node
 						</li>
 						<li>
 							<mark>hasOwnProperty</mark> - Object.hasOwn
@@ -312,6 +317,19 @@ paginateValues
 
 
 						} from 'pota/data'"
+						render={false}
+					/>
+				</p>
+			</Section>
+			<Section title="CSS">
+				<p>
+					<Code
+						code="
+						import {
+css,
+sheet,
+webElementsGroup
+						} from 'pota/css'"
 						render={false}
 					/>
 				</p>
