@@ -125,7 +125,10 @@ export default function () {
 						preview={false}
 					/>
 					<section flair="col">
-						<label flair="row center selection-none">
+						<label
+							flair="row center selection-none"
+							style="z-index:1"
+						>
 							<input
 								name="button"
 								type="checkbox"
