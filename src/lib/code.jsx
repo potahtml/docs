@@ -3,6 +3,7 @@ import styles from './code.module.css'
 import { compress } from './compress.js'
 import { Show, signal, ref, memo, effect } from 'pota'
 import { getValue } from 'pota/lib'
+import { prettierConfig } from '#main'
 
 export function Code(props) {
 	if (props.url) {
@@ -50,25 +51,11 @@ export function Code(props) {
 function Preview(props) {
 	return globalThis.prettier
 		.format(props.code(), {
-			parser: 'babel',
 			plugins: [
 				globalThis.prettierPluginBabel,
 				globalThis.prettierPluginEstree,
 			],
-			printWidth: 55,
-			useTabs: false,
-			tabWidth: 2,
-			semi: false,
-			singleQuote: true,
-			quoteProps: 'as-needed',
-			jsxSingleQuote: false,
-			trailingComma: 'none',
-			bracketSpacing: true,
-			bracketSameLine: false,
-			arrowParens: 'avoid',
-			proseWrap: 'never',
-			endOfLine: 'lf',
-			singleAttributePerLine: true,
+			...prettierConfig,
 		})
 		.then(code =>
 			globalThis.shiki.then(highlighter =>

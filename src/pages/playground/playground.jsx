@@ -1,5 +1,5 @@
 import styles from './playground.module.css'
-import { CHEATSHEET, Code, Header } from '#main'
+import { CHEATSHEET, Code, Header, prettierConfig } from '#main'
 
 import {
 	addEventListener,
@@ -69,6 +69,27 @@ export default function () {
 			editor
 				.getModel()
 				.onDidChangeContent(event => setCode(editor.getValue()))
+
+			editor.onKeyDown(e => {
+				if (
+					// CTRL + S
+					(e.keyCode === 49 && e.ctrlKey) ||
+					// SHIFT + ALT + F
+					(e.keyCode === 36 && e.altKey && e.shiftKey)
+				) {
+					e.preventDefault()
+
+					globalThis.prettier
+						.format(editor.getValue(), {
+							plugins: [
+								globalThis.prettierPluginBabel,
+								globalThis.prettierPluginEstree,
+							],
+							...prettierConfig,
+						})
+						.then(code => editor.setValue(code))
+				}
+			})
 
 			addEventListener(
 				window,
