@@ -313,6 +313,13 @@ export default function Routes() {
 							() => import('./pages/props/attributes/attr.jsx'),
 						)}
 					/>
+					<Route
+						path=":path$"
+						params={{ path: 'bool:__' }}
+						children={lazy(
+							() => import('./pages/props/attributes/bool.jsx'),
+						)}
+					/>
 				</Route>
 
 				<Route path="css/">

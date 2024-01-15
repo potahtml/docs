@@ -294,6 +294,14 @@ export default function Menu() {
 								attr:__
 							</A>
 						</li>
+						<li>
+							<A
+								href="/props/attributes/:page"
+								params={{ page: 'bool:__' }}
+							>
+								bool:__
+							</A>
+						</li>
 					</ul>
 				</li>
 				<li>
