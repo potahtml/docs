@@ -23,9 +23,21 @@ export default function () {
 				<Code url="/pages/rendering/html/jsx.jsx"></Code>
 			</Section>
 
-			<Section title="Custom Element">
-				<p>Making a custom element</p>
+			<Section title="Custom Component">
+				<p>Making a custom component</p>
 				<Code url="/pages/rendering/html/custom-element.jsx"></Code>
+			</Section>
+
+			<Section title="Show Off">
+				<p>
+					Testing the <mark>Show</mark> component
+				</p>
+				<Code url="/pages/rendering/html/show-off.jsx"></Code>
+			</Section>
+
+			<Section title="Nested Show">
+				<p>Nesting components with callbacks</p>
+				<Code url="/pages/rendering/html/nested-show-off.jsx"></Code>
 			</Section>
 		</>
 	)
