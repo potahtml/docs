@@ -39,6 +39,21 @@ export default function () {
 				<p>Nesting components with callbacks</p>
 				<Code url="/pages/rendering/html/nested-show-off.jsx"></Code>
 			</Section>
+
+			<Section title="Attributes test">
+				<p>Attributes and properties test</p>
+				<Code url="/pages/rendering/html/attributes-properties.jsx"></Code>
+			</Section>
+
+			<Section title="Two html">
+				<p>One calling the other</p>
+				<Code url="/pages/rendering/html/custom-element-functions.jsx"></Code>
+			</Section>
+
+			<Section title="Custom Element">
+				<p>When is called the custom element constructor?</p>
+				<Code url="/pages/rendering/html/custom-element-constructor.jsx"></Code>
+			</Section>
 		</>
 	)
 }

@@ -86,6 +86,7 @@ export default function () {
 								globalThis.prettierPluginEstree,
 							],
 							...prettierConfig,
+							printWidth: 70,
 						})
 						.then(code => editor.setValue(code))
 				}
