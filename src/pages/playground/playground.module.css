@@ -31,3 +31,7 @@ main[data-pathname^='/playground'] article {
 main[data-pathname^='/playground'] article section {
 	max-width: none !important;
 }
+
+main[data-pathname^='/playground'] iframe {
+	min-height: 250px;
+}
