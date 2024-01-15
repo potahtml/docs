@@ -3,12 +3,9 @@ import { A, navigate } from 'pota/router'
 export default function Menu() {
 	return (
 		<>
-			<h2
-				onClick={() => navigate('/')}
-				flair="cursor-hand"
-			>
-				pota docs
-			</h2>
+			<a href="/">
+				<h2 flair="cursor-hand">pota docs</h2>
+			</a>
 			<ul>
 				<li>
 					<a href="/docs/usage">Usage</a>
