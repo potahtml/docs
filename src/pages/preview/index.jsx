@@ -28,20 +28,27 @@ function run() {
 
 	// transform jsx
 
-	const transform = globalThis.Babel.transform(props.code, {
-		plugins: [
-			[
-				'transform-react-jsx',
-				{
-					runtime: 'automatic',
-					importSource: 'pota',
-					throwIfNamespace: false,
-					useSpread: true,
-					useBuiltIns: false,
-				},
+	let transform
+
+	// ignore parse errors
+	try {
+		transform = globalThis.Babel.transform(props.code, {
+			plugins: [
+				[
+					'transform-react-jsx',
+					{
+						runtime: 'automatic',
+						importSource: 'pota',
+						throwIfNamespace: false,
+						useSpread: true,
+						useBuiltIns: false,
+					},
+				],
 			],
-		],
-	})
+		})
+	} catch (e) {
+		return
+	}
 
 	// append script
 
