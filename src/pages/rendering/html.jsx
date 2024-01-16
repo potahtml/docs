@@ -54,6 +54,11 @@ export default function () {
 				<p>When is called the custom element constructor?</p>
 				<Code url="/pages/rendering/html/custom-element-constructor.jsx"></Code>
 			</Section>
+
+			<Section title="Context">
+				<p>Display context value while nested</p>
+				<Code url="/pages/rendering/html/context.jsx"></Code>
+			</Section>
 		</>
 	)
 }
