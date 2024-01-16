@@ -42,6 +42,7 @@ defineProperties,
 defineProperty,
 empty,
 entries,
+flat,
 functionState,
 getter,
 getValue,
@@ -90,6 +91,10 @@ toArray
 						<li>
 							<mark>empty</mark> - creates an object without a
 							prototype.
+						</li>
+						<li>
+							<mark>flat</mark> - Flats an array to the first children
+							if the length is 1
 						</li>
 						<li>
 							<mark>entries</mark> - Object.entries.

@@ -22,6 +22,17 @@ main[data-pathname^='/playground'] article {
 	max-width: 100%;
 	overflow: hidden;
 }
+main[data-pathname^='/playground'] article:before {
+	content: 'pota';
+	font-size: 21em;
+	left: 21px;
+	opacity: 0.04;
+	overflow: hidden;
+	position: absolute;
+	top: 34px;
+	white-space: nowrap;
+	writing-mode: vertical-rl;
+}
 
 .container {
 	width: 100%;

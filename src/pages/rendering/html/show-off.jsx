@@ -13,23 +13,23 @@ function Component() {
 
   return [
     // displays `asd`
-    html` <Show when="${() => !show()}">
-      <p>asd</p>
-    </Show>`,
+    html`0<Show when="${() => !show()}">
+        <p>asd</p>
+      </Show>`,
 
     // first `true`, callback on attribute
-    html`<Show
-      when="${show}"
-      children="${value => value}"
-    />`,
+    html`1<Show
+        when="${show}"
+        children="${value => value}"
+      ></Show>`,
 
     // second `true`, callback as a child
-    html`<Show when="${show}">${value => value}</Show>`,
+    html`2<Show when="${show}">${value => value}</Show>`,
 
     // third `true quack false`, multiple callbacks as child
-    html`<Show when="${show}"
-      >${[value => value, ' quack ', value => !value]}</Show
-    >`,
+    html`3<Show when="${show}"
+        >${[value => value, ' quack ', value => !value]}</Show
+      >`,
   ]
 }
 
