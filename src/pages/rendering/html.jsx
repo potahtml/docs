@@ -5,7 +5,14 @@ export default function () {
 		<>
 			<Header title="html">
 				<mark>html</mark> or <mark>template</mark>, is a handy
-				function to make components from cached tagged templates.
+				function to make components from cached tagged templates. It
+				allows to register user defined tags (with `
+				<mark>
+					html.register(
+					{'{'}ComponentName{'}'})
+				</mark>
+				`) that are defined by JavaScript functions, and allows
+				self-closing tags.
 			</Header>
 
 			<Section title="No JSX">
