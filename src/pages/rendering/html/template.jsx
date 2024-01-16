@@ -10,7 +10,7 @@ function Example() {
     name="button"
   >
     add 10
-  </button>`
+  </button>`()
 
   add10.onmousedown = () => render(<div>onmousedown!</div>)
 

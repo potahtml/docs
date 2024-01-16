@@ -11,8 +11,8 @@ customElements.define(
 )
 
 render('before')
-const element = html`<some-test>${2 + 2}</some-test
-  ><some-test>${2 + 6}</some-test>`
+const element = html` <some-test>${2 + 2}</some-test>
+  <some-test>${2 + 6}</some-test>`
 render('after')
 
 render(element)
