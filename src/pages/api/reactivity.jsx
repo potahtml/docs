@@ -82,6 +82,17 @@ export default function () {
 								value of the function changes, memos are lazy
 							</td>
 						</tr>
+
+						<tr>
+							<td>writable</td>
+							<td>fn</td>
+							<td>signal</td>
+							<td>
+								like a memo but the function wont run unless is used
+								(lazy), and if you write to the return value it will
+								get that as a value
+							</td>
+						</tr>
 						<tr>
 							<td>root</td>
 							<td>fn</td>
@@ -124,16 +135,6 @@ export default function () {
 							</td>
 						</tr>
 
-						<tr>
-							<td>writable</td>
-							<td>fn</td>
-							<td>signal</td>
-							<td>
-								like a memo but the function wont run unless is used
-								(lazy), and if you write to the return value it will
-								get that as a value
-							</td>
-						</tr>
 						<tr>
 							<td>withOwner</td>
 							<td>void</td>
