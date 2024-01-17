@@ -1,4 +1,6 @@
-import { render, html, signal } from 'pota'
+import { render, HTML, signal } from 'pota'
+
+const html = HTML()
 
 function Example(props) {
   const [count, setCount] = signal(0)

@@ -1,6 +1,5 @@
 export default `import { render, signal, memo} from 'pota'
 
-
 function Counter() {
   const [count, setCount] = signal(1)
   const double = memo(() => count() * 2)

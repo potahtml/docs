@@ -8,7 +8,7 @@ import {
 	effect,
 	batch,
 	cleanup,
-	writableMemo,
+	writable,
 	withOwner,
 	map,
 } from 'pota'

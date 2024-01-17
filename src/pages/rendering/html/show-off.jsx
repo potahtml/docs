@@ -1,4 +1,6 @@
-import { render, signal, html, Show } from 'pota'
+import { render, signal, HTML, Show } from 'pota'
+
+const html = HTML()
 
 function Component() {
   const [show, setShow] = signal(false)
@@ -21,7 +23,7 @@ function Component() {
     html`1<Show
         when="${show}"
         children="${value => value}"
-      ></Show>`,
+      />`,
 
     // second `true`, callback as a child
     html`2<Show when="${show}">${value => value}</Show>`,

@@ -1,4 +1,6 @@
-import { render, context, html } from 'pota'
+import { render, context, HTML } from 'pota'
+
+const html = HTML()
 
 const Context = context({ myValue: 1 })
 const Provider = Context.Provider

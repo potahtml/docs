@@ -25,7 +25,7 @@ export default function Menu() {
 					<a href="/rendering/create">create</a>
 				</li>
 				<li>
-					<a href="/rendering/html">html</a>
+					<a href="/rendering/HTML">HTML</a>
 				</li>
 				<li>
 					<h4>Children</h4>

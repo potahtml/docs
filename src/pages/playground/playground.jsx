@@ -5,7 +5,6 @@ import {
 	addEventListener,
 	cleanup,
 	effect,
-	onReady,
 	ref,
 	signal,
 	untrack,
@@ -14,98 +13,111 @@ import {
 import { compress, uncompress } from '../../lib/compress.js'
 import example from './example.jsx'
 
+function getCodeFromURL() {
+	return window.location.hash !== ''
+		? uncompress(
+				decodeURIComponent(window.location.hash.substring(1)),
+			).code
+		: undefined
+}
+
 export default function () {
 	const container = ref()
 	const [autorun, setAutorun] = signal(true)
 
 	// initial value for code
-	const [code, setCode] = signal(
-		window.location.hash !== ''
-			? uncompress(
-					decodeURIComponent(window.location.hash.substring(1)),
-				).code
-			: example,
-	)
+	const [code, setCode] = signal(getCodeFromURL() || example)
+	const [delayedCode, setDelayedCode] = signal(code)
 
-	// update the hash
+	// update delayed code
+	let updateDelayedCodeTimeout
 	effect(() => {
-		if (code()) {
-			history.pushState(
-				undefined,
-				'',
-				'#' + encodeURIComponent(compress({ code: code() })),
-			)
-		}
+		code()
+		clearTimeout(updateDelayedCodeTimeout)
+		updateDelayedCodeTimeout = setTimeout(
+			() => setDelayedCode(code()),
+			200,
+		)
 	})
 
 	effect(() => {
-		if (container()) {
-			/*
-				monaco.editor.defineTheme('monokai', monokai)
-				monaco.editor.setTheme('monokai')
-			*/
+		history.pushState(
+			undefined,
+			'',
+			'#' + encodeURIComponent(compress({ code: delayedCode() })),
+		)
+	})
 
-			const editor = globalThis.monaco.editor.create(container(), {
-				value: untrack(code),
-				language: 'javascript',
-				fontSize: 17,
-				roundedSelection: false,
-				theme: 'vs-dark',
-				scrollbar: {
-					vertical: 'auto',
-					horizontal: 'auto',
-					verticalScrollbarSize: 10,
-					horizontalScrollbarSize: 10,
-				},
-				formatOnType: false,
-				formatOnPaste: true,
-				renderWhitespace: 'none',
-				renderLineHighlight: 'none',
-				automaticLayout: true,
-				minimap: { enabled: false },
-				scrollBeyondLastLine: false,
-			})
+	effect(() => {
+		if (!container()) return
 
-			editor
-				.getModel()
-				.onDidChangeContent(event => setCode(editor.getValue()))
+		const editor = globalThis.monaco.editor.create(container(), {
+			value: untrack(code),
+			language: 'javascript',
+			fontSize: 17,
+			roundedSelection: false,
+			theme: 'vs-dark',
+			scrollbar: {
+				vertical: 'auto',
+				horizontal: 'auto',
+				verticalScrollbarSize: 10,
+				horizontalScrollbarSize: 10,
+			},
+			formatOnType: false,
+			formatOnPaste: true,
+			renderWhitespace: 'none',
+			renderLineHighlight: 'none',
+			automaticLayout: true,
+			minimap: { enabled: false },
+			scrollBeyondLastLine: false,
+		})
 
-			editor.onKeyDown(e => {
-				if (
-					// CTRL + S
-					(e.keyCode === 49 && e.ctrlKey) ||
-					// SHIFT + ALT + F
-					(e.keyCode === 36 && e.altKey && e.shiftKey)
-				) {
-					e.preventDefault()
+		// on code change
+		editor
+			.getModel()
+			.onDidChangeContent(event => setCode(editor.getValue()))
 
-					globalThis.prettier
-						.format(editor.getValue(), {
-							plugins: [
-								globalThis.prettierPluginBabel,
-								globalThis.prettierPluginEstree,
-							],
-							...prettierConfig,
-							printWidth: 70,
-						})
-						.then(code => editor.setValue(code))
+		// shorcuts
+		editor.onKeyDown(e => {
+			if (
+				// CTRL + S
+				(e.keyCode === 49 && e.ctrlKey) ||
+				// SHIFT + ALT + F
+				(e.keyCode === 36 && e.altKey && e.shiftKey)
+			) {
+				e.preventDefault()
+
+				globalThis.prettier
+					.format(editor.getValue(), {
+						plugins: [
+							globalThis.prettierPluginBabel,
+							globalThis.prettierPluginEstree,
+						],
+						...prettierConfig,
+						printWidth: 70,
+					})
+					.then(code => editor.setValue(code))
+			}
+		})
+
+		// resize
+		addEventListener(window, 'resize', () => editor.layout(), false)
+
+		// update code when using back button
+		addEventListener(
+			window,
+			'popstate',
+			() => {
+				const code = getCodeFromURL()
+				if (code !== editor.getValue()) {
+					editor.setValue(code)
 				}
-			})
+			},
+			false,
+		)
 
-			addEventListener(
-				window,
-				'resize',
-				() => {
-					// console.log('resize')
-					editor.layout()
-				},
-				false,
-			)
-
-			cleanup(() => {
-				editor.dispose()
-			})
-		}
+		// cleanup
+		cleanup(() => editor.dispose())
 	})
 
 	return (
@@ -121,7 +133,7 @@ export default function () {
 				</section>
 				<section flair="col grow">
 					<Code
-						code={() => autorun() && code()}
+						code={() => autorun() && delayedCode()}
 						render={true}
 						preview={false}
 					/>

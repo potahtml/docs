@@ -1,4 +1,6 @@
-import { render, html } from 'pota'
+import { render, HTML } from 'pota'
+
+const html = HTML()
 
 const Bold = text => html`<b>${text}</b>`
 

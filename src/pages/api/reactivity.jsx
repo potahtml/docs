@@ -125,7 +125,7 @@ export default function () {
 						</tr>
 
 						<tr>
-							<td>writableMemo</td>
+							<td>writable</td>
 							<td>fn</td>
 							<td>signal</td>
 							<td>

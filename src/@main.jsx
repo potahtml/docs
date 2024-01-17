@@ -17,7 +17,7 @@ import {
 render, // render(thing, targetEl=document.body, {clear:false, relative:false})
 create, // const Fancy = create((props)=>[1, 2, 3, props.children])
 customElement, // customElement("fancy-element", class Fancy extends HTMLElement{})
-html, // (props)=> html\`<div>\${props.children}</div>\`
+HTML, // const html = HTML(); (props)=> html\`<div>\${props.children}</div>\`
 css, // (props)=> css\`button { padding: \${props.padding} }\`
 
 // reactivity
@@ -29,7 +29,7 @@ root, // root(fn)
 effect, // effect(fn)
 renderEffect, // renderEffect(fn)
 memo, // memo(fn)
-writableMemo, // const m = writableMemo(fn); m(true) // now "m" is "true" till memo reruns
+writable, // const m = writable(fn); m(true) // now "m" is "true" till memo reruns
 batch, // batch(fn)
 untrack, // untrack(fn)
 cleanup, // cleanup(fn)
