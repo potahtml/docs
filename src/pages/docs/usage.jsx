@@ -90,7 +90,8 @@ export default function () {
 					`
 							.split('\n')
 							.map(item => item.trim())
-							.join('\n')}
+							.join('\n')
+							.trim()}
 					</pre>
 				</code>
 			</Section>
