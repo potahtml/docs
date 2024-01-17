@@ -56,7 +56,7 @@ export default function Routes() {
 				/>
 				<Route
 					path="HTML$"
-					children={lazy(() => import('./pages/rendering/html.jsx'))}
+					children={lazy(() => import('./pages/rendering/HTML.jsx'))}
 				/>
 
 				<Route path="children/">
