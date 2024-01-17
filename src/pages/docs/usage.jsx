@@ -63,8 +63,8 @@ export default function () {
 
 			<Section title="CDN">
 				<p>
-					<a href="https://www.jsdelivr.com/">jsdelivr</a> seems to
-					provide cdns for the built files.
+					<a href="https://www.jsdelivr.com/">jsdelivr</a> kindly
+					provides a cdn for standalone files
 				</p>
 				<code>
 					<pre>
