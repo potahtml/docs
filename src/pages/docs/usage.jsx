@@ -1,4 +1,5 @@
 import { Code, Header, Section } from '#main'
+import { version } from 'pota'
 
 export default function () {
 	return (
@@ -56,6 +57,40 @@ export default function () {
 				<code>
 					<pre>
 						{'presets: [["pota/babel-preset", {"lib":"oby"}]]'}
+					</pre>
+				</code>
+			</Section>
+
+			<Section title="CDN">
+				<p>
+					<a href="https://www.jsdelivr.com/">jsdelivr</a> seems to
+					provide cdns for the built files.
+				</p>
+				<code>
+					<pre>
+						{`
+		// includes solid, router, hooks, plugins
+		https://cdn.jsdelivr.net/npm/pota@${version}/dist/standalone.full.js
+
+		// includes solid, router, hooks, plugins (not minified)
+		https://cdn.jsdelivr.net/npm/pota@${version}/dist/standalone.full.no-min.js
+
+		// includes solid, router, hooks
+		https://cdn.jsdelivr.net/npm/pota@${version}/dist/standalone.js
+
+		// includes solid, hooks
+		https://cdn.jsdelivr.net/npm/pota@${version}/dist/standalone.router-no.js
+
+		// includes router, hooks
+		https://cdn.jsdelivr.net/npm/pota@${version}/dist/standalone.solid-no.js
+
+		// includes hooks
+		https://cdn.jsdelivr.net/npm/pota@${version}/dist/standalone.router-no.solid-no.js
+
+					`
+							.split('\n')
+							.map(item => item.trim())
+							.join('\n')}
 					</pre>
 				</code>
 			</Section>
