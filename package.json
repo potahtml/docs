@@ -30,7 +30,15 @@
 				"output": "src/dist/",
 				"watch": ["node_modules"],
 				"map": [
-					["pota.docs/src/node_modules", "pota.docs/node_modules"]
+					["pota.docs/src/node_modules", "pota.docs/node_modules"],
+					[
+						"pota.docs/src/dist/preview/src/",
+						"pota.docs/node_modules/pota/src/"
+					],
+					[
+						"pota.docs/src/dist/preview/node_modules/",
+						"pota.docs/node_modules/"
+					]
 				],
 				"minified": false,
 				"babel": {
