@@ -6,6 +6,7 @@ function App() {
       <div bool:name={true}>true</div>
       <div bool:name={1}>1</div>
       <div bool:name={'hola'}>hola</div>
+      <div bool:name={false}>false</div>
       <div bool:name={''}>empty</div>
       <div bool:name={0}>0</div>
       <div bool:name={undefined}>undefined</div>
