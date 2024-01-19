@@ -57,7 +57,7 @@ function DisplayContextValue(props) {
 	const myValue = Context().myValue
 	return (
 		<div>
-			myValue in jsx should be {props.shouldbe}, is: {myValue}
+			myValue should be {props.shouldbe}, is: {myValue}
 		</div>
 	)
 }

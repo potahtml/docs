@@ -38,6 +38,7 @@ onReady, // onReady(fn)
 context, // const use = Context({}); let value = use(); use({newValue}, fn)
 map, // map([1, 2, 3], (item, index) => [item, index])
 withOwner, // const owned = withOwner(); owned(fn)
+withValue, // withValue(signal, value => console.log(value))
 
 // events
 addEventListener, // addEventListener(el, 'click', fn, delegated=true)
@@ -57,9 +58,11 @@ isReactive, // isReactive(fn) // true for signals
 
 // props
 ref, // const button = ref(); <div ref={button}.. /> effect(()=>button())
-setElementAttribute, // setElementAttribute(node, 'data-active', signal, ns)
-setElementProperty, // setElementProperty(node, 'hidden', signal)
-setElementStyle, // setElementStyle(node, 'color', signalColor)
+
+setAttribute, // setAttribute(node, 'data-active', signal, ns)
+setProperty, // setProperty(node, 'hidden', signal)
+setStyle, // setStyle(node, 'color', signal)
+setBool, // setBool(node, 'disabled', signal)
 
 propsPlugin, // propsPlugin('red', function(node, propName, propValue, props){node.style.color = 'red'}) <div red/>
 propsPluginNS, // propsPluginNS('red', function(node, propName, propValue, props){node.style.color = 'red'}) <div red:moo/>
@@ -77,7 +80,8 @@ Portal, // <Portal mount={document.body}>Hola</Portal>
 
 getValue, // getValue(signalMaybe)
 
-version // pota version
+// pota version
+version
 } from 'pota'
 `}
 	/>

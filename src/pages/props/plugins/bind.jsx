@@ -4,8 +4,8 @@ export default function () {
 	return (
 		<>
 			<Header title="bind">
-				<mark>bind</mark> is a plugin helper for binding the value of
-				an form field to a signal
+				<mark>bind</mark> is a plugin for binding the value of a form
+				field to a signal
 			</Header>
 
 			<Section title="Snippet">

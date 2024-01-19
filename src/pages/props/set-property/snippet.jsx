@@ -1,11 +1,11 @@
-import { effect, ref, render, setElementAttribute } from 'pota'
+import { effect, ref, render, setProperty } from 'pota'
 
 function App() {
   const element = ref()
 
   effect(() => {
     if (element()) {
-      setElementAttribute(element(), 'src', () => '/favicon.ico')
+      setProperty(element(), 'src', () => '/favicon.ico')
     }
   })
   return <img ref={element} />

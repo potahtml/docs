@@ -7,7 +7,7 @@ function Component() {
     return html`<div>-${props.children}-</div>`
   }
 
-  html.register({ SomeComponent })
+  html.define({ SomeComponent })
 
   const foo = 1
   const bar = 2

@@ -5,7 +5,7 @@ import {
   render,
 } from 'pota'
 
-// when `useClickOutside` is found on a JSX element
+// when `useClickOutside` is found on an element
 
 propsPlugin('useClickOutside', (node, propName, propValue, props) => {
   // node = the element

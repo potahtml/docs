@@ -342,7 +342,8 @@ webElementsGroup
 			<Section title="Props Plugins">
 				<p>
 					Please note each plugin must be imported separately at least
-					once to be registered as a prop to be used on JSX globally
+					once to be registered as a prop to be used on elements
+					globally
 				</p>
 				<p>
 					<Code

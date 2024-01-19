@@ -250,24 +250,27 @@ export default function Routes() {
 
 				<Route
 					path=":path$"
-					params={{ path: 'setElementAttribute' }}
+					params={{ path: 'setAttribute' }}
 					children={lazy(
-						() => import('./pages/props/set-element-attribute.jsx'),
+						() => import('./pages/props/set-attribute.jsx'),
 					)}
 				/>
 				<Route
 					path=":path$"
-					params={{ path: 'setElementProperty' }}
+					params={{ path: 'setProperty' }}
 					children={lazy(
-						() => import('./pages/props/set-element-property.jsx'),
+						() => import('./pages/props/set-property.jsx'),
 					)}
 				/>
 				<Route
 					path=":path$"
-					params={{ path: 'setElementStyle' }}
-					children={lazy(
-						() => import('./pages/props/set-element-style.jsx'),
-					)}
+					params={{ path: 'setBool' }}
+					children={lazy(() => import('./pages/props/set-bool.jsx'))}
+				/>
+				<Route
+					path=":path$"
+					params={{ path: 'setStyle' }}
+					children={lazy(() => import('./pages/props/set-style.jsx'))}
 				/>
 				<Route
 					path=":path$"

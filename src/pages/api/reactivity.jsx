@@ -146,6 +146,17 @@ export default function () {
 							</td>
 						</tr>
 						<tr>
+							<td>withValue</td>
+							<td>withValue(value, fn) => fn(value)</td>
+							<td>void</td>
+							<td>
+								given a <mark>value</mark> and a <mark>function</mark>
+								, if the value is a function then it will create an
+								effect that unwraps the value and pass it to the
+								function you defined
+							</td>
+						</tr>
+						<tr>
 							<td>
 								<a href="/api/map">map</a>
 							</td>

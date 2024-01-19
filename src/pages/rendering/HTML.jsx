@@ -4,42 +4,41 @@ export default function () {
 	return (
 		<>
 			<Header title="HTML">
-				<mark>HTML</mark> is a handy function that returns `html` to
-				make components from cached tagged templates. Provides a
-				registry of user components. It can be used to avoid a build
-				step. It allows to register user defined tags (with `
+				<mark>HTML</mark> is a handy function that returns{' '}
+				<mark>html</mark> to make components from cached tagged
+				templates. It can be used to avoid a build step. Provides a
+				registry of user components defined by tags (with `
 				<mark>
-					html.register(
+					html.define(
 					{'{'}ComponentName{'}'})
 				</mark>
-				`) that are defined by JavaScript functions.
+				`) and use JavaScript functions to render its content.
 			</Header>
-			<p>
-				<b>
-					Notes on <mark>html</mark>:
-				</b>
-			</p>
-			<ol>
-				<li>
-					<mark>children</mark> as an attribute will work as long as
-					the node doesnt have any <mark>childNodes</mark> (just like
-					in JSX). It must be totally empty
-				</li>
-				<li>
-					It could return a function in the case of a single child
-					node. It could return a single node when its a text node, it
-					could return an array of nodes/functions
-				</li>
 
-				<li>
-					<mark>html.register</mark> the registry is case insensitive,
-				</li>
-				<li>
-					<mark>html.register</mark> it is possible to register a
-					function named <mark>div</mark> and make all divs behave
-					differently. This is a warning, NOT recommendation.
-				</li>
-			</ol>
+			<Section title="Notes">
+				<ol>
+					<li>
+						<mark>children</mark> as an attribute will work as long as
+						the node doesnt have any <mark>childNodes</mark> (just
+						like in JSX). It must be totally empty
+					</li>
+					<li>
+						It could return a function in the case of a single child
+						node. It could return a single node when its a text node,
+						it could return an array of nodes/functions
+					</li>
+
+					<li>
+						on <mark>html.define</mark> the registry is case
+						insensitive
+					</li>
+					<li>
+						<mark>html.define</mark> it is possible to define a
+						component named <mark>div</mark> and make all divs behave
+						differently. This is a warning, NOT a recommendation.
+					</li>
+				</ol>
+			</Section>
 
 			<Section title="Snippet">
 				<Code

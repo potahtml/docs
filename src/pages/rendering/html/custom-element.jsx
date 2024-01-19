@@ -8,7 +8,7 @@ const FancyCustomBold = props => {
   </b>`
 }
 
-html.register({ FancyCustomBold })
+html.define({ FancyCustomBold })
 
 function Fun() {
   const name = 'Test'

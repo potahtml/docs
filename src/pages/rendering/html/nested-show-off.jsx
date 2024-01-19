@@ -11,7 +11,7 @@ function Counter() {
   setInterval(() => setShow2(value => !value), 2000)
   setInterval(() => setShow3(value => value + 1), 100)
 
-  html.register({ Show })
+  html.define({ Show })
 
   return [
     // displays `asd`

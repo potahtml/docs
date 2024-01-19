@@ -5,7 +5,7 @@ const html = HTML()
 const Context = context({ myValue: 1 })
 const Provider = Context.Provider
 
-html.register({ Provider, ContextValue, Cuatro })
+html.define({ Provider, ContextValue, Cuatro })
 
 // should display "1 2 3 4 3 2 1"
 function ComponentHTML() {

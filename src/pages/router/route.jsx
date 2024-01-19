@@ -107,7 +107,7 @@ export default function () {
 				<p>
 					<mark>Collapse</mark> hides a route instead of unmounting
 					it, so it avoids a re render and could be helpful to keep
-					state of iframes and canvas
+					state of iframes, canvas, video, audio or anything
 				</p>
 				<Code url="/pages/router/route/collapse.jsx"></Code>
 			</Section>

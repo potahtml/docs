@@ -5,8 +5,8 @@ export default function () {
 		<>
 			<Header title="propsPlugin">
 				<mark>propsPlugin</mark> and <mark>propsPluginNS</mark> sets a
-				custom prop that can be used on any JSX element globally. This
-				empowers JSX by allowing you to add custom behaviour via
+				custom prop that can be used on any element globally. This
+				empowers JSX/HTML by allowing you to add custom behaviour via
 				props.
 			</Header>
 
