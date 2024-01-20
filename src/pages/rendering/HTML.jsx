@@ -10,7 +10,7 @@ export default function () {
 					<a href="https://github.com/trusktr">@trusktr</a>
 				</p>
 				<p>
-					It comes in two flavours
+					It comes in two flavors
 					<ol>
 						<li>
 							one returns an <mark>HTMLElement</mark> <b>PROS</b>:
@@ -54,6 +54,7 @@ export default function () {
 					code={`
 						import { HTML, render } from 'pota'
 
+						// create new \`html\` instance
 						const html = HTML()
 
 						// this returns a function
@@ -83,12 +84,14 @@ export default function () {
 
  						const test = html\`<div>div contents <test/></div>\`
 
+ 						console.log(test)
+
 						render(test)
  					`}
 				>
 					Global User defined component. Defining it on the exported{' '}
 					<mark>html</mark> will make the component global (accessible
-					when importinig <mark>html</mark> from other files)
+					when importing <mark>html</mark> from other files)
 				</Code>
 				<ol>
 					<li>
@@ -107,6 +110,8 @@ export default function () {
 						html.define({Test:()=>'hello world!'})
 
  						const test = html\`<div>div contents <test/></div>\`
+
+ 						console.log(test)
 
 						render(test)
  					`}
@@ -128,7 +133,8 @@ export default function () {
 					<mark>effect</mark>. It creates and cache the html for the
 					output and updates what has changed, even if the values used
 					are not reactive. It does so by looping in a{' '}
-					<mark>requestAnimationFrame</mark>
+					<mark>requestAnimationFrame</mark> that it's cleaned on
+					cleanup.
 				</p>
 				<Code
 					code={`
@@ -146,11 +152,11 @@ export default function () {
 						render(div)
  					`}
 				>
-					by default <mark>htmlEffect</mark> returns{' '}
+					By default <mark>htmlEffect</mark> returns{' '}
 					<mark>HTMLElement</mark>, it could be changed to return
 					<mark>Function</mark> by passing{' '}
 					<mark>{'{wrap:true}'}</mark> as second argument to the
-					htmlEffect
+					<mark>htmlEffect</mark>
 				</Code>
 			</Section>
 
@@ -166,6 +172,8 @@ export default function () {
 						const html2 = HTML({wrap:false})
 
  						const aRealDiv = html2\`<div>div contents</div>\`
+
+						console.log([componentFunction, aRealDiv])
 
 						render([componentFunction, aRealDiv])
  					`}
