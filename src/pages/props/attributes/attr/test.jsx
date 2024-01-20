@@ -7,7 +7,7 @@ customElements.define(
       super(), this.attachShadow({ mode: 'open' }), this.show()
     }
     hide() {
-      this.shadowRoot.innerHTML = `<template><slot/></template>`
+      this.shadowRoot.innerHTML = ``
     }
     show() {
       this.shadowRoot.innerHTML = `<slot/>`

@@ -114,6 +114,12 @@
 	-webkit-user-select: none;
 	user-select: none;
 }
+
+/* text  */
+
+[flair~='text-multiline'] {
+	line-height: 1.4;
+}
 [flair~='center'] {
 	display: flex;
 }

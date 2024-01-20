@@ -38,7 +38,9 @@ export function Code(props) {
 					/>
 				</Show>
 				<Show when={props.children}>
-					<figcaption>{props.children}</figcaption>
+					<figcaption flair="text-multiline">
+						{props.children}
+					</figcaption>
 				</Show>
 				<Show when={props.render !== false}>
 					<Render code={code} />

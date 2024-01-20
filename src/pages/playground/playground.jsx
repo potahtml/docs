@@ -109,7 +109,7 @@ export default function () {
 			'popstate',
 			() => {
 				const code = getCodeFromURL()
-				if (code !== editor.getValue()) {
+				if (code && code !== editor.getValue()) {
 					editor.setValue(code)
 				}
 			},
