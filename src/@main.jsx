@@ -17,7 +17,7 @@ import {
 render, // render(thing, targetEl=document.body, {clear:false, relative:false})
 create, // const Fancy = create((props)=>[1, 2, 3, props.children])
 customElement, // customElement("fancy-element", class Fancy extends HTMLElement{})
-HTML, // const html = HTML({wrap:true}); (props)=> html\`<div>\${props.children}</div>\` // () => div
+HTML, // const html = HTML({wrap:true/false}); (props)=> html\`<div>\${props.children}</div>\` // () => div
 html, // (props)=> html\`<div>\${props.children}</div>\` // <div/>
 css, // (props)=> css\`button { padding: \${props.padding} }\`
 
@@ -29,7 +29,7 @@ mutableDeep, // const state = mutableDeep({some:{thing:{deep:true}}}) // tracks 
 root, // root(fn)
 effect, // effect(fn)
 renderEffect, // renderEffect(fn)
-htmlEffect, // htmlEffect((html)=> html\`<div>\${some.non.reactive.object}</div>\`) // div
+htmlEffect, // htmlEffect((html)=> html\`<div>\${some.non.reactive.object}</div>\`, {wrap:true/false}) // div/fn
 memo, // memo(fn)
 writable, // const m = writable(fn); m(true) // now "m" is "true" till memo reruns
 batch, // batch(fn)
