@@ -197,48 +197,6 @@ export default function Menu() {
 				<li>
 					<A
 						href="/props/:page"
-						params={{ page: 'ref' }}
-					>
-						ref
-					</A>
-				</li>
-
-				<li>
-					<A
-						href="/props/:page"
-						params={{ page: 'setAttribute' }}
-					>
-						setAttribute
-					</A>
-				</li>
-				<li>
-					<A
-						href="/props/:page"
-						params={{ page: 'setProperty' }}
-					>
-						setProperty
-					</A>
-				</li>
-				<li>
-					<A
-						href="/props/:page"
-						params={{ page: 'setBool' }}
-					>
-						setBool
-					</A>
-				</li>
-				<li>
-					<A
-						href="/props/:page"
-						params={{ page: 'setStyle' }}
-					>
-						setStyle
-					</A>
-				</li>
-
-				<li>
-					<A
-						href="/props/:page"
 						params={{ page: 'propsSplit' }}
 					>
 						propsSplit
@@ -271,6 +229,14 @@ export default function Menu() {
 				<li>
 					<h4>Lifecycles</h4>
 					<ul>
+						<li>
+							<A
+								href="/props/:page"
+								params={{ page: 'ref' }}
+							>
+								ref
+							</A>
+						</li>
 						<li>
 							<a href="/props/lifecycles/onMount">onMount</a>
 						</li>
@@ -305,6 +271,43 @@ export default function Menu() {
 								params={{ page: 'bool:__' }}
 							>
 								bool:__
+							</A>
+						</li>
+					</ul>
+				</li>
+				<li>
+					<h4>Attributes API</h4>
+					<ul>
+						<li>
+							<A
+								href="/props/:page"
+								params={{ page: 'setAttribute' }}
+							>
+								setAttribute
+							</A>
+						</li>
+						<li>
+							<A
+								href="/props/:page"
+								params={{ page: 'setProperty' }}
+							>
+								setProperty
+							</A>
+						</li>
+						<li>
+							<A
+								href="/props/:page"
+								params={{ page: 'setBool' }}
+							>
+								setBool
+							</A>
+						</li>
+						<li>
+							<A
+								href="/props/:page"
+								params={{ page: 'setStyle' }}
+							>
+								setStyle
 							</A>
 						</li>
 					</ul>

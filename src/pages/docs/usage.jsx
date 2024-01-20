@@ -52,7 +52,10 @@ export default function () {
 					library in use and also to transform JSX. By default, it
 					uses <a href="https://www.solidjs.com/">Solid</a>, but you
 					may change it to use{' '}
-					<a href="https://github.com/vobyjs/oby">Oby</a> instead
+					<a href="https://github.com/vobyjs/oby">Oby</a> or{' '}
+					<a href="https://github.com/fabiospampinato/flimsy">
+						Flimsy
+					</a>
 				</p>
 				<code>
 					<pre>

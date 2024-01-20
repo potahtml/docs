@@ -163,6 +163,12 @@ export default function () {
 
 				<Code url="/pages/rendering/render/clear.jsx"></Code>
 			</Section>
+
+			<Section title="Custom Element">
+				<p>Custom Element Tracking Test</p>
+
+				<Code url="/pages/rendering/render/custom-element.jsx"></Code>
+			</Section>
 		</>
 	)
 }

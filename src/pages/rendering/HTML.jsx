@@ -89,6 +89,10 @@ export default function () {
 				<p>Display context value while nested</p>
 				<Code url="/pages/rendering/html/context.jsx"></Code>
 			</Section>
+			<Section title="Custom Element">
+				<p>Custom Element Tracking Test</p>
+				<Code url="/pages/rendering/html/custom-element-track.jsx"></Code>
+			</Section>
 		</>
 	)
 }
