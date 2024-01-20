@@ -98,6 +98,30 @@ export default function () {
 					</pre>
 				</code>
 			</Section>
+			<Section title="Buildless">
+				<p>
+					If you need to include solid, you may do so by using an
+					importmap. However, it is recommended to use a build that
+					already includes solid.
+				</p>
+				<code>
+					<pre style="tab-size: 2;">
+						{`
+<script type="importmap">
+	{
+		"imports": {
+			"solid-js/dist/solid.js": "https://cdn.jsdelivr.net/npm/solid-js@1.8.11/+esm"
+		}
+	}
+</script>
+
+<script type="module">
+	import { html } from './src/renderer/html.js'
+</script>
+					`}
+					</pre>
+				</code>
+			</Section>
 		</>
 	)
 }
