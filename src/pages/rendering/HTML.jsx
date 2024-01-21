@@ -152,6 +152,9 @@ render(div)
 
  					`}
 				></Code>
+				<p>
+					Nested <mark>html</mark>
+				</p>
 				<Code
 					code={`
 						import { render, htmlEffect, mutable } from 'pota'
