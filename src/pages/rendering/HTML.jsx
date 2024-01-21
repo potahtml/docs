@@ -131,25 +131,24 @@ export default function () {
 				<p>
 					An <mark>htmlEffect</mark> is similar to a regular{' '}
 					<mark>effect</mark>. It creates and cache the html for the
-					output and updates what has changed, even if the values used
-					are not reactive. It does so by looping in a{' '}
-					<mark>requestAnimationFrame</mark> that it's cleaned on
-					cleanup.
+					output and updates what has changed.
 				</p>
 				<Code
 					code={`
-						import { render, htmlEffect } from 'pota'
+						import { render, htmlEffect, signal, mutable } from 'pota'
 
-						let num = 0
-						const div = htmlEffect(
-						  html =>
-						    html\`<div>value is \${num}</div>\`
-						)
-						setInterval(() => num++, 1000)
+const data = mutable({ test: 0 })
 
-						console.log(div)
+const div = htmlEffect(html => {
+  return html\`<div>value is \${data.test}</div>\`
+})
 
-						render(div)
+setInterval(() => data.test++, 1000)
+
+console.log(div)
+
+render(div)
+
  					`}
 				>
 					By default <mark>htmlEffect</mark> returns{' '}
