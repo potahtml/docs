@@ -131,7 +131,8 @@ export default function () {
 				<p>
 					An <mark>htmlEffect</mark> is similar to a regular{' '}
 					<mark>effect</mark>. It creates and cache the html for the
-					output and updates what has changed.
+					output and updates what has changed using signals for the
+					interpolated values.
 				</p>
 				<Code
 					code={`
@@ -150,12 +151,29 @@ console.log(div)
 render(div)
 
  					`}
+				></Code>
+				<Code
+					code={`
+						import { render, htmlEffect, mutable } from 'pota'
+
+const data = mutable({ test: 0 })
+
+const div = htmlEffect(
+  html => {
+    const double = html\`<div>double is \${data.test*2}</div>\`
+
+    return html\`<div>value is \${data.test} \${double}</div>\`
+  }
+)
+
+setInterval(() => data.test++, 1000)
+
+render(div)
+
+
+ 					`}
 				>
-					By default <mark>htmlEffect</mark> returns{' '}
-					<mark>HTMLElement</mark>, it could be changed to return
-					<mark>Function</mark> by passing{' '}
-					<mark>{'{wrap:true}'}</mark> as second argument to the
-					<mark>htmlEffect</mark>
+					An example nesting
 				</Code>
 			</Section>
 
