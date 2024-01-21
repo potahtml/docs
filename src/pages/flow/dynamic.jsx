@@ -5,7 +5,7 @@ export default function () {
 		<>
 			<Header title={<Tag>Dynamic ...</Tag>}>
 				Allows to create dynamic components. For JavaScript space see{' '}
-				<mark>create</mark>.
+				<mark>Component</mark>.
 			</Header>
 
 			<Section title="Attributes">

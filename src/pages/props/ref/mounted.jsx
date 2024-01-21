@@ -12,7 +12,7 @@ function App() {
   return (
     <button
       name="button"
-      ref={button}
+      onMount={button}
       onClick={() => console.log(button())}
     >
       button

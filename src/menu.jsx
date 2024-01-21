@@ -22,7 +22,7 @@ export default function Menu() {
 					<a href="/rendering/render">render</a>
 				</li>
 				<li>
-					<a href="/rendering/create">create</a>
+					<a href="/rendering/Component">Component</a>
 				</li>
 				<li>
 					<a href="/rendering/HTML">HTML</a>

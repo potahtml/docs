@@ -49,9 +49,9 @@ export default function Routes() {
 					)}
 				/>
 				<Route
-					path="create$"
+					path="Component$"
 					children={lazy(
-						() => import('./pages/rendering/create.jsx'),
+						() => import('./pages/rendering/Component.jsx'),
 					)}
 				/>
 				<Route

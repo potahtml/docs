@@ -27,6 +27,14 @@ export default function () {
 							<td>fn</td>
 							<td>a function that returns the import</td>
 						</tr>
+						<tr>
+							<td>fallback</td>
+							<td>[fallback]</td>
+							<td>
+								to render something in case the import/promise fails
+								for some reason
+							</td>
+						</tr>
 					</tbody>
 				</table>
 				<b>Return Value</b>: <mark>(props)=>Component</mark>
@@ -35,6 +43,13 @@ export default function () {
 			<Section title="Snippet">
 				<Code
 					url="/pages/components/lazy/snippet.jsx"
+					render={true}
+				></Code>
+			</Section>
+
+			<Section title="Test">
+				<Code
+					url="/pages/components/lazy/test.jsx"
 					render={true}
 				></Code>
 			</Section>

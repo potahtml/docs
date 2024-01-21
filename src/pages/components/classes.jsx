@@ -5,7 +5,7 @@ export default function () {
 		<>
 			<Header title="Classes">
 				If for some reason make sense to use a component class, you
-				may do so by extending <mark>Component</mark>
+				may do so by extending <mark>Pota</mark>
 			</Header>
 
 			<p>

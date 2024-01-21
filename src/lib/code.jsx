@@ -105,6 +105,15 @@ function Render(props) {
 	)
 
 	const frame = ref()
+	effect(() => {
+		// so the old javascript code stops running
+		if (frame()) {
+			codeURL()
+			queueMicrotask(() => {
+				// frame().contentWindow?.location.reload()
+			})
+		}
+	})
 	return (
 		<section class={styles.frame}>
 			<iframe

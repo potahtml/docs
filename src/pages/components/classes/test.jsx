@@ -1,6 +1,6 @@
-import { render, Component } from 'pota'
+import { render, Pota } from 'pota'
 
-class MyComponent extends Component {
+class MyComponent extends Pota {
   onReady() {
     render(<div>onReady callback!</div>)
   }

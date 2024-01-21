@@ -1,7 +1,7 @@
-import { render, create } from 'pota'
+import { render, Factory } from 'pota'
 
 function App() {
-  const Fun = create('marquee')
+  const Fun = Factory('marquee')
 
   return (
     <main>

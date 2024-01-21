@@ -15,7 +15,8 @@ export const CHEATSHEET = (
 import {
 // rendering
 render, // render(thing, targetEl=document.body, {clear:false, relative:false})
-create, // const Fancy = create((props)=>[1, 2, 3, props.children])
+Factory, // const Fancy = Factory((props)=>[1, 2, 3, props.children])
+Component, // const comp = Component(Fancy, {children:[4,5,6]})
 customElement, // customElement("fancy-element", class Fancy extends HTMLElement{})
 HTML, // const html = HTML({wrap:true/false}); (props)=> html\`<div>\${props.children}</div>\` // () => div
 html, // (props)=> html\`<div>\${props.children}</div>\` // <div/>
@@ -47,8 +48,8 @@ addEventListener, // addEventListener(el, 'click', fn, delegated=true)
 removeEventListener, // removeEventListener(el, 'click', fn, delegated=true)
 
 // components
-Component, // class MyC extends Component { render(props){} onReady(){} onCleanup(){} }
-lazy, // const Com = lazy(()=>import('yey.jsx')) <Comp some={true}/>
+Pota, // class MyC extends Pota { render(props){} onReady(){} onCleanup(){} }
+lazy, // const Com = lazy(()=>import('yey.jsx'), fallback) <Comp some={true} fallback="oops"/>
 resolve, // const cache = resolve(() => props.children)
 toHTML, // const DocFragment = toHTML(props.children)
 

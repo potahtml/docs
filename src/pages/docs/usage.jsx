@@ -72,53 +72,15 @@ export default function () {
 				<code>
 					<pre>
 						{`
-		// includes solid, router, hooks, plugins
-		https://cdn.jsdelivr.net/npm/pota@${version}/dist/standalone.full.js
+ 		https://cdn.jsdelivr.net/npm/pota@${version}/dist/standalone.js
 
-		// includes solid, router, hooks, plugins (not minified)
-		https://cdn.jsdelivr.net/npm/pota@${version}/dist/standalone.full.no-min.js
-
-		// includes solid, router, hooks
-		https://cdn.jsdelivr.net/npm/pota@${version}/dist/standalone.js
-
-		// includes solid, hooks
-		https://cdn.jsdelivr.net/npm/pota@${version}/dist/standalone.router-no.js
-
-		// includes router, hooks
-		https://cdn.jsdelivr.net/npm/pota@${version}/dist/standalone.solid-no.js
-
-		// includes hooks
-		https://cdn.jsdelivr.net/npm/pota@${version}/dist/standalone.router-no.solid-no.js
+		https://cdn.jsdelivr.net/npm/pota@${version}/dist/standalone.no-min.js
 
 					`
 							.split('\n')
 							.map(item => item.trim())
 							.join('\n')
 							.trim()}
-					</pre>
-				</code>
-			</Section>
-			<Section title="Buildless">
-				<p>
-					If you need to include solid, you may do so by using an
-					importmap. However, it is recommended to use a build that
-					already includes solid.
-				</p>
-				<code>
-					<pre style="tab-size: 2;">
-						{`
-<script type="importmap">
-	{
-		"imports": {
-			"solid-js/dist/solid.js": "https://cdn.jsdelivr.net/npm/solid-js@1.8.11/+esm"
-		}
-	}
-</script>
-
-<script type="module">
-	import { html } from './src/renderer/html.js'
-</script>
-					`}
 					</pre>
 				</code>
 			</Section>
