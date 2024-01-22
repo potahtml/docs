@@ -118,7 +118,9 @@ function Render(props) {
 		<section class={styles.frame}>
 			<iframe
 				ref={frame}
-				src={() => '/pages/@playground/preview/index.html#' + codeURL()}
+				src={() =>
+					'/pages/@playground/preview/index.html#' + codeURL()
+				}
 			/>
 			<aside>
 				<a
@@ -128,17 +130,21 @@ function Render(props) {
 					re-run
 				</a>
 				{' / '}
-				<a
-					href="javascript://"
-					onClick={() => window.open('/playground#' + codeURL())}
-				>
-					open in playground
-				</a>
-				{' / '}
+				<span class="no-playground">
+					<a
+						href="javascript://"
+						onClick={() => window.open('/playground#' + codeURL())}
+					>
+						open in playground
+					</a>
+					{' / '}
+				</span>
 				<a
 					href="javascript://"
 					onClick={() =>
-						window.open('/pages/@playground/preview/index.html#' + codeURL())
+						window.open(
+							'/pages/@playground/preview/index.html#' + codeURL(),
+						)
 					}
 				>
 					open in blank

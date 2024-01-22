@@ -14,10 +14,7 @@ export default function () {
 					and doesn't have a dash <mark>-</mark> in the name. Else, it
 					will use <mark>setAttribute</mark>. While this doesnt work
 					for every situation, its a sensible default that works in
-					most cases. To change this behaviour see{' '}
-					<a href="#Namespace-To-Force-Props-Type">
-						Namespace To Force Props Type
-					</a>
+					most cases. To change this behaviour see the next section
 				</p>
 			</Section>
 
@@ -175,7 +172,7 @@ export default function () {
 									<a href="/props/ref">ref</a>
 								</mark>
 							</td>
-							<td>callback to get a reference of the element</td>
+							<td>callback to get a reference to the element</td>
 						</tr>
 					</table>
 				</p>

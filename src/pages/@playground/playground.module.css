@@ -42,3 +42,7 @@ main[data-pathname^='/playground'] article:before {
 main[data-pathname^='/playground'] article section {
 	max-width: none !important;
 }
+
+:global main[data-pathname^='/playground'] .no-playground {
+	display: none;
+}
