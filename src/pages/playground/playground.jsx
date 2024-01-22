@@ -52,7 +52,7 @@ export default function () {
 		if (!container()) return
 
 		const editor = globalThis.monaco.editor.create(container(), {
-			value: untrack(code),
+			value: '',
 			language: 'javascript',
 			fontSize: 17,
 			roundedSelection: false,
@@ -71,6 +71,17 @@ export default function () {
 			minimap: { enabled: false },
 			scrollBeyondLastLine: false,
 		})
+
+		globalThis.prettier
+			.format(untrack(code), {
+				plugins: [
+					globalThis.prettierPluginBabel,
+					globalThis.prettierPluginEstree,
+				],
+				...prettierConfig,
+				printWidth: 70,
+			})
+			.then(code => editor.setValue(code))
 
 		// on code change
 		editor
