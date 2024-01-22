@@ -76,6 +76,10 @@ export default function () {
 
 		https://cdn.jsdelivr.net/npm/pota@${version}/dist/standalone.no-min.js
 
+ 		https://cdn.jsdelivr.net/npm/pota@${version}/dist/standalone.oby.js
+
+		https://cdn.jsdelivr.net/npm/pota@${version}/dist/standalone.oby.no-min.js
+
 					`
 							.split('\n')
 							.map(item => item.trim())
