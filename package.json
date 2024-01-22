@@ -27,7 +27,7 @@
 	"kompiler": {
 		"builds": [
 			{
-				"input": ["src/index.jsx"],
+				"input": ["src/@index.jsx"],
 				"output": "src/dist/",
 				"watch": ["node_modules"],
 				"map": [
@@ -56,7 +56,7 @@
 				}
 			},
 			{
-				"input": ["src/pages/preview/index.jsx"],
+				"input": ["src/pages/@playground/preview/index.jsx"],
 				"output": "src/dist/preview/",
 				"minified": false,
 				"root": false

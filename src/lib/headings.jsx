@@ -6,7 +6,8 @@ function encode(text) {
 			.trim()
 			.replace(/^#\s+/, '')
 			.replace(/\s/g, '-')
-			.replace(/\//g, '-'),
+			.replace(/\//g, '-')
+			.replace(/-+/g, '-'),
 	)
 }
 

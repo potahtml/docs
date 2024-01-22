@@ -1,0 +1,28 @@
+import { Code, Header, Section } from '#main'
+
+export default function () {
+	return (
+		<>
+			<Header title="Context">
+				Context holds data in the reactive scope for use in reactions,
+				or to avoid <em>prop drilling</em>
+			</Header>
+
+			<Section title="Snippet">
+				<Code
+					url="/pages/@reactivity/context/snippet.jsx"
+					render={false}
+				></Code>
+			</Section>
+
+			<Section title="Example">
+				<p>Using and testing context</p>
+				<Code url="/pages/@reactivity/context/test.jsx"></Code>
+			</Section>
+
+			<Section title="Another Test">
+				<Code url="/pages/@reactivity/context/provider.jsx"></Code>
+			</Section>
+		</>
+	)
+}

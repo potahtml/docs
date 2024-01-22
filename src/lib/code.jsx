@@ -118,7 +118,7 @@ function Render(props) {
 		<section class={styles.frame}>
 			<iframe
 				ref={frame}
-				src={() => '/pages/preview/index.html#' + codeURL()}
+				src={() => '/pages/@playground/preview/index.html#' + codeURL()}
 			/>
 			<aside>
 				<a
@@ -138,7 +138,7 @@ function Render(props) {
 				<a
 					href="javascript://"
 					onClick={() =>
-						window.open('/pages/preview/index.html#' + codeURL())
+						window.open('/pages/@playground/preview/index.html#' + codeURL())
 					}
 				>
 					open in blank

@@ -1,2 +1,3 @@
 User-agent: *
 Disallow:
+Sitemap: https://pota.quack.uy/sitemap.txt
