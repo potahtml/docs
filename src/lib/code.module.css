@@ -44,7 +44,7 @@ code {
 	border: 0;
 }
 iframe {
-	height: 16px;
+	height: auto;
 	min-height: 16px;
 	max-width: calc(100% - 1px);
 }

@@ -4,12 +4,16 @@ import './index.css'
 // auto size frame to content
 
 new ResizeObserver(entries => {
-	window.parent.postMessage(
-		JSON.stringify({
-			height: document.documentElement.scrollHeight,
-		}),
-		'*',
+	if (
+		document.body.scrollHeight > 20 &&
+		document.body.scrollHeight < 600
 	)
+		window.parent.postMessage(
+			JSON.stringify({
+				height: document.body.scrollHeight,
+			}),
+			'*',
+		)
 }).observe(document.body)
 
 // run
