@@ -46,3 +46,7 @@ main[data-pathname^='/playground'] article section {
 :global main[data-pathname^='/playground'] .no-playground {
 	display: none;
 }
+
+:global main[data-pathname^='/playground'] article aside {
+	font-size: 18px;
+}
