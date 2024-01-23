@@ -74,13 +74,17 @@ export default function () {
 				<code>
 					<pre>
 						{`
- 		https://cdn.jsdelivr.net/npm/pota@${version}/dist/standalone.js
+// solid
+https://cdn.jsdelivr.net/npm/pota@${version}/dist/standalone.js
+https://cdn.jsdelivr.net/npm/pota@${version}/dist/standalone.no-min.js
 
-		https://cdn.jsdelivr.net/npm/pota@${version}/dist/standalone.no-min.js
+// oby
+https://cdn.jsdelivr.net/npm/pota@${version}/dist/standalone.oby.js
+https://cdn.jsdelivr.net/npm/pota@${version}/dist/standalone.oby.no-min.js
 
- 		https://cdn.jsdelivr.net/npm/pota@${version}/dist/standalone.oby.js
-
-		https://cdn.jsdelivr.net/npm/pota@${version}/dist/standalone.oby.no-min.js
+// flimsy
+https://cdn.jsdelivr.net/npm/pota@${version}/dist/standalone.flimsy.js
+https://cdn.jsdelivr.net/npm/pota@${version}/dist/standalone.flimsy.no-min.js
 
 					`
 							.split('\n')

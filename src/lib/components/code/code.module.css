@@ -17,7 +17,7 @@ code {
 	border: 1px solid rgba(5, 134, 234, 0.2);
 	position: relative;
 	padding-bottom: 1px;
-	margin-bottom: 20px;
+	margin-bottom: 10px;
 }
 .code,
 .code section {
@@ -26,19 +26,19 @@ code {
 
 .frame {
 	background: #0d1117;
-	padding: 15px;
 }
 
 .frame aside {
+	bottom: 0;
 	font-size: small;
 	max-width: 100%;
 	opacity: 0.7;
-	padding: 10px;
-	padding-top: 25px;
-	padding-right: 20px;
-	text-align: right;
-	width: 100%;
+	padding: 25px 20px 10px 10px;
 	position: absolute;
+	text-align: right;
+
+	display: inline-block;
+	right: 0;
 }
 .frame aside a {
 	border: 0;

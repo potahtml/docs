@@ -11,23 +11,6 @@
 			name="viewport"
 			content="width=device-width, initial-scale=1"
 		/>
-		<script
-			crossorigin="anonymous"
-			src="https://unpkg.com/@babel/standalone@7.23.2/babel.min.js"
-		></script>
-
-		<script type="importmap">
-			{
-				"imports": {
-					"pota": "/dist/preview/standalone/standalone.no-min.js",
-					"pota/jsx-runtime": "/dist/preview/standalone/standalone.no-min.js",
-					"pota/router": "/dist/preview/standalone/standalone.no-min.js",
-					"pota/hooks": "/dist/preview/standalone/standalone.no-min.js",
-					"pota/plugins": "/dist/preview/standalone/standalone.no-min.js",
-					"pota/plugins/bind": "/dist/preview/standalone/standalone.no-min.js"
-				}
-			}
-		</script>
 
 		<link
 			rel="stylesheet"
@@ -43,11 +26,21 @@
 			rel="stylesheet"
 			href="/dist/preview/multi-entry.css"
 		/>
-	</head>
-	<body>
+
+		<script
+			crossorigin="anonymous"
+			src="./importmap.js"
+		></script>
+
+		<script
+			crossorigin="anonymous"
+			src="https://unpkg.com/@babel/standalone@7.23.2/babel.min.js"
+		></script>
+
 		<script
 			type="module"
 			src="/dist/preview/multi-entry.js"
 		></script>
-	</body>
+	</head>
+	<body></body>
 </html>

@@ -11,11 +11,11 @@ body {
   line-height: 1.4;
   margin: 0;
   height: revert;
+  padding: 15px;
 }
 
 button {
   margin-right: 10px;
-  margin-left: 10px;
 }
 
 ul {

@@ -1,21 +1,24 @@
-:global .monaco-editor,
-:global .monaco-editor * {
-	transition: none !important;
-	animation: none !important;
-	box-shadow: none !important;
+.toolbar {
+	padding-bottom: 20px;
 }
 
-:global .monaco-editor {
-	--vscode-editor-background: transparent !important;
+.toolbar input[type='checkbox'] {
+	width: 1.2em;
+	height: 1.2em;
+	padding-right: 4px;
+	margin: 0;
+	margin-right: 5px;
+}
+.toolbar a {
+	marging-right: 4px;
 }
 
-:global .monaco-editor .margin {
-	background-color: transparent !important;
+.toolbar * {
+	vertical-align: middle;
 }
-
-/* margin to editor content */
-:global .monaco-scrollable-element.editor-scrollable.vs-dark {
-	margin-left: 10px;
+.toolbar span {
+	margin-right: 5px;
+	margin-left: 5px;
 }
 
 main[data-pathname^='/playground'] article {
@@ -34,11 +37,6 @@ main[data-pathname^='/playground'] article:before {
 	writing-mode: vertical-rl;
 }
 
-.container {
-	width: 100%;
-	height: 100%;
-}
-
 main[data-pathname^='/playground'] article section {
 	max-width: none !important;
 }
@@ -49,4 +47,17 @@ main[data-pathname^='/playground'] article section {
 
 :global main[data-pathname^='/playground'] article aside {
 	font-size: 18px;
+}
+
+main[data-pathname^='/playground'] iframe {
+	min-height: 150px;
+}
+
+pota-collapse {
+	width: 100%;
+	height: 100%;
+}
+
+pota-collapse:empty {
+	background: red;
 }

@@ -21,7 +21,10 @@ export function Code(props) {
 				)
 			})
 	}
-	const [code, setCode] = signal(getValue(props.code))
+
+	const [code, setCode] = signal(getValue(props.code), {
+		equals: false,
+	})
 
 	effect(() => {
 		setCode(getValue(props.code))
@@ -101,29 +104,27 @@ window.addEventListener('message', function (e) {
 
 function Render(props) {
 	const codeURL = memo(() =>
-		encodeURIComponent(compress({ code: props.code() })),
+		encodeURIComponent(compress(props.code())),
 	)
 
 	const frame = ref()
-	effect(() => {
-		// so the old javascript code stops running
-		if (frame()) {
-			codeURL()
-			queueMicrotask(() => {
-				// frame().contentWindow?.location.reload()
-			})
-		}
-	})
+
 	return (
 		<section class={styles.frame}>
-			<iframe
-				title="Live Code Example"
-				name="Live Code Example"
-				ref={frame}
-				src={() =>
-					'/pages/@playground/preview/index.html#' + codeURL()
-				}
-			/>
+			{() => {
+				codeURL() // tracks to force reruns
+				return (
+					<iframe
+						title="Live Code Example"
+						name="Live Code Example"
+						ref={frame}
+						src={() =>
+							'/pages/@playground/preview/index.html#' + codeURL()
+						}
+					/>
+				)
+			}}
+
 			<aside>
 				<a
 					href="javascript://"

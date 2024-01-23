@@ -13,5 +13,5 @@ export const prettierConfig = {
 	arrowParens: 'avoid',
 	proseWrap: 'never',
 	endOfLine: 'lf',
-	singleAttributePerLine: true,
+	singleAttributePerLine: false,
 }

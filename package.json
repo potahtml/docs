@@ -83,6 +83,23 @@
 						]
 					]
 				}
+			},
+			{
+				"input": ["src/pages/benchmark/js-framework-benchmark.jsx"],
+				"output": "src/dist/benchmark-flimsy/",
+				"minified": true,
+				"treeshake": true,
+				"root": false,
+				"babel": {
+					"presets": [
+						[
+							"pota/babel-preset",
+							{
+								"lib": "flimsy"
+							}
+						]
+					]
+				}
 			}
 		]
 	},

@@ -1,139 +1,84 @@
 import styles from './playground.module.css'
 
-import { prettierConfig } from '../../lib/prettier-config.js'
 import { CheatSheet } from '../../lib/components/cheatsheet.jsx'
 import { Code } from '../../lib/components/code/code.jsx'
 import { Header } from '../../lib/components/header.jsx'
 
-import {
-	addEventListener,
-	cleanup,
-	effect,
-	ref,
-	signal,
-	untrack,
-} from 'pota'
+import { Collapse, effect, signal } from 'pota'
 
 import { compress, uncompress } from '../../lib/compress.js'
-import example from './example.jsx'
+import example from './default-example.js'
+import importmap from './default-importmap.js'
+import { Monaco } from '../../lib/components/monaco/monaco.jsx'
+import { prettier } from '../../lib/prettier.js'
+import { bind } from 'pota/plugins/bind'
 
 function getCodeFromURL() {
 	return window.location.hash !== ''
 		? uncompress(
 				decodeURIComponent(window.location.hash.substring(1)),
-			).code
+			)
 		: undefined
 }
 
 export default function () {
-	const container = ref()
 	const [autorun, setAutorun] = signal(true)
 
+	let fetched = getCodeFromURL()
+	if (typeof fetched === 'string') {
+		fetched = {
+			code: fetched,
+			importmap: importmap,
+			lib: 'solid',
+		}
+	}
+
 	// initial value for code
-	const [code, setCode] = signal(getCodeFromURL() || example)
-	const [delayedCode, setDelayedCode] = signal(code)
+	const [source, setSource] = signal(
+		fetched || {
+			code: example,
+			importmap: importmap,
+			lib: 'solid',
+		},
+		{ equals: false },
+	)
 
-	// update delayed code
-	let updateDelayedCodeTimeout
-	effect(() => {
-		code()
-		clearTimeout(updateDelayedCodeTimeout)
-		updateDelayedCodeTimeout = setTimeout(
-			() => setDelayedCode(code()),
-			200,
-		)
-	})
-
-	effect(() => {
-		history.pushState(
-			undefined,
-			'',
-			'#' + encodeURIComponent(compress({ code: delayedCode() })),
-		)
-	})
-
-	effect(() => {
-		if (!container()) return
-
-		const editor = globalThis.monaco.editor.create(container(), {
-			value: '',
-			language: 'javascript',
-			fontSize: 17,
-			roundedSelection: false,
-			theme: 'vs-dark',
-			scrollbar: {
-				vertical: 'auto',
-				horizontal: 'auto',
-				verticalScrollbarSize: 10,
-				horizontalScrollbarSize: 10,
-			},
-			formatOnType: false,
-			formatOnPaste: true,
-			renderWhitespace: 'none',
-			renderLineHighlight: 'none',
-			automaticLayout: true,
-			minimap: { enabled: false },
-			scrollBeyondLastLine: false,
+	// to update only the code
+	function updateCode(code) {
+		setSource(source => {
+			source.code = code
+			return source
 		})
-
-		globalThis.prettier
-			.format(untrack(code), {
-				plugins: [
-					globalThis.prettierPluginBabel,
-					globalThis.prettierPluginEstree,
-				],
-				...prettierConfig,
-				printWidth: 70,
-			})
-			.then(code => editor.setValue(code))
-
-		// on code change
-		editor
-			.getModel()
-			.onDidChangeContent(event => setCode(editor.getValue()))
-
-		// shorcuts
-		editor.onKeyDown(e => {
-			if (
-				// CTRL + S
-				(e.keyCode === 49 && e.ctrlKey) ||
-				// SHIFT + ALT + F
-				(e.keyCode === 36 && e.altKey && e.shiftKey)
-			) {
-				e.preventDefault()
-
-				globalThis.prettier
-					.format(editor.getValue(), {
-						plugins: [
-							globalThis.prettierPluginBabel,
-							globalThis.prettierPluginEstree,
-						],
-						...prettierConfig,
-						printWidth: 70,
-					})
-					.then(code => editor.setValue(code))
-			}
+	}
+	// to update only the importmap
+	function updateImportmap(importmap) {
+		setSource(source => {
+			source.importmap = importmap
+			return source
 		})
+	}
 
-		// resize
-		addEventListener(window, 'resize', () => editor.layout(), false)
+	// to update only the lib
+	const lib = bind(source().lib)
 
-		// update code when using back button
-		addEventListener(
-			window,
-			'popstate',
-			() => {
-				const code = getCodeFromURL()
-				if (code && code !== editor.getValue()) {
-					editor.setValue(code)
-				}
-			},
-			false,
-		)
-
-		// cleanup
-		cleanup(() => editor.dispose())
+	effect(() => {
+		lib()
+		setSource(source => {
+			source.lib = lib()
+			return source
+		})
 	})
+
+	// prettify initial value
+	prettier(source().code).then(updateCode)
+
+	// update hash
+	effect(() => {
+		window.location.hash =
+			'#' + encodeURIComponent(compress(source()))
+	})
+
+	const [tab, setTab] = signal('code')
 
 	return (
 		<>
@@ -141,31 +86,78 @@ export default function () {
 
 			<section flair="row grow full">
 				<section flair="row grow">
-					<div
-						class={styles.container}
-						ref={container}
-					></div>
+					<Collapse when={() => tab() === 'importmap'}>
+						<Monaco
+							code={() => source().importmap}
+							onChange={updateImportmap}
+							onFormat={prettier}
+							delay={200}
+							language="json"
+						/>
+					</Collapse>
+					<Collapse when={() => tab() === 'code'}>
+						<Monaco
+							code={() => source().code}
+							onChange={updateCode}
+							onFormat={prettier}
+							delay={200}
+							language="javascript"
+						/>
+					</Collapse>
 				</section>
 				<section flair="col grow">
+					<section class={styles.toolbar}>
+						<span>
+							<a
+								href="javascript://"
+								onClick={() => setTab('code')}
+							>
+								Code
+							</a>
+						</span>
+						<span>
+							<a
+								href="javascript://"
+								onClick={() => setTab('importmap')}
+							>
+								Import Map
+							</a>
+						</span>
+						<span>
+							<label
+								flair="selection-none"
+								style="vertical-align: middle;"
+							>
+								Autorun{' '}
+								<input
+									name="button"
+									type="checkbox"
+									checked={autorun()}
+									onClick={() => setAutorun(checked => !checked)}
+								/>
+							</label>
+						</span>
+						<span>
+							<label
+								flair="selection-none"
+								style="vertical-align: middle;"
+							>
+								{' '}
+								Reactive Library{' '}
+								<select bind={lib}>
+									<option value="solid">solid</option>
+									<option value="oby">oby</option>
+									<option value="flimsy">flimsy</option>
+								</select>
+							</label>
+						</span>
+					</section>
 					<Code
-						code={() => autorun() && delayedCode()}
+						code={() => autorun() && source()}
 						render={true}
 						preview={false}
 					/>
-					<section flair="col">
-						<label
-							flair="row center selection-none"
-							style="z-index:1"
-						>
-							<input
-								name="button"
-								type="checkbox"
-								checked={autorun()}
-								onClick={() => setAutorun(checked => !checked)}
-							/>{' '}
-							Autorun
-						</label>
-					</section>
+
 					<br />
 
 					<section flair="scroll-y scroll-thin grow col">

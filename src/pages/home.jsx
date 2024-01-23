@@ -14,7 +14,7 @@ export default function Home() {
 					pota
 					<span flair="grow" />
 					<img
-						src="/assets/logo.svg"
+						src="/assets/logo-dark.png"
 						height="52"
 						width="52"
 						alt="Pota Logo"
@@ -49,7 +49,6 @@ function Counter() {
 
   return (
     <label>
-      I heard you like to click counters
       <button
         name="button"
         onClick={increment}
