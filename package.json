@@ -20,7 +20,6 @@
 		"cpx2": "^6.0.1",
 		"dom-flair": "^6.0.49",
 		"fflate": "^0.8.1",
-		"flimsy": "^1.1.0",
 		"kompiler": "^7.0.143",
 		"pota": "^0.3.7"
 	},
@@ -60,6 +59,26 @@
 				"output": "src/dist/preview/",
 				"minified": false,
 				"root": false
+			},
+			{
+				"input": ["src/pages/benchmark/js-framework-benchmark.jsx"],
+				"output": "src/dist/benchmark-solid/",
+				"minified": true,
+				"treeshake": true,
+				"root": false,
+				"babel": {
+					"presets": [["pota/babel-preset"]]
+				}
+			},
+			{
+				"input": ["src/pages/benchmark/js-framework-benchmark.jsx"],
+				"output": "src/dist/benchmark-oby/",
+				"minified": true,
+				"treeshake": true,
+				"root": false,
+				"babel": {
+					"presets": [["pota/babel-preset", { "lib": "oby" }]]
+				}
 			}
 		]
 	},
