@@ -26,7 +26,14 @@ export default function () {
 						<tr>
 							<td>fn</td>
 							<td>fn</td>
-							<td>the function to memo</td>
+							<td>function to memo</td>
+						</tr>
+					</tbody>
+					<tbody>
+						<tr>
+							<td>options?</td>
+							<td>{`{{equals?: false | ((prev: unknown, next: unknown) => boolean)}}`}</td>
+							<td>memo options</td>
 						</tr>
 					</tbody>
 				</table>

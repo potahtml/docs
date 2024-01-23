@@ -5,12 +5,11 @@
 .toolbar input[type='checkbox'] {
 	width: 1.2em;
 	height: 1.2em;
-	padding-right: 4px;
+
 	margin: 0;
-	margin-right: 5px;
 }
 .toolbar a {
-	marging-right: 4px;
+	margin-right: 4px;
 }
 
 .toolbar * {
