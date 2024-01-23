@@ -37,7 +37,7 @@
 						"pota.docs/node_modules/"
 					]
 				],
-				"minified": false,
+				"minified": true,
 				"treeshake": true,
 				"babel": {
 					"plugins": [
@@ -54,7 +54,8 @@
 			{
 				"input": ["src/pages/@playground/preview/index.jsx"],
 				"output": "src/dist/preview/",
-				"minified": false,
+				"minified": true,
+				"treeshake": true,
 				"root": false
 			},
 			{

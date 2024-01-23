@@ -113,15 +113,17 @@ function Render(props) {
 		<section class={styles.frame}>
 			{() => {
 				codeURL() // tracks to force reruns
-				return (
-					<iframe
-						title="Live Code Example"
-						name="Live Code Example"
-						ref={frame}
-						src={() =>
-							'/pages/@playground/preview/index.html#' + codeURL()
-						}
-					/>
+				return new Promise(resolve =>
+					resolve(
+						<iframe
+							title="Live Code Example"
+							name="Live Code Example"
+							ref={frame}
+							src={() =>
+								'/pages/@playground/preview/index.html#' + codeURL()
+							}
+						/>,
+					),
 				)
 			}}
 
