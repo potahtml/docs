@@ -8,8 +8,9 @@ function addImportmap() {
   let importmap =
     (props && props.importmap) ||
     `{
-  // If you change the reactive lib with the playground dropdown
-  // then you dont need to change the imports here
+
+  "comment": "If you change the reactive lib with the playground dropdown, then you dont need to change the imports here.",
+
   "imports": {
     "pota": "/dist/preview/standalone/standalone.no-min.js",
     "pota/jsx-runtime": "/dist/preview/standalone/standalone.no-min.js",
