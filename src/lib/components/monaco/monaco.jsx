@@ -86,6 +86,7 @@ export function Monaco(props) {
 			automaticLayout: true,
 			minimap: { enabled: false },
 			scrollBeyondLastLine: false,
+			wordWrap: props.language === 'json',
 		})
 
 		// cleanup
