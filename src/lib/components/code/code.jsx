@@ -1,9 +1,9 @@
 import styles from './code.module.css'
 
-import { compress } from './compress.js'
+import { compress } from '../../compress.js'
 import { Show, signal, ref, memo, effect } from 'pota'
 import { getValue } from 'pota/lib'
-import { prettierConfig } from '#main'
+import { prettierConfig } from '../../prettier-config.js'
 
 export function Code(props) {
 	if (props.url) {

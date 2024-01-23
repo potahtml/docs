@@ -1,5 +1,7 @@
-import { Code, Header, Section } from '#main'
 import { version } from 'pota'
+
+import { Header } from '../../lib/components/header.jsx'
+import { Section } from '../../lib/components/section.jsx'
 
 export default function () {
 	return (

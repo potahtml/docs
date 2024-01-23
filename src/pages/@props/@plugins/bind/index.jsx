@@ -1,4 +1,6 @@
-import { Code, Header, Section } from '#main'
+import { Code } from '../../../../lib/components/code/code.jsx'
+import { Header } from '../../../../lib/components/header.jsx'
+import { Section } from '../../../../lib/components/section.jsx'
 
 export default function () {
 	return (

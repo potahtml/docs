@@ -1,13 +1,6 @@
-export * from './lib/bench.jsx'
-export * from './lib/code.jsx'
-export * from './lib/headings.jsx'
-export * from './lib/tag.jsx'
-export * from './lib/section.jsx'
-export * from './lib/header.jsx'
+import { Code } from './code/code.jsx'
 
-import { Code } from './lib/code.jsx'
-
-export const CHEATSHEET = (
+export const CheatSheet = (
 	<Code
 		render={false}
 		preview={true}
@@ -89,21 +82,3 @@ version
 `}
 	/>
 )
-
-export const prettierConfig = {
-	parser: 'babel',
-	printWidth: 55,
-	useTabs: false,
-	tabWidth: 2,
-	semi: false,
-	singleQuote: true,
-	quoteProps: 'as-needed',
-	jsxSingleQuote: false,
-	trailingComma: 'none',
-	bracketSpacing: true,
-	bracketSameLine: false,
-	arrowParens: 'avoid',
-	proseWrap: 'never',
-	endOfLine: 'lf',
-	singleAttributePerLine: true,
-}

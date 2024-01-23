@@ -1,4 +1,4 @@
-import { Code, Header, Section } from '#main'
+import { Header } from '../../../../lib/components/header.jsx'
 
 export default function () {
 	return (

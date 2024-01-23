@@ -1,4 +1,7 @@
-import { CHEATSHEET, Code, Header, Section } from '#main'
+import { CheatSheet } from '../lib/components/cheatsheet.jsx'
+import { Code } from '../lib/components/code/code.jsx'
+import { Header } from '../lib/components/header.jsx'
+import { Section } from '../lib/components/section.jsx'
 
 export default function Home() {
 	return (
@@ -64,7 +67,7 @@ render(Counter)
 			</Section>
 
 			<Section title="All In One">
-				<CHEATSHEET />
+				<CheatSheet />
 			</Section>
 			<Section title="Why">
 				<p>

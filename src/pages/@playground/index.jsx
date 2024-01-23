@@ -1,5 +1,9 @@
 import styles from './playground.module.css'
-import { CHEATSHEET, Code, Header, prettierConfig } from '#main'
+
+import { prettierConfig } from '../../lib/prettier-config.js'
+import { CheatSheet } from '../../lib/components/cheatsheet.jsx'
+import { Code } from '../../lib/components/code/code.jsx'
+import { Header } from '../../lib/components/header.jsx'
 
 import {
 	addEventListener,
@@ -165,7 +169,7 @@ export default function () {
 					<br />
 
 					<section flair="scroll-y scroll-thin grow col">
-						<CHEATSHEET />
+						<CheatSheet />
 					</section>
 				</section>
 			</section>

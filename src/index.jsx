@@ -9,7 +9,7 @@ import Routes from './@routes.jsx'
 import Menu from './@menu.jsx'
 
 // misc
-import { Bench } from '#main'
+import { Bench } from './lib/components/bench/bench.jsx'
 
 // app
 import { render } from 'pota'

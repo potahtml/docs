@@ -1,0 +1,17 @@
+export const prettierConfig = {
+	parser: 'babel',
+	printWidth: 55,
+	useTabs: false,
+	tabWidth: 2,
+	semi: false,
+	singleQuote: true,
+	quoteProps: 'as-needed',
+	jsxSingleQuote: false,
+	trailingComma: 'none',
+	bracketSpacing: true,
+	bracketSameLine: false,
+	arrowParens: 'avoid',
+	proseWrap: 'never',
+	endOfLine: 'lf',
+	singleAttributePerLine: true,
+}

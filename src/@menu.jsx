@@ -1,4 +1,4 @@
-import { A, navigate } from 'pota/router'
+import { A } from 'pota/router'
 
 export default function Menu() {
 	return (

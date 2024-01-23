@@ -1,6 +1,6 @@
 import { Head } from 'pota'
-
-import { Code, Header } from '#main'
+import { Code } from './lib/components/code/code.jsx'
+import { Header } from './lib/components/header.jsx'
 
 export default function FourZeroFour() {
 	return (

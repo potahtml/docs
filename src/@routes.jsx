@@ -2,7 +2,7 @@ import { Route } from 'pota/router'
 import { lazy } from 'pota'
 
 import FourZeroFour from './404.jsx'
-import Home from './pages/index.jsx'
+import Home from './pages/home.jsx'
 
 function NotFound() {
 	return (
