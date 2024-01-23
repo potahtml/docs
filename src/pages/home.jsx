@@ -15,7 +15,9 @@ export default function Home() {
 					<span flair="grow" />
 					<img
 						src="/assets/logo.svg"
-						style="width:1em"
+						height="52"
+						width="52"
+						alt="Pota Logo"
 					/>
 				</h1>
 				<p>

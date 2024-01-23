@@ -33,13 +33,21 @@ export function H2(props) {
 
 			<Show when={props['no-meta'] === undefined}>
 				<Head>
+					<title>{props.title} - pota</title>
 					<link
 						rel="canonical"
 						href={window.location.href}
 					/>
-					<title>{props.title} - pota</title>
+					<meta
+						property="og:url"
+						content={window.location.href}
+					/>
 					<meta
 						name="description"
+						content={description}
+					/>
+					<meta
+						property="og:description"
 						content={description}
 					/>
 				</Head>
@@ -52,7 +60,7 @@ export function H3(props) {
 	const [URL, setURL] = signal('')
 
 	return (
-		<h3 id={URL}>
+		<h2 id={URL}>
 			<a
 				href={() => '#' + URL()}
 				onMount={element => {
@@ -61,6 +69,6 @@ export function H3(props) {
 			>
 				<span style="color:#58a6ff">#</span> {props.children}
 			</a>
-		</h3>
+		</h2>
 	)
 }

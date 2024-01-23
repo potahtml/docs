@@ -117,6 +117,8 @@ function Render(props) {
 	return (
 		<section class={styles.frame}>
 			<iframe
+				title="Live Code Example"
+				name="Live Code Example"
 				ref={frame}
 				src={() =>
 					'/pages/@playground/preview/index.html#' + codeURL()

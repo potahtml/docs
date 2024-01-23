@@ -6,7 +6,7 @@ export default function () {
 	return (
 		<>
 			<Header title="attributes / properties">
-				Describes <mark>pota</mark> behaviour with attributes and
+				Describes <mark>pota</mark> behavior with attributes and
 				properties
 			</Header>
 			<Section title="Attributes vs Properties">
@@ -16,12 +16,12 @@ export default function () {
 					and doesn't have a dash <mark>-</mark> in the name. Else, it
 					will use <mark>setAttribute</mark>. While this doesnt work
 					for every situation, its a sensible default that works in
-					most cases. To change this behaviour see the next section
+					most cases. To change this behavior see the next section
 				</p>
 			</Section>
 
 			<Section title="Namespace To Force Props Type">
-				<p> A namespace can be used to force the prop type.</p>
+				<p>A namespace can be used to force the prop type.</p>
 				<p>
 					<table>
 						<thead>
@@ -61,7 +61,7 @@ export default function () {
 					</table>
 				</p>
 				<p>
-					<b>See</b>: <a href="/props/attr%3A__">attr:__</a>,{' '}
+					<b>See Also</b>: <a href="/props/attr%3A__">attr:__</a>,{' '}
 					<a href="/props/prop%3A__">prop:__</a>,{' '}
 					<a href="/props/bool%3A__">bool:__</a> and{' '}
 					<a href="/props/setAttribute">setAttribute</a>,{' '}
@@ -91,14 +91,13 @@ export default function () {
 				</p>
 			</Section>
 
-			<Section title="Reserved Names">
+			<Section title="Children">
 				<p>
-					Reserved names are the following: <mark>children</mark>. It
-					cannot be overridden via a <mark>propsPlugin</mark>.
-					Everything else can be changed. <b>Note</b>:{' '}
-					<mark>children</mark> as an attribute will be used as long
-					as the node on where it's used doesn't have any{' '}
-					<mark>childNodes</mark>.
+					<mark>children</mark> cannot be overridden via a{' '}
+					<mark>propsPlugin</mark>. Everything else can be changed.{' '}
+					<b>Note</b>: <mark>children</mark> as an attribute will be
+					used as long as the node on where it's defined doesn't have
+					any <mark>childNodes</mark>.
 				</p>
 			</Section>
 

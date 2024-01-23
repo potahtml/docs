@@ -5,12 +5,36 @@ import { Header } from './lib/components/header.jsx'
 export default function FourZeroFour() {
 	return (
 		<>
-			<Header title="console.log('404 Not Found')">
+			<Header
+				title="console.log('404 Not Found')"
+				no-meta={true}
+			>
 				<Head>
 					<title>404 Not Found - pota</title>
+
 					<meta
 						name="robots"
 						content="noindex"
+					/>
+					<meta
+						property="og:title"
+						content="404 Not Found"
+					/>
+					<meta
+						property="og:description"
+						content="404 Not Found"
+					/>
+					<meta
+						name="description"
+						content="404 Not Found"
+					/>
+					<link
+						rel="canonical"
+						href="/404"
+					/>
+					<meta
+						property="og:url"
+						content="/404"
 					/>
 				</Head>
 				throw new Error ("this should never happen")

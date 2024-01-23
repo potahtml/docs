@@ -1,0 +1,54 @@
+{
+  "name": "pota",
+  "short_name": "pota",
+  "start_url": ".",
+  "id": "pota",
+  "display": "standalone",
+  "background_color": "#0d1117",
+  "theme_color": "#0d1117",
+  "description": "Small Web Renderer for Reactive Libraries.",
+  "icons": [
+    {
+      "src": "/assets/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/logo-dark.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+
+    {
+      "src": "/assets/logo.svg",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/assets/logo-small.png",
+      "sizes": "53x53",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/logo-dark-small.png",
+      "sizes": "53x53",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "32x32",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/assets/logo-padding.png",
+      "sizes": "567x567",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "related_applications": [
+    {
+      "platform": "web",
+      "url": "https://pota.quack.uy/"
+    }
+  ]
+}
