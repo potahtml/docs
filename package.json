@@ -17,8 +17,8 @@
 		"cpx2": "^7.0.1",
 		"dom-flair": "^6.0.56",
 		"fflate": "^0.8.1",
-		"kompiler": "^7.0.148",
-		"pota": "^0.7.67"
+		"kompiler": "^7.0.149",
+		"pota": "^0.7.73"
 	},
 	"kompiler": {
 		"builds": [

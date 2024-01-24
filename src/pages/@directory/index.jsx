@@ -43,10 +43,12 @@ defineProperty,
 empty,
 entries,
 flat,
+freeze,
 functionState,
 getter,
 getValue,
 getValueElement,
+groupBy,
 hasOwnProperty,
 hasValue,
 isArray,
@@ -97,6 +99,9 @@ toArray
 							if the length is 1
 						</li>
 						<li>
+							<mark>freeze</mark> - Object.freeze
+						</li>
+						<li>
 							<mark>entries</mark> - Object.entries.
 						</li>
 						<li>
@@ -116,6 +121,9 @@ toArray
 							<mark>getValueElement(value )</mark> - Unwraps value and
 							returns element if result is a Node or undefined in the
 							case isnt a Node
+						</li>
+						<li>
+							<mark>groupBy</mark> - Object.groupBy
 						</li>
 						<li>
 							<mark>hasOwnProperty</mark> - Object.hasOwn
@@ -217,7 +225,7 @@ dispatchNativeEvent
 						code="
 						import {
 
-rand,
+chance,
 random,
 randomSeeded,
 randomBetween,

@@ -31,7 +31,24 @@ export default function () {
 
 			<Section title="Snippet">
 				<Code
-					url="/pages/@reactivity/snippet.jsx"
+					code={`
+						import {
+							signal,
+							mutable,
+							mutableDeep,
+							memo,
+							root,
+							renderEffect,
+							effect,
+							batch,
+							cleanup,
+							writable,
+							withOwner,
+							withValue,
+							map,
+							owner,
+						} from 'pota'
+					`}
 					render={false}
 				></Code>
 			</Section>
@@ -49,7 +66,7 @@ export default function () {
 					<tbody>
 						<tr>
 							<td>signal</td>
-							<td>initialValue </td>
+							<td>(initialValue, {'{equals:true/false}'}) </td>
 							<td>[read, write] </td>
 							<td>tuple to read and write values from/to a signal</td>
 						</tr>
@@ -139,7 +156,7 @@ export default function () {
 
 						<tr>
 							<td>withOwner</td>
-							<td>void</td>
+							<td>never</td>
 							<td>(fnToRun)=>fnToRun()</td>
 							<td>
 								returns a function that holds the owner on the scope.
@@ -157,6 +174,12 @@ export default function () {
 								effect that unwraps the value and pass it to the
 								function you defined
 							</td>
+						</tr>
+						<tr>
+							<td>owner</td>
+							<td>never</td>
+							<td>unknown</td>
+							<td>gets the owner as the reactive lib reports it</td>
 						</tr>
 						<tr>
 							<td>

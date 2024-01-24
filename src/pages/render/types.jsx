@@ -3,6 +3,9 @@ import { render, Pota } from 'pota'
 const div = document.createElement('div')
 div.textContent = 'Im a div! '
 
+const doc = new DocumentFragment()
+doc.append('doc frag1', 'doc frag2')
+
 const toRender = [
   'a string',
   '',
@@ -22,6 +25,7 @@ const toRender = [
   new Set([12, 13, 14]),
   new Map().set(15, 15).set(16, 16).set(17, 17),
   <span>Im a span</span>,
+  doc,
   function MyComponent() {
     return 'Hi! '
   },
