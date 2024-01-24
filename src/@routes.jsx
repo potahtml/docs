@@ -285,6 +285,13 @@ export default function Routes() {
 						() => import('./pages/@props/props-plugin/index.jsx'),
 					)}
 				/>
+				<Route
+					path=":path$"
+					params={{ path: 'propsProxy' }}
+					children={lazy(
+						() => import('./pages/@props/props-proxy/index.jsx'),
+					)}
+				/>
 
 				<Route
 					path=":path$"

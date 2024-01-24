@@ -32,6 +32,7 @@ https://pota.quack.uy/props/onUnmount
 https://pota.quack.uy/props/plugins/bind
 https://pota.quack.uy/props/prop%3A__
 https://pota.quack.uy/props/propsPlugin
+https://pota.quack.uy/props/propsProxy
 https://pota.quack.uy/props/propsSplit
 https://pota.quack.uy/props/ref
 https://pota.quack.uy/props/setAttribute
