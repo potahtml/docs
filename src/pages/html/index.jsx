@@ -276,6 +276,19 @@ export default function () {
 
 						render(div)
 
+						// local registry
+
+						const div2 = htmlEffect(html => {
+							html.define({test:(props)=><div style="color:red">{props.children}</div>})
+
+							return html\`<test><div>test \${data.test}</div></test>\`
+						}, {unwrap:false})
+
+
+						console.log(div2)
+
+						render(div2)
+
  					`}
 				>
 					The <mark>html</mark> passed on the effect uses the global
