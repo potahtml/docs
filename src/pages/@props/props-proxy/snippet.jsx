@@ -1,17 +1,14 @@
 import { html, propsProxy, render } from 'pota'
 
-/**
- * Use a propsProxy to use lit style attributes/properties on the html
- * function
- */
+/** Lit-alike attributes/properties on the html function */
 
 propsProxy(prop => {
   const name = prop.name
   if (name.startsWith('.')) {
-    // lit like property
+    // as property
     prop.name = name.replace(/^./, 'prop:')
   } else if (name.startsWith('?')) {
-    // lit like boolean
+    // as boolean
     prop.name = name.replace(/^\?/, 'bool:')
   } else if (!name.includes(':') && !name.startsWith('on')) {
     /**
@@ -29,7 +26,7 @@ function App() {
     boolean="${true}"
     onClick="${console.log}"
   >
-    props tests
+    Lit-alike attributes/properties tests
   </div>`
 }
 

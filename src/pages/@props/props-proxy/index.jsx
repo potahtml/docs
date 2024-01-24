@@ -11,7 +11,9 @@ export default function () {
 			</Header>
 
 			<Section title="Snippet">
-				<Code url="/pages/@props/props-proxy/snippet.jsx"></Code>
+				<Code url="/pages/@props/props-proxy/snippet.jsx">
+					Shows how to make attributes/properties lit-alike
+				</Code>
 			</Section>
 		</>
 	)
