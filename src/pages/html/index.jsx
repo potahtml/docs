@@ -127,6 +127,24 @@ export default function () {
 				</Code>
 			</Section>
 
+			<Section title="Predefined Components">
+				<Code
+					code={`
+						import { html, render } from 'pota'
+
+
+ 						const test = html\`<for each="\${[1, 2, 3]}">\${val => val*2}</for>\`
+
+						render(test)
+ 					`}
+				>
+					Predefined components are: <mark>Collapse</mark>,{' '}
+					<mark>Dynamic</mark>, <mark>For</mark>, <mark>Head</mark>,{' '}
+					<mark>Portal</mark>, <mark>Promised</mark>,{' '}
+					<mark>Show</mark>, <mark>Switch</mark>
+				</Code>
+			</Section>
+
 			<Section title="htmlEffect">
 				<p>
 					An <mark>htmlEffect</mark> is similar to a regular{' '}
