@@ -12,18 +12,37 @@ export default function () {
 					<a href="https://github.com/trusktr">@trusktr</a>
 				</p>
 				<p>
-					It comes in two flavors
+					It comes in two flavors that you can choose
 					<ol>
 						<li>
-							one returns an <mark>HTMLElement</mark> <b>PROS</b>:
-							very easy to use the HTMLElement. <b>CONS</b>: doesnt
-							play nicely with nested reactivity and context.
+							1. Returns a <mark>Node/Element</mark> or an{' '}
+							<mark>Array</mark> of <mark>Node/Element</mark>.{' '}
+							<ol>
+								<li>
+									<b>PROS</b>: very easy to use the Element when is a
+									single children or if you dont mind the array.{' '}
+								</li>
+								<li>
+									<b>CONS</b>: doesn't play nicely with nested
+									reactivity and context as elements have to be
+									created before returning, which means that if you
+									nest the result in a context then it wont be using
+									the context value as the element is already created.
+								</li>
+							</ol>
 						</li>
 						<li>
-							the other returns a <mark>Function</mark>. <b>PROS</b>:
-							plays nicely with nested reactivity and reactive
-							context. <b>CONS</b>: you get a function instead of an
-							HTMLElement.
+							1. Behaves as any other component, it could return{' '}
+							<mark>Node/Element/Function/Array</mark>.{' '}
+							<ol>
+								<li>
+									<b>PROS</b>: plays nicely with nested reactivity and
+									reactive context.{' '}
+								</li>
+								<li>
+									<b>CONS</b>: you dont get an Element.
+								</li>
+							</ol>
 						</li>
 					</ol>
 				</p>
@@ -32,7 +51,7 @@ export default function () {
 			<Section title="As HTMLElement">
 				<Code
 					code={`
-						import {  html, render } from 'pota'
+						import { html, render } from 'pota'
 
 						// this returns a real div
 						const div = html\`<div>div contents</div>\`
@@ -42,22 +61,17 @@ export default function () {
 					`}
 				>
 					By default, export <mark>html</mark> (in lowercase) will
-					return <b>HTMLElement</b> when used
+					return <b>Element/Node</b> or <b>(Element/Node)[]</b>
 				</Code>
-				<ol>
-					<li>
-						returns <mark>HTMLElement</mark>
-					</li>
-				</ol>
 			</Section>
 
-			<Section title="As Function">
+			<Section title="As Component">
 				<Code
 					code={`
 						import { HTML, render } from 'pota'
 
 						// create new \`html\` instance
-						const html = HTML()
+						const html = HTML({ unwrap: false })
 
 						// this returns a function
 						const component = html\`<div>div contents</div>\`
@@ -66,15 +80,8 @@ export default function () {
 						render(component)
 					`}
 				>
-					Creating <mark>html</mark> (in lowercase) from{' '}
-					<mark>HTML</mark> (in uppercase). Output will be in
-					functions
+					Notice the argument <mark>{'{ unwrap: false }'}</mark>
 				</Code>
-				<ol>
-					<li>
-						returns <mark>Function</mark>
-					</li>
-				</ol>
 			</Section>
 
 			<Section title="Defining a Global User Component">
@@ -84,22 +91,18 @@ export default function () {
 
 						html.define({Test:()=>'hello world!'})
 
- 						const test = html\`<div>div contents <test/></div>\`
+ 						const test = html\`<div><test/> div contents </div>\`
 
  						console.log(test)
 
 						render(test)
  					`}
 				>
-					Global User defined component. Defining it on the exported{' '}
-					<mark>html</mark> will make the component global (accessible
-					when importing <mark>html</mark> from other files)
+					Global User defined component. By defining it on the
+					exported <mark>html</mark> it will make the component global
+					(accessible when importing <mark>html</mark> from other
+					files)
 				</Code>
-				<ol>
-					<li>
-						registry of user defined components is <b>global</b>
-					</li>
-				</ol>
 			</Section>
 
 			<Section title="Defining a Local User Component">
@@ -111,22 +114,17 @@ export default function () {
 
 						html.define({Test:()=>'hello world!'})
 
- 						const test = html\`<div>div contents <test/></div>\`
+ 						const test = html\`<div><test/> div contents</div>\`
 
  						console.log(test)
 
 						render(test)
  					`}
 				>
-					Similar, to not pollute the registry one may import{' '}
-					<mark>HTML</mark> and create a new <mark>html</mark>{' '}
-					instance that its local to the file
+					To not pollute the registry one may import <mark>HTML</mark>{' '}
+					and create a an instance of <mark>html</mark> that its local
+					to the file
 				</Code>
-				<ol>
-					<li>
-						registry of user defined components is <b>local</b>
-					</li>
-				</ol>
 			</Section>
 
 			<Section title="htmlEffect">
@@ -134,74 +132,177 @@ export default function () {
 					An <mark>htmlEffect</mark> is similar to a regular{' '}
 					<mark>effect</mark>. It creates and cache the html for the
 					output and updates what has changed using signals for the
-					interpolated values.
+					interpolated values. It tracks the interpolated values and
+					updates the template, and it tracks the body of the function
+					that you pass to the effect to re-run it.
 				</p>
 				<Code
 					code={`
 						import { render, htmlEffect, signal, mutable } from 'pota'
 
-const data = mutable({ test: 0 })
+						const data = mutable({ test: 0 })
 
-const div = htmlEffect(html => {
-  return html\`<div>value is \${data.test}</div>\`
-})
+						const div = htmlEffect(html => {
+						  return html\`<div>value is \${data.test}</div>\`
+						})
 
-setInterval(() => data.test++, 1000)
+						setInterval(() => data.test++, 1000)
 
-console.log(div)
+						console.log(div)
 
-render(div)
+						render(div)
 
  					`}
-				></Code>
-				<p>
-					Nested <mark>html</mark>
-				</p>
+				>
+					The function reruns whenever <mark>data.test</mark> changes.
+				</Code>
+
+				<Code
+					code={`
+						import { render, htmlEffect, signal, mutable } from 'pota'
+
+						const data = mutable({ test: 0 })
+
+						const div = htmlEffect(html => {
+							console.log('re-running')
+							data.test
+						  return html\`<div>test</div>\`
+						})
+
+						setInterval(() => data.test++, 1000)
+
+						console.log(div)
+
+						render(div)
+
+ 					`}
+				>
+					The effect re-runs because reading <mark>data.test</mark>{' '}
+					causes tracking even if unused in the template.
+				</Code>
+
 				<Code
 					code={`
 						import { render, htmlEffect, mutable } from 'pota'
 
-const data = mutable({ test: 0 })
+						const data = mutable({ test: 0 })
 
-const div = htmlEffect(
-  html => {
-    const double = html\`<div>double is \${data.test*2}</div>\`
+						const div = htmlEffect(
+						  html => {
+						    const double = html\`<div>double is \${data.test*2}</div>\`
 
-    return html\`<div>value is \${data.test} \${double}</div>\`
-  }
-)
+						    return html\`<div>value is \${data.test} \${double}</div>\`
+						  }
+						)
 
-setInterval(() => data.test++, 1000)
+						setInterval(() => data.test++, 1000)
 
-render(div)
+						render(div)
 
 
  					`}
 				>
-					An example nesting
+					Nested <mark>html</mark> test
+				</Code>
+
+				<Code
+					code={`
+						import { render, htmlEffect, signal } from 'pota'
+
+						const [read, write] = signal(0)
+
+						setInterval(() => {
+						  console.log('updating the signal')
+						  write(value => value + 1)
+						}, 1000)
+
+						// to check if we are reusing nodes
+						const nodes = new Set()
+
+						function Component() {
+						  return htmlEffect(html => {
+						    console.log('running the effect')
+						    // VALUE
+						    const value = html\`<div>value \${read()}</div>\`
+						    // log if we saw this node before
+						    console.log(value, nodes.has(value), value instanceof Node)
+						    nodes.add(value)
+
+						    // DOBLE
+						    const double = html\`<div>double \${read() * 2}</div>\`
+						    // log if we saw this node before
+						    console.log(double, nodes.has(double), double instanceof Node)
+						    nodes.add(double)
+
+						    // NEST
+						    const result = html\`<div>result  \${value} \${double}</div>\`
+						    // log if we saw this node before
+						    console.log(result, nodes.has(result), result instanceof Node)
+						    nodes.add(result)
+
+						    return result
+						  })
+						}
+
+						const dispose = render(Component)
+
+						setTimeout(() => {
+						  console.log('disposing')
+						  dispose()
+						  render('disposed')
+						}, 5000)
+
+
+ 					`}
+				>
+					Test for return types and diposal
+				</Code>
+
+				<Code
+					code={`
+						import { render, html, htmlEffect, signal, mutable } from 'pota'
+
+						const data = mutable({ test: 0 })
+
+						html.define({test:(props)=><div style="color:green">{props.children}</div>})
+
+						const div = htmlEffect(html => {
+							return html\`<test><div>test \${data.test}</div></test>\`
+						})
+
+						setInterval(() => data.test++, 1000)
+
+						console.log(div)
+
+						render(div)
+
+ 					`}
+				>
+					The <mark>html</mark> passed on the effect uses the global
+					registry.
 				</Code>
 			</Section>
 
-			<Section title="Function vs HTMLElement">
+			<Section title="Component vs Element">
 				<Code
 					code={`
 						import { HTML, render } from 'pota'
 
-						const html1 = HTML({wrap:true})
+						const html1 = HTML({unwrap:false})
 
- 						const componentFunction = html1\`<div>div contents</div>\`
+ 						const component = html1\`<div>div contents</div>\`
 
-						const html2 = HTML({wrap:false})
+						const html2 = HTML({unwrap:true})
 
  						const aRealDiv = html2\`<div>div contents</div>\`
 
-						console.log([componentFunction, aRealDiv])
+						console.log([component, typeof component, aRealDiv, aRealDiv instanceof Node])
 
-						render([componentFunction, aRealDiv])
+						render([component, typeof component, aRealDiv, aRealDiv instanceof Node])
  					`}
 				>
 					Choose what to receive from <mark>html</mark> by defining
-					the option <mark>wrap</mark>
+					the option <mark>unwrap</mark>. Defaults to `true`
 				</Code>
 			</Section>
 
