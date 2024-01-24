@@ -6,11 +6,13 @@ export default function () {
 	return (
 		<>
 			<Header title="toHTML">
-				Creates and returns HTML elements for{' '}
-				<mark>props.children</mark>. it returns a{' '}
-				<mark>DocumentFragment</mark> with the children rendered. Keep
-				in mind that using the elements on any document will remove
-				these from the DocumentFragment. Reactivity will work properly
+				Creates and returns HTML elements for anything you pass to it.
+				it returns the children rendered in a{' '}
+				<mark>DocumentFragment</mark> when there is more than 1
+				<mark>childNode</mark>. If there is only 1, it returns the
+				node instead. Keep in mind that using the elements on any
+				document will remove these from the{' '}
+				<mark>DocumentFragment</mark>. Reactivity will work properly
 				as long as you move the group together.
 			</Header>
 
