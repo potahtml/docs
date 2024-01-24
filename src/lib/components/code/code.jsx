@@ -120,7 +120,12 @@ function Render(props) {
 							name="Live Code Example"
 							ref={frame}
 							src={() =>
-								'/pages/@playground/preview/index.html#' + codeURL()
+								'/pages/@playground/preview/index.html' +
+								(window.location.href.includes('playground')
+									? '?playground'
+									: '') +
+								'#' +
+								codeURL()
 							}
 						/>,
 					),
