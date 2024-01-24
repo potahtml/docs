@@ -13,8 +13,7 @@
     "module": "NodeNext",
     "target": "ESNext",
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
-    "moduleResolution": "nodenext",
-    "resolveJsonModule": true,
+    "moduleResolution": "NodeNext",
 
     "jsx": "react-jsx",
     "jsxImportSource": "pota",
@@ -23,5 +22,5 @@
 
     "types": ["pota"]
   },
-  "exclude": ["./dist/*", "node_modules"]
+  "exclude": ["./src/dist/*", "node_modules"]
 }
