@@ -32,7 +32,7 @@ export default function () {
 							</ol>
 						</li>
 						<li>
-							1. Behaves as any other component, it could return{' '}
+							2. Behaves as any other component, it could return{' '}
 							<mark>Node/Element/Function/Array</mark>.{' '}
 							<ol>
 								<li>

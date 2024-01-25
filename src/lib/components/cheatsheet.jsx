@@ -8,7 +8,6 @@ export const CheatSheet = (
 import {
 // rendering
 render, // render(thing, targetEl=document.body, {clear:false, relative:false})
-Factory, // const Fancy = Factory((props)=>[1, 2, 3, props.children])
 Component, // const comp = Component(Fancy, {children:[4,5,6]})
 customElement, // customElement("fancy-element", class Fancy extends HTMLElement{})
 HTML, // const html = HTML({unwrap:true/false}); (props)=> html\`<div>\${props.children}</div>\`

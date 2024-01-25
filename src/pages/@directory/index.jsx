@@ -36,6 +36,7 @@ export default function () {
 						code="
 						import {
 assign,
+callAll,
 contextSimple,
 copy,
 defineProperties,
@@ -44,6 +45,7 @@ empty,
 entries,
 flat,
 freeze,
+fromEntries,
 functionState,
 getter,
 getValue,
@@ -81,6 +83,9 @@ toArray
 							attached to the reactive graph
 						</li>
 						<li>
+							<mark>callAll</mark> - calls an array of functions
+						</li>
+						<li>
 							<mark>copy</mark> - structuredClone an object or returns
 							its value
 						</li>
@@ -100,6 +105,9 @@ toArray
 						</li>
 						<li>
 							<mark>freeze</mark> - Object.freeze
+						</li>
+						<li>
+							<mark>fromEntries</mark> - Object.fromEntries
 						</li>
 						<li>
 							<mark>entries</mark> - Object.entries.

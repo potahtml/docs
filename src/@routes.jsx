@@ -148,6 +148,13 @@ export default function Routes() {
 				/>
 			</Route>
 
+			<Route
+				path=":path$"
+				params={{ path: 'custom-elements' }}
+				children={lazy(
+					() => import('./pages/@custom-elements/index.jsx'),
+				)}
+			/>
 			<Route path="Directory/">
 				<NotFound />
 

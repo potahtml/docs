@@ -11,17 +11,42 @@ export default function () {
 			</Header>
 			<Section title="Attributes vs Properties">
 				<p>
-					Will use <mark>setProperty</mark> when the value is{' '}
-					<mark>boolean</mark>
-					and doesn't have a dash <mark>-</mark> in the name. Else, it
-					will use <mark>setAttribute</mark>. While this doesnt work
-					for every situation, its a sensible default that works in
-					most cases. To change this behavior see the next section
+					<mark>setProperty</mark> will be used when any of the
+					following is true:
+				</p>
+				<p>
+					<ol>
+						<li>
+							value is <mark>object</mark>, <mark>null</mark> or{' '}
+							<mark>undefined</mark>
+						</li>
+						<li>
+							value is <mark>boolean</mark> and <mark>name</mark>{' '}
+							doesnt contain hyphens
+						</li>
+					</ol>
+				</p>
+				<p>
+					<mark>setAttribute</mark> will be also used when any of the
+					following is true:
+				</p>
+				<p>
+					<ol>
+						<li>
+							value is <mark>not an object</mark>, <mark>null</mark>{' '}
+							or <mark>undefined</mark>
+						</li>
+					</ol>
+				</p>
+				<p>
+					While this does not work for every situation, it's a
+					sensible default that works in most cases. To change this
+					behavior see the next section
 				</p>
 			</Section>
 
 			<Section title="Namespace To Force Props Type">
-				<p>A namespace can be used to force the prop type.</p>
+				<p>A namespace can be used to force the prop kind</p>
 				<p>
 					<table>
 						<thead>

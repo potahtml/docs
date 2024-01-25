@@ -44,7 +44,7 @@ export default function () {
 						<tr>
 							<td>fn</td>
 							<td>fn</td>
-							<td>The function holding the children.</td>
+							<td>function holding the children.</td>
 						</tr>
 					</tbody>
 				</table>

@@ -34,12 +34,12 @@ export default function () {
 						<tr>
 							<td>children</td>
 							<td>any</td>
-							<td>the thing to render</td>
+							<td>thing to render</td>
 						</tr>
 						<tr>
 							<td>parent?</td>
 							<td>Element [document.body]</td>
-							<td>the target node where to render</td>
+							<td>target node where to render</td>
 						</tr>
 						<tr>
 							<td>options?</td>

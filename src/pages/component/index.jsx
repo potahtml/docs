@@ -8,8 +8,10 @@ export default function () {
 			<Header title="Component">
 				<mark>Component</mark> assist the creation of dynamic
 				untracked components. Takes a component and props, returns a
-				function. This is handy for reactivity. For JSX space see{' '}
-				<mark>Dynamic</mark>.
+				function. For JSX space see <mark>Dynamic</mark>. When{' '}
+				<mark>props</mark> argument is defined it returns a function
+				with fixed props. When the <mark>props</mark> argument is
+				omitted it returns a function that you can pass props to it.
 			</Header>
 
 			<Section title="Component">
@@ -28,20 +30,22 @@ export default function () {
 							<td>component to create</td>
 						</tr>
 						<tr>
-							<td>props</td>
+							<td>[props]</td>
 							<td>object</td>
-							<td>the component props</td>
+							<td>component props</td>
 						</tr>
 					</tbody>
 				</table>
 
-				<Code url="/pages/component/element.jsx"></Code>
+				<Code url="/pages/component/element.jsx">
+					Component with fixed props
+				</Code>
 			</Section>
 
-			<Section title="Factory">
+			<Section title="Component as a Factory">
 				<p>
-					In a similar way, <mark>Factory</mark> takes a component
-					that you can use with props.
+					In a similar way, when <mark>props</mark> argument is
+					omitted it allows you to use props on the returned function.
 				</p>
 				<table>
 					<thead>

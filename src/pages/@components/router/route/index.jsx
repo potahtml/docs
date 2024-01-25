@@ -56,7 +56,7 @@ export default function () {
 						<tr>
 							<td>children?</td>
 							<td>any</td>
-							<td>the thing to render.</td>
+							<td>thing to render.</td>
 						</tr>
 						<tr>
 							<td>collapse?</td>
