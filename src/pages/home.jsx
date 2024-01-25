@@ -22,8 +22,9 @@ export default function Home() {
 				</h1>
 				<p>
 					<b>pota</b> is a <em>small</em> and pluggable Reactive Web
-					Renderer. Although its compiler-less, it includes a babel
-					preset for transforming JSX.
+					Renderer. Although its compiler-less, it includes an{' '}
+					<mark>html</mark> function and a babel preset for
+					transforming JSX.
 				</p>
 			</Header>
 
