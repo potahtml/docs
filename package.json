@@ -61,7 +61,7 @@
 			{
 				"input": ["src/pages/benchmark/js-framework-benchmark.jsx"],
 				"output": "src/dist/benchmark-solid/",
-				"minified": true,
+				"minified": false,
 				"treeshake": true,
 				"root": false,
 				"babel": {
