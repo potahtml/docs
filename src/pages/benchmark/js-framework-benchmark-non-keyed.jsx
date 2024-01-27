@@ -1,4 +1,4 @@
-import { render, signal, batch, For } from 'pota'
+import { render, signal, batch, For, html } from 'pota'
 import { useSelector } from 'pota/hooks'
 
 let idCounter = 1
@@ -79,23 +79,24 @@ function buildData(count) {
   return data
 }
 
-const Button = ({ id, text, fn }) => (
-  <div class="col-sm-6 smallpad">
+const BButton = ({ id, text, fn }) =>
+  html`<div class="col-sm-6 smallpad">
     <button
-      id={id}
+      id="${id}"
       class="btn btn-primary btn-block"
       type="button"
-      onClick={fn}
+      onClick="${fn}"
     >
-      {text}
+      ${text}
     </button>
-  </div>
-)
+  </div>`
 
 const App = () => {
   const [data, setData] = signal([]),
     [selected, setSelected] = signal(null),
-    run = () => setData(buildData(1000)),
+    run = () => {
+      setData(buildData(1000))
+    },
     runLots = () => {
       setData(buildData(10000))
     },
@@ -123,99 +124,99 @@ const App = () => {
       }),
     isSelected = useSelector(selected)
 
-  return (
-    <div class="container">
-      <div class="jumbotron">
-        <div class="row">
-          <div class="col-md-6">
-            <h1>pota Keyed</h1>
-          </div>
-          <div class="col-md-6">
-            <div class="row">
-              <Button
-                id="run"
-                text="Create 1,000 rows"
-                fn={run}
-              />
-              <Button
-                id="runlots"
-                text="Create 10,000 rows"
-                fn={runLots}
-              />
-              <Button
-                id="add"
-                text="Append 1,000 rows"
-                fn={add}
-              />
-              <Button
-                id="update"
-                text="Update every 10th row"
-                fn={update}
-              />
-              <Button
-                id="clear"
-                text="Clear"
-                fn={clear}
-              />
-              <Button
-                id="swaprows"
-                text="Swap Rows"
-                fn={swapRows}
-              />
-            </div>
+  html.define({ BButton })
+
+  return html`<div class="container">
+    <div class="jumbotron">
+      <div class="row">
+        <div class="col-md-6">
+          <h1>pota Keyed</h1>
+        </div>
+        <div class="col-md-6">
+          <div class="row">
+            <BButton
+              id="run"
+              text="Create 1,000 rows"
+              fn="${run}"
+            />
+            <BButton
+              id="runlots"
+              text="Create 10,000 rows"
+              fn="${runLots}"
+            />
+            <BButton
+              id="add"
+              text="Append 1,000 rows"
+              fn="${add}"
+            />
+            <BButton
+              id="update"
+              text="Update every 10th row"
+              fn="${update}"
+            />
+            <BButton
+              id="clear"
+              text="Clear"
+              fn="${clear}"
+            />
+            <BButton
+              id="swaprows"
+              text="Swap Rows"
+              fn="${swapRows}"
+            />
           </div>
         </div>
       </div>
-      <table
-        class="table table-hover table-striped test-data"
-        onClick={e => {
+    </div>
+    <table
+      class="table table-hover table-striped test-data"
+      onClick="${e => {
+        {
+          console.log('wtf')
           const element = e.target
           if (element.setSelected !== undefined) {
             setSelected(element.setSelected)
           } else if (element.removeRow !== undefined) {
             remove(element.removeRow)
           }
-        }}
-      >
-        <tbody>
-          <For each={data}>
-            {row => {
-              const { rowId, label } = row
-
-              return (
-                <tr class:danger={isSelected(rowId)}>
-                  <td
-                    class="col-md-1"
-                    textContent={rowId}
+        }
+      }}"
+    >
+      <tbody>
+        <For each="${data}"
+          >${row => {
+            const { id, label } = row
+            return html`<tr class:danger="${isSelected(id)}">
+              <td
+                class="col-md-1"
+                textContent="${id}"
+              />
+              <td class="col-md-4">
+                <a
+                  textContent="${label}"
+                  prop:setSelected="${id}"
+                />
+              </td>
+              <td class="col-md-1">
+                <a>
+                  <span
+                    class="glyphicon glyphicon-remove"
+                    aria-hidden="true"
+                    prop:removeRow="${id}"
                   />
-                  <td class="col-md-4">
-                    <a
-                      textContent={label}
-                      prop:setSelected={rowId}
-                    />
-                  </td>
-                  <td class="col-md-1">
-                    <a>
-                      <span
-                        class="glyphicon glyphicon-remove"
-                        aria-hidden="true"
-                        prop:removeRow={rowId}
-                      />
-                    </a>
-                  </td>
-                  <td class="col-md-6" />
-                </tr>
-              )
-            }}
-          </For>
-        </tbody>
-      </table>
-      <span
-        class="preloadicon glyphicon glyphicon-remove"
-        aria-hidden="true"
-      />
-    </div>
-  )
+                </a>
+              </td>
+              <td class="col-md-6" />
+            </tr>`
+          }}</For
+        >
+      </tbody>
+    </table>
+    <span
+      class="preloadicon glyphicon glyphicon-remove"
+      aria-hidden="true"
+    />
+  </div>`
 }
 
 render(App, document.getElementById('main'))

@@ -35,8 +35,8 @@ withOwner, // const owned = withOwner(); owned(fn)
 withValue, // withValue(signal, value => console.log(value))
 
 // events
-addEventListener, // addEventListener(el, 'click', fn, delegated=true)
-removeEventListener, // removeEventListener(el, 'click', fn, delegated=true)
+addEventListener, // addEventListener(el, 'click', fn)
+removeEventListener, // removeEventListener(el, 'click', fn)
 
 // components
 Pota, // class MyC extends Pota { render(props){} onReady(){} onCleanup(){} }

@@ -27,9 +27,7 @@ export default function Menu() {
 				<li>
 					<a href="/HTML">HTML</a>
 				</li>
-				<li>
-					<a href="/custom-elements">Custom Elements</a>
-				</li>
+
 				<li>
 					<h4>Children</h4>
 					<ul>

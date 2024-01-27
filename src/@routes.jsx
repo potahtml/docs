@@ -23,6 +23,12 @@ export default function Routes() {
 				<Home />
 			</Route>
 
+			{/*<Route
+				path=":path$"
+				params={{ path: 'Blog' }}
+				children={lazy(() => import('./pages/@blog/index.jsx'))}
+			/>*/}
+
 			<Route path="Components/">
 				<NotFound />
 
@@ -247,7 +253,7 @@ export default function Routes() {
 					children={lazy(
 						() =>
 							import(
-								'./pages/@props/event-listener-delegate/index.jsx'
+								'./pages/@props/event-listener-window/index.jsx'
 							),
 					)}
 				/>

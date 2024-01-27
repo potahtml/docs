@@ -91,7 +91,7 @@ export default function () {
 
 						html.define({Test:()=>'hello world!'})
 
- 						const test = html\`<div><test/> div contents </div>\`
+ 						const test = html\`<div><Test/> div contents </div>\`
 
  						console.log(test)
 
@@ -114,7 +114,7 @@ export default function () {
 
 						html.define({Test:()=>'hello world!'})
 
- 						const test = html\`<div><test/> div contents</div>\`
+ 						const test = html\`<div><Test/> div contents</div>\`
 
  						console.log(test)
 
@@ -133,7 +133,7 @@ export default function () {
 						import { html, render } from 'pota'
 
 
- 						const test = html\`<for each="\${[1, 2, 3]}">\${val => val*2}</for>\`
+ 						const test = html\`<For each="\${[1, 2, 3]}">\${val => val*2}</For>\`
 
 						render(test)
  					`}
@@ -346,8 +346,8 @@ export default function () {
 						children attribute will be ignored
 					</li>
 					<li>
-						on <mark>html.define</mark> the registry is case
-						insensitive
+						on <mark>html.define</mark> the registry{' '}
+						<u>is case sensitive</u>
 					</li>
 					<li>
 						on <mark>html.define</mark> it is possible to define a

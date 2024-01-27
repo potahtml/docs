@@ -14,10 +14,10 @@ function App(props) {
     }
   }
 
-  const handler = (kind, info, e) => {
+  const handler = (kind, e) => {
     render(
       <div>
-        You {e.type} {kind} in a {info}
+        You {e.type} {kind}
       </div>,
     )
   }
@@ -33,13 +33,11 @@ function App(props) {
         />
       </label>
       <ul>
-        <li onClick={[handler, 'duck', 'delegated event']}>duck</li>
-        <li onClick={[handler, 'dog', 'delegated event']}>dog</li>
-        <li onClick={[handler, 'meaw', 'delegated event']}>meaw</li>
-        <li onClick={[handler, 'quack', 'delegated event']}>quack</li>
-        <li onClick:my-ns={[handler, 'bird', 'delegated event']}>
-          bird
-        </li>
+        <li onClick={e => handler('duck', e)}>duck</li>
+        <li onClick={e => handler('dog', e)}>dog</li>
+        <li onClick={e => handler('meaw', e)}>meaw</li>
+        <li onClick={e => handler('quack', e)}>quack</li>
+        <li onClick:my-ns={e => handler('bird', e)}>bird</li>
       </ul>
     </main>
   )

@@ -12,19 +12,14 @@ function Example() {
     render(<div>You have click me!</div>, button())
 
   const add = () => {
-    addEventListener(button(), 'click', handler, true)
-    addEventListener(button(), 'click', handler, false)
+    addEventListener(button(), 'click', handler)
   }
   const remove = () => {
-    removeEventListener(button(), 'click', handler, true)
-    removeEventListener(button(), 'click', handler, false)
+    removeEventListener(button(), 'click', handler)
   }
 
   return (
     <main>
-      <div>
-        It adds 1 delegated and 1 native. So will display double.
-      </div>
       <button
         name="button"
         onClick={add}

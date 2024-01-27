@@ -14,10 +14,10 @@ function App(props) {
     }
   }
 
-  const handler = (kind, info, e) => {
+  const handler = (kind, e) => {
     render(
       <div>
-        You {e.type} {kind} in a {info}
+        You {e.type} {kind}
       </div>,
     )
   }
@@ -33,10 +33,11 @@ function App(props) {
         />
       </label>
       <ul>
-        <li on:click={[handler, 'dog', 'native event']}>dog</li>
-        <li on:click={[handler, 'meaw', 'native event']}>meaw</li>
-        <li on:click={[handler, 'quack', 'native event']}>quack</li>
-        <li on:click={[handler, 'duck', 'native event']}>duck</li>
+        <li on:click={e => handler('duck', e)}>duck</li>
+        <li on:click={e => handler('dog', e)}>dog</li>
+        <li on:click={e => handler('meaw', e)}>meaw</li>
+        <li on:click={e => handler('quack', e)}>quack</li>
+        <li on:click={e => handler('bird', e)}>bird</li>
       </ul>
     </main>
   )

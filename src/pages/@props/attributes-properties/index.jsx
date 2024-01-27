@@ -6,8 +6,9 @@ export default function () {
 	return (
 		<>
 			<Header title="attributes / properties">
-				Describes <mark>pota</mark> behavior with attributes and
-				properties
+				Describes behavior with attributes and properties. It pass{' '}
+				<a href="/custom-elements">Custom Elements "Everywhere"</a>{' '}
+				tests.
 			</Header>
 			<Section title="Attributes vs Properties">
 				<p>
@@ -118,11 +119,11 @@ export default function () {
 
 			<Section title="Children">
 				<p>
-					<mark>children</mark> cannot be overridden via a{' '}
-					<mark>propsPlugin</mark>. Everything else can be changed.{' '}
-					<b>Note</b>: <mark>children</mark> as an attribute will be
-					used as long as the node on where it's defined doesn't have
-					any <mark>childNodes</mark>.
+					<mark>children</mark> as an attribute will be used as long
+					as the node on where it's defined doesn't have any{' '}
+					<mark>childNodes</mark>. <b>Note</b>: <mark>children</mark>{' '}
+					cannot be overridden via a <mark>propsPlugin</mark>.
+					Everything else can be changed.
 				</p>
 			</Section>
 
@@ -136,12 +137,10 @@ export default function () {
 
 			<Section title="Events">
 				<p>
-					Events using the <mark>on__</mark> form will be delegated.
-					these are case insensitive.
+					Events using the <mark>on__</mark> form are case insensitive
 				</p>
 				<p>
-					Events using the <mark>on:__</mark> form will be attached to
-					the element. These are case sensitive.
+					Events using the <mark>on:__</mark> form are case sensitive
 				</p>
 			</Section>
 

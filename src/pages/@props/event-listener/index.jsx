@@ -6,7 +6,7 @@ export default function () {
 	return (
 		<>
 			<Header title="addEventListener / removeEventListener">
-				For adding and removing event listeners, delegated and Native.
+				For adding and removing event listeners
 			</Header>
 
 			<Section title="addEventListener Arguments">
@@ -41,13 +41,8 @@ export default function () {
 						</tr>
 						<tr>
 							<td>handler</td>
-							<td>fn/[fn, ...]</td>
+							<td>fn </td>
 							<td>handler to run once the event is triggered</td>
-						</tr>
-						<tr>
-							<td>delegated</td>
-							<td>boolean [true]</td>
-							<td>if the event is delegated or not</td>
 						</tr>
 					</tbody>
 				</table>
@@ -85,16 +80,11 @@ export default function () {
 						</tr>
 						<tr>
 							<td>handler</td>
-							<td>fn/[fn, ...]</td>
+							<td>fn</td>
 							<td>
 								reference to the handler that has been added using{' '}
 								<mark>addEventListener</mark>
 							</td>
-						</tr>
-						<tr>
-							<td>delegated</td>
-							<td>boolean [true]</td>
-							<td>if the event was delegated or not</td>
 						</tr>
 					</tbody>
 				</table>

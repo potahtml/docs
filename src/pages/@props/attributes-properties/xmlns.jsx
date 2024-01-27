@@ -1,7 +1,7 @@
 import { render, signal, Show } from 'pota'
 
 function App() {
-  const [showing, setShowing] = signal(true)
+  const [showing, setShowing] = signal(false)
 
   return (
     <main>

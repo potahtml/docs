@@ -2,6 +2,8 @@ import { version } from 'pota'
 
 import { Header } from '../../lib/components/header.jsx'
 import { Section } from '../../lib/components/section.jsx'
+import { Code } from '../../lib/components/code/code.jsx'
+import { CompilerLess } from '../html/compiler-less.jsx'
 
 export default function () {
 	return (
@@ -93,6 +95,10 @@ https://cdn.jsdelivr.net/npm/pota@${version}/dist/standalone.flimsy.no-min.js
 							.trim()}
 					</pre>
 				</code>
+			</Section>
+
+			<Section title="Compiler-less">
+				<CompilerLess />
 			</Section>
 		</>
 	)

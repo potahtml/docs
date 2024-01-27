@@ -42,7 +42,7 @@ render(
   () =>
     html` <custom-element
       string-attribute="lala"
-      boolean="{true}"
+      boolean="${true}"
     >
       Test
     </custom-element>`,
