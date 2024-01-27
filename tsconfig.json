@@ -2,9 +2,6 @@
   "compilerOptions": {
     "baseUrl": ".",
     "outDir": "./dist",
-    "paths": {
-      "#main": ["./src/lib/@main.jsx"]
-    },
 
     "allowJs": true,
     "checkJs": true,
