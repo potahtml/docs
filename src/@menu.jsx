@@ -67,10 +67,10 @@ export default function Menu() {
 					<h4>Lifecycles</h4>
 					<ul>
 						<li>
-							<a href="/onReady">onReady</a>
+							<a href="/ready">ready</a>
 						</li>
 						<li>
-							<a href="/onCleanup">onCleanup</a>
+							<a href="/cleanup">cleanup</a>
 						</li>
 					</ul>
 				</li>

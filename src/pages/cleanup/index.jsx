@@ -5,15 +5,15 @@ import { Section } from '../../lib/components/section.jsx'
 export default function () {
 	return (
 		<>
-			<Header title="onCleanup">
-				<mark>onCleanup</mark> is for components that need a cleanup
+			<Header title="cleanup">
+				<mark>cleanup</mark> is for components that need a cleanup
 				step.
 			</Header>
 
 			<p>
-				The <mark>onCleanup</mark> callbacks, will run once the
-				current tracking scope is disposed or recreated. It is
-				provided by the Reactive Library in use.
+				The <mark>cleanup</mark> callbacks, will run once the current
+				tracking scope is disposed or recreated. It is provided by the
+				Reactive Library in use.
 			</p>
 			<p>
 				The order seems to be from last added to first added, after
@@ -43,7 +43,7 @@ export default function () {
 
 			<Section title="Snippet">
 				<Code
-					url="/pages/on-cleanup/snippet.jsx"
+					url="/pages/cleanup/snippet.jsx"
 					render={false}
 				></Code>
 			</Section>
@@ -51,9 +51,9 @@ export default function () {
 			<Section title="Timing">
 				<p>
 					Displays current timings of <mark>onUnmount</mark> on
-					Elements vs <mark>onCleanup</mark>
+					Elements vs <mark>cleanup</mark>
 				</p>
-				<Code url="/pages/on-cleanup/timing.jsx"></Code>
+				<Code url="/pages/cleanup/timing.jsx"></Code>
 			</Section>
 		</>
 	)

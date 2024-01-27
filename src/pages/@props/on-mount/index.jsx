@@ -16,7 +16,7 @@ export default function () {
 				As of this writing, the <mark>onMount</mark> callbacks, will
 				run after the current batch of Nodes have been inserted into
 				the document, before paint, in recursive order, and before the{' '}
-				<mark>onReady</mark> callbacks.
+				<mark>ready</mark> callbacks.
 			</p>
 
 			<p>
@@ -54,8 +54,8 @@ export default function () {
 			</Section>
 
 			<Section title="Timing">
-				<p>Displays current timings of onReady vs onMount</p>
-				<Code url="/pages/on-ready/timing.jsx"></Code>
+				<p>Displays current timings of ready vs onMount</p>
+				<Code url="/pages/ready/timing.jsx"></Code>
 			</Section>
 		</>
 	)

@@ -12,7 +12,7 @@ export default function () {
 
 			<p>
 				A class, automatically registers the methods{' '}
-				<mark>onReady</mark> and <mark>onCleanup</mark>
+				<mark>ready</mark> and <mark>cleanup</mark>
 			</p>
 
 			<Section title="Example">

@@ -1,4 +1,4 @@
-import { onReady, signal, version } from 'pota'
+import { ready, signal, version } from 'pota'
 import styles from './bench.module.css'
 
 export function Bench() {
@@ -7,7 +7,7 @@ export function Bench() {
 	const key = window.location.href
 	const best = +localStorage[key] || '?'
 
-	onReady(() => {
+	ready(() => {
 		const time = +(performance.now() - globalThis.start).toFixed(2)
 		setRenderTime(time)
 

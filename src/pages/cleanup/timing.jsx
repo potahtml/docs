@@ -1,8 +1,8 @@
-import { render, onCleanup } from 'pota'
+import { render, cleanup } from 'pota'
 
 function BeforeSibling() {
-  onCleanup(() =>
-    render(<div>onCleanup: BeforeSibling:component body</div>),
+  cleanup(() =>
+    render(<div>cleanup: BeforeSibling:component body</div>),
   )
 
   return (
@@ -14,8 +14,8 @@ function BeforeSibling() {
   )
 }
 function AfterSibling() {
-  onCleanup(() =>
-    render(<div>onCleanup: AfterSibling:component body</div>),
+  cleanup(() =>
+    render(<div>cleanup: AfterSibling:component body</div>),
   )
 
   return (
@@ -27,7 +27,7 @@ function AfterSibling() {
   )
 }
 function Test() {
-  onCleanup(() => render(<div>onCleanup: component body</div>))
+  cleanup(() => render(<div>cleanup: component body</div>))
   return (
     <main
       onUnmount={() =>

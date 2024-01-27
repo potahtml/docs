@@ -1,9 +1,7 @@
-import { render, onReady } from 'pota'
+import { render, ready } from 'pota'
 
 function BeforeSibling() {
-  onReady(() =>
-    render(<div>onReady: BeforeSibling:component body</div>),
-  )
+  ready(() => render(<div>ready: BeforeSibling:component body</div>))
 
   return (
     <section
@@ -12,9 +10,7 @@ function BeforeSibling() {
   )
 }
 function AfterSibling() {
-  onReady(() =>
-    render(<div>onReady: AfterSibling:component body</div>),
-  )
+  ready(() => render(<div>ready: AfterSibling:component body</div>))
 
   return (
     <section
@@ -23,7 +19,7 @@ function AfterSibling() {
   )
 }
 function Test() {
-  onReady(() => render(<div>onReady: component body</div>))
+  ready(() => render(<div>ready: component body</div>))
   return (
     <main onMount={() => render(<div>onMount: from container</div>)}>
       <section>
@@ -47,8 +43,8 @@ function Test() {
   )
 }
 
-onReady(() => render(<div>onReady: Top level before render</div>))
+ready(() => render(<div>ready: Top level before render</div>))
 
 render(Test)
 
-onReady(() => render(<div>onReady: Top level after render</div>))
+ready(() => render(<div>ready: Top level after render</div>))

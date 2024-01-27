@@ -406,13 +406,13 @@ export default function Routes() {
 			/>
 			<Route
 				path=":path$"
-				params={{ path: 'onCleanup' }}
-				children={lazy(() => import('./pages/on-cleanup/index.jsx'))}
+				params={{ path: 'cleanup' }}
+				children={lazy(() => import('./pages/cleanup/index.jsx'))}
 			/>
 			<Route
 				path=":path$"
-				params={{ path: 'onReady' }}
-				children={lazy(() => import('./pages/on-ready/index.jsx'))}
+				params={{ path: 'ready' }}
+				children={lazy(() => import('./pages/ready/index.jsx'))}
 			/>
 			<Route
 				path=":path$"

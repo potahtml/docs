@@ -17,8 +17,8 @@ https://pota.quack.uy/Directory/
 https://pota.quack.uy/hooks/useSelector
 https://pota.quack.uy/HTML
 https://pota.quack.uy/lazy
-https://pota.quack.uy/onCleanup
-https://pota.quack.uy/onReady
+https://pota.quack.uy/cleanup
+https://pota.quack.uy/ready
 https://pota.quack.uy/playground
 https://pota.quack.uy/props/attr%3A__
 https://pota.quack.uy/props/attributes-properties
@@ -48,3 +48,4 @@ https://pota.quack.uy/render
 https://pota.quack.uy/resolve
 https://pota.quack.uy/toHTML
 https://pota.quack.uy/usage
+https://pota.quack.uy/custom-elements
