@@ -117,38 +117,11 @@ const App = () => {
     clear = () => setData([]),
     remove = id =>
       setData(d => {
-        const idx = d.findIndex(d => d.id === id)
-        return [...d.slice(0, idx), ...d.slice(idx + 1)]
+        const idx = d.findIndex(datum => datum.id === id)
+        d.splice(idx, 1)
+        return [...d]
       }),
-    isSelected = useSelector(selected),
-    Row = function (props) {
-      const row = props.row
-      const rowId = row.id
-
-      return (
-        <tr class:danger={isSelected(rowId)}>
-          <td
-            class="col-md-1"
-            textContent={rowId}
-          />
-          <td class="col-md-4">
-            <a
-              onClick={[setSelected, rowId]}
-              textContent={row.label}
-            />
-          </td>
-          <td class="col-md-1">
-            <a onClick={[remove, rowId]}>
-              <span
-                class="glyphicon glyphicon-remove"
-                aria-hidden="true"
-              />
-            </a>
-          </td>
-          <td class="col-md-6" />
-        </tr>
-      )
-    }
+    isSelected = useSelector(selected)
 
   return (
     <div class="container">
@@ -193,9 +166,48 @@ const App = () => {
           </div>
         </div>
       </div>
-      <table class="table table-hover table-striped test-data">
+      <table
+        class="table table-hover table-striped test-data"
+        onClick={e => {
+          const element = e.target
+          if (element.setSelected !== undefined) {
+            setSelected(element.setSelected)
+          } else if (element.removeRow !== undefined) {
+            remove(element.removeRow)
+          }
+        }}
+      >
         <tbody>
-          <For each={data}>{row => <Row row={row} />}</For>
+          <For each={data}>
+            {row => {
+              const rowId = row.id
+
+              return (
+                <tr class:danger={isSelected(rowId)}>
+                  <td
+                    class="col-md-1"
+                    textContent={rowId}
+                  />
+                  <td class="col-md-4">
+                    <a
+                      textContent={row.label}
+                      prop:setSelected={rowId}
+                    />
+                  </td>
+                  <td class="col-md-1">
+                    <a>
+                      <span
+                        class="glyphicon glyphicon-remove"
+                        aria-hidden="true"
+                        prop:removeRow={rowId}
+                      />
+                    </a>
+                  </td>
+                  <td class="col-md-6" />
+                </tr>
+              )
+            }}
+          </For>
         </tbody>
       </table>
       <span
