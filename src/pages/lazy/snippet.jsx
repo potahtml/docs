@@ -9,9 +9,9 @@ function App() {
 		<main>
 			{lazy(
 				() => import('/'),
-				<div> something went wrong with lazy as callback</div>,
+				<div>lazy fallback testing as callback</div>,
 			)}
-			<Lazy fallback="something went wrong with Lazy as component" />
+			<Lazy fallback="Lazy fallback testing as component" />
 		</main>
 	)
 }
