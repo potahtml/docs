@@ -1,8 +1,9 @@
 import { Code } from '../../lib/components/code/code.jsx'
+import { version } from 'pota'
 
 export const CompilerLess = (
-	<Code
-		code={`
+  <Code
+    code={`
 
   // pota + solid reactivity - Compiler-less html example
 
@@ -11,7 +12,7 @@ export const CompilerLess = (
     signal,
     html,
     memo,
-  } from "https://cdn.jsdelivr.net/npm/pota@0.7.77/dist/standalone.js";
+  } from "https://cdn.jsdelivr.net/npm/pota@${version}/dist/standalone.js";
 
   function Counter() {
     const [count, setCount] = signal(1);
@@ -33,5 +34,5 @@ export const CompilerLess = (
 
 
 `}
-	></Code>
+  ></Code>
 )
