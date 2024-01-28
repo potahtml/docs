@@ -57,52 +57,6 @@
 				"minified": true,
 				"treeshake": true,
 				"root": false
-			},
-			{
-				"input": [
-					"src/pages/benchmark/js-framework-benchmark-non-keyed.jsx"
-				],
-				"output": "src/dist/benchmark-solid/",
-				"minified": false,
-				"treeshake": true,
-				"root": false,
-				"babel": {
-					"presets": [["pota/babel-preset"]]
-				}
-			},
-			{
-				"input": ["src/pages/benchmark/js-framework-benchmark.jsx"],
-				"output": "src/dist/benchmark-oby/",
-				"minified": true,
-				"treeshake": true,
-				"root": false,
-				"babel": {
-					"presets": [
-						[
-							"pota/babel-preset",
-							{
-								"lib": "oby"
-							}
-						]
-					]
-				}
-			},
-			{
-				"input": ["src/pages/benchmark/js-framework-benchmark.jsx"],
-				"output": "src/dist/benchmark-flimsy/",
-				"minified": true,
-				"treeshake": true,
-				"root": false,
-				"babel": {
-					"presets": [
-						[
-							"pota/babel-preset",
-							{
-								"lib": "flimsy"
-							}
-						]
-					]
-				}
 			}
 		]
 	},
