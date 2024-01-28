@@ -136,7 +136,7 @@ render(Counter)
 					an automatic dependency tracking reactive renderer. The{' '}
 					<a
 						target="_blank"
-						href="https://github.com/potaorg/pota"
+						href="https://github.com/potahtml/pota"
 					>
 						Source code
 					</a>{' '}

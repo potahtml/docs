@@ -118,7 +118,7 @@ const data = {
 	num: 42,
 	str: "Pota",
 	arr: ["P", "o", "t", "a"],
-	obj: { org: "potaorg", repo: "pota" },
+	obj: { org: "potahtml", repo: "pota" },
 	camelCaseObj: { label: "passed" },
 };
 
@@ -168,7 +168,7 @@ const data = {
 	num: 42,
 	str: "Pota",
 	arr: ["P", "o", "t", "a"],
-	obj: { org: "potaorg", repo: "pota" },
+	obj: { org: "potahtml", repo: "pota" },
 	camelCaseObj: { label: "passed" },
 };
 
@@ -218,7 +218,7 @@ const data = {
 	num: 42,
 	str: "Pota",
 	arr: ["P", "o", "t", "a"],
-	obj: { org: "potaorg", repo: "pota" },
+	obj: { org: "potahtml", repo: "pota" },
 	camelCaseObj: { label: "passed" },
 };
 
@@ -296,7 +296,7 @@ const data = {
 	num: 42,
 	str: "Pota",
 	arr: ["P", "o", "t", "a"],
-	obj: { org: "potaorg", repo: "pota" },
+	obj: { org: "potahtml", repo: "pota" },
 	camelCaseObj: { label: "passed" },
 };
 
@@ -342,7 +342,7 @@ const data = {
 	num: 42,
 	str: "Pota",
 	arr: ["P", "o", "t", "a"],
-	obj: { org: "potaorg", repo: "pota" },
+	obj: { org: "potahtml", repo: "pota" },
 	camelCaseObj: { label: "passed" },
 };
 
@@ -386,7 +386,7 @@ const data = {
 	num: 42,
 	str: "Pota",
 	arr: ["P", "o", "t", "a"],
-	obj: { org: "potaorg", repo: "pota" },
+	obj: { org: "potahtml", repo: "pota" },
 	camelCaseObj: { label: "passed" },
 };
 

@@ -11,7 +11,7 @@ export default function () {
 			<Header title="Usage">
 				There are two vite templates for getting started with pota.
 				The templates are located in{' '}
-				<a href="https://github.com/potaorg/templates">github</a>.
+				<a href="https://github.com/potahtml/templates">github</a>.
 				Feel free to send improvements!. The recommended way to use
 				this package is with rollup, unless you can handle vite
 				idiosyncrasies.
@@ -20,7 +20,7 @@ export default function () {
 			<Section title="JavaScript">
 				<code>
 					<pre>
-						npx degit potaorg/templates/js pota-project
+						npx degit potahtml/templates/js pota-project
 						<br />
 						cd pota-project
 						<br />
@@ -39,7 +39,7 @@ export default function () {
 				</p>
 				<code>
 					<pre>
-						npx degit potaorg/templates/ts pota-project
+						npx degit potahtml/templates/ts pota-project
 						<br />
 						cd pota-project
 						<br />

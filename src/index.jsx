@@ -48,7 +48,7 @@ render(() => {
 					<span>
 						<a href="/">home</a>
 						{' / '}
-						<a href="https://github.com/potaorg/pota">github</a>
+						<a href="https://github.com/potahtml/pota">github</a>
 					</span>
 					<span flair="grow" />
 
