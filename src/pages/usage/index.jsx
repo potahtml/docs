@@ -2,17 +2,17 @@ import { version } from 'pota'
 
 import { Header } from '../../lib/components/header.jsx'
 import { Section } from '../../lib/components/section.jsx'
-import { Code } from '../../lib/components/code/code.jsx'
 import { CompilerLess } from '../html/compiler-less.jsx'
 
 export default function () {
 	return (
 		<>
 			<Header title="Usage">
-				There are two vite templates for getting started with pota.
 				The templates are located in{' '}
-				<a href="https://github.com/potahtml/templates">github</a>.
-				Feel free to send improvements!. The recommended way to use
+				<a href="https://github.com/potahtml/templates">
+					github pota templates
+				</a>
+				. Feel free to send improvements!. The recommended way to use
 				this package is with rollup, unless you can handle vite
 				idiosyncrasies.
 			</Header>
@@ -64,6 +64,19 @@ export default function () {
 				<code>
 					<pre>
 						{'presets: [["pota/babel-preset", {"lib":"oby"}]]'}
+					</pre>
+				</code>
+			</Section>
+
+			<Section title="Rollup">
+				<p>Very customizable, recommended!</p>
+				<code>
+					<pre>
+						{`npx degit potahtml/templates/rollup pota-project
+cd pota-project
+npm install --include=dev
+npm run dev
+npm run serve`}
 					</pre>
 				</code>
 			</Section>
