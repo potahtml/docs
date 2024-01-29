@@ -659,7 +659,8 @@ setTimeout(dispose, 5_000)
 					<a href="https://github.com/potahtml/docs/tree/master/src/pages/%40articles/anatomy/clumsy.js">
 						clumsy.js
 					</a>
-					. For a real world reactive renderer implementation, you can
+					.<p></p>
+					For a real world reactive renderer implementation, you can
 					take a look at{' '}
 					<a href="https://github.com/potahtml/pota/blob/master/src/renderer/">
 						pota
@@ -669,6 +670,10 @@ setTimeout(dispose, 5_000)
 					<a href="https://github.com/ryansolid/dom-expressions/tree/main/packages/dom-expressions">
 						dom-expressions
 					</a>
+					.<p></p>
+					If you enjoy this topic you can join{' '}
+					<a href="https://discord.gg/solidjs">SolidJS</a> Discord and
+					we can chat!
 				</p>
 				<p></p>
 				<blockquote>
