@@ -1,28 +1,36 @@
-import { ready, signal, version } from 'pota'
+import { mutable, ready, version } from 'pota'
 import styles from './bench.module.css'
 
 export function Bench() {
-	const [renderTime, setRenderTime] = signal(0)
-
-	const key = window.location.href
-	const best = +localStorage[key] || '?'
+	const renderTime = mutable({ time: 0, best: 0 })
 
 	ready(() => {
-		const time = +(performance.now() - globalThis.start).toFixed(2)
-		setRenderTime(time)
+		const stop = performance.now()
 
-		const past = +localStorage[key] || 1000
-		if (time > 0 && time < past) {
-			localStorage[key] = time
+		const key = window.location.href
+
+		renderTime.best = +localStorage[key] || 0
+
+		renderTime.time = +(stop - globalThis.start).toFixed(2)
+
+		const previous = +localStorage[key] || 1000
+		if (renderTime.time > 0 && renderTime.time < previous) {
+			localStorage[key] = renderTime.time
 		}
 	})
 	return (
 		<section
 			title="Current / Best"
 			class={styles.bench}
-			data-render={() => 'v' + version + ' - ' + renderTime() + ' / '}
 		>
-			{best}
+			{() =>
+				'v' +
+				version +
+				' - ' +
+				renderTime.time +
+				' / ' +
+				renderTime.best
+			}
 		</section>
 	)
 }

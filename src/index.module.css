@@ -50,17 +50,16 @@ a:visited {
 /* quote */
 
 blockquote {
-	color: #bae1ff;
+	color: #8197a8;
 }
 blockquote {
-	padding: 0 0 0 10px;
-	margin: 0 0 0 4px;
-	border-left-width: 4px;
-	border-left-style: solid;
-	border-color: #bae1ff;
+	border-left: 4px solid;
+	border-color: #485f71;
 	display: inline-block;
-	font-size: 90%;
-	margin-left: 15px;
+
+	padding: 10px;
+	padding-left: 15px;
+	line-height: 1.5;
 }
 
 blockquote a {

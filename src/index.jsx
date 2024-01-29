@@ -23,6 +23,8 @@ render(() => {
 			flair="row grow"
 			data-pathname={location.pathname}
 		>
+			<Bench />
+
 			<svg
 				flair="selection-none"
 				xmlns="http://www.w3.org/2000/svg"
@@ -47,11 +49,15 @@ render(() => {
 				<footer flair="row width">
 					<span>
 						<a href="/">home</a>
-						{' / '}
-						<a href="https://github.com/potahtml/pota">github</a>
 					</span>
 					<span flair="grow" />
-
+					<span>
+						<a href="/articles/">articles</a>
+						{' / '}
+						<a href="https://github.com/potahtml/pota">
+							<b>github</b>
+						</a>
+					</span>
 					{/*<a
 						href=""
 						onClick={() =>
@@ -75,10 +81,8 @@ render(() => {
 			>
 				<article flair="grow col">
 					<Routes />
-					<p> </p>
 				</article>
 			</section>
-			<Bench />
 		</main>
 	)
 })

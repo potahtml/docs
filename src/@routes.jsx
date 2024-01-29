@@ -23,11 +23,23 @@ export default function Routes() {
 				<Home />
 			</Route>
 
-			{/*<Route
-				path=":path$"
-				params={{ path: 'Blog' }}
-				children={lazy(() => import('./pages/@blog/index.jsx'))}
-			/>*/}
+			<Route path="articles/">
+				<Route
+					children={lazy(() => import('./pages/@articles/index.jsx'))}
+				/>
+				<Route
+					path=":path$"
+					params={{
+						path: 'anatomy-of-a-signals-based-reactive-renderer',
+					}}
+					children={lazy(
+						() =>
+							import(
+								'./pages/@articles/anatomy/anatomy-of-a-signals-based-reactive-renderer.jsx'
+							),
+					)}
+				/>
+			</Route>
 
 			<Route path="Components/">
 				<NotFound />

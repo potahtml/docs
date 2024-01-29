@@ -49,3 +49,5 @@ https://pota.quack.uy/resolve
 https://pota.quack.uy/toHTML
 https://pota.quack.uy/usage
 https://pota.quack.uy/custom-elements
+https://pota.quack.uy/articles/
+https://pota.quack.uy/articles/anatomy-of-a-signals-based-reactive-renderer
