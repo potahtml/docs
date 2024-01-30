@@ -50,9 +50,7 @@ a:visited {
 /* quote */
 
 blockquote {
-	color: #8197a8;
-}
-blockquote {
+	color: #a6b8c6;
 	border-left: 4px solid;
 	border-color: #485f71;
 	display: inline-block;

@@ -7,9 +7,9 @@ export default function () {
 		<>
 			<Header title="Anatomy of a Signals Based Reactive Renderer">
 				<p>
-					We are going to implement from scratch the core parts:
-					rendering, node creation and disposal, of a signals based
-					reactive web renderer.
+					We are going to implement from scratch the core parts of a
+					signals based reactive web renderer: rendering,
+					placeholders, node creation and node disposal.
 				</p>
 			</Header>
 			<p>
@@ -60,7 +60,7 @@ export default function () {
 				<p>
 					The explorations will get progressively more complicated
 					revisiting and updating what we already wrote. While this
-					doesn't cover everything, its an initial kick for further
+					doesn't cover everything, it's an initial kick for further
 					articles.
 				</p>
 			</Section>
@@ -84,13 +84,14 @@ export default function () {
 					`}
 					render={true}
 				>
-					This function will be used whenever we have a proper Node.
+					This function will be used whenever we have a proper{' '}
+					<mark>Node</mark>.
 				</Code>
 			</Section>
 			<Section title="create">
 				<p>
 					We also need a function to create nodes from any kind of
-					data. The created nodes are inserted in the document with
+					data. The created nodes are inserted in the document with{' '}
 					<mark>insert</mark>
 				</p>
 				<p></p>
@@ -113,11 +114,18 @@ export default function () {
 				></Code>
 				<p></p>
 
-				<p>That's a bit too simplistic, lets make it more fancy</p>
+				<p>
+					That's a bit too simplistic, lets make it more fancy by
+					adding more data-types
+				</p>
 				<p>
 					<ol>
 						<li>
-							Avoiding <mark>null</mark> and <mark>undefined</mark>
+							Avoiding <mark>null</mark> and <mark>undefined</mark> by
+							returning early
+						</li>
+						<li>
+							Allowing <mark>Nodes</mark> by inserting them directly
 						</li>
 						<li>
 							Allowing <mark>functions</mark>, by calling the function
@@ -134,6 +142,10 @@ export default function () {
 							return
 						}
 
+if (child instanceof Node) {
+		return insert(child, parent, relative);
+	}
+
 						if (typeof child === 'function') {
 							return create(
 								 child(),
@@ -145,13 +157,17 @@ export default function () {
 					}
 					`}
 					render={false}
-				></Code>
-				<p></p>
+				>
+					{' '}
+					Note how we had to add <mark>return</mark> statements to
+					avoid the other conditions.
+				</Code>
 			</Section>
 			<Section title="Placeholders">
 				<p>
 					Now lets add support for <mark>Promises</mark>, by checking
-					if <mark>then</mark> is in the child when it is an object.
+					if <mark>then</mark> it's in the child, when child it's an
+					<mark>object</mark>.
 				</p>
 				<p></p>
 				<Code
@@ -166,6 +182,11 @@ export default function () {
 							return
 						}
 
+if (child instanceof Node) {
+		return insert(child, parent, relative);
+	}
+
+
 						if (typeof child === 'function') {
 							return create(
 								 child(),
@@ -175,8 +196,8 @@ export default function () {
 
 						if(typeof child ==='object'){
 						if ("then" in child) {
-							return child.then((result) => {
-								return create(
+							 return child.then((result) => {
+								  create(
 									 result,
 									parent,
 								)
@@ -206,13 +227,13 @@ export default function () {
 					To solve this problem, we can create an invisible
 					placeholder, add it to the document right away, and hold it
 					to use as a marker for the place on which the children
-					should be inserted once the promise fulfills.
+					should have been inserted once the promise fulfills.
 				</p>
 				<p>
 					We will have first to update our <mark>insert</mark>{' '}
-					function to allow inserting nodes at a relative
-					position(using placeholders) instead of just appending to
-					the parent.
+					function to allow inserting nodes at a relative position
+					(using placeholders), instead of just appending to the
+					parent.
 				</p>
 				<p></p>
 				<Code
@@ -225,15 +246,11 @@ export default function () {
 					`}
 					render={false}
 				>
-					Insert the <mark>child</mark> before the placeholder
+					Insert the <mark>child</mark> before the placeholder, and
+					return the added <mark>child</mark>
 				</Code>
 				<p></p>
-				<p>
-					Now we can create a function to create placeholders. Notice
-					how we are returning the child on <mark>insert</mark> so on
-					this function we can just do{' '}
-					<mark>return create(placeholder</mark>
-				</p>
+				<p>Now we can define a function to create placeholders.</p>
 				<p></p>
 				<Code
 					code={`
@@ -273,10 +290,7 @@ export default function () {
 					render={false}
 				></Code>
 				<p></p>
-				<p>
-					Putting everything together, after also adding support for
-					inserting the placeholder, it should just work.
-				</p>
+				<p>Putting everything together, it should just work.</p>
 				<p></p>
 				<Code
 					code={`
@@ -329,15 +343,21 @@ create("3", document.body);
 					`}
 					render={true}
 				>
-					Everything on its place, order is now 123
+					Everything on its place, order is now 123 as expected
 				</Code>
 				<p></p>
 				<p>
-					However, using a <mark>span</mark> as a placeholder is
-					visible. We can use a <mark>comment</mark> or an{' '}
-					<mark>empty text node</mark> instead. Personally, I prefer
-					empty text nodes because these are also <em>invisible</em>{' '}
-					in the developer console.
+					However, we are using a visible <mark>span</mark> to
+					illustrate how a placeholder works. We can use a{' '}
+					<mark>comment</mark> or an <mark>empty text node</mark>{' '}
+					instead, to hide it from the screen.
+				</p>
+				<p>
+					For debugging, a <mark>comment</mark> it's useful because
+					it's visible on the developer tools and can carry debugging
+					text. Once we are done, we can switch to an{' '}
+					<mark>empty text node</mark> to make it <em>invisible</em>{' '}
+					in the developer tools.
 				</p>
 				<p></p>
 				<Code
@@ -350,9 +370,8 @@ const placeholder = (parent, relative) => {
 };
 
 // a comment is still invisible but seen on the dev tools
-// which could be useful for debugging
 const placeholder = (parent, relative) => {
-	const placeholder = document.createComment("placeholder")
+	const placeholder = document.createComment(" -debug info- ")
 	return create(placeholder, parent, relative);
 };
 
@@ -367,14 +386,14 @@ const placeholder = (parent, relative) => {
 			</Section>
 			<Section title="Signals and Reactivity">
 				<p>
-					Now that we have learned how to keep stuff in position in
-					the document we can introduce Signals
+					Now that we know how to render functions, and keep stuff in
+					position in the document we can introduce Signals
 				</p>
 				<p>
 					A Signal is a <mark>function</mark> that holds a value that
 					may or may not change over time. If you are rendering the
-					result of a signal and it updates, you want to render it in
-					the same position it was, just like we did with the
+					result of a signal and the value updates, you want to render
+					it in the same position it was, just like we did with the
 					promises.
 				</p>
 				<p></p>
@@ -386,22 +405,26 @@ const placeholder = (parent, relative) => {
 
 writeSignal(100)
 
-// update signal value every 1 second
-setInterval(()=>writeSignal(value=>value+1), 1_000)
-
 create(readSignal, document.body)
+
+const button = document.createElement('button')
+button.textContent = 'add 1 to signal'
+button.onclick = () => writeSignal(value=>value+1)
+
+create(button, document.body)
 
 					`}
 					render={true}
 				>
-					We learned already how to render functions and{' '}
+					We learned already how to render functions, and{' '}
 					<mark>readSignal</mark> is a function, so it will render
 					with the code we wrote
 				</Code>
 				<p></p>
 				<p>
-					It's rendering but not updating its value. Lets take a look
-					to the code we use to render a function
+					However, it's rendering but not updating its value when we
+					click the button. Lets take a look to the code we use to
+					render a function
 				</p>
 				<p></p>
 				<Code
@@ -425,7 +448,7 @@ create(readSignal, document.body)
 				</blockquote>
 				<p></p>
 				<p>
-					On this case <mark>child</mark> is the signal that we want
+					In this case, <mark>child</mark> is the signal that we want
 					to track
 				</p>
 				<p></p>
@@ -447,9 +470,14 @@ create(readSignal, document.body)
 					A <b>renderEffect</b> it's just like an effect, but
 					immediately executes. Reactive systems may choose to hold
 					the execution of regular effects, to collect first, useful
-					information that improves the system performance. The order
-					on which effects execute, is not warranted by the reactive
-					system, again, to improve its performance.
+					information that improves the system performance.
+					<br />
+					<br />
+					<u>
+						The order on which effects execute is not warranted by the
+						reactive system
+					</u>
+					, again, to improve its performance.
 					<br />
 					<br />
 					By immediately executing with a <mark>renderEffect</mark>,
@@ -470,29 +498,40 @@ create(readSignal, document.body)
 
 writeSignal(100)
 
-// update signal value every 1 second
-setInterval(()=>writeSignal(value=>value+1), 2_000)
-
-setInterval(()=>document.body.textContent = '-', 10_000)
-
 create(readSignal, document.body)
+
+const button = document.createElement('button')
+button.textContent = 'add 1 to signal'
+button.onclick = () => writeSignal(value=>value+1)
+
+create(button, document.body)
+
 
 					`}
 					render={true}
 				>
-					As expected, the signal change it's triggering an update,
-					but we are not removing the old node.
+					The signal change it's triggering an update, but we are not
+					removing the old node.
 				</Code>
 				<p></p>
 				<p>
 					To remove the old node, we can use a <mark>cleanup</mark>{' '}
-					function, which runs when the reactive scope its disposed.
-					(tracked places on where the signals were used are
-					invalidated)
+					function, which runs when the tracking scope its disposed.
 				</p>
+				<p></p>
+				<blockquote>
+					An <b>effect/renderEffect</b> creates a tracking scope, that
+					keeps tracks of which signals have been read. When any of
+					the signals read change, the reactive scope is invalidated,{' '}
+					<mark>cleanup</mark> callbacks run, and the{' '}
+					<mark>effect</mark> function is re-executed
+				</blockquote>
+				<p></p>
 				<p>
-					We can ensure that by adding <mark>cleanup</mark> on our
-					<mark>insert</mark> function
+					We can ensure the old node is removed by adding{' '}
+					<mark>cleanup</mark> on our
+					<mark>insert</mark> function. That way, when the tracking
+					scope is invalidated, our node is removed from the document.
 				</p>
 				<p></p>
 
@@ -500,7 +539,9 @@ create(readSignal, document.body)
 					code={`
 					export const insert = (child, parent, relative) => {
 	relative ? relative.before(child) : parent.append(child)
+
 	cleanup(()=>child.remove())
+
 	return child
 }
 
@@ -509,7 +550,7 @@ create(readSignal, document.body)
 				></Code>
 
 				<p></p>
-				<p>Now with the added cleanup should work as expected</p>
+				<p>Now with the added cleanup it should work as expected</p>
 				<p></p>
 				<Code
 					code={`
@@ -517,49 +558,28 @@ create(readSignal, document.body)
 
  const [readSignal, writeSignal] = signal(0)
 
-writeSignal(0)
-
-// update signal value every 1 second
-setInterval(()=>writeSignal(value=>value+1), 1_000)
+writeSignal(100)
 
 create(readSignal, document.body)
+
+
+const button = document.createElement('button')
+button.textContent = 'add 1 to signal'
+button.onclick = () => writeSignal(value=>value+1)
+
+create(button, document.body)
+
 
 					`}
 					render={true}
 				></Code>
 				<p></p>
 				<p>
-					Well, not that fast, if we test a code similar to the
-					promises we saw before, we will see stuff renders out of
-					order after it updates
+					Well, not that fast, the number is moving to the end of the
+					document, a problem similar to the promises we saw before.
+					Placeholders to the rescue.
 				</p>
-				<p></p>
 
-				<Code
-					code={`
-					import {signal, create} from 'x/articles/anatomy/anatomy-3.js'
-
- const [readSignal, writeSignal] = signal(0)
-
-writeSignal(0)
-
-// update signal value every 1 second
-setInterval(()=>writeSignal(value=>value+1), 1_000)
-
-create("- before signal - ", document.body)
-create(readSignal, document.body)
-create("- after signal - ", document.body)
-
-					`}
-					render={true}
-				>
-					Notice how the number renders at the correct position the
-					first time, but it gets pushed to the end of the document
-					after an update(hint: you can press "re-run" button to
-					refresh the demo output)
-				</Code>
-				<p></p>
-				<p>Placeholders to the rescue.</p>
 				<p></p>
 
 				<Code
@@ -575,13 +595,12 @@ create("- after signal - ", document.body)
 	}
 					`}
 					render={false}
-				></Code>
+				>
+					The signal will keep its position by inserting relative to
+					the placeholder.
+				</Code>
 				<p></p>
-				<p>
-					The nodes created will keep their original position by
-					inserting them relative to the placeholder. Lets try again
-					to see
-				</p>
+				<p>Lets try again to see</p>
 				<p></p>
 
 				<Code
@@ -590,26 +609,29 @@ create("- after signal - ", document.body)
 
  const [readSignal, writeSignal] = signal(0)
 
-writeSignal(0)
+writeSignal(100)
 
-// update signal value every 1 second
-setInterval(()=>writeSignal(value=>value+1), 1_000)
-
-create("- before signal - ", document.body)
 create(readSignal, document.body)
-create("- after signal - ", document.body)
+
+
+const button = document.createElement('button')
+button.textContent = 'add 1 to signal'
+button.onclick = () => writeSignal(value=>value+1)
+
+create(button, document.body)
 
 					`}
 					render={true}
 				>
-					The placeholder is still there, but the signal is in between
-					the text as we expect
+					The placeholder keeps the signal in position
 				</Code>
 				<p></p>
 
 				<p>
 					We wrote two of the common internal functions,{' '}
-					<mark>insert</mark> and <mark>create</mark>.
+					<mark>insert</mark> and <mark>create</mark>, while
+					considering their position in the document with{' '}
+					<mark>placeholders</mark>.
 				</p>
 			</Section>
 
@@ -618,14 +640,14 @@ create("- after signal - ", document.body)
 					The <mark>render</mark> function, it's the one that creates
 					a detached tracking scope (a <mark>root</mark> that doesn't
 					dispose when the parent scope disposes), to hold all nodes
-					created under it. It can be disposed of by calling the
+					created under it. It can be disposed, by calling the
 					function that returns, unmounting all the nodes we created
 					with it.
 				</p>
 				<p></p>
 				<Code
 					code={`
-					import {root, create, cleanup} from 'x/articles/anatomy/anatomy-4.js'
+					import {root, create, cleanup} from 'x/articles/anatomy/anatomy-5.js'
 
 					  const render = (child, parent = document.body) => {
 	const dispose = root(disposer => {
@@ -636,49 +658,59 @@ create("- after signal - ", document.body)
 	return dispose
 }
 
-const dispose = 	render('hello world!', document.body)
 
-setTimeout(dispose, 5_000)
+
+
+function App(){
+
+	return create('Hello World', document.body)
+
+
+}
+
+const dispose  = 	render(App, document.body)
+
+
+	const button = document.createElement('button')
+button.textContent = 'unmount created nodes'
+button.onclick = dispose
+
+create(button, document.body)
+
+
+
+
 					`}
 					render={true}
-				>
-					Render the text "hello world" and dispose it after five
-					seconds
-				</Code>
-				<p></p>
+				></Code>
 				<p></p>
 			</Section>
 			<Section title="Source Code">
 				<p>
-					The code used on this article is on{' '}
+					The code used of this article it's on{' '}
 					<a href="https://github.com/potahtml/docs/tree/master/src/pages/%40articles/anatomy">
 						github
 					</a>
-					. An implementation supporting slightly more data-types to
-					render, it's on the file named{' '}
-					<a href="https://github.com/potahtml/docs/tree/master/src/pages/%40articles/anatomy/clumsy.js">
-						clumsy.js
-					</a>
-					.<p></p>
-					For a real world reactive renderer implementation, you can
+					. For a real world reactive renderer implementation, you can
 					take a look at{' '}
 					<a href="https://github.com/potahtml/pota/blob/master/src/renderer/">
 						pota
-					</a>{' '}
-					renderer, <a href="https://github.com/vobyjs/voby">voby</a>{' '}
-					or{' '}
+					</a>
+					, <a href="https://github.com/vobyjs/voby">voby</a> or{' '}
 					<a href="https://github.com/ryansolid/dom-expressions/tree/main/packages/dom-expressions">
 						dom-expressions
 					</a>
 					.<p></p>
 					If you enjoy this topic you can join{' '}
-					<a href="https://discord.gg/solidjs">SolidJS</a> Discord and
-					we can chat!
+					<a href="https://discord.gg/solidjs">SolidJS</a> Discord to
+					chat!
 				</p>
+				<p></p>
 				<p></p>
 				<blockquote>
 					Clumsy, partner in mischief with flimsy
 				</blockquote>
+				<p></p>
 				<p></p>
 			</Section>
 		</>

@@ -1,15 +1,28 @@
 // https://pota.quack.uy/articles/anatomy-of-a-signals-based-reactive-renderer
 
-export { createSignal as signal } from './flimsy.js'
+export {
+	createEffect as effect,
+	createEffect as renderEffect,
+	createSignal as signal,
+	onCleanup as cleanup,
+	createRoot as root,
+} from './flimsy.js'
+
+import {
+	createEffect as effect,
+	createEffect as renderEffect,
+	createSignal as signal,
+	onCleanup as cleanup,
+	createRoot as root,
+} from './flimsy.js'
 
 export const insert = (child, parent, relative) => {
 	relative ? relative.before(child) : parent.append(child)
+	cleanup(() => child.remove())
 	return child
 }
 export const placeholder = (parent, relative) => {
-	const placeholder = document.createElement('span')
-	placeholder.style.color = 'aquamarine'
-	placeholder.textContent = 'placeholder'
+	const placeholder = document.createTextNode('')
 	return create(placeholder, parent, relative)
 }
 export const create = (child, parent, relative) => {
@@ -22,7 +35,12 @@ export const create = (child, parent, relative) => {
 	}
 
 	if (typeof child === 'function') {
-		return create(child(), parent, relative)
+		let node
+		relative = placeholder(parent, relative)
+		renderEffect(() => {
+			node = create(child(), parent, relative)
+		})
+		return node
 	}
 
 	if (typeof child === 'object') {

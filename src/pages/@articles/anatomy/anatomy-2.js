@@ -1,35 +1,15 @@
 // https://pota.quack.uy/articles/anatomy-of-a-signals-based-reactive-renderer
 
 export {
-	createContext as context,
 	createEffect as effect,
 	createEffect as renderEffect,
-	createMemo as memo,
-	createRoot as root,
 	createSignal as signal,
-	onCleanup as cleanup,
-	getOwner,
-	runWithOwner,
-	onError,
-	useContext,
-	batch,
-	untrack,
 } from './flimsy.js'
 
 import {
-	createContext as context,
 	createEffect as effect,
 	createEffect as renderEffect,
-	createMemo as memo,
-	createRoot as root,
 	createSignal as signal,
-	onCleanup as cleanup,
-	getOwner,
-	runWithOwner,
-	onError,
-	useContext,
-	batch,
-	untrack,
 } from './flimsy.js'
 
 export const insert = (child, parent, relative) => {

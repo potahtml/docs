@@ -40,13 +40,13 @@ export function Code(props) {
 						editable={props.render !== false}
 					/>
 				</Show>
+				<Show when={props.render !== false}>
+					<Render code={code} />
+				</Show>
 				<Show when={props.children}>
 					<figcaption flair="text-multiline">
 						{props.children}
 					</figcaption>
-				</Show>
-				<Show when={props.render !== false}>
-					<Render code={code} />
 				</Show>
 			</figure>
 		</section>
@@ -111,55 +111,56 @@ function Render(props) {
 
 	return (
 		<section class={styles.frame}>
-			{() => {
-				codeURL() // tracks to force reruns
-				return new Promise(resolve =>
-					resolve(
-						<iframe
-							title="Live Code Example"
-							name="Live Code Example"
-							ref={frame}
-							src={() =>
-								'/pages/@playground/preview/index.html' +
-								(window.location.href.includes('playground')
-									? '?playground'
-									: '') +
-								'#' +
-								codeURL()
-							}
-						/>,
-					),
-				)
-			}}
-
-			<aside>
-				<a
-					href="javascript://"
-					onClick={() => frame().contentWindow.location.reload()}
-				>
-					re-run
-				</a>
-				{' / '}
-				<span class="no-playground">
+			<div style="position: relative;">
+				<aside>
 					<a
 						href="javascript://"
-						onClick={() => window.open('/playground#' + codeURL())}
+						onClick={() => frame().contentWindow.location.reload()}
 					>
-						open in playground
+						re-run
 					</a>
 					{' / '}
-				</span>
-				<a
-					href="javascript://"
-					onClick={() =>
-						window.open(
-							'/pages/@playground/preview/index.html#' + codeURL(),
-						)
-					}
-				>
-					open in blank
-				</a>
-			</aside>
+					<span class="no-playground">
+						<a
+							href="javascript://"
+							onClick={() => window.open('/playground#' + codeURL())}
+						>
+							open in playground
+						</a>
+						{' / '}
+					</span>
+					<a
+						href="javascript://"
+						onClick={() =>
+							window.open(
+								'/pages/@playground/preview/index.html#' + codeURL(),
+							)
+						}
+					>
+						open in blank
+					</a>
+				</aside>
+				{() => {
+					codeURL() // tracks to force reruns
+					return new Promise(resolve =>
+						resolve(
+							<iframe
+								title="Live Code Example"
+								name="Live Code Example"
+								ref={frame}
+								src={() =>
+									'/pages/@playground/preview/index.html' +
+									(window.location.href.includes('playground')
+										? '?playground'
+										: '') +
+									'#' +
+									codeURL()
+								}
+							/>,
+						),
+					)
+				}}
+			</div>
 		</section>
 	)
 }
