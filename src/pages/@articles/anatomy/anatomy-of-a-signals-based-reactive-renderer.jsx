@@ -54,7 +54,8 @@ export default function () {
 					documents the reactive core of{' '}
 					<a href="https://www.solidjs.com/">Solid</a>. Flimsy is
 					around 212~ LOC, code worth a read. The renderer we are
-					going to implement, lets call it clumsy, is around 100~ LOC.
+					going to implement, let's call it clumsy, is around 100~
+					LOC.
 				</p>
 
 				<p>
@@ -73,14 +74,15 @@ export default function () {
 				<p></p>
 				<Code
 					code={`
-					const insert = (child, parent) => {
-						parent.append(child)
-					}
+const insert = (child, parent) => {
+	parent.append(child);
+};
 
-					const div = document.createElement('div')
-					div.textContent = 'Hello World'
+const div = document.createElement("div");
+div.textContent = "Hello World";
 
-					insert(div, document.body)
+insert(div, document.body);
+
 					`}
 					render={true}
 				>
@@ -97,25 +99,24 @@ export default function () {
 				<p></p>
 				<Code
 					code={`
-					const insert = (child, parent) => {
-						parent.append(child)
-					}
+const insert = (child, parent) => {
+	parent.append(child);
+};
 
-					const create = (child, parent) => {
+const create = (child, parent) => {
+	insert(document.createTextNode(child), parent);
+};
 
-						insert(document.createTextNode(child), parent)
-					}
+create("Hello World ", document.body);
+create(2 + 2, document.body);
 
-
-					create("Hello World ", document.body)
-					create(2 +2 , document.body)
 					`}
 					render={true}
 				></Code>
 				<p></p>
 
 				<p>
-					That's a bit too simplistic, lets make it more fancy by
+					That's a bit too simplistic, let's make it more fancy by
 					adding more data-types
 				</p>
 				<p>
@@ -137,24 +138,22 @@ export default function () {
 
 				<Code
 					code={`
-					const create = (child, parent) => {
-						if (child === null || child === undefined) {
-							return
-						}
+const create = (child, parent) => {
+	if (child === null || child === undefined) {
+		return;
+	}
 
-if (child instanceof Node) {
+	if (child instanceof Node) {
 		return insert(child, parent, relative);
 	}
 
-						if (typeof child === 'function') {
-							return create(
-								 child(),
-								parent,
-							)
-						}
+	if (typeof child === "function") {
+		return create(child(), parent);
+	}
 
-						return insert(document.createTextNode(child), parent)
-					}
+	return insert(document.createTextNode(child), parent);
+};
+
 					`}
 					render={false}
 				>
@@ -165,53 +164,50 @@ if (child instanceof Node) {
 			</Section>
 			<Section title="Placeholders">
 				<p>
-					Now lets add support for <mark>Promises</mark>, by checking
+					Now let's add support for <mark>Promises</mark>, by checking
 					if <mark>then</mark> it's in the child, when child it's an
 					<mark>object</mark>.
 				</p>
 				<p></p>
 				<Code
 					code={`
-									const insert = (child, parent) => {
-						parent.append(child)
-					}
+const insert = (child, parent) => {
+	parent.append(child);
+};
 
+const create = (child, parent) => {
+	if (child === null || child === undefined) {
+		return;
+	}
 
-					const create = (child, parent) => {
-						if (child === null || child === undefined) {
-							return
-						}
-
-if (child instanceof Node) {
+	if (child instanceof Node) {
 		return insert(child, parent, relative);
 	}
 
+	if (typeof child === "function") {
+		return create(child(), parent);
+	}
 
-						if (typeof child === 'function') {
-							return create(
-								 child(),
-								parent,
-							)
-						}
+	if (typeof child === "object") {
+		if ("then" in child) {
+			return child.then((result) => {
+				create(result, parent);
+			});
+		}
+	}
 
-						if(typeof child ==='object'){
-						if ("then" in child) {
-							 return child.then((result) => {
-								  create(
-									 result,
-									parent,
-								)
-							})
-						}
-					}
+	return insert(document.createTextNode(child), parent);
+};
 
+create("1", document.body);
+create(
+	new Promise((resolve) => {
+		setTimeout(() => resolve("2"), 500);
+	}),
+	document.body,
+);
+create("3", document.body);
 
-						return insert(document.createTextNode(child), parent)
-					}
-
-					create("1", document.body)
-					create(new Promise((resolve)=>{ setTimeout(()=>resolve("2"), 500)}) , document.body)
-					create("3", document.body)
 					`}
 					render={true}
 				>
@@ -238,10 +234,10 @@ if (child instanceof Node) {
 				<p></p>
 				<Code
 					code={`
-					const insert = (child, parent, relative) => {
-						relative ? relative.before(child) : parent.append(child)
-						return child
-					}
+const insert = (child, parent, relative) => {
+	relative ? relative.before(child) : parent.append(child);
+	return child;
+};
 
 					`}
 					render={false}
@@ -254,12 +250,13 @@ if (child instanceof Node) {
 				<p></p>
 				<Code
 					code={`
-						const placeholder = (parent, relative) =>{
-							const placeholder = document.createElement('span')
-							placeholder.style.color = 'aquamarine'
-							placeholder.textContent = 'placeholder'
-	return create(placeholder, parent, relative)
-}
+const placeholder = (parent, relative) => {
+	const placeholder = document.createElement("span");
+	placeholder.style.color = "aquamarine";
+	placeholder.textContent = "placeholder";
+	return create(placeholder, parent, relative);
+};
+
 					`}
 					render={false}
 				>
@@ -274,18 +271,16 @@ if (child instanceof Node) {
 				<p></p>
 				<Code
 					code={`
-						if(typeof child ==='object'){
-						if ("then" in child) {
-							relative = placeholder(parent, relative)
+if (typeof child === "object") {
+	if ("then" in child) {
+		relative = placeholder(parent, relative);
 
-							return child.then((result) => {
-								  create(
-									 result,
-									parent,
-									relative
-								)
-							})
-						}}
+		return child.then((result) => {
+			create(result, parent, relative);
+		});
+	}
+}
+
 					`}
 					render={false}
 				></Code>
@@ -339,7 +334,6 @@ create(
 );
 create("3", document.body);
 
-
 					`}
 					render={true}
 				>
@@ -363,7 +357,7 @@ create("3", document.body);
 				<Code
 					code={`
 
-// an empty text node its invisible
+// an empty text node it's invisible
 const placeholder = (parent, relative) => {
 	const placeholder = document.createTextNode("");
 	return create(placeholder, parent, relative);
@@ -371,10 +365,9 @@ const placeholder = (parent, relative) => {
 
 // a comment is still invisible but seen on the dev tools
 const placeholder = (parent, relative) => {
-	const placeholder = document.createComment(" -debug info- ")
+	const placeholder = document.createComment(" -debug info- ");
 	return create(placeholder, parent, relative);
 };
-
 
 
 					`}
@@ -399,19 +392,19 @@ const placeholder = (parent, relative) => {
 				<p></p>
 				<Code
 					code={`
-					import {signal, create} from 'x/articles/anatomy/anatomy-1.js'
+import { signal, create } from "x/articles/anatomy/anatomy-1.js";
 
- const [readSignal, writeSignal] = signal(0)
+const [readSignal, writeSignal] = signal(0);
 
-writeSignal(100)
+writeSignal(100);
 
-create(readSignal, document.body)
+create(readSignal, document.body);
 
-const button = document.createElement('button')
-button.textContent = 'add 1 to signal'
-button.onclick = () => writeSignal(value=>value+1)
+const button = document.createElement("button");
+button.textContent = "add 1 to signal";
+button.onclick = () => writeSignal((value) => value + 1);
 
-create(button, document.body)
+create(button, document.body);
 
 					`}
 					render={true}
@@ -423,15 +416,15 @@ create(button, document.body)
 				<p></p>
 				<p>
 					However, it's rendering but not updating its value when we
-					click the button. Lets take a look to the code we use to
+					click the button. Let's take a look to the code we use to
 					render a function
 				</p>
 				<p></p>
 				<Code
 					code={`
-					if (typeof child === "function") {
-		return create(child(), parent, relative);
-	}
+if (typeof child === "function") {
+	return create(child(), parent, relative);
+}
 
 					`}
 					render={false}
@@ -454,13 +447,13 @@ create(button, document.body)
 				<p></p>
 				<Code
 					code={`
-					if (typeof child === "function") {
-						let node
-						renderEffect(()=>{
-							node = create(child(), parent, relative);
-						})
-						return node
-					}
+if (typeof child === "function") {
+	let node;
+	renderEffect(() => {
+		node = create(child(), parent, relative);
+	});
+	return node;
+}
 
 					`}
 					render={false}
@@ -482,29 +475,29 @@ create(button, document.body)
 					<br />
 					By immediately executing with a <mark>renderEffect</mark>,
 					we ensure the correct order of execution, allowing us to
-					render the DOM in the order that we expect.
+					render the document in the order that we expect.
 				</blockquote>
 				<p></p>
 				<p>
 					Testing our newly added <mark>renderEffect</mark>, now the
-					signal change should be updating the DOM
+					signal change should be updating the document
 				</p>
 				<p></p>
 				<Code
 					code={`
-					import {signal, create} from 'x/articles/anatomy/anatomy-2.js'
+import { signal, create } from "x/articles/anatomy/anatomy-2.js";
 
- const [readSignal, writeSignal] = signal(0)
+const [readSignal, writeSignal] = signal(0);
 
-writeSignal(100)
+writeSignal(100);
 
-create(readSignal, document.body)
+create(readSignal, document.body);
 
-const button = document.createElement('button')
-button.textContent = 'add 1 to signal'
-button.onclick = () => writeSignal(value=>value+1)
+const button = document.createElement("button");
+button.textContent = "add 1 to signal";
+button.onclick = () => writeSignal((value) => value + 1);
 
-create(button, document.body)
+create(button, document.body);
 
 
 					`}
@@ -537,13 +530,13 @@ create(button, document.body)
 
 				<Code
 					code={`
-					export const insert = (child, parent, relative) => {
-	relative ? relative.before(child) : parent.append(child)
+export const insert = (child, parent, relative) => {
+	relative ? relative.before(child) : parent.append(child);
 
-	cleanup(()=>child.remove())
+	cleanup(() => child.remove());
 
-	return child
-}
+	return child;
+};
 
 					`}
 					render={false}
@@ -554,20 +547,19 @@ create(button, document.body)
 				<p></p>
 				<Code
 					code={`
-					import {signal, create} from 'x/articles/anatomy/anatomy-3.js'
+import { signal, create } from "x/articles/anatomy/anatomy-3.js";
 
- const [readSignal, writeSignal] = signal(0)
+const [readSignal, writeSignal] = signal(0);
 
-writeSignal(100)
+writeSignal(100);
 
-create(readSignal, document.body)
+create(readSignal, document.body);
 
+const button = document.createElement("button");
+button.textContent = "add 1 to signal";
+button.onclick = () => writeSignal((value) => value + 1);
 
-const button = document.createElement('button')
-button.textContent = 'add 1 to signal'
-button.onclick = () => writeSignal(value=>value+1)
-
-create(button, document.body)
+create(button, document.body);
 
 
 					`}
@@ -584,15 +576,15 @@ create(button, document.body)
 
 				<Code
 					code={`
+if (typeof child === "function") {
+	let node;
+	relative = placeholder(parent, relative);
+	renderEffect(() => {
+		node = create(child(), parent, relative);
+	});
+	return node;
+}
 
-	if (typeof child === 'function') {
-		let node
-		relative = placeholder(parent, relative)
-		renderEffect(() => {
-			node = create(child(), parent, relative)
-		})
-		return node
-	}
 					`}
 					render={false}
 				>
@@ -600,25 +592,24 @@ create(button, document.body)
 					the placeholder.
 				</Code>
 				<p></p>
-				<p>Lets try again to see</p>
+				<p>Let's try again to see</p>
 				<p></p>
 
 				<Code
 					code={`
-					import {signal, create} from 'x/articles/anatomy/anatomy-4.js'
+import { signal, create } from "x/articles/anatomy/anatomy-4.js";
 
- const [readSignal, writeSignal] = signal(0)
+const [readSignal, writeSignal] = signal(0);
 
-writeSignal(100)
+writeSignal(100);
 
-create(readSignal, document.body)
+create(readSignal, document.body);
 
+const button = document.createElement("button");
+button.textContent = "add 1 to signal";
+button.onclick = () => writeSignal((value) => value + 1);
 
-const button = document.createElement('button')
-button.textContent = 'add 1 to signal'
-button.onclick = () => writeSignal(value=>value+1)
-
-create(button, document.body)
+create(button, document.body);
 
 					`}
 					render={true}
@@ -647,37 +638,28 @@ create(button, document.body)
 				<p></p>
 				<Code
 					code={`
-					import {root, create, cleanup} from 'x/articles/anatomy/anatomy-5.js'
+import { root, create, cleanup } from "x/articles/anatomy/anatomy-5.js";
 
-					  const render = (child, parent = document.body) => {
-	const dispose = root(disposer => {
-		create(child, parent)
-		return disposer
-	})
-	cleanup(dispose)
-	return dispose
+const render = (child, parent = document.body) => {
+	const dispose = root((disposer) => {
+		create(child, parent);
+		return disposer;
+	});
+	cleanup(dispose);
+	return dispose;
+};
+
+function App() {
+	return create("Hello World", document.body);
 }
 
+const dispose = render(App, document.body);
 
+const button = document.createElement("button");
+button.textContent = "unmount created nodes";
+button.onclick = dispose;
 
-
-function App(){
-
-	return create('Hello World', document.body)
-
-
-}
-
-const dispose  = 	render(App, document.body)
-
-
-	const button = document.createElement('button')
-button.textContent = 'unmount created nodes'
-button.onclick = dispose
-
-create(button, document.body)
-
-
+create(button, document.body);
 
 
 					`}
@@ -696,7 +678,7 @@ create(button, document.body)
 					<a href="https://github.com/potahtml/pota/blob/master/src/renderer/">
 						pota
 					</a>
-					, <a href="https://github.com/vobyjs/voby">voby</a> or{' '}
+					, <a href="https://github.com/vobyjs/voby">voby</a> and{' '}
 					<a href="https://github.com/ryansolid/dom-expressions/tree/main/packages/dom-expressions">
 						dom-expressions
 					</a>
