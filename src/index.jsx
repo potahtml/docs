@@ -33,7 +33,15 @@ render(() => {
 				width="24"
 				class={stylesMenu.montevideo}
 				on:click={e => {
-					document.querySelector('#menu').classList.toggle('hidden')
+					const menu = document.querySelector('#menu')
+					if (
+						menu.style.display === '' ||
+						menu.style.display === 'inherit'
+					) {
+						menu.style.display = 'none'
+					} else {
+						menu.style.display = 'inherit'
+					}
 				}}
 			>
 				<path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z" />

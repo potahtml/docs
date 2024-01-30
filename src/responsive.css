@@ -1,0 +1,12 @@
+@media all and (max-width: 750px) {
+	#menu {
+		display: none;
+	}
+	#content,
+	article,
+	main {
+		width: 100% !important;
+		min-width: 100% !important;
+		max-width: 100% !important;
+	}
+}
