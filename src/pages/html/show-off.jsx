@@ -7,8 +7,6 @@ function Component() {
 
   setInterval(() => setShow(value => !value), 4000)
 
-  html.define({ Show })
-
   return [
     // displays `asd`
     html`0<Show when="${() => !show()}">

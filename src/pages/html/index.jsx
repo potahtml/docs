@@ -89,9 +89,9 @@ export default function () {
 					code={`
 						import { html, render } from 'pota'
 
-						html.define({Test:()=>'hello world!'})
+						html.define({test:()=>'hello world!'})
 
- 						const test = html\`<div><Test/> div contents </div>\`
+						const test = html\`<div><test/> div contents </div>\`
 
  						console.log(test)
 
@@ -112,9 +112,9 @@ export default function () {
 
 						const html = HTML()
 
-						html.define({Test:()=>'hello world!'})
+						html.define({test:()=>'hello world!'})
 
- 						const test = html\`<div><Test/> div contents</div>\`
+						const test = html\`<div><test/> div contents</div>\`
 
  						console.log(test)
 
@@ -133,15 +133,15 @@ export default function () {
 						import { html, render } from 'pota'
 
 
- 						const test = html\`<For each="\${[1, 2, 3]}">\${val => val*2}</For>\`
+ 						const test = html\`<for each="\${[1, 2, 3]}">\${val => val*2}</for>\`
 
 						render(test)
  					`}
 				>
-					Predefined components are: <mark>Collapse</mark>,{' '}
-					<mark>Dynamic</mark>, <mark>For</mark>, <mark>Head</mark>,{' '}
-					<mark>Portal</mark>, <mark>Promised</mark>,{' '}
-					<mark>Show</mark>, <mark>Switch</mark>
+					Predefined components are: <mark>collapse</mark>,{' '}
+					<mark>dynamic</mark>, <mark>for</mark>, <mark>head</mark>,{' '}
+					<mark>portal</mark>, <mark>promised</mark>,{' '}
+					<mark>show</mark>, <mark>switch</mark>
 				</Code>
 			</Section>
 
@@ -151,8 +151,8 @@ export default function () {
 					<mark>effect</mark>. It creates and cache the html for the
 					output and updates what has changed using signals for the
 					interpolated values. It tracks the interpolated values and
-					updates the template, and it tracks the body of the function
-					that you pass to the effect to re-run it.
+					updates the template, and also it tracks the body of the
+					function that you pass to the effect to re-run it.
 				</p>
 				<Code
 					code={`
@@ -294,18 +294,6 @@ export default function () {
 
 						render(div)
 
-						// local registry
-
-						const div2 = htmlEffect(html => {
-							html.define({test:(props)=><div style="color:red">{props.children}</div>})
-
-							return html\`<test><div>test \${data.test}</div></test>\`
-						}, {unwrap:false})
-
-
-						console.log(div2)
-
-						render(div2)
 
  					`}
 				>
@@ -347,7 +335,9 @@ export default function () {
 					</li>
 					<li>
 						on <mark>html.define</mark> the registry{' '}
-						<u>is case sensitive</u>
+						<u>
+							is case <b>insensitive</b>
+						</u>
 					</li>
 					<li>
 						on <mark>html.define</mark> it is possible to define a
