@@ -57,6 +57,28 @@
 				"minified": true,
 				"treeshake": true,
 				"root": false
+			},
+			{
+				"input": ["src/pages/benchmark/js-framework-benchmark.jsx"],
+				"output": "src/pages/benchmark/dist/main.js",
+				"minified": true,
+				"treeshake": false,
+				"root": false,
+				"babel": {
+					"presets": [["pota/babel-preset"]]
+				}
+			},
+			{
+				"input": [
+					"src/pages/benchmark/js-framework-benchmark-html.jsx"
+				],
+				"output": "src/pages/benchmark/dist/main-html.js",
+				"minified": true,
+				"treeshake": false,
+				"root": false,
+				"babel": {
+					"presets": [["pota/babel-preset"]]
+				}
 			}
 		]
 	},
