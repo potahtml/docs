@@ -18,6 +18,7 @@ function addImportmap() {
     "pota/hooks": "/dist/preview/standalone/standalone.no-min.js",
     "pota/plugins": "/dist/preview/standalone/standalone.no-min.js",
     "pota/plugins/bind": "/dist/preview/standalone/standalone.no-min.js",
+    "pota/html": "/dist/preview/standalone/standalone.no-min.js",
     "x/articles/": "/pages/%40articles/"
   }
 }`
