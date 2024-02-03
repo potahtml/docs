@@ -13,10 +13,6 @@ export default function FourZeroFour() {
 					<title>404 Not Found - pota</title>
 
 					<meta
-						name="robots"
-						content="noindex"
-					/>
-					<meta
 						property="og:title"
 						content="404 Not Found"
 					/>
