@@ -1,11 +1,11 @@
 import { render, Pota } from 'pota'
 
 class MyComponent extends Pota {
-  onReady() {
-    render(<div>onReady callback!</div>)
+  ready() {
+    render(<div>ready callback!</div>)
   }
-  onCleanup() {
-    render(<div>onCleanup callback!</div>)
+  cleanup() {
+    render(<div>cleanup callback!</div>)
   }
   render(props) {
     return (
