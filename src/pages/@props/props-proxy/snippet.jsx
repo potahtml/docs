@@ -1,6 +1,11 @@
-import { html, propsProxy, render } from 'pota'
+import { propsProxy, render } from 'pota'
+import { html } from 'pota/html'
 
-/** Lit-alike attributes/properties on the html function */
+/**
+ * Lit-alike attributes/properties on the html function
+ *
+ * NOTE: pota/html already provides lit-style attributes/properties !
+ */
 
 propsProxy(prop => {
   const name = prop.name

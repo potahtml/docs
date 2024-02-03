@@ -1,4 +1,5 @@
-import { render, signal, batch, html } from 'pota'
+import { render, signal, batch } from 'pota'
+import { html } from 'pota/html'
 import { useSelector } from 'pota/hooks'
 
 let idCounter = 1

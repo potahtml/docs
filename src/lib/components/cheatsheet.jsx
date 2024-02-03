@@ -10,8 +10,6 @@ import {
 render, // render(thing, targetEl=document.body, {clear:false, relative:false})
 Component, // const comp = Component(Fancy, {children:[4,5,6]})
 customElement, // customElement("fancy-element", class Fancy extends HTMLElement{})
-HTML, // const html = HTML({unwrap:true/false}); (props)=> html\`<div>\${props.children}</div>\`
-html, // (props)=> html\`<div>\${props.children}</div>\` // <div/>
 css, // (props)=> css\`button { padding: \${props.padding} }\`
 
 // reactivity
@@ -22,7 +20,6 @@ mutableDeep, // const state = mutableDeep({some:{thing:{deep:true}}}) // tracks 
 root, // root(fn)
 effect, // effect(fn)
 renderEffect, // renderEffect(fn)
-htmlEffect, // htmlEffect((html)=> html\`<div>\${some.non.reactive.object}</div>\`, {unwrap:true/false})
 memo, // memo(fn)
 writable, // const m = writable(fn); m(true) // now "m" is "true" till memo reruns
 batch, // batch(fn)
@@ -77,6 +74,12 @@ getValue, // getValue(signalMaybe)
 // pota version
 version
 } from 'pota'
+
+import {
+htmlEffect, // htmlEffect((html)=> html\`<div>\${some.non.reactive.object}</div>\`, {unwrap:true/false})
+HTML, // const html = HTML({unwrap:true/false}); (props)=> html\`<div>\${props.children}</div>\`
+html, // (props)=> html\`<div>\${props.children}</div>\` // <div/>
+} from 'pota/html'
 `}
 	/>
 )

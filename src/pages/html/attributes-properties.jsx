@@ -1,4 +1,5 @@
-import { render, HTML, ref, effect } from 'pota'
+import { render, ref, effect } from 'pota'
+import { HTML } from 'pota/html'
 
 const html = HTML()
 

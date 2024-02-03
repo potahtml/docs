@@ -1,4 +1,5 @@
-import { render, signal, HTML, Show } from 'pota'
+import { render, signal } from 'pota'
+import { HTML } from 'pota/html'
 
 const html = HTML()
 

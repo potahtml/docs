@@ -51,7 +51,8 @@ export default function () {
 			<Section title="As HTMLElement">
 				<Code
 					code={`
-						import { html, render } from 'pota'
+						import { render } from 'pota'
+						import { html } from 'pota/html'
 
 						// this returns a real div
 						const div = html\`<div>div contents</div>\`
@@ -68,7 +69,8 @@ export default function () {
 			<Section title="As Component">
 				<Code
 					code={`
-						import { HTML, render } from 'pota'
+						import { render } from 'pota'
+						import { HTML } from 'pota/html'
 
 						// create new \`html\` instance
 						const html = HTML({ unwrap: false })
@@ -87,7 +89,8 @@ export default function () {
 			<Section title="Defining a Global User Component">
 				<Code
 					code={`
-						import { html, render } from 'pota'
+						import { render } from 'pota'
+						import { html } from 'pota/html'
 
 						html.define({test:()=>'hello world!'})
 
@@ -108,7 +111,8 @@ export default function () {
 			<Section title="Defining a Local User Component">
 				<Code
 					code={`
-						import { HTML, render } from 'pota'
+						import { render } from 'pota'
+						import { HTML } from 'pota/html'
 
 						const html = HTML()
 
@@ -130,7 +134,8 @@ export default function () {
 			<Section title="Predefined Components">
 				<Code
 					code={`
-						import { html, render } from 'pota'
+						import { render } from 'pota'
+						import { html } from 'pota/html'
 
 
  						const test = html\`<for each="\${[1, 2, 3]}">\${val => val*2}</for>\`
@@ -156,7 +161,8 @@ export default function () {
 				</p>
 				<Code
 					code={`
-						import { render, htmlEffect, signal, mutable } from 'pota'
+						import { render, signal, mutable } from 'pota'
+						import { htmlEffect } from 'pota/html'
 
 						const data = mutable({ test: 0 })
 
@@ -177,7 +183,8 @@ export default function () {
 
 				<Code
 					code={`
-						import { render, htmlEffect, signal, mutable } from 'pota'
+						import { render, signal, mutable } from 'pota'
+						import { htmlEffect } from 'pota/html'
 
 						const data = mutable({ test: 0 })
 
@@ -201,7 +208,8 @@ export default function () {
 
 				<Code
 					code={`
-						import { render, htmlEffect, mutable } from 'pota'
+						import { render, mutable } from 'pota'
+						import { htmlEffect } from 'pota/html'
 
 						const data = mutable({ test: 0 })
 
@@ -225,7 +233,8 @@ export default function () {
 
 				<Code
 					code={`
-						import { render, htmlEffect, signal } from 'pota'
+						import { render, signal } from 'pota'
+						import { htmlEffect } from 'pota/html'
 
 						const [read, write] = signal(0)
 
@@ -278,7 +287,8 @@ export default function () {
 
 				<Code
 					code={`
-						import { render, html, htmlEffect, signal, mutable } from 'pota'
+						import { render, signal, mutable } from 'pota'
+						import { html, htmlEffect } from 'pota/html'
 
 						const data = mutable({ test: 0 })
 
@@ -305,7 +315,8 @@ export default function () {
 			<Section title="Component vs Element">
 				<Code
 					code={`
-						import { HTML, render } from 'pota'
+						import { render } from 'pota'
+						import { HTML } from 'pota'
 
 						const html1 = HTML({unwrap:false})
 

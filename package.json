@@ -62,7 +62,7 @@
 				"input": ["src/pages/benchmark/js-framework-benchmark.jsx"],
 				"output": "src/pages/benchmark/dist/main.js",
 				"minified": true,
-				"treeshake": false,
+				"treeshake": true,
 				"root": false,
 				"babel": {
 					"presets": [["pota/babel-preset"]]
@@ -74,7 +74,7 @@
 				],
 				"output": "src/pages/benchmark/dist/main-html.js",
 				"minified": true,
-				"treeshake": false,
+				"treeshake": true,
 				"root": false,
 				"babel": {
 					"presets": [["pota/babel-preset"]]
