@@ -214,6 +214,17 @@ export default function Routes() {
 							() => import('./pages/@props/@plugins/bind/index.jsx'),
 						)}
 					/>
+
+					<Route
+						path=":path$"
+						params={{ path: 'pasteTextPlain' }}
+						children={lazy(
+							() =>
+								import(
+									'./pages/@props/@plugins/pasteTextPlain/index.jsx'
+								),
+						)}
+					/>
 				</Route>
 
 				<Route

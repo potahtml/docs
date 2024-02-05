@@ -30,6 +30,40 @@ export default function () {
 					</ol>
 				</p>
 			</Section>
+
+			<Section title="Props Plugins">
+				<p>
+					Note: each plugin must be imported separately at least once
+					to be registered as a prop to be used on elements globally
+				</p>
+				<p>
+					<Code
+						code="
+
+ import { bind } from 'pota/plugins/bind';
+
+ import 'pota/plugins/pasteTextPlain'
+
+"
+						render={false}
+					/>
+				</p>
+				<p>
+					<ol>
+						<li>
+							<a href="/props/plugins/bind">bind</a> - automatically
+							bind the value of a form field to a signal
+						</li>
+						<li>
+							<a href="/props/plugins/pasteTextPlain">
+								pasteTextPlain
+							</a>{' '}
+							- forces pasting as text/plain
+						</li>
+					</ol>
+				</p>
+			</Section>
+
 			<Section title="Lib">
 				<p>
 					<Code
@@ -353,31 +387,6 @@ webElementsGroup
 						} from 'pota/css'"
 						render={false}
 					/>
-				</p>
-			</Section>
-			<Section title="Props Plugins">
-				<p>
-					Please note each plugin must be imported separately at least
-					once to be registered as a prop to be used on elements
-					globally
-				</p>
-				<p>
-					<Code
-						code="
-
- import { bind } from 'pota/plugins/bind'
-
-"
-						render={false}
-					/>
-				</p>
-				<p>
-					<ol>
-						<li>
-							<a href="/props/plugins/bind">bind</a> - automatically
-							bind the value of a form field to a signal
-						</li>
-					</ol>
 				</p>
 			</Section>
 		</>

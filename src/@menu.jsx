@@ -236,6 +236,14 @@ export default function Menu() {
 								bind
 							</A>
 						</li>
+						<li>
+							<A
+								href="/props/plugins/:page"
+								params={{ page: 'pasteTextPlain' }}
+							>
+								pasteTextPlain
+							</A>
+						</li>
 					</ul>
 				</li>
 

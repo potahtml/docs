@@ -14,9 +14,11 @@ code {
 	line-height: 1.25;
 }
 .code {
-	border: 1px solid rgba(5, 134, 234, 0.2);
 	position: relative;
 	padding-bottom: 1px;
+}
+.code figure {
+	border: 1px solid rgba(5, 134, 234, 0.2);
 	margin-bottom: 10px;
 }
 .code,
@@ -28,19 +30,17 @@ code {
 	background: #0d1117;
 }
 
-.frame aside {
-	bottom: 0;
+.code aside {
 	font-size: small;
 	max-width: 100%;
 	opacity: 0.7;
-	padding: 25px 20px 10px 10px;
-	position: absolute;
+	padding: 0;
 	text-align: right;
-
-	display: inline-block;
-	right: 0;
+	margin-top: 5px;
+	display: block;
+	margin-bottom: 10px;
 }
-.frame aside a {
+.code aside a {
 	border: 0;
 }
 iframe {

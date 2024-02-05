@@ -3,7 +3,6 @@ import { Code } from '../lib/components/code/code.jsx'
 import { Header } from '../lib/components/header.jsx'
 import { Section } from '../lib/components/section.jsx'
 
-import { version } from 'pota'
 import { CompilerLess } from './html/compiler-less.jsx'
 
 export default function Home() {
@@ -40,9 +39,9 @@ export default function Home() {
 				change one line of code.
 			</p>
 			<p>
-				The API and base components are <em>heavily</em> inspired by{' '}
-				<a href="https://www.solidjs.com/">Solid</a>, albeit things
-				differ to an extent based on personal preferences.
+				The API and base components are <em>heavily</em> inspired by
+				Solid, albeit things differ to an extent based on personal
+				preferences.
 			</p>
 
 			<Section title="The Gist">

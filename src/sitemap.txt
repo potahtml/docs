@@ -30,6 +30,7 @@ https://pota.quack.uy/props/on__
 https://pota.quack.uy/props/onMount
 https://pota.quack.uy/props/onUnmount
 https://pota.quack.uy/props/plugins/bind
+https://pota.quack.uy/props/plugins/pasteTextPlain
 https://pota.quack.uy/props/prop%3A__
 https://pota.quack.uy/props/propsPlugin
 https://pota.quack.uy/props/propsProxy
