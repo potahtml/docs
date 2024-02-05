@@ -9,4 +9,14 @@
 		min-width: 100% !important;
 		max-width: 100% !important;
 	}
+	code,
+	pre {
+		width: 100%;
+		display: block;
+		overflow: scroll;
+		white-space: pre;
+	}
+	pre {
+		padding: 10px !important;
+	}
 }
