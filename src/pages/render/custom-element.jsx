@@ -3,7 +3,7 @@ import { render, signal } from 'pota'
 const [read, write] = signal(true)
 
 function recurse(name) {
-  render(<div>{name}</div>)
+  console.log(name)
   write(!read())
 }
 
@@ -27,16 +27,16 @@ class CustomElement extends HTMLElement {
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
-    recurse(`Attribute ${name} has changed.`)
+    recurse('Attribute has changed.')
   }
   set boolean(value) {
-    recurse(`boolean has changed.`, value)
+    recurse('boolean has changed.')
   }
 }
 
 customElements.define('custom-element', CustomElement)
 
-render(() => () => (
+render(() => (
   <custom-element
     string-attribute="lala"
     boolean={true}

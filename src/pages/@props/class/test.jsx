@@ -35,7 +35,6 @@ function App() {
       </div>
       <div class="undefined">class="undefined" this is ok</div>
       <div class={undefined}>class=undefined</div>
-      <div class={null}>class=null</div>
       <div
         class="red"
         class:red={undefined}
