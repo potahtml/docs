@@ -1,32 +1,81 @@
-import { render, signal } from 'pota'
-import { HTML } from 'pota/html'
+import { render, htmlEffect } from 'pota'
+import { bind } from 'pota/plugins/bind'
 
-const html = HTML()
+// test setup
 
-function Example(props) {
-  const [count, setCount] = signal(0)
+const data = [...Array(1000).keys()]
 
-  setInterval(() => setCount(count => count + 1), 1_000)
+// tests
 
-  const add10 = html`<button
-    onclick="${() => setCount(count => count + 10)}"
-    name="button"
-  >
-    add 10
-  </button>`
+const tests = []
 
-  return html`<div>
-    Hello ${props.name}, The count is: ${count}!<br />
-    <i>No need to click buttons!</i><br />
-    ok, have one ${add10}
-  </div>`
+tests.push({
+  name: 'data.find(x => x == 100)',
+  fn: () => {
+    data.find(x => x == 100)
+  },
+})
+
+tests.push({
+  name: 'data.find(x => x == 200)',
+  fn: () => {
+    data.find(x => x == 200)
+  },
+})
+
+// stuff
+
+function measure(fn) {
+  const start = performance.now()
+  fn()
+  return performance.now() - start
 }
 
-function App() {
-  return (
-    <main>
-      <Example name="Kilo" />
-    </main>
-  )
+const numberOfTests = bind(10)
+
+function doTest(fn) {
+  const runCount = numberOfTests()
+  return measure(() => {
+    for (let i = 0; i < runCount; i++) {
+      fn()
+    }
+  })
 }
-render(App)
+
+console.log(tests)
+
+const results = htmlEffect(html => {
+  return html` <table cellpadding="4">
+    <tr>
+      <th>name</th>
+      <th>time</th>
+    </tr>
+    <for each="${tests}"
+      >${item => {
+        console.log(item, 'what')
+        return html`<tr>
+          <td>${item.name}</td>
+          <td>${doTest(item.fn)}</td>
+        </tr>`
+      }}</for
+    >
+  </table>`
+})
+// ui
+
+render(
+  <main>
+    Number of Runs? :{' '}
+    <input
+      bind={numberOfTests}
+      style="width:100px"
+    />
+    <button onClick={results.update}>Run Test</button>
+    <p></p>
+    <style>{'th, td{padding:5px}'}</style>
+    <p></p>
+    {results}
+    <p></p>
+    <p></p>
+  </main>,
+)
