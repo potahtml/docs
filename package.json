@@ -8,8 +8,8 @@
 	"scripts": {
 		"dev": "concurrently --kill-others \"npm:dev:*\"",
 		"dev:compiler": "kompiler",
-		"dev:source": "cpx ../pota/** ./node_modules/pota/ -w -f -v",
-		"dev:standalone": "cpx ./node_modules/pota/dist/** ./src/dist/preview/standalone/ -w -f -v",
+		"dev:source": "cpx ../pota/** ./node_modules/pota/ -w",
+		"dev:standalone": "cpx ./node_modules/pota/dist/** ./src/dist/preview/standalone/ -w",
 		"update": "npm update --include=dev --save && npm run dev"
 	},
 	"dependencies": {
