@@ -34,6 +34,15 @@ if (typeof props === 'string') {
 	}
 }
 
+// display error
+
+function displayError(content, type = 'error') {
+	const errors = document.createElement('div')
+	errors.classList.add(type)
+	errors.textContent = content
+	document.body.append(errors)
+}
+
 // transform jsx ignore parse errors
 
 try {
@@ -60,19 +69,14 @@ try {
 
 	// listen for errors
 
-	function display(content, type) {
-		const errors = document.createElement('div')
-		errors.classList.add(type)
-		errors.textContent = content
-		document.body.append(errors)
-	}
-
 	window.onerror = function (event, source, line, col, error) {
 		document.body.textContent = ''
-		display(error?.message)
+		displayError(error?.message, 'error')
 	}
 
 	// append script
 
 	document.head.append(script)
-} catch (e) {}
+} catch (e) {
+	displayError(String(e))
+}
