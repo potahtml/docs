@@ -14,7 +14,9 @@ export default function () {
 							<a href="/articles/anatomy-of-a-signals-based-reactive-renderer">
 								Anatomy Of A Signals Based Reactive Renderer
 							</a>{' '}
-							(Jan 29, 2024)
+							- Implementing from scratch the core parts of a signals
+							based reactive web renderer: rendering, placeholders,
+							node creation and node disposal. (Jan 29, 2024)
 						</li>
 					</ol>
 				</p>
