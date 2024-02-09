@@ -32,7 +32,7 @@ export function Code(props) {
 		setCode(getValue(props.code))
 	})
 
-	const codeURL = memo(() => encodeURIComponent(compress(code())))
+	const codeURL = memo(() => compress(code()))
 
 	const frame = ref()
 

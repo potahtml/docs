@@ -74,8 +74,7 @@ export default function () {
 
 	// update hash
 	effect(() => {
-		window.location.hash =
-			'#' + encodeURIComponent(compress(source()))
+		window.location.hash = '#' + compress(source())
 	})
 
 	const [tab, setTab] = signal('code')
