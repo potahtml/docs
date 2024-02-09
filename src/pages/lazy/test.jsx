@@ -25,9 +25,7 @@ function App() {
 
 				<Route
 					path="blog/"
-					children={lazy(() =>
-						import('/pages/components/lazy/blog.jsx'),
-					)}
+					children={lazy(() => import('/@pages/lazy/blog.jsx'))}
 				/>
 				<Route
 					path="about/"
