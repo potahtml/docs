@@ -3,8 +3,9 @@
 		display: block;
 		position: sticky;
 		top: 0;
-		padding-bottom: 10px;
 		width: 100%;
+		padding-bottom: 10px;
+		background-color: #0d1117;
 	}
 	ul,
 	ol {
@@ -39,8 +40,6 @@
 	h2 {
 		position: sticky;
 		top: 0;
-		padding-bottom: 10px;
-		background-color: #0d1117;
 	}
 	h3,
 	h4 {

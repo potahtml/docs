@@ -45,7 +45,7 @@ code {
 }
 iframe {
 	height: auto;
-	min-height: 16px;
+	min-height: 57px;
 	max-width: calc(100% - 1px);
 }
 figcaption {
