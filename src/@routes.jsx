@@ -209,6 +209,14 @@ export default function Routes() {
 
 					<Route
 						path=":path$"
+						params={{ path: 'autofocus' }}
+						children={lazy(
+							() =>
+								import('./pages/@props/@plugins/autofocus/index.jsx'),
+						)}
+					/>
+					<Route
+						path=":path$"
 						params={{ path: 'bind' }}
 						children={lazy(
 							() => import('./pages/@props/@plugins/bind/index.jsx'),
@@ -217,11 +225,41 @@ export default function Routes() {
 
 					<Route
 						path=":path$"
+						params={{ path: 'onClickOutside' }}
+						children={lazy(
+							() =>
+								import(
+									'./pages/@props/@plugins/onClickOutside/index.jsx'
+								),
+						)}
+					/>
+					<Route
+						path=":path$"
 						params={{ path: 'pasteTextPlain' }}
 						children={lazy(
 							() =>
 								import(
 									'./pages/@props/@plugins/pasteTextPlain/index.jsx'
+								),
+						)}
+					/>
+					<Route
+						path=":path$"
+						params={{ path: 'useClipboard' }}
+						children={lazy(
+							() =>
+								import(
+									'./pages/@props/@plugins/useClipboard/index.jsx'
+								),
+						)}
+					/>
+					<Route
+						path=":path$"
+						params={{ path: 'useFullscreen' }}
+						children={lazy(
+							() =>
+								import(
+									'./pages/@props/@plugins/useFullscreen/index.jsx'
 								),
 						)}
 					/>

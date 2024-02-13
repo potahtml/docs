@@ -29,8 +29,12 @@ https://pota.quack.uy/props/on%3A__
 https://pota.quack.uy/props/on__
 https://pota.quack.uy/props/onMount
 https://pota.quack.uy/props/onUnmount
+https://pota.quack.uy/props/plugins/autofocus
 https://pota.quack.uy/props/plugins/bind
+https://pota.quack.uy/props/plugins/onClickOutside
 https://pota.quack.uy/props/plugins/pasteTextPlain
+https://pota.quack.uy/props/plugins/useClipboard
+https://pota.quack.uy/props/plugins/useFullscreen
 https://pota.quack.uy/props/prop%3A__
 https://pota.quack.uy/props/propsPlugin
 https://pota.quack.uy/props/propsProxy

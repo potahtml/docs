@@ -231,6 +231,14 @@ export default function Menu() {
 						<li>
 							<A
 								href="/props/plugins/:page"
+								params={{ page: 'autofocus' }}
+							>
+								autofocus
+							</A>
+						</li>
+						<li>
+							<A
+								href="/props/plugins/:page"
 								params={{ page: 'bind' }}
 							>
 								bind
@@ -239,9 +247,33 @@ export default function Menu() {
 						<li>
 							<A
 								href="/props/plugins/:page"
+								params={{ page: 'onClickOutside' }}
+							>
+								onClickOutside
+							</A>
+						</li>
+						<li>
+							<A
+								href="/props/plugins/:page"
 								params={{ page: 'pasteTextPlain' }}
 							>
 								pasteTextPlain
+							</A>
+						</li>
+						<li>
+							<A
+								href="/props/plugins/:page"
+								params={{ page: 'useClipboard' }}
+							>
+								useClipboard
+							</A>
+						</li>
+						<li>
+							<A
+								href="/props/plugins/:page"
+								params={{ page: 'useFullscreen' }}
+							>
+								useFullscreen
 							</A>
 						</li>
 					</ul>

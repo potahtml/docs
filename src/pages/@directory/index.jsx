@@ -40,9 +40,12 @@ export default function () {
 					<Code
 						code="
 
+ import 'pota/plugins/autofocus';
  import { bind } from 'pota/plugins/bind';
-
- import 'pota/plugins/pasteTextPlain'
+ import 'pota/plugins/onClickOutside';
+ import 'pota/plugins/pasteTextPlain';
+ import 'pota/plugins/useClipboard';
+ import 'pota/plugins/useFullscreen';
 
 "
 						render={false}
@@ -51,14 +54,34 @@ export default function () {
 				<p>
 					<ol>
 						<li>
+							<a href="/props/plugins/autofocus">autofocus</a> -
+							automatically focus the field
+						</li>
+						<li>
 							<a href="/props/plugins/bind">bind</a> - automatically
 							bind the value of a form field to a signal
+						</li>
+						<li>
+							<a href="/props/plugins/onClickOutside">
+								onClickOutside
+							</a>{' '}
+							- runs a function when clicking outside the element
 						</li>
 						<li>
 							<a href="/props/plugins/pasteTextPlain">
 								pasteTextPlain
 							</a>{' '}
 							- forces pasting as text/plain
+						</li>
+						<li>
+							<a href="/props/plugins/useClipboard">useClipboard</a> -
+							allows to copy to clipboard the return value of a
+							function, the string set as the prop value or the{' '}
+							<mark>innerText</mark> of the element
+						</li>
+						<li>
+							<a href="/props/plugins/useFullscreen">useFullscreen</a>{' '}
+							- on click it will fullscreen the element
 						</li>
 					</ol>
 				</p>
