@@ -40,6 +40,7 @@ export default function () {
 							root,
 							renderEffect,
 							effect,
+							syncEffect,
 							batch,
 							cleanup,
 							writable,
@@ -135,6 +136,17 @@ export default function () {
 							<td>void</td>
 
 							<td>function to re-run when dependencies change</td>
+						</tr>
+						<tr>
+							<td>syncEffect</td>
+							<td>{`(currentRunningEffect: Promise<any>) => any`}</td>
+							<td>any</td>
+
+							<td>
+								for when you need to run effects one after another you
+								can await the previous running effect with the
+								parameter that the callback receives.
+							</td>
 						</tr>
 						<tr>
 							<td>batch</td>
