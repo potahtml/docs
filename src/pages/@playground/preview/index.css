@@ -16,6 +16,7 @@ body {
 
 button {
   margin-right: 10px;
+  margin-bottom: 15px;
 }
 
 ul {
@@ -23,8 +24,8 @@ ul {
 }
 
 hr {
-  margin-top: 5px;
-  margin-bottom: 5px;
+  margin-top: 15px;
+  margin-bottom: 15px;
   background-color: #42536b;
 }
 
