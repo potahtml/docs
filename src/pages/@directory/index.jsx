@@ -324,9 +324,14 @@ scrollToTopLeft,
 					<Code
 						code="
 						import {
-
-stopTracks
-
+copyAudioTracks,
+copyVideoTracks,
+removeAudioTracks,
+removeVideoTracks,
+stopStream,
+stopTrack,
+stopTracks,
+stopTracks,
 						} from 'pota/streams'"
 						render={false}
 					/>
