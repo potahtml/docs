@@ -164,6 +164,21 @@ export default function Routes() {
 						() => import('./pages/@components/switch/index.jsx'),
 					)}
 				/>
+
+				<Route path="Library/">
+					<Route
+						children={lazy(
+							() => import('./pages/@components/@library/index.jsx'),
+						)}
+					/>
+					<Route
+						path=":path$"
+						params={{ path: 'alert' }}
+						children={lazy(
+							() => import('./pages/@components/@library/alert.jsx'),
+						)}
+					/>
+				</Route>
 			</Route>
 
 			<Route

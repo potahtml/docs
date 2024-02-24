@@ -19,6 +19,8 @@ export default `{
     "pota/plugins/useClipboard": "/dist/preview/standalone/standalone.no-min.js",
     "pota/plugins/useFullscreen": "/dist/preview/standalone/standalone.no-min.js",
     "pota/html": "/dist/preview/standalone/standalone.no-min.js",
+    "pota/components": "/dist/preview/standalone/standalone.no-min.js",
+    "pota/components/alert": "/dist/preview/standalone/standalone.no-min.js",
     "x/articles/": "/pages/%40articles/"
   }
 }`

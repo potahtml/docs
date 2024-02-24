@@ -53,7 +53,7 @@ export default function Menu() {
 				</li>
 			</ul>
 
-			<h3>Components</h3>
+			<h3>Components API</h3>
 			<ul>
 				<li>
 					<a href="/Classes">Classes</a>
@@ -71,6 +71,12 @@ export default function Menu() {
 							<a href="/cleanup">cleanup</a>
 						</li>
 					</ul>
+				</li>
+			</ul>
+			<h3>Components</h3>
+			<ul>
+				<li>
+					<a href="/Components/Library/">Library</a>
 				</li>
 				<li>
 					<h4>Flow</h4>
