@@ -36,7 +36,7 @@ addEventListener, // addEventListener(el, 'click', fn)
 removeEventListener, // removeEventListener(el, 'click', fn)
 
 // components
-Pota, // class MyC extends Pota { render(props){} onReady(){} onCleanup(){} }
+Pota, // class MyC extends Pota { render(props){} ready(){} cleanup(){} }
 lazy, // const Com = lazy(()=>import('yey.jsx'), fallback) <Comp some={true} fallback="oops"/>
 resolve, // const cache = resolve(() => props.children)
 toHTML, // const DocFragment = toHTML(props.children)
