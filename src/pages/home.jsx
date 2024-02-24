@@ -104,8 +104,8 @@ render(Counter)
 
 					<li>
 						Supports <mark>Class</mark> components with automatic
-						method registration for <mark>onReady</mark> and{' '}
-						<mark>onCleanup</mark>
+						method registration for <mark>ready</mark> and{' '}
+						<mark>cleanup</mark>
 					</li>
 					<li>
 						<mark>Portal</mark> does not wrap children in a{' '}
