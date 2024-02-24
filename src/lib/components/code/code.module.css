@@ -76,6 +76,7 @@ mark::before {
 .code div[contenteditable='true'] {
 	position: relative;
 	outline: 0;
+	padding-bottom: 2px;
 }
 
 .code div[contenteditable='true']::after {
