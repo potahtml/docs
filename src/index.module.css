@@ -81,6 +81,10 @@ th {
 	line-height: 1.4;
 }
 
+tr td:first-child {
+	white-space: nowrap;
+}
+
 p,
 ul,
 ol,
