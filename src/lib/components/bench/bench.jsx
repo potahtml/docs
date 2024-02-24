@@ -13,8 +13,7 @@ export function Bench() {
 
 		renderTime.time = +(stop - globalThis.start).toFixed(2)
 
-		const previous = +localStorage[key] || 1000
-		if (renderTime.time > 0 && renderTime.time < previous) {
+		if (renderTime.best === 0 || renderTime.time < renderTime.best) {
 			localStorage[key] = renderTime.time
 		}
 	})
