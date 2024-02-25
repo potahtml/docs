@@ -1,34 +1,25 @@
-import { Code } from '../../lib/components/code/code.jsx'
-import { Header } from '../../lib/components/header.jsx'
-import { Section } from '../../lib/components/section.jsx'
+import { Code } from '../../../../lib/components/code/code.jsx'
+import { Header } from '../../../../lib/components/header.jsx'
+import { Section } from '../../../../lib/components/section.jsx'
 
 export default function () {
 	return (
 		<>
-			<Header title="Custom Elements">
-				Includes information about custom elements on the context of
-				the renderer.
-			</Header>
-
-			<Header title="Attributes vs Properties">
-				Please refer to the page{' '}
-				<a href="/props/attributes-properties">
-					Attributes and Properties
-				</a>
-			</Header>
-
-			<Section title='Custom Elements "Everywhere"'>
+			<Header title='Custom Elements "Everywhere" Tests'>
 				Suit of tests from{' '}
 				<a href="https://github.com/webcomponents/custom-elements-everywhere">
 					Custom Elements "Everywhere"
 				</a>
-			</Section>
+				. For <mark>Custom Elements</mark> information please refer to
+				this <a href="/CustomElement/">page</a> instead.
+			</Header>
+
 			<Section title="Basic: can display a Custom Element with no children">
 				<p>
 					<Code
 						code={`
 import { render } from "pota";
-import "/pages/%40custom-elements/custom-elements.js";
+import "/pages/%40components/custom-element/custom-elements-everywhere/custom-elements.js";
 
 render(() => <ce-without-children />);
 
@@ -53,7 +44,7 @@ render(
 						code={`
 
 import { render } from "pota";
-import "/pages/%40custom-elements/custom-elements.js";
+import "/pages/%40components/custom-element/custom-elements-everywhere/custom-elements.js";
 
 render(() => <ce-with-children />);
 
@@ -69,7 +60,7 @@ render(() => <ce-with-children />);
 					<Code
 						code={`
 import { render } from "pota";
-import "/pages/%40custom-elements/custom-elements.js";
+import "/pages/%40components/custom-element/custom-elements-everywhere/custom-elements.js";
 
 render(() => <ce-with-children>hola</ce-with-children>);
 
@@ -85,7 +76,7 @@ render(() => <ce-with-children>hola</ce-with-children>);
 					<Code
 						code={`
 import { render, signal, Show } from "pota";
-import "/pages/%40custom-elements/custom-elements.js";
+import "/pages/%40components/custom-element/custom-elements-everywhere/custom-elements.js";
 
 const [show, setShow] = signal(true);
 const toggle = () => setShow((value) => !value);
@@ -111,7 +102,7 @@ render(
 					<Code
 						code={`
 import { render, ref } from "pota";
-import "/pages/%40custom-elements/custom-elements.js";
+import "/pages/%40components/custom-element/custom-elements-everywhere/custom-elements.js";
 
 const data = {
 	bool: true,
@@ -161,7 +152,7 @@ render(
 					<Code
 						code={`
 import { render, ref } from "pota";
-import "/pages/%40custom-elements/custom-elements.js";
+import "/pages/%40components/custom-element/custom-elements-everywhere/custom-elements.js";
 
 const data = {
 	bool: true,
@@ -211,7 +202,7 @@ render(
 					<Code
 						code={`
 import { render, ref } from "pota";
-import "/pages/%40custom-elements/custom-elements.js";
+import "/pages/%40components/custom-element/custom-elements-everywhere/custom-elements.js";
 
 const data = {
 	bool: true,
@@ -261,7 +252,7 @@ render(
 					<Code
 						code={`
 import { render, ref, signal } from "pota";
-import "/pages/%40custom-elements/custom-elements.js";
+import "/pages/%40components/custom-element/custom-elements-everywhere/custom-elements.js";
 
 const [eventHandled, setHandled] = signal(false);
 const handleTestEvent = () => setHandled(true);
@@ -289,7 +280,7 @@ render(() => <button onClick={() => element.click()}>try it out</button>);
 					<Code
 						code={`
 import { render, ref } from "pota";
-import "/pages/%40custom-elements/custom-elements.js";
+import "/pages/%40components/custom-element/custom-elements-everywhere/custom-elements.js";
 
 const data = {
 	bool: true,
@@ -335,7 +326,7 @@ render(
 						code={`
 
 import { render, ref } from "pota";
-import "/pages/%40custom-elements/custom-elements.js";
+import "/pages/%40components/custom-element/custom-elements-everywhere/custom-elements.js";
 
 const data = {
 	bool: true,
@@ -379,7 +370,7 @@ render(<p> {JSON.stringify(obj)}</p>);
 						code={`
 
 import { render, ref } from "pota";
-import "/pages/%40custom-elements/custom-elements.js";
+import "/pages/%40components/custom-element/custom-elements-everywhere/custom-elements.js";
 
 const data = {
 	bool: true,
@@ -425,7 +416,7 @@ render(<p> label is: {camelCaseObj.label}</p>);
 					<Code
 						code={`
 import { render, ref, mutable } from "pota";
-import "/pages/%40custom-elements/custom-elements.js";
+import "/pages/%40components/custom-element/custom-elements-everywhere/custom-elements.js";
 
 const state = mutable({
 		lowercaseHandled: false,
