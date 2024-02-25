@@ -41,7 +41,17 @@ export default function () {
 
 			<Section title="Using Promised">
 				<p>Simple test</p>
-				<Code url="/pages/@components/promised/test.jsx"></Code>
+				<Code url="/pages/@components/promised/snippet.jsx"></Code>
+			</Section>
+
+			<Section title="Without Fallback">
+				<p>
+					Theres no need for <mark>Promised</mark> if you are not
+					using a <mark>fallback</mark>. You may use a promise
+					directly as follows. If the promise resolves to a function,
+					the function will run with the original owner.
+				</p>
+				<Code url="/pages/@components/promised/no-fallback.jsx"></Code>
 			</Section>
 		</>
 	)
