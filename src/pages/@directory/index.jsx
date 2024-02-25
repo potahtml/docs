@@ -256,6 +256,18 @@ toArray
 					</ol>
 				</p>
 			</Section>
+			<Section title="Animations">
+				<p>
+					<Code
+						code="
+						import {
+animateClassTo,
+animatePartTo,
+						} from 'pota/animations'"
+						render={false}
+					/>
+				</p>
+			</Section>
 			<Section title="Color">
 				<p>
 					<Code
