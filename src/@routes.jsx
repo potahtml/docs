@@ -41,6 +41,25 @@ export default function Routes() {
 				/>
 			</Route>
 
+			<Route path="CustomElement/">
+				<Route
+					children={lazy(
+						() =>
+							import('./pages/@components/custom-element/index.jsx'),
+					)}
+				/>
+				<Route
+					path="custom-elements-everywhere"
+					params={{ path: '' }}
+					children={lazy(
+						() =>
+							import(
+								'./pages/@components/custom-element/custom-elements-everywhere/index.jsx'
+							),
+					)}
+				/>
+			</Route>
+
 			<Route path="Components/">
 				<NotFound />
 
@@ -181,13 +200,6 @@ export default function Routes() {
 				</Route>
 			</Route>
 
-			<Route
-				path=":path$"
-				params={{ path: 'custom-elements' }}
-				children={lazy(
-					() => import('./pages/@custom-elements/index.jsx'),
-				)}
-			/>
 			<Route path="Directory/">
 				<NotFound />
 
