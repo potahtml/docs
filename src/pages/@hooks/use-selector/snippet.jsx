@@ -1,4 +1,4 @@
-import { render, signal, For } from 'pota'
+import { render, signal, For, css } from 'pota'
 import { useSelector } from 'pota/hooks'
 
 const [selected, setSelected] = signal(3)
@@ -7,7 +7,11 @@ const isSelected = useSelector(selected)
 
 render(
   <main>
-    <style>{'.selected{color:aqua}'}</style>
+    {css`
+      .selected {
+        color: aqua;
+      }
+    `}
 
     <For each={[1, 2, 3, 4, 5]}>
       {item => (
