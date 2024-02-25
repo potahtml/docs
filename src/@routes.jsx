@@ -220,6 +220,13 @@ export default function Routes() {
 						() => import('./pages/@hooks/use-selector/index.jsx'),
 					)}
 				/>
+				<Route
+					path=":path$"
+					params={{ path: 'useTimeout' }}
+					children={lazy(
+						() => import('./pages/@hooks/use-timeout/index.jsx'),
+					)}
+				/>
 			</Route>
 
 			<Route
