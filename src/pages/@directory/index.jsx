@@ -15,7 +15,8 @@ export default function () {
 					<Code
 						code="
 						import {
-							useSelector
+							useSelector,
+							useTimeout
 						} from 'pota/hooks'"
 						render={false}
 					/>
@@ -26,6 +27,10 @@ export default function () {
 							<a href="/hooks/useSelector">useSelector</a> - Most
 							performant way to have an <mark>isSelected</mark>{' '}
 							signal.
+						</li>
+						<li>
+							<a href="/hooks/useTimeout">useTimeout</a> - For
+							creating setTimeouts that autodispose.
 						</li>
 					</ol>
 				</p>
