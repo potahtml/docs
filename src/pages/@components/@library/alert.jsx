@@ -97,20 +97,20 @@ render(
 			custom animation
 		</pota-alert>
 
-		<style>
-			{\`
+
+			{css\`
 /* custom animations */
 pota-alert.custom::part(base) {
-	animation: scale-fade-out 1s ease-in;
+	animation: pota-scale-fade-out 1s ease-in;
 }
 pota-alert.custom::part(animation-show) {
-	animation: scale-fade-in 1s ease-in;
+	animation: pota-scale-fade-in 1s ease-in;
 }
 pota-alert.custom::part(animation-hide) {
-	animation: scale-fade-out 1s ease-in;
+	animation: pota-scale-fade-out 1s ease-in;
 }
 \`}
-		</style>
+
 	</main>,
 )
 					`}
@@ -183,7 +183,7 @@ pota-alert.custom::part(animation-hide) {
 			</Section>
 
 			<Section title="::part">
-				<p>::part is used to overide the styles of the component</p>
+				<p>::part is used to override the styles of the component</p>
 				<table>
 					<thead>
 						<tr>
