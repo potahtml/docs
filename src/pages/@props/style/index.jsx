@@ -49,7 +49,12 @@ export default function () {
 			</Section>
 
 			<Section title="Inline CSS">
-				<p>Could be done just using JSX</p>
+				<p>
+					Could be done just using JSX. <mark>css</mark> creates a{' '}
+					<mark>CSSStyleSheet</mark>, pota recognize it and inlines a
+					style tag. The <mark>css</mark> tagged template is also nice
+					for editor css-in-js highlighting{' '}
+				</p>
 				<Code url="/pages/@props/style/inline.jsx"></Code>
 			</Section>
 		</>

@@ -1,4 +1,4 @@
-import { render } from 'pota'
+import { css, render } from 'pota'
 
 function App() {
   return (
@@ -27,7 +27,11 @@ function App() {
       <hr />
       <section>
         <p> XML</p>
-        <style>{`* {fill: currentColor;}`}</style>
+        {css`
+          * {
+            fill: currentColor;
+          }
+        `}
         <p>
           {'<'}svg..{'/>'} + xlink
         </p>

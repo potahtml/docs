@@ -13,7 +13,7 @@ export default function () {
 				<Code
 					code={`
 
-import { render, ref, effect, addEventListener } from 'pota'
+import { render, ref, effect, addEventListener, css} from 'pota'
 
 import 'pota/components/alert'
 
@@ -30,6 +30,7 @@ effect(() => {
 		)
 	}
 })
+
 render(
 	<main>
 		<pota-alert>Alerts arent shown by default</pota-alert>

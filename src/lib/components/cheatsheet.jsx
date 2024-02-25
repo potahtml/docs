@@ -10,7 +10,7 @@ import {
 render, // render(thing, targetEl=document.body, {clear:false, relative:false})
 Component, // const comp = Component(Fancy, {children:[4,5,6]})
 customElement, // customElement("fancy-element", class Fancy extends HTMLElement{})
-css, // (props)=> css\`button { padding: \${props.padding} }\`
+css, // css\`button { padding: \${props.padding} }\` // CSSStyleSheet
 
 // reactivity
 signal, // const [read, write] = signal(initialValue)

@@ -1,4 +1,4 @@
-import { render, signal, Show } from 'pota'
+import { render, signal, Show, css } from 'pota'
 
 function App() {
   const [showing, setShowing] = signal(false)
@@ -12,7 +12,11 @@ function App() {
       >
         toggle
       </button>
-      <style>{`* {fill: currentColor;}`}</style>
+      {css`
+        * {
+          fill: currentColor;
+        }
+      `}
       <p>
         {'<'}kilo:svg..{'/>'}
       </p>

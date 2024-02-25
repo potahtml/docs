@@ -1,4 +1,4 @@
-import { render, Pota } from 'pota'
+import { render, Pota, css } from 'pota'
 
 const div = document.createElement('div')
 div.textContent = 'Im a div! '
@@ -55,6 +55,11 @@ const toRender = [
       return 'Im back baby -- ' + this.name
     },
   },
+  css`
+    body {
+      background-color: rgba(255, 0, 0, 0.1);
+    }
+  `,
 ]
 
 for (const component of toRender) {

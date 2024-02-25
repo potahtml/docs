@@ -1,10 +1,14 @@
-import { render } from 'pota'
+import { css, render } from 'pota'
 
 function App() {
   return (
     <main>
       <p> XML</p>
-      <style>{`* {fill: currentColor;}`}</style>
+      {css`
+        * {
+          fill: currentColor;
+        }
+      `}
       <p>
         {'<'}svg..{'/>'} + xlink
       </p>
@@ -83,14 +87,14 @@ function App() {
         viewBox="0 0 200 200"
         xmlns="http://www.w3.org/2000/svg"
       >
-        <style>
-          {` div {
+        {css`
+          div {
             color: white;
             font: 18px serif;
             height: 100%;
             overflow: auto;
-          }`}
-        </style>
+          }
+        `}
 
         <polygon points="5,5 195,10 185,185 10,195" />
 

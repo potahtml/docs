@@ -1,16 +1,23 @@
-import { render } from 'pota'
+import { css, render } from 'pota'
 
 function App() {
   return (
     <main>
-      <style>
-        {`
-          .red { color:red }
-          .orange { color:orange }
-          .purple { color:purple }
-          .blue { color:blue }
-        `}
-      </style>
+      {css`
+        .red {
+          color: red;
+        }
+        .orange {
+          color: orange;
+        }
+        .purple {
+          color: purple;
+        }
+        .blue {
+          color: blue;
+        }
+      `}
+
       <div class=" red"> red</div>
       <div class=" orange  purple     "> orange purple </div>
       <div class={{ blue: true }}>blue: true</div>
