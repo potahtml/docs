@@ -18,7 +18,7 @@ export default function () {
 					Automatically create signals for the values and returns true
 					when the value matches
 				</p>
-				<Code url="/pages/@hooks/use-selector/test.jsx"></Code>
+				<Code url="/pages/@hooks/use-selector/snippet.jsx"></Code>
 			</Section>
 		</>
 	)
