@@ -6,10 +6,9 @@ export default function () {
 	return (
 		<>
 			<Header title="attributes / properties">
-				Describes behavior with attributes and properties. It pass{' '}
-				<a href="/custom-elements">Custom Elements "Everywhere"</a>{' '}
-				tests.
+				Describes behavior with attributes and properties.
 			</Header>
+
 			<Section title="Attributes vs Properties">
 				<p>
 					<mark>setProperty</mark> will be used when any of the
@@ -17,6 +16,10 @@ export default function () {
 				</p>
 				<p>
 					<ol>
+						<li>
+							the element has a dash on the <mark>tagName</mark>, as
+							custom elements do
+						</li>
 						<li>
 							value is <mark>object</mark>, <mark>null</mark> or{' '}
 							<mark>undefined</mark>
@@ -86,58 +89,63 @@ export default function () {
 						</tr>
 					</table>
 				</p>
-				<p>
-					<mark>html</mark> may use lit-style attributes/properties
-				</p>
-				<p>
-					<table>
-						<thead>
-							<tr>
-								<th>Name</th>
-								<th>Kind</th>
-								<th>Description</th>
-							</tr>
-						</thead>
+				<Section title="lit-style attributes/properties">
+					<p>
+						<mark>
+							<a href="/HTML">html</a>
+						</mark>{' '}
+						may use lit-style attributes/properties
+					</p>
+					<p>
+						<table>
+							<thead>
+								<tr>
+									<th>Name</th>
+									<th>Kind</th>
+									<th>Description</th>
+								</tr>
+							</thead>
 
-						<tr>
-							<td>
-								<mark>.someProp="true"</mark>
-							</td>
-							<td>
-								<mark>setProperty</mark>
-							</td>
-							<td>will always set it as a property</td>
-						</tr>
-						<tr>
-							<td>
-								<mark>?bool="value"</mark>
-							</td>
-							<td>
-								<mark>setBool</mark>
-							</td>
-							<td>adds/remove based on truthy/falsy</td>
-						</tr>
-						<tr>
-							<td>
-								<mark>
-									{'@click="{handleEvent(e){...}, once:true}"'}
-								</mark>
-							</td>
-							<td>
-								<mark>EventListener</mark>
-							</td>
-							<td>adds/remove based on truthy/falsy</td>
-						</tr>
-					</table>
-				</p>
-				<p>
-					<b>See Also</b>: <a href="/props/attr%3A__">attr:__</a>,{' '}
-					<a href="/props/prop%3A__">prop:__</a>,{' '}
-					<a href="/props/bool%3A__">bool:__</a> and{' '}
-					<a href="/props/setAttribute">setAttribute</a>,{' '}
-					<a href="/props/setProperty">setProperty</a>,{' '}
-					<a href="/props/setBool">setBool</a>
-				</p>
+							<tr>
+								<td>
+									<mark>.someProp="true"</mark>
+								</td>
+								<td>
+									<mark>setProperty</mark>
+								</td>
+								<td>will always set it as a property</td>
+							</tr>
+							<tr>
+								<td>
+									<mark>?bool="value"</mark>
+								</td>
+								<td>
+									<mark>setBool</mark>
+								</td>
+								<td>adds/remove based on truthy/falsy</td>
+							</tr>
+							<tr>
+								<td>
+									<mark>
+										{'@click="{handleEvent(e){...}, once:true}"'}
+									</mark>
+								</td>
+								<td>
+									<mark>EventListener</mark>
+								</td>
+								<td>adds/remove based on truthy/falsy</td>
+							</tr>
+						</table>
+					</p>
+					<p>
+						<b>See Also</b>: <a href="/props/attr%3A__">attr:__</a>,{' '}
+						<a href="/props/prop%3A__">prop:__</a>,{' '}
+						<a href="/props/bool%3A__">bool:__</a> and{' '}
+						<a href="/props/setAttribute">setAttribute</a>,{' '}
+						<a href="/props/setProperty">setProperty</a>,{' '}
+						<a href="/props/setBool">setBool</a>
+					</p>
+				</Section>
 			</Section>
 
 			<Section title="Deleting">
@@ -200,24 +208,10 @@ export default function () {
 						<tr>
 							<td>
 								<mark>
-									<a href="/props/style%3A__">style</a>
+									<a href="/props/ref">ref</a>
 								</mark>
 							</td>
-							<td>sets styles in the element in various ways</td>
-						</tr>
-						<tr>
-							<td>
-								<mark>
-									<a href="/props/class%3A__">class</a>
-								</mark>
-							</td>
-							<td>sets classes in the element in various ways</td>
-						</tr>
-						<tr>
-							<td>
-								<mark>var</mark>
-							</td>
-							<td>sets a css var in the element</td>
+							<td>callback to get a reference to the element</td>
 						</tr>
 						<tr>
 							<td>
@@ -238,10 +232,24 @@ export default function () {
 						<tr>
 							<td>
 								<mark>
-									<a href="/props/ref">ref</a>
+									<a href="/props/class%3A__">class</a>
 								</mark>
 							</td>
-							<td>callback to get a reference to the element</td>
+							<td>sets classes in the element in various ways</td>
+						</tr>
+						<tr>
+							<td>
+								<mark>
+									<a href="/props/style%3A__">style</a>
+								</mark>
+							</td>
+							<td>sets styles in the element in various ways</td>
+						</tr>
+						<tr>
+							<td>
+								<mark>var</mark>
+							</td>
+							<td>sets a css var in the element</td>
 						</tr>
 					</table>
 				</p>
