@@ -48,9 +48,9 @@ import {render} from 'pota'
 
 render(
 	<main class="pota-theme-dark">
- 			<pota-alert open >This is a dark alert!</pota-alert>
+ 			<pota-alert show >This is a dark alert!</pota-alert>
 
-			<pota-alert open class="pota-theme-light">This is a light alert!</pota-alert>
+			<pota-alert show class="pota-theme-light">This is a light alert!</pota-alert>
  	</main>)
 
  `}
@@ -110,7 +110,7 @@ import {render} from 'pota'
 
 render(
 	<main>
-		<pota-alert open>This is an Alert message!</pota-alert>
+		<pota-alert show>This is an Alert message!</pota-alert>
 	</main>)
 					`}
 				>
@@ -151,7 +151,7 @@ import 'pota/components/alert'
 
 render(
 	<main>
-		<pota-alert open closable>This is an alert message that can be closed</pota-alert>
+		<pota-alert show closable>This is an alert message that can be closed</pota-alert>
 	</main>)
 					`}
 				></Code>
