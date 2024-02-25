@@ -20,6 +20,8 @@ export default `{
     "pota/plugins/useFullscreen": "/dist/preview/standalone/standalone.no-min.js",
     "pota/html": "/dist/preview/standalone/standalone.no-min.js",
     "pota/components": "/dist/preview/standalone/standalone.no-min.js",
+    "pota/components/theme-dark": "/dist/preview/standalone/standalone.no-min.js",
+    "pota/components/theme-light": "/dist/preview/standalone/standalone.no-min.js",
     "pota/components/alert": "/dist/preview/standalone/standalone.no-min.js",
     "x/articles/": "/pages/%40articles/"
   }
