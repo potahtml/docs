@@ -144,7 +144,7 @@ const create = (child, parent) => {
 	}
 
 	if (child instanceof Node) {
-		return insert(child, parent, relative);
+		return insert(child, parent);
 	}
 
 	if (typeof child === "function") {
@@ -181,7 +181,7 @@ const create = (child, parent) => {
 	}
 
 	if (child instanceof Node) {
-		return insert(child, parent, relative);
+		return insert(child, parent);
 	}
 
 	if (typeof child === "function") {
@@ -522,9 +522,9 @@ create(button, document.body);
 				<p></p>
 				<p>
 					We can ensure the old node is removed by adding{' '}
-					<mark>cleanup</mark> on our
-					<mark>insert</mark> function. That way, when the tracking
-					scope is invalidated, our node is removed from the document.
+					<mark>cleanup</mark> on our <mark>insert</mark> function.
+					That way, when the tracking scope is invalidated, our node
+					is removed from the document.
 				</p>
 				<p></p>
 
