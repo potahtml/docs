@@ -417,6 +417,16 @@ export default function Menu() {
 					</ul>
 				</li>
 			</ul>
+
+			<h4>Hooks</h4>
+			<ul>
+				<li>
+					<a href="/hooks/useSelector">useSelector</a>
+				</li>
+				<li>
+					<a href="/hooks/useTimeout">useTimeout</a>
+				</li>
+			</ul>
 		</>
 	)
 }
