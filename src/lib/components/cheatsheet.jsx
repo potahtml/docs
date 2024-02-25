@@ -10,16 +10,18 @@ import {
 render, // render(thing, targetEl=document.body, {clear:false, relative:false})
 Component, // const comp = Component(Fancy, {children:[4,5,6]})
 customElement, // customElement("fancy-element", class Fancy extends HTMLElement{})
+CustomElement, // class Fancy extends CustomElement{}
 css, // css\`button { padding: \${props.padding} }\` // CSSStyleSheet
 
 // reactivity
 signal, // const [read, write] = signal(initialValue)
-mutable, // const state = mutable({some:true, thing:'bla'}) // only tracks first level
+mutable, // const state = mutable({some:true, thing:'bla'}) // only tracks whats defined on first level
 mutableDeep, // const state = mutableDeep({some:{thing:{deep:true}}}) // tracks all levels
 
 root, // root(fn)
 effect, // effect(fn)
 renderEffect, // renderEffect(fn)
+syncEffect, // syncEffect((previousEffect) => await previousEffect)
 memo, // memo(fn)
 writable, // const m = writable(fn); m(true) // now "m" is "true" till memo reruns
 batch, // batch(fn)
@@ -32,14 +34,14 @@ withOwner, // const owned = withOwner(); owned(fn)
 withValue, // withValue(signal, value => console.log(value))
 
 // events
-addEventListener, // addEventListener(el, 'click', fn)
-removeEventListener, // removeEventListener(el, 'click', fn)
+addEventListener, // const off = addEventListener(el, 'click', fn)
+removeEventListener, // const on = removeEventListener(el, 'click', fn)
 
 // components
 Pota, // class MyC extends Pota { render(props){} ready(){} cleanup(){} }
 lazy, // const Com = lazy(()=>import('yey.jsx'), fallback) <Comp some={true} fallback="oops"/>
 resolve, // const cache = resolve(() => props.children)
-toHTML, // const DocFragment = toHTML(props.children)
+toHTML, // const nodes = toHTML(props.children) // node|node[]
 
 // components utilitites
 makeCallback, // makeCallback(props.children) === ()=>props.children
@@ -69,12 +71,11 @@ Head, // <Head><title>Hello World</title></Head>
 Switch, Match,// <Switch fallback="ouch"><Match when={true}/></Switch>
 Portal, // <Portal mount={document.body}>Hola</Portal>
 
-getValue, // getValue(signalMaybe)
-
 // pota version
 version
 } from 'pota'
 
+// html
 import {
 htmlEffect, // htmlEffect((html)=> html\`<div>\${some.non.reactive.object}</div>\`, {unwrap:true/false})
 HTML, // const html = HTML({unwrap:true/false}); (props)=> html\`<div>\${props.children}</div>\`
