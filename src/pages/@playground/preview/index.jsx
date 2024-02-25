@@ -18,7 +18,7 @@ new ResizeObserver(entries => {
 				}),
 				'*',
 			)
-		}, 200)
+		}, 80)
 	}
 }).observe(document.body)
 
