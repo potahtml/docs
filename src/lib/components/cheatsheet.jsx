@@ -77,8 +77,8 @@ version
 
 // html
 import {
-htmlEffect, // htmlEffect((html)=> html\`<div>\${some.non.reactive.object}</div>\`, {unwrap:true/false})
-HTML, // const html = HTML({unwrap:true/false}); (props)=> html\`<div>\${props.children}</div>\`
+htmlEffect, // htmlEffect((html)=> html\`<div>\${some.non.reactive.object}</div>\`, {unwrap:true, updateTrigger:false})
+HTML, // const html = HTML({unwrap:true}); (props)=> html\`<div>\${props.children}</div>\`
 html, // (props)=> html\`<div>\${props.children}</div>\` // <div/>
 } from 'pota/html'
 `}
