@@ -35,7 +35,7 @@ export default function () {
 						import {
 							signal,
 							mutable,
-							mutableDeep,
+							signalify,
 							memo,
 							root,
 							renderEffect,
@@ -72,7 +72,7 @@ export default function () {
 							<td>tuple to read and write values from/to a signal</td>
 						</tr>
 						<tr>
-							<td>mutable</td>
+							<td>signalify</td>
 							<td>object</td>
 							<td>object</td>
 							<td>
@@ -82,7 +82,7 @@ export default function () {
 							</td>
 						</tr>
 						<tr>
-							<td>mutableDeep</td>
+							<td>mutable</td>
 							<td>object</td>
 							<td>object</td>
 							<td>

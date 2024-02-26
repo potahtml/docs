@@ -1,8 +1,8 @@
-import { mutable, ready, version } from 'pota'
+import { signalify, ready, version } from 'pota'
 import styles from './bench.module.css'
 
 export function Bench() {
-	const renderTime = mutable({ time: 0, best: 0 })
+	const renderTime = signalify({ time: 0, best: 0 })
 
 	ready(() => {
 		const stop = performance.now()

@@ -42,7 +42,7 @@ globalThis.Voby = Voby*/
 import {
 	effect,
 	memo,
-	mutableDeep,
+	mutable,
 	render,
 	signal,
 	Show,
@@ -66,7 +66,7 @@ const useEffect = effect
 const useInterval = setInterval
 const useTimeout = setTimeout
 const useMemo = memo
-const store = mutableDeep
+const store = mutable
 const createContext = context
 const If = Show
 const Ternary = Show

@@ -15,8 +15,8 @@ css, // css\`button { padding: \${props.padding} }\` // CSSStyleSheet
 
 // reactivity
 signal, // const [read, write] = signal(initialValue)
-mutable, // const state = mutable({some:true, thing:'bla'}) // only tracks whats defined on first level
-mutableDeep, // const state = mutableDeep({some:{thing:{deep:true}}}) // tracks all levels
+signalify, // const state = signalify({some:true, thing:'bla'}) // only tracks whats defined on first level
+mutable, // const state = mutable({some:{thing:{deep:true}}}) // tracks all levels
 
 root, // root(fn)
 effect, // effect(fn)

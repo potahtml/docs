@@ -163,10 +163,10 @@ export default function () {
 				</p>
 				<Code
 					code={`
-						import { render, signal, mutable } from 'pota'
+						import { render, signal, signalify } from 'pota'
 						import { htmlEffect } from 'pota/html'
 
-						const data = mutable({ test: 0 })
+						const data = signalify({ test: 0 })
 
 						const div = htmlEffect(html => {
 						  return html\`<div>value is \${data.test}</div>\`
@@ -185,10 +185,10 @@ export default function () {
 
 				<Code
 					code={`
-						import { render, signal, mutable } from 'pota'
+						import { render, signal, signalify } from 'pota'
 						import { htmlEffect } from 'pota/html'
 
-						const data = mutable({ test: 0 })
+						const data = signalify({ test: 0 })
 
 						const div = htmlEffect(html => {
 							console.log('re-running')
@@ -210,10 +210,10 @@ export default function () {
 
 				<Code
 					code={`
-						import { render, mutable } from 'pota'
+						import { render, signalify } from 'pota'
 						import { htmlEffect } from 'pota/html'
 
-						const data = mutable({ test: 0 })
+						const data = signalify({ test: 0 })
 
 						const div = htmlEffect(
 						  html => {
@@ -330,10 +330,10 @@ render(
 
 				<Code
 					code={`
-						import { render, signal, mutable } from 'pota'
+						import { render, signal, signalify } from 'pota'
 						import { html, htmlEffect } from 'pota/html'
 
-						const data = mutable({ test: 0 })
+						const data = signalify({ test: 0 })
 
 						html.define({test:(props)=><div style="color:green">{props.children}</div>})
 

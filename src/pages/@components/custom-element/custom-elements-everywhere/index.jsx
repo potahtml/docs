@@ -415,10 +415,10 @@ render(<p> label is: {camelCaseObj.label}</p>);
 				<p>
 					<Code
 						code={`
-import { render, ref, mutable } from "pota";
+import { render, ref, signalify } from "pota";
 import "/pages/%40components/custom-element/custom-elements-everywhere/custom-elements.js";
 
-const state = mutable({
+const state = signalify({
 		lowercaseHandled: false,
 		kebabHandled: false,
 		camelHandled: false,
