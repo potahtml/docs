@@ -37,7 +37,7 @@ export default function () {
 				</table>
 			</Section>
 
-			<Section title="Bugs">
+			<Section title="Note">
 				<ul>
 					<li>
 						When passing an object with the classNames as keys, it

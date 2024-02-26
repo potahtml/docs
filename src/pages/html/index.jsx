@@ -154,10 +154,12 @@ export default function () {
 				<p>
 					An <mark>htmlEffect</mark> is similar to a regular{' '}
 					<mark>effect</mark>. It creates and cache the html for the
-					output and updates what has changed using signals for the
-					interpolated values. It tracks the interpolated values and
-					updates the template, and also it tracks the body of the
-					function that you pass to the effect to re-run it.
+					output updating anything that has changed using signals for
+					the interpolated values. Updates can be triggered
+					automatically by using reactive values, or manually (example
+					in a <mark>requestAnimationFrame</mark>) by passing the
+					option `updateTrigger` on which case it will return a tuple{' '}
+					<mark>[result, updateFunction]</mark>
 				</p>
 				<Code
 					code={`
@@ -228,7 +230,48 @@ export default function () {
 
  					`}
 				>
-					Nested <mark>html</mark> test
+					Nested <mark>html</mark>. Templates are re-used. If you
+					inspect the source, only the numbers change.
+				</Code>
+
+				<Code
+					code={`
+import { render, Pota, signal } from 'pota'
+import { htmlEffect } from 'pota/html'
+
+const [read, write] = signal(0)
+
+let instanceNumber = 0
+
+class Test extends Pota {
+  constructor() {
+    super()
+    this.instance = ++instanceNumber
+  }
+  render() {
+    return htmlEffect(html => {
+      return html\`<div>
+      instanceNumber \${this.instance}
+      signal is \${read() / this.instance}
+    </div>\`
+    })
+  }
+}
+
+setInterval(() => write(value => value + 1), 1000)
+
+render(
+  <>
+    <Test />
+    <hr />
+    <Test />
+  </>
+)
+
+ 					`}
+				>
+					<mark>htmlEffect</mark> demo working with 2 instances of a
+					class
 				</Code>
 
 				<Code
