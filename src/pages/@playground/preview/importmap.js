@@ -28,6 +28,7 @@ function addImportmap() {
     "pota/components/theme-dark": "/dist/preview/standalone/standalone.no-min.js",
     "pota/components/theme-light": "/dist/preview/standalone/standalone.no-min.js",
     "pota/components/alert": "/dist/preview/standalone/standalone.no-min.js",
+    "pota/test": "/dist/preview/standalone/standalone.no-min.js",
     "x/articles/": "/pages/%40articles/"
   }
 }`
