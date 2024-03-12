@@ -67,18 +67,23 @@ export default function () {
 					<tbody>
 						<tr>
 							<td>signal</td>
-							<td>(initialValue, {'{equals:true/false}'}) </td>
+							<td>
+								(initialValue, {'{equals:false/(a,b)=>a===b}'}){' '}
+							</td>
 							<td>[read, write] </td>
 							<td>tuple to read and write values from/to a signal</td>
 						</tr>
 						<tr>
 							<td>signalify</td>
-							<td>object</td>
+							<td>(object, [prop1, props2]?)</td>
 							<td>object</td>
 							<td>
 								it replaces already exsisting object properties with
-								setters/getters. NOTE: new properties wont be
-								tracked/mutable. This is NOT recursive.
+								setters/getters. It can be used in a class with
+								getters/setters. Aditionally you may pass an array of
+								prop names to choose what to signalify. NOTE: new
+								properties wont be tracked/mutable. This is NOT
+								recursive.
 							</td>
 						</tr>
 						<tr>
