@@ -21,3 +21,7 @@
 :global .monaco-scrollable-element.editor-scrollable.vs-dark {
 	margin-left: 10px;
 }
+
+:global .monaco-scrollable-element {
+	overflow-y: scroll !important;
+}

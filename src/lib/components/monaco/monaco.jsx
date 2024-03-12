@@ -74,8 +74,8 @@ export function Monaco(props) {
 			roundedSelection: false,
 			theme: 'vs-dark',
 			scrollbar: {
-				vertical: 'auto',
-				horizontal: 'auto',
+				vertical: 'visible',
+				horizontal: 'visible',
 				verticalScrollbarSize: 10,
 				horizontalScrollbarSize: 10,
 			},
