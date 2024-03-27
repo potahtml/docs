@@ -12,7 +12,7 @@
 
 // test stuff
 
-import { test, isProxy } from 'pota/test'
+import { test, isProxy, measure } from 'pota/test'
 
 // oby
 
@@ -66,41 +66,50 @@ import {
 
 // tests
 
-rootSolid(() => {
-	testMutable(
-		'solid',
-		mutableSolid,
-		memoSolid,
-		batchSolid,
-		signalSolid,
-		rootSolid,
-	)
-})
-
-rootOby(() => {
-	testMutable(
-		'oby',
-		mutableOby,
-		memoOby,
-		batchOby,
-		signalOby,
-		rootOby,
-	)
-})
-
-// rootPota(() => {
-testMutable(
-	'pota',
-	mutablePota,
-	memoPota,
-	batchPota,
-	signalPota,
-	rootPota,
+measure('solid', () =>
+	rootSolid(() => {
+		testMutable(
+			'solid',
+			mutableSolid,
+			memoSolid,
+			batchSolid,
+			signalSolid,
+			rootSolid,
+		)
+	}),
 )
-// })
+
+measure('oby', () =>
+	rootOby(() => {
+		testMutable(
+			'oby',
+			mutableOby,
+			memoOby,
+			batchOby,
+			signalOby,
+			rootOby,
+		)
+	}),
+)
+
+measure('pota', () =>
+	rootPota(() => {
+		testMutable(
+			'pota',
+			mutablePota,
+			memoPota,
+			batchPota,
+			signalPota,
+			rootPota,
+		)
+	}),
+)
+
+document.body.textContent = ''
 
 function testMutable(lib, mutable, memo, batch, signal, root) {
 	lib = lib + ': '
+	console.log('--------------------------------------')
 	console.log(lib)
 
 	test.resetCounter()
@@ -2699,7 +2708,6 @@ function testMutable(lib, mutable, memo, batch, signal, root) {
 		execute()
 		expect(calls).toBe(2)
 
-		return
 		o.foo = 2 // already in
 		o.bar = 3 // already in
 		o.baz = 4 // already in
@@ -4425,8 +4433,6 @@ function testMutable(lib, mutable, memo, batch, signal, root) {
 	)
 
 	/** ARRAY */
-
-	console.log('-------------------------------')
 
 	test(lib + 'array: value: array property', expect => {
 		const source = [{ cat: 'quack' }]
@@ -6558,12 +6564,6 @@ function testMutable(lib, mutable, memo, batch, signal, root) {
 		const firstItem = Array.from(deep.values())[0]
 		expect(isProxy(firstItem)).toBe(true)
 	})
-
-	console.log('lib', lib, 'done')
-	console.log('--------------------------------------')
-	try {
-		document.body.textContent = ''
-	} catch (e) {}
 
 	function testValues(expect, set, get) {
 		let callsMemo = 0
