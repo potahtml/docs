@@ -67,7 +67,7 @@ import {
 // tests
 
 measure('solid', () =>
-	rootSolid(() => {
+	rootSolid(() =>
 		testMutable(
 			'solid',
 			mutableSolid,
@@ -75,12 +75,12 @@ measure('solid', () =>
 			batchSolid,
 			signalSolid,
 			rootSolid,
-		)
-	}),
+		),
+	),
 )
 
 measure('oby', () =>
-	rootOby(() => {
+	rootOby(() =>
 		testMutable(
 			'oby',
 			mutableOby,
@@ -88,12 +88,12 @@ measure('oby', () =>
 			batchOby,
 			signalOby,
 			rootOby,
-		)
-	}),
+		),
+	),
 )
 
 measure('pota', () =>
-	rootPota(() => {
+	rootPota(() =>
 		testMutable(
 			'pota',
 			mutablePota,
@@ -101,8 +101,8 @@ measure('pota', () =>
 			batchPota,
 			signalPota,
 			rootPota,
-		)
-	}),
+		),
+	),
 )
 
 document.body.textContent = ''
