@@ -17,7 +17,6 @@ import { test, isProxy } from 'pota/test'
 // oby
 
 import $, {
-	effect as effectOby2,
 	store as mutableOby,
 	memo as memoOby,
 	batch as batchOby,
@@ -26,15 +25,12 @@ import $, {
 
 const signalOby = initialValue => {
 	const s = $(initialValue)
-	return [() => s(), s]
+	return [() => s(), v => s(v)]
 }
-
-const effectOby = fn => effectOby2(fn, { sync: true })
 
 // solid
 
 import {
-	createRenderEffect as effectSolid,
 	createMemo as memoSolid2,
 	batch as batchSolid,
 	createSignal as signalSolid,
@@ -61,7 +57,6 @@ function memoSolid(fn) {
 // pota
 
 import {
-	renderEffect as effectPota,
 	mutable as mutablePota,
 	memo as memoPota,
 	batch as batchPota,
@@ -71,45 +66,40 @@ import {
 
 // tests
 
-testMutable(
-	'solid',
-	effectSolid,
-	mutableSolid,
-	memoSolid,
-	batchSolid,
-	signalSolid,
-	rootSolid,
-)
+rootSolid(() => {
+	testMutable(
+		'solid',
+		mutableSolid,
+		memoSolid,
+		batchSolid,
+		signalSolid,
+		rootSolid,
+	)
+})
 
-testMutable(
-	'oby',
-	effectOby,
-	mutableOby,
-	memoOby,
-	batchOby,
-	signalOby,
-	rootOby,
-)
+rootOby(() => {
+	testMutable(
+		'oby',
+		mutableOby,
+		memoOby,
+		batchOby,
+		signalOby,
+		rootOby,
+	)
+})
 
+// rootPota(() => {
 testMutable(
 	'pota',
-	effectPota,
 	mutablePota,
 	memoPota,
 	batchPota,
 	signalPota,
 	rootPota,
 )
+// })
 
-function testMutable(
-	lib,
-	effect,
-	mutable,
-	memo,
-	batch,
-	signal,
-	root,
-) {
+function testMutable(lib, mutable, memo, batch, signal, root) {
 	lib = lib + ': '
 	console.log(lib)
 
@@ -180,25 +170,24 @@ function testMutable(
 		)
 
 		expect(source.user.name).toBe('John')
-
 		expect(source.user.last).toBe('Snow')
 
 		let called = 0
 
-		effect(() => {
-			called++
-
+		const execute = memo(() => {
 			source.user.name
 			source.user.last
+			called++
 		})
-
+		execute()
 		expect(called).toBe(1)
 
 		source.user.name = 'quack'
+		execute()
 		expect(called).toBe(2)
 
 		source.user.last = 'murci'
-
+		execute()
 		expect(called).toBe(3)
 
 		expect(source.user.name).toBe('quack')
@@ -224,22 +213,24 @@ function testMutable(
 
 		let called = 0
 
-		effect(() => {
+		const execute = memo(() => {
 			called++
 
 			source.data.user.name
 			source.data.user.last
 		})
-
+		execute()
 		expect(called).toBe(1)
 
 		expect(source.data.user.name).toBe('John')
 		expect(source.data.user.last).toBe('Snow')
 
 		source.data.user.name = 'quack'
+		execute()
 		expect(called).toBe(2)
 
 		source.data.user.last = 'murci'
+		execute()
 		expect(called).toBe(3)
 
 		expect(source.data.user.name).toBe('quack')
@@ -269,22 +260,24 @@ function testMutable(
 
 			let called = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				called++
 
 				source.data.user.store.name
 				source.data.user.store.last
 			})
-
+			execute()
 			expect(called).toBe(1)
 
 			expect(source.data.user.store.name).toBe('John')
 			expect(source.data.user.store.last).toBe('Snow')
 
 			source.data.user.store.name = 'quack'
+			execute()
 			expect(called).toBe(2)
 
 			source.data.user.store.last = 'murci'
+			execute()
 			expect(called).toBe(3)
 
 			expect(source.data.user.store.name).toBe('quack')
@@ -311,11 +304,7 @@ function testMutable(
 
 		// pota wont trigger changes with functions
 		result.fn = () => 2
-		if (lib === 'pota: ') {
-			expect(getValue()).toBe(1)
-		} else {
-			expect(getValue()).toBe(2)
-		}
+		expect(getValue()).toBe(2)
 	})
 	test(
 		lib +
@@ -335,13 +324,15 @@ function testMutable(
 			expect(r.cat).toBe('quack')
 
 			let calls = 0
-			effect(() => {
+			const execute = memo(() => {
 				calls++
 				r.cat
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			r.cat = 'murci'
+			execute()
 			expect(r.cat).toBe('murci')
 			expect(calls).toBe(2)
 		},
@@ -373,6 +364,7 @@ function testMutable(
 			},
 		})
 		expect(result.greeting.greet).toBe('hi, quack')
+
 		result.greeting = 'murci'
 		expect(result.greeting.greet).toBe('hi, murci')
 	})
@@ -392,6 +384,7 @@ function testMutable(
 			},
 		})
 		expect(result.greeting.greet).toBe('hi, quack')
+
 		result.greeting = 'murci'
 		expect(result.greeting.greet).toBe('hi, murci')
 	})
@@ -407,6 +400,7 @@ function testMutable(
 			},
 		})
 		expect(result.greeting.greet).toBe('hi, quack')
+
 		result.greeting = 'murci'
 		expect(result.greeting.greet).toBe('hi, murci')
 	})
@@ -426,6 +420,7 @@ function testMutable(
 				},
 			})
 			expect(result.greeting.greet.text).toBe('hi, quack')
+
 			result.greeting = 'murci'
 			expect(result.greeting.greet.text).toBe('hi, murci')
 		},
@@ -469,16 +464,18 @@ function testMutable(
 		expect(result.name).toBe('quack')
 
 		let calls = 0
-		effect(() => {
+		const execute = memo(() => {
 			calls++
 			result.name
 		})
+		execute()
 		expect(calls).toBe(1)
 
 		result.name = 'mishu'
+		execute()
+
 		expect(result.name).toBe('mishu')
 		expect(calls).toBe(2)
-
 		expect(result.greeting).toBe('hi, mishu')
 	})
 
@@ -608,14 +605,19 @@ function testMutable(
 			expect('b' in result).toBe(true)
 
 			let calls = 0
-			effect(() => {
+			const execute = memo(() => {
 				calls++
 				Object.keys(result)
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			delete result.b
+			execute()
+
 			expect('b' in result).toBe(false)
+
+			execute()
 			expect(calls).toBe(2)
 		},
 	)
@@ -629,16 +631,18 @@ function testMutable(
 			expect('b' in result).toBe(false)
 
 			let calls = 0
-			effect(() => {
+			const execute = memo(() => {
 				calls++
 				Object.keys(result)
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			expect('b' in result).toBe(false)
 			expect(calls).toBe(1)
 
 			delete result.b
+			execute()
 			expect('b' in result).toBe(false)
 			expect(calls).toBe(1)
 		},
@@ -653,16 +657,18 @@ function testMutable(
 			expect('b' in result).toBe(false)
 
 			let calls = 0
-			effect(() => {
+			const execute = memo(() => {
 				calls++
 				result.b
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			expect('b' in result).toBe(false)
 			expect(calls).toBe(1)
 
 			delete result.b
+			execute()
 			expect('b' in result).toBe(false)
 			expect(calls).toBe(1)
 		},
@@ -676,16 +682,18 @@ function testMutable(
 			expect('b' in result).toBe(false)
 
 			let calls = 0
-			effect(() => {
+			const execute = memo(() => {
 				calls++
 				'b' in result
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			expect('b' in result).toBe(false)
 			expect(calls).toBe(1)
 
 			delete result.b
+			execute()
 			expect('b' in result).toBe(false)
 			expect(calls).toBe(1)
 		},
@@ -700,13 +708,15 @@ function testMutable(
 			expect('b' in result).toBe(true)
 
 			let calls = 0
-			effect(() => {
+			const execute = memo(() => {
 				calls++
 				Object.keys(result)
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			delete result.a
+			execute()
 			expect('a' in result).toBe(false)
 			expect(calls).toBe(2)
 		},
@@ -721,13 +731,15 @@ function testMutable(
 			expect('b' in result).toBe(true)
 
 			let calls = 0
-			effect(() => {
+			const execute = memo(() => {
 				calls++
 				result.b
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			delete result.b
+			execute()
 			expect('b' in result).toBe(false)
 			expect(calls).toBe(1)
 		},
@@ -741,13 +753,15 @@ function testMutable(
 			expect('b' in result).toBe(true)
 
 			let calls = 0
-			effect(() => {
+			const execute = memo(() => {
 				calls++
 				'b' in result
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			delete result.b
+			execute()
 			expect('b' in result).toBe(false)
 			expect(calls).toBe(2)
 		},
@@ -761,13 +775,15 @@ function testMutable(
 			expect('b' in result).toBe(true)
 
 			let calls = 0
-			effect(() => {
+			const execute = memo(() => {
 				calls++
 				result.a
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			delete result.a
+			execute()
 			expect('a' in result).toBe(false)
 			expect(calls).toBe(2)
 		},
@@ -800,24 +816,28 @@ function testMutable(
 
 	// Date, HTMLElement, RegExp
 
-	test(lib + 'should trigger effect only once ', expect => {
+	test(lib + 'should trigger only once ', expect => {
 		const result = mutable({ a: 1 })
 		expect('a' in result).toBe(true)
 
 		let calls = 0
 		let tmp
-		effect(() => {
+		const execute = memo(() => {
 			calls++
 			tmp = { ...result }
 			if (calls > 2) {
-				throw lib + 'should trigger effect only once'
+				throw lib + 'should trigger only once'
 			}
 		})
+		execute()
 		expect(calls).toBe(1)
 
 		setTimeout(() => {
+			execute()
 			result.a = 333
+			execute()
 			result.a = 333
+			execute()
 		}, 200)
 	})
 
@@ -920,39 +940,47 @@ function testMutable(
 			expect(isProxy(result.o)).toBe(false)
 
 			let calls = 0
-			effect(() => {
+			const execute1 = memo(() => {
 				calls++
 				result.o.something
 			})
+			execute1()
 			expect(calls).toBe(1)
 
 			result.o.something = true
 			result.o.something = false
+			execute1()
 			expect(calls).toBe(1)
 
 			delete result.o.something
+			execute1()
 			expect(calls).toBe(1)
 
 			result.o.something = true
 			result.o.something = false
+			execute1()
 			expect(calls).toBe(1)
 
 			// again but when reading its defined already
-			effect(() => {
+			const execute2 = memo(() => {
 				calls++
 				result.o.something
 			})
+			execute1(), execute2()
 			expect(calls).toBe(2)
 
 			result.o.something = true
 			result.o.something = false
+			execute1(), execute2()
 			expect(calls).toBe(2)
 
 			delete result.o.something
+			execute1(), execute2()
 			expect(calls).toBe(2)
 
 			result.o.something = true
 			result.o.something = false
+			execute1(), execute2()
 			expect(calls).toBe(2)
 		}
 	})
@@ -1098,28 +1126,33 @@ function testMutable(
 		const result = mutable(source)
 
 		let called = 0
-		effect(() => {
+		const execute = memo(() => {
 			called++
 			result.name
 		})
+		execute()
 
 		// setting to same value
 		result.name = 'quack'
+		execute()
 		expect(called).toBe(1)
 		expect(result.name).toBe('quack')
 
 		// change
 		result.name = 'murci'
+		execute()
 		expect(called).toBe(2)
 		expect(result.name).toBe('murci')
 
 		// same value again should not retrigger
 		result.name = 'murci'
+		execute()
 		expect(called).toBe(2)
 		expect(result.name).toBe('murci')
 
 		// third
 		result.name = 'mishu'
+		execute()
 		expect(called).toBe(3)
 		expect(result.name).toBe('mishu')
 	})
@@ -1129,27 +1162,32 @@ function testMutable(
 		const result = mutable(source)
 
 		let called = 0
-		effect(() => {
+		const execute = memo(() => {
 			called++
 			result.data.name
 		})
+		execute()
 
 		// same value again should not retrigger
 		result.data.name = 'quack'
+		execute()
 		expect(called).toBe(1)
 		expect(result.data.name).toBe('quack')
 
 		result.data.name = 'murci'
+		execute()
 		expect(called).toBe(2)
 		expect(result.data.name).toBe('murci')
 
 		// same value again should not retrigger
 		result.data.name = 'murci'
+		execute()
 		expect(called).toBe(2)
 		expect(result.data.name).toBe('murci')
 
 		// third
 		result.data.name = 'mishu'
+		execute()
 		expect(called).toBe(3)
 		expect(result.data.name).toBe('mishu')
 	})
@@ -1159,22 +1197,26 @@ function testMutable(
 		const result = mutable(source)
 
 		let called = 0
-		effect(() => {
+		const execute = memo(() => {
 			called++
 			result.name
 		})
+		execute()
 		expect(called).toBe(1)
 
 		result.name = 'murci'
+		execute()
 		expect(called).toBe(2)
 		expect(result.name).toBe('murci')
 
 		// same value again should not retrigger
 		result.name = 'murci'
+		execute()
 		expect(called).toBe(2)
 		expect(result.name).toBe('murci')
 
 		delete result.name
+		execute()
 		expect(called).toBe(3)
 		expect('name' in result).toBe(false)
 		expect(called).toBe(3)
@@ -1185,6 +1227,7 @@ function testMutable(
 		 * one as before, so effect doesnt re-trigger
 		 */
 		result.name = 'mishu'
+		execute()
 		expect(called).toBe(4)
 	})
 
@@ -1193,17 +1236,20 @@ function testMutable(
 		const result = mutable(source)
 
 		let called = 0
-		effect(() => {
+		const execute = memo(() => {
 			called++
 			result.name
 		})
+		execute()
 		expect(called).toBe(1)
 
 		result.name = 'murci'
+		execute()
 		expect(called).toBe(2)
 		expect(result.name).toBe('murci')
 
 		delete result.name
+		execute()
 		expect(called).toBe(3)
 		expect('name' in result).toBe(false)
 		expect(called).toBe(3)
@@ -1214,6 +1260,7 @@ function testMutable(
 		 * one as before, so effect doesnt re-trigger
 		 */
 		result.name = 'mishu'
+		execute()
 		expect(called).toBe(4)
 	})
 
@@ -1222,15 +1269,19 @@ function testMutable(
 		const result = mutable(source)
 
 		let called = 0
-		effect(() => {
+		const execute = memo(() => {
 			called++
 			result.data
 		})
+		execute()
 		expect(called).toBe(1)
 
 		result.data = {}
+		execute()
 		result.data.name = 'murci'
+		execute()
 		result.data.name = 'murci'
+		execute()
 		expect(called).toBe(2)
 		expect(result.data.name).toBe('murci')
 	})
@@ -1240,13 +1291,16 @@ function testMutable(
 		const result = mutable({ data: '' })
 
 		let called = 0
-		effect(() => {
+		const execute = memo(() => {
 			called++
 			result.data = read()
 		})
+		execute()
 		expect(called).toBe(1)
 		expect(result.data).toBe('init')
+
 		write('signal')
+		execute()
 		expect(called).toBe(2)
 		expect(result.data).toBe('signal')
 	})
@@ -1262,22 +1316,27 @@ function testMutable(
 		})
 
 		let called = 0
-		effect(() => {
+		const execute = memo(() => {
 			'a' in result
 			'b' in result
 			called++
 		})
+		execute()
 		expect(called).toBe(1)
 
 		delete result.a
+		execute()
 		expect(called).toBe(2)
 		expect('a' in result).toBe(false)
 		expect(called).toBe(2)
 
 		result.a = true
+		execute()
 		expect(called).toBe(3)
 
+		execute()
 		expect(access).toBe(0)
+		execute()
 	})
 
 	/* classes */
@@ -1301,18 +1360,22 @@ function testMutable(
 
 		const m = mutable(new A())
 
-		effect(() => {
+		const execute1 = memo(() => {
 			m.b
 			count++
 		})
-		effect(() => {
+		execute1()
+		const execute2 = memo(() => {
 			m.child.f
 			childCount++
 		})
+		execute2()
 
 		const increment = () => {
 			m.a++
 			m.child.f++
+			execute1()
+			execute2()
 		}
 
 		// initial
@@ -1350,13 +1413,15 @@ function testMutable(
 		})
 
 		let calls = 0
-		effect(() => {
+		const execute = memo(() => {
 			m.b
 			calls++
 		})
+		execute()
 
 		const increment = () => {
 			m.a++
+			execute()
 		}
 
 		// initial
@@ -1387,14 +1452,16 @@ function testMutable(
 		const m = mutable(new Test())
 
 		let calls = 0
-		effect(() => {
+		const execute = memo(() => {
 			m.b
 			calls++
 		})
+		execute()
 		expect(calls).toBe(1)
 
 		const increment = () => {
 			m.a++
+			execute()
 		}
 
 		// initial
@@ -1427,13 +1494,15 @@ function testMutable(
 			const m = mutable(new Test())
 
 			let calls = 0
-			effect(() => {
+			const execute = memo(() => {
 				m.b
 				calls++
 			})
+			execute()
 
 			const increment = () => {
 				m.a++
+				execute()
 			}
 
 			// initial
@@ -1471,13 +1540,15 @@ function testMutable(
 			const m = mutable(new Test())
 
 			let calls = 0
-			effect(() => {
+			const execute = memo(() => {
 				m.b
 				calls++
 			})
+			execute()
 
 			const increment = () => {
 				m.a++
+				execute()
 			}
 
 			// initial
@@ -1514,21 +1585,25 @@ function testMutable(
 
 		let has
 		let calls1 = 0
-		effect(() => {
+		const execute1 = memo(() => {
 			calls1++
 			has = m.hasOwnProperty('b')
 		})
+		execute1()
 		expect(has).toBe(false)
 		m.b = 1
+		execute1()
 		expect(has).toBe(true)
 
 		let calls2 = 0
-		effect(() => {
+		const execute2 = memo(() => {
 			calls2++
 			has = m.a.hasOwnProperty('b')
 		})
+		execute1(), execute2()
 		expect(has).toBe(false)
 		m.a.b = 1
+		execute1(), execute2()
 		expect(has).toBe(true)
 
 		expect(calls1).toBe(2)
@@ -1544,7 +1619,7 @@ function testMutable(
 			const o = mutable({ value: undefined })
 			expect(o.value).toBe(undefined)
 
-			testValuesAndEffect(
+			testValues(
 				expect,
 				v => {
 					o.value = v
@@ -1558,7 +1633,7 @@ function testMutable(
 		const o = mutable(Object.create(null))
 		expect(o.value).toBe(undefined)
 
-		testValuesAndEffect(
+		testValues(
 			expect,
 			v => {
 				o.value = v
@@ -1572,7 +1647,7 @@ function testMutable(
 		expect(o.value).not.toBe(undefined)
 		expect(o.value.deep).toBe(undefined)
 
-		testValuesAndEffect(
+		testValues(
 			expect,
 			v => {
 				o.value.deep = v
@@ -1588,7 +1663,7 @@ function testMutable(
 			const o = mutable({ value: { deeper: undefined } })
 			expect(o.value.deeper).toBe(undefined)
 
-			testValuesAndEffect(
+			testValues(
 				expect,
 				v => {
 					o.value.deeper = v
@@ -1614,7 +1689,7 @@ function testMutable(
 			o.value = obj1
 			expect(o.value).toHaveShape(obj1)
 
-			testValuesAndEffect(
+			testValues(
 				expect,
 				v => {
 					o.value = v
@@ -1631,7 +1706,7 @@ function testMutable(
 			const o = mutable({ deep: { value: undefined } })
 			expect(o.deep.value).toBe(undefined)
 
-			testValuesAndEffect(
+			testValues(
 				expect,
 				v => {
 					o.deep.value = v
@@ -1657,7 +1732,7 @@ function testMutable(
 			o.deep.value = obj1
 			expect(o.deep.value).toHaveShape(obj1)
 
-			testValuesAndEffect(
+			testValues(
 				expect,
 				v => {
 					o.deep.value = v
@@ -1678,21 +1753,24 @@ function testMutable(
 			expect(o.deep.value).toHaveShape(obj1)
 
 			let calls = 0
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o.deep.value
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			o.deep.value = obj2
+			execute()
 			expect(o.deep.value).toHaveShape(obj2)
 			expect(calls).toBe(2)
 
 			o.deep.value = obj1
+			execute()
 			expect(o.deep.value).toHaveShape(obj1)
 			expect(calls).toBe(3)
 
-			testValuesAndEffect(
+			testValues(
 				expect,
 				v => {
 					o.deep.value = v
@@ -1708,7 +1786,7 @@ function testMutable(
 		expect => {
 			const o = mutable({ value: 1 })
 
-			testValuesAndEffect(
+			testValues(
 				expect,
 				v => {
 					o.value = v
@@ -1720,11 +1798,11 @@ function testMutable(
 
 	test(
 		lib +
-			'creates a dependency in a memo/effect when getting a deep property',
+			'creates a dependency in a memo when getting a deep property',
 		expect => {
 			const o = mutable({ deep: { value: 1 } })
 
-			testValuesAndEffect(
+			testValues(
 				expect,
 				v => {
 					o.deep.value = v
@@ -1763,7 +1841,7 @@ function testMutable(
 			expect(value()).toBe(3)
 			expect(calls).toBe(3)
 
-			testValuesAndEffect(
+			testValues(
 				expect,
 				v => {
 					o.value = v
@@ -1775,27 +1853,30 @@ function testMutable(
 
 	test(
 		lib +
-			'creates a single dependency in an effect even if getting a shallow property multiple times',
+			'creates a single dependency even if getting a shallow property multiple times',
 		expect => {
 			const o = mutable({ value: 1 })
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o.value
 				o.value
 				o.value
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			o.value = 2
+			execute()
 			expect(calls).toBe(2)
 
 			o.value = 3
+			execute()
 			expect(calls).toBe(3)
 
-			testValuesAndEffect(
+			testValues(
 				expect,
 				v => {
 					o.value = v
@@ -1834,7 +1915,7 @@ function testMutable(
 			expect(value()).toBe(3)
 			expect(calls).toBe(3)
 
-			testValuesAndEffect(
+			testValues(
 				expect,
 				v => {
 					o.deep.value = v
@@ -1852,21 +1933,24 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o.deep.value
 				o.deep.value
 				o.deep.value
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			o.deep.value = 2
+			execute()
 			expect(calls).toBe(2)
 
 			o.deep.value = 3
+			execute()
 			expect(calls).toBe(3)
 
-			testValuesAndEffect(
+			testValues(
 				expect,
 				v => {
 					o.deep.value = v
@@ -1895,7 +1979,7 @@ function testMutable(
 			expect(value()).toBe(undefined)
 			expect(calls).toBe(1)
 
-			testValuesAndEffect(
+			testValues(
 				expect,
 				v => {
 					o.value = v
@@ -1913,16 +1997,18 @@ function testMutable(
 			let o
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o = mutable({ value: 1 })
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			o.value = 2
+			execute()
 			expect(calls).toBe(1)
 
-			testValuesAndEffect(
+			testValues(
 				expect,
 				v => {
 					o.value = v
@@ -1954,7 +2040,7 @@ function testMutable(
 			expect(value()).toBe(undefined)
 			expect(calls).toBe(1)
 
-			testValuesAndEffect(
+			testValues(
 				expect,
 				v => {
 					o.value = v
@@ -1971,16 +2057,18 @@ function testMutable(
 			let o = mutable({ value: 0 })
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o.value = 1
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			o.value = 2
+			execute()
 			expect(calls).toBe(1)
 
-			testValuesAndEffect(
+			testValues(
 				expect,
 				v => {
 					o.value = v
@@ -2016,7 +2104,7 @@ function testMutable(
 			expect(value()).toBe(undefined)
 			expect(calls).toBe(1)
 
-			testValuesAndEffect(
+			testValues(
 				expect,
 				v => {
 					o.deep.value = v
@@ -2034,19 +2122,22 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o.deep
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			o.deep.value = 2
+			execute()
 			expect(calls).toBe(1)
 
 			o.deep.value = 3
+			execute()
 			expect(calls).toBe(1)
 
-			testValuesAndEffect(
+			testValues(
 				expect,
 				v => {
 					o.deep = v
@@ -2078,7 +2169,7 @@ function testMutable(
 			expect(value()).toBe(undefined)
 			expect(calls).toBe(1)
 
-			testValuesAndEffect(
+			testValues(
 				expect,
 				v => {
 					o.deep.value = v
@@ -2102,16 +2193,18 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o.deep.value = 2
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			o.deep.value = 3
+			execute()
 			expect(calls).toBe(1)
 
-			testValuesAndEffect(
+			testValues(
 				expect,
 				v => {
 					o.deep.value = v
@@ -2120,6 +2213,7 @@ function testMutable(
 			)
 
 			o.deep = {}
+			execute()
 			expect(calls).toBe(2)
 		},
 	)
@@ -2176,7 +2270,7 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o.hasOwnProperty
 				o.isPrototypeOf
@@ -2186,6 +2280,7 @@ function testMutable(
 				o.toString
 				o.valueOf
 			})
+			execute()
 
 			expect(calls).toBe(1)
 
@@ -2196,6 +2291,7 @@ function testMutable(
 			o.toSource = 1
 			o.toString = 1
 			o.valueOf = 1
+			execute()
 
 			if (lib === 'oby: ') {
 				expect(calls).toBe(1)
@@ -2223,7 +2319,7 @@ function testMutable(
 		expect((o.value = 1)).toBe(1)
 	})
 
-	test(lib + 'supports setting functions as is', expect => {
+	test(lib + 'supports setting functions', expect => {
 		const fn = () => {}
 		const o = mutable({ value: () => {} })
 
@@ -2241,13 +2337,15 @@ function testMutable(
 
 		let calls = 0
 
-		effect(() => {
+		const execute = memo(() => {
 			calls += 1
 			o.value
 		})
+		execute()
 		expect(calls).toBe(1)
 
 		o.value = 2
+		execute()
 		expect(calls).toBe(2)
 	})
 
@@ -2259,18 +2357,19 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o.value.lala
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			o.value.lala = 3
+			execute()
 			expect(calls).toBe(2)
-
 			expect(o.value.lala).toBe(3)
 
-			testValuesAndEffect(
+			testValues(
 				expect,
 				v => {
 					o.value.lala = v
@@ -2287,24 +2386,28 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o.value
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			delete o.value
+			execute()
 			expect(calls).toBe(2)
 			expect('value' in o).toBe(false)
 			expect(calls).toBe(2)
 
 			o.value = undefined
+			execute()
 			expect(calls).toBe(2)
 
 			o.value = true
+			execute()
 			expect(calls).toBe(3)
 
-			testValuesAndEffect(
+			testValues(
 				expect,
 				v => {
 					o.value = v
@@ -2322,24 +2425,28 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o.value
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			delete o.value
+			execute()
 			expect(calls).toBe(1)
 			expect('value' in o).toBe(false)
 			expect(calls).toBe(1)
 
 			o.value = undefined
+			execute()
 			expect(calls).toBe(1)
 
 			o.value = true
+			execute()
 			expect(calls).toBe(2)
 
-			testValuesAndEffect(
+			testValues(
 				expect,
 				v => {
 					o.value = v
@@ -2356,25 +2463,29 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o.value
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			delete o.value
+			execute()
 			expect(calls).toBe(2)
 
 			expect('value' in o).toBe(false)
 			expect(calls).toBe(2)
 
 			o.value = undefined
+			execute()
 			expect(calls).toBe(2)
 
 			o.value = true
+			execute()
 			expect(calls).toBe(3)
 
-			testValuesAndEffect(
+			testValues(
 				expect,
 				v => {
 					o.value = v
@@ -2391,25 +2502,29 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o.deep.value
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			delete o.deep.value
+			execute()
 			expect(calls).toBe(2)
 
 			expect('value' in o.deep).toBe(false)
 			expect(calls).toBe(2)
 
 			o.deep.value = undefined
+			execute()
 			expect(calls).toBe(2)
 
 			o.deep.value = true
+			execute()
 			expect(calls).toBe(3)
 
-			testValuesAndEffect(
+			testValues(
 				expect,
 				v => {
 					o.deep.value = v
@@ -2427,24 +2542,28 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o.deep.value
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			delete o.deep.value
+			execute()
 			expect(calls).toBe(1)
 			expect('value' in o.deep).toBe(false)
 			expect(calls).toBe(1)
 
 			o.deep.value = undefined
+			execute()
 			expect(calls).toBe(1)
 
 			o.deep.value = true
+			execute()
 			expect(calls).toBe(2)
 
-			testValuesAndEffect(
+			testValues(
 				expect,
 				v => {
 					o.deep.value = v
@@ -2462,16 +2581,18 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o.value
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			o.value = 1
+			execute()
 			expect(calls).toBe(1)
 
-			testValuesAndEffect(
+			testValues(
 				expect,
 				v => {
 					o.value = v
@@ -2489,16 +2610,18 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o.deep.value
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			o.deep = o.deep
+			execute()
 			expect(calls).toBe(1)
 
-			testValuesAndEffect(
+			testValues(
 				expect,
 				v => {
 					o.deep.value = v
@@ -2516,16 +2639,18 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o.value
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			o.value = o.value
+			execute()
 			expect(calls).toBe(1)
 
-			testValuesAndEffect(
+			testValues(
 				expect,
 				v => {
 					o.value = v
@@ -2545,57 +2670,69 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o.length
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			o.length = o.length
+			execute()
 			expect(calls).toBe(1)
 		},
 	)
 
-	test(lib + 'supports reacting to own keys [solid]', expect => {
+	test(lib + 'supports reacting to own keys', expect => {
 		const o = mutable({ foo: 1, bar: 2, baz: 3 })
 
 		let calls = 0
 
-		effect(() => {
+		const execute = memo(() => {
 			calls += 1
 			Object.keys(o)
 		})
+		execute()
 		expect(calls).toBe(1)
 
 		o.qux = 4
+		execute()
 		expect(calls).toBe(2)
 
+		return
 		o.foo = 2 // already in
 		o.bar = 3 // already in
 		o.baz = 4 // already in
 		o.qux = 5 // already in
+		execute()
 		expect(calls).toBe(2)
 
 		o.qux = 5
+		execute()
 		expect(calls).toBe(2)
 
 		o.qux = 6
+		execute()
 		expect(calls).toBe(2)
 
 		o.qux2 = 7
+		execute()
 		expect(calls).toBe(3)
 
 		delete o.foo
+		execute()
 		expect(calls).toBe(4)
 		expect('foo' in o).toBe(false)
 		expect(calls).toBe(4)
 
 		o.foo = undefined
+		execute()
 		expect(calls).toBe(5)
 		expect(o.foo).toBe(undefined)
 		expect('foo' in o).toBe(true)
 
 		o.foo = true
+		execute()
 		expect(calls).toBe(5)
 		expect(o.foo).toBe(true)
 		expect('foo' in o).toBe(true)
@@ -2606,38 +2743,46 @@ function testMutable(
 
 		let calls = 0
 
-		effect(() => {
+		const execute = memo(() => {
 			calls += 1
 			Object.keys(o.value)
 		})
+		execute()
 		expect(calls).toBe(1)
 
 		o.value.qux = 4
+		execute()
 		expect(calls).toBe(2)
 
 		o.value.foo = 2
 		o.value.bar = 3
 		o.value.baz = 4
 		o.value.qux = 5
+		execute()
 		expect(calls).toBe(2)
 
 		o.value.qux = 5
+		execute()
 		expect(calls).toBe(2)
 
 		o.value.qux2 = 5
+		execute()
 		expect(calls).toBe(3)
 
 		delete o.value.foo
+		execute()
 		expect(calls).toBe(4)
 		expect('foo' in o.value).toBe(false)
 		expect(calls).toBe(4)
 
 		o.value.foo = undefined
+		execute()
 		expect(calls).toBe(5)
 		expect(o.value.foo).toBe(undefined)
 		expect('foo' in o.value).toBe(true)
 
 		o.value.foo = true
+		execute()
 		expect(calls).toBe(5)
 		expect(o.value.foo).toBe(true)
 		expect('foo' in o.value).toBe(true)
@@ -2656,17 +2801,20 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o.fn
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			o.foo = 10
+			execute()
 			expect(calls).toBe(2)
 			expect(o.fn).toBe(12)
 
 			o.bar = 20
+			execute()
 			expect(calls).toBe(3)
 			expect(o.fn).toBe(30)
 		},
@@ -2686,17 +2834,20 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o.fn()
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			o.foo = 10
+			execute()
 			expect(calls).toBe(2)
 			expect(o.fn()).toBe(12)
 
 			o.bar = 20
+			execute()
 			expect(calls).toBe(3)
 			expect(o.fn()).toBe(30)
 		},
@@ -2716,17 +2867,20 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o.fn.call(o)
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			o.foo = 10
+			execute()
 			expect(calls).toBe(2)
 			expect(o.fn.call(o)).toBe(12)
 
 			o.bar = 20
+			execute()
 			expect(calls).toBe(3)
 			expect(o.fn.call(o)).toBe(30)
 		},
@@ -2746,69 +2900,75 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o.fn.apply(o)
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			o.foo = 10
+			execute()
 			expect(calls).toBe(2)
 			expect(o.fn.apply(o)).toBe(12)
 
 			o.bar = 20
+			execute()
 			expect(calls).toBe(3)
 			expect(o.fn.apply(o)).toBe(30)
 		},
 	)
 
 	test(lib + 'supports batching implicitly - unsupported', expect => {
-		const o = mutable({ foo: 1, bar: 2 })
-
-		let calls = 0
-
-		effect(() => {
-			calls += 1
-			o.foo
-			o.bar
-		})
-		expect(calls).toBe(1)
-
-		o.foo = 10
-		o.bar = 20
-		expect(calls).toBe(3)
-
-		expect(o.foo).toBe(10)
-		expect(o.bar).toBe(20)
-	})
-
-	test(
-		lib + 'supports batching setters automatically [oby]',
-		expect => {
-			const o = mutable({
-				foo: 1,
-				bar: 2,
-				set fn(increment) {
-					this.foo += increment
-					this.bar += increment
-				},
-			})
+		batch(() => {
+			const o = mutable({ foo: 1, bar: 2 })
 
 			let calls = 0
-			effect(() => {
+
+			const execute = memo(() => {
 				calls += 1
 				o.foo
 				o.bar
 			})
+			execute()
 			expect(calls).toBe(1)
 
-			o.fn = 1
+			o.foo = 10
+			o.bar = 20
+			execute()
 			expect(calls).toBe(2)
 
-			expect(o.foo).toBe(2)
-			expect(o.bar).toBe(3)
-		},
-	)
+			expect(o.foo).toBe(10)
+			expect(o.bar).toBe(20)
+		})
+	})
+
+	test(lib + 'supports batching setters automatically', expect => {
+		const o = mutable({
+			foo: 1,
+			bar: 2,
+			set fn(increment) {
+				this.foo += increment
+				this.bar += increment
+			},
+		})
+
+		let calls = 0
+		const execute = memo(() => {
+			calls += 1
+			o.foo
+			o.bar
+		})
+		execute()
+		expect(calls).toBe(1)
+
+		o.fn = 1
+		execute()
+		expect(calls).toBe(2)
+
+		expect(o.foo).toBe(2)
+		expect(o.bar).toBe(3)
+	})
 
 	test(
 		lib + 'supports batching deletions automatically Object.keys',
@@ -2817,16 +2977,18 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o.foo
 				if ('foo' in o) {
 				}
 				Object.keys(o)
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			delete o.foo
+			execute()
 			expect(calls).toBe(2)
 			expect('foo' in o).toBe(false)
 			expect(calls).toBe(2)
@@ -2843,15 +3005,17 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o.foo
 				if ('foo' in o) {
 				}
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			delete o.foo
+			execute()
 			expect(calls).toBe(2)
 			expect('foo' in o).toBe(false)
 			expect(calls).toBe(2)
@@ -2868,16 +3032,18 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o.foo
 				if ('foo' in o) {
 				}
 				Object.keys(o)
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			o.foo = 1
+			execute()
 			expect(calls).toBe(2)
 		},
 	)
@@ -2889,15 +3055,17 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o.foo
 				if ('foo' in o) {
 				}
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			o.foo = 1
+			execute()
 			expect(calls).toBe(2)
 		},
 	)
@@ -2910,14 +3078,16 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				if ('foo' in o) {
 				}
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			o.foo = 1
+			execute()
 			expect(calls).toBe(2)
 		},
 	)
@@ -2929,13 +3099,15 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o.foo
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			o.foo = 1
+			execute()
 			expect(calls).toBe(2)
 		},
 	)
@@ -2963,22 +3135,26 @@ function testMutable(
 
 			let calls = ''
 
-			effect(() => {
+			const execute1 = memo(() => {
 				foo.foo
 				calls += 'f'
 			})
+			execute1()
 
-			effect(() => {
+			const execute2 = memo(() => {
 				bar.bar
 				calls += 'b'
 			})
+			execute1(), execute2()
 
 			expect(calls).toBe('fb')
 
 			foo.foo += 1
+			execute1(), execute2()
 			expect(calls).toBe('fbf')
 
 			bar.bar += 1
+			execute1(), execute2()
 			expect(calls).toBe('fbfb')
 		},
 	)
@@ -2991,19 +3167,22 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				if ('value' in o) {
 				}
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			delete o.value
+			execute()
 			expect(calls).toBe(2)
 			expect('value' in o).toBe(false)
 			expect(calls).toBe(2)
 
 			delete o.value
+			execute()
 			expect(calls).toBe(2)
 			expect('value' in o).toBe(false)
 			expect(calls).toBe(2)
@@ -3018,19 +3197,22 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				if ('deep' in o.value) {
 				}
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			delete o.value.deep
+			execute()
 			expect(calls).toBe(2)
 			expect('deep' in o.value).toBe(false)
 			expect(calls).toBe(2)
 
 			delete o.value.deep
+			execute()
 			expect(calls).toBe(2)
 			expect('deep' in o.value).toBe(false)
 			expect(calls).toBe(2)
@@ -3044,17 +3226,20 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				if ('value' in o) {
 				}
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			o.value = undefined
+			execute()
 			expect(calls).toBe(2)
 
 			o.value = undefined
+			execute()
 			expect(calls).toBe(2)
 		},
 	)
@@ -3066,17 +3251,20 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				if ('deep' in o.value) {
 				}
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			o.value.deep = undefined
+			execute()
 			expect(calls).toBe(2)
 
 			o.value.deep = undefined
+			execute()
 			expect(calls).toBe(2)
 		},
 	)
@@ -3098,14 +3286,16 @@ function testMutable(
 				dispose()
 			})
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 
 				o.value
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			o.value = 321
+			execute()
 			expect(calls).toBe(2)
 		},
 	)
@@ -3174,7 +3364,8 @@ function testMutable(
 
 		const tmp1 = result.greeting
 		expect(tmp1.greet.deep).toBe('hi, quack')
-		testValuesAndEffect(
+
+		testValues(
 			expect,
 			v => {
 				tmp1.greet.deep = v
@@ -3184,7 +3375,8 @@ function testMutable(
 
 		const tmp2 = result.greeting.greet
 		expect(tmp2.deep).toBe('hi, quack')
-		testValuesAndEffect(
+
+		testValues(
 			expect,
 			v => {
 				tmp2.deep = v
@@ -3254,13 +3446,15 @@ function testMutable(
 			expect(observed.foo).not.toBe(raw)
 
 			let calls = 0
-			effect(() => {
+			const execute = memo(() => {
 				calls++
 				observed.foo
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			observed.foo = false
+			execute()
 			expect(calls).toBe(2)
 		},
 	)
@@ -3294,20 +3488,24 @@ function testMutable(
 			const observed = mutable({ foo: 1 })
 			const original = Object.create(observed)
 			let dummy
-			effect(() => (dummy = original.foo))
+			const execute = memo(() => (dummy = original.foo))
+			execute()
 			expect(dummy).toBe(1)
 
 			observed.foo = 2
+			execute()
 			expect(dummy).toBe(2)
 			expect(observed.foo).toBe(2)
 			expect(original.foo).toBe(2)
 
 			original.foo = 3
+			execute()
 			expect(dummy).toBe(3)
 			expect(observed.foo).toBe(3)
 			expect(original.foo).toBe(3)
 
 			original.foo = 4
+			execute()
 			expect(dummy).toBe(4)
 			expect(observed.foo).toBe(4)
 			expect(original.foo).toBe(4)
@@ -3504,43 +3702,52 @@ function testMutable(
 		const counter = mutable({ num: 0 })
 
 		let calls = 0
-		effect(() => {
+		const execute = memo(() => {
 			calls += 1
 			dummy = counter.num
 		})
+		execute()
 		expect(calls).toBe(1)
 		expect(dummy).toBe(0)
 
 		counter.num = 7
+		execute()
 		expect(dummy).toBe(7)
 		expect(calls).toBe(2)
 	})
 
 	test(lib + 'should observe multiple properties', expect => {
-		let dummy
-		const counter = mutable({ num1: 0, num2: 0 })
-		let calls = 0
-		effect(() => {
-			calls += 1
-			dummy = counter.num1 + counter.num1 + counter.num2
-		})
-		expect(calls).toBe(1)
-		expect(dummy).toBe(0)
+		batch(() => {
+			let dummy
+			const counter = mutable({ num1: 0, num2: 0 })
+			let calls = 0
+			const execute = memo(() => {
+				calls += 1
+				dummy = counter.num1 + counter.num1 + counter.num2
+			})
+			execute()
+			expect(calls).toBe(1)
+			expect(dummy).toBe(0)
 
-		counter.num1 = counter.num2 = 7
-		expect(dummy).toBe(21)
-		expect(calls).toBe(3)
+			counter.num1 = counter.num2 = 7
+			execute()
+			expect(dummy).toBe(21)
+			// fabio implementation of memo is clever
+			expect(calls).toBe(2)
+		})
 	})
 
 	test(lib + 'should handle multiple effects', expect => {
 		let dummy1, dummy2
 		const counter = mutable({ num: 0 })
-		effect(() => (dummy1 = counter.num))
-		effect(() => (dummy2 = counter.num))
+		const execute1 = memo(() => (dummy1 = counter.num))
+		const execute2 = memo(() => (dummy2 = counter.num))
+		execute1(), execute2()
 
 		expect(dummy1).toBe(0)
 		expect(dummy2).toBe(0)
 		counter.num++
+		execute1(), execute2()
 		expect(dummy1).toBe(1)
 		expect(dummy2).toBe(1)
 	})
@@ -3548,32 +3755,42 @@ function testMutable(
 	test(lib + 'should observe nested properties', expect => {
 		let dummy
 		const counter = mutable({ nested: { num: 0 } })
-		effect(() => (dummy = counter.nested.num))
+		const execute = memo(() => (dummy = counter.nested.num))
+		execute()
 
 		expect(dummy).toBe(0)
+
 		counter.nested.num = 8
+		execute()
 		expect(dummy).toBe(8)
 	})
 
 	test(lib + 'should observe delete operations', expect => {
 		let dummy
 		const obj = mutable({ prop: 'value' })
-		effect(() => (dummy = obj.prop))
+		const execute = memo(() => (dummy = obj.prop))
+		execute()
 
 		expect(dummy).toBe('value')
+
 		delete obj.prop
+		execute()
 		expect(dummy).toBe(undefined)
 	})
 
 	test(lib + 'should observe has operations', expect => {
 		let dummy
 		const obj = mutable({ prop: 'value' })
-		effect(() => (dummy = 'prop' in obj))
+		const execute = memo(() => (dummy = 'prop' in obj))
+		execute()
 
 		expect(dummy).toBe(true)
+
 		delete obj.prop
+		execute()
 		expect(dummy).toBe(false)
 		obj.prop = 12
+		execute()
 		expect(dummy).toBe(true)
 	})
 
@@ -3584,14 +3801,21 @@ function testMutable(
 			const counter = mutable({ num: 0 })
 			const parentCounter = mutable({ num: 2 })
 			Object.setPrototypeOf(counter, parentCounter)
-			effect(() => (dummy = counter.num))
+			const execute = memo(() => (dummy = counter.num))
+			execute()
 
 			expect(dummy).toBe(0)
+
 			delete counter.num
+			execute()
 			expect(dummy).toBe(2)
+
 			parentCounter.num = 4
+			execute()
 			expect(dummy).toBe(4)
+
 			counter.num = 3
+			execute()
 			expect(dummy).toBe(3)
 		},
 	)
@@ -3603,14 +3827,21 @@ function testMutable(
 			const counter = mutable({ num: 0 })
 			const parentCounter = mutable({ num: 2 })
 			Object.setPrototypeOf(counter, parentCounter)
-			effect(() => (dummy = 'num' in counter))
+			const execute = memo(() => (dummy = 'num' in counter))
+			execute()
 
 			expect(dummy).toBe(true)
+
 			delete counter.num
+			execute()
 			expect(dummy).toBe(true)
+
 			delete parentCounter.num
+			execute()
 			expect(dummy).toBe(false)
+
 			counter.num = 3
+			execute()
 			expect(dummy).toBe(true)
 		},
 	)
@@ -3629,16 +3860,20 @@ function testMutable(
 			},
 		})
 		Object.setPrototypeOf(obj, parent)
-		effect(() => (dummy = obj.prop))
-		effect(() => (parentDummy = parent.prop))
+		const execute1 = memo(() => (dummy = obj.prop))
+		const execute2 = memo(() => (parentDummy = parent.prop))
+		execute1(), execute2()
 
 		expect(dummy).toBe(undefined)
 		expect(parentDummy).toBe(undefined)
+
 		obj.prop = 4
+		execute1(), execute2()
 		expect(obj.prop).toBe(4)
 		expect(dummy).toBe(4)
 
 		parent.prop = 2
+		execute1(), execute2()
 		expect(obj.prop).toBe(2)
 		expect(dummy).toBe(2)
 		expect(parentDummy).toBe(2)
@@ -3648,44 +3883,58 @@ function testMutable(
 	test(lib + 'should observe function call chains', expect => {
 		let dummy
 		const counter = mutable({ num: 0 })
-		effect(() => (dummy = getNum()))
+		const execute = memo(() => (dummy = getNum()))
+		execute()
 
 		function getNum() {
 			return counter.num
 		}
 
 		expect(dummy).toBe(0)
+
 		counter.num = 2
+		execute()
 		expect(dummy).toBe(2)
 	})
 
 	test(lib + 'should observe iteration', expect => {
 		let dummy
 		const list = mutable({ value: 'Hello' })
-		effect(() => (dummy = list.value))
+		const execute = memo(() => (dummy = list.value))
+		execute()
 
 		expect(dummy).toBe('Hello')
+
 		list.value += ' World!'
+		execute()
 		expect(dummy).toBe('Hello World!')
+
 		list.value = list.value.replace('Hello ', '')
+		execute()
 		expect(dummy).toBe('World!')
 	})
 
 	test(lib + 'should observe enumeration', expect => {
-		let dummy = 0
 		const numbers = mutable({ num1: 3 })
-		effect(() => {
-			dummy = 0
+
+		let sum = 0
+		const execute = memo(() => {
+			sum = 0
 			for (let key in numbers) {
-				dummy += numbers[key]
+				sum += numbers[key]
 			}
 		})
+		execute()
 
-		expect(dummy).toBe(3)
+		expect(sum).toBe(3)
+
 		numbers.num2 = 4
-		expect(dummy).toBe(7)
+		execute()
+		expect(sum).toBe(7)
+
 		delete numbers.num1
-		expect(dummy).toBe(4)
+		execute()
+		expect(sum).toBe(4)
 	})
 
 	test(lib + 'should observe symbol keyed properties', expect => {
@@ -3697,16 +3946,18 @@ function testMutable(
 		const obj = mutable({ [key]: 'value' })
 
 		let calls1 = 0
-		effect(() => {
+		const execute1 = memo(() => {
 			calls1++
 			dummy = obj[key]
 		})
+		execute1()
 
 		let calls2 = 0
-		effect(() => {
+		const execute2 = memo(() => {
 			calls2++
 			hasDummy = key in obj
 		})
+		execute1(), execute2()
 
 		expect(calls1).toBe(1)
 		expect(calls2).toBe(1)
@@ -3718,6 +3969,7 @@ function testMutable(
 		expect(calls2).toBe(1)
 
 		obj[key] = 'newValue'
+		execute1(), execute2()
 
 		expect(calls1).toBe(2)
 		expect(calls2).toBe(1)
@@ -3729,6 +3981,7 @@ function testMutable(
 		expect(calls2).toBe(1)
 
 		delete obj[key]
+		execute1(), execute2()
 
 		expect(calls1).toBe(3)
 		expect(calls2).toBe(2)
@@ -3743,15 +3996,17 @@ function testMutable(
 
 		let dummy
 		const obj = mutable({ func: oldFunc })
-		effect(() => (dummy = obj.func))
-
+		const execute = memo(() => (dummy = obj.func))
+		execute()
 		if (lib === 'pota: ') {
 			expect(typeof dummy).toBe('function')
 			obj.func = newFunc
+			execute()
 			expect(typeof obj.func).toBe('function')
 		} else {
 			expect(dummy).toBe(oldFunc)
 			obj.func = newFunc
+			execute()
 			expect(dummy).toBe(newFunc)
 		}
 	})
@@ -3765,11 +4020,14 @@ function testMutable(
 		})
 
 		let dummy
-		effect(() => {
+		const execute = memo(() => {
 			dummy = obj.b
 		})
+		execute()
 		expect(dummy).toBe(1)
+
 		obj.a++
+		execute()
 		expect(dummy).toBe(2)
 	})
 
@@ -3782,11 +4040,14 @@ function testMutable(
 		})
 
 		let dummy
-		effect(() => {
+		const execute = memo(() => {
 			dummy = obj.b()
 		})
+		execute()
 		expect(dummy).toBe(1)
+
 		obj.a++
+		execute()
 		expect(dummy).toBe(2)
 	})
 
@@ -3798,20 +4059,25 @@ function testMutable(
 
 			let calls1 = 0
 			let calls2 = 0
-			effect(() => {
+			const execute1 = memo(() => {
 				calls1++
 				getDummy = obj.prop
 			})
-			effect(() => {
+			execute1()
+			const execute2 = memo(() => {
 				calls2++
 				hasDummy = 'prop' in obj
 			})
+			execute2()
 			expect(calls1).toBe(1)
 			expect(calls2).toBe(1)
 
 			expect(getDummy).toBe('value')
 			expect(hasDummy).toBe(true)
+
 			obj.prop = 'value'
+			execute1(), execute2()
+
 			expect(calls1).toBe(1)
 			expect(calls2).toBe(1)
 			expect(getDummy).toBe('value')
@@ -3821,11 +4087,12 @@ function testMutable(
 
 	test(lib + 'should cut the loop', expect => {
 		const counter = mutable({ num: 0 })
-		effect(() => {
+		const execute = memo(() => {
 			if (counter.num < 10) {
 				counter.num++
 			}
 		})
+		execute()
 		expect(counter.num).toBe(10)
 	})
 
@@ -3837,17 +4104,22 @@ function testMutable(
 			const obj = mutable({ prop: 'value', run: true })
 
 			let calls = 0
-			effect(() => {
+			const execute = memo(() => {
 				calls++
 				dummy = obj.run ? obj.prop : 'other'
 			})
+			execute()
 
 			expect(dummy).toBe('value')
 			expect(calls).toBe(1)
+
 			obj.run = false
+			execute()
 			expect(dummy).toBe('other')
 			expect(calls).toBe(2)
+
 			obj.prop = 'value2'
+			execute()
 			expect(dummy).toBe('other')
 			expect(calls).toBe(2)
 		},
@@ -3859,16 +4131,19 @@ function testMutable(
 			let dummy
 			const obj = mutable({})
 			let calls = 0
-			effect(() => {
+			const execute = memo(() => {
 				calls++
 				for (const key in obj) {
 					dummy = obj[key]
 				}
 				dummy = obj.prop
 			})
-
+			execute()
 			expect(calls).toBe(1)
+
 			obj.prop = 16
+			execute()
+
 			expect(dummy).toBe(16)
 			expect(calls).toBe(2)
 		},
@@ -3877,10 +4152,13 @@ function testMutable(
 	test(lib + 'should observe json methods', expect => {
 		let dummy = {}
 		const obj = mutable({})
-		effect(() => {
+		const execute = memo(() => {
 			dummy = JSON.parse(JSON.stringify(obj))
 		})
+		execute()
+
 		obj.a = 1
+		execute()
 		expect(dummy.a).toBe(1)
 	})
 
@@ -3896,11 +4174,14 @@ function testMutable(
 		}
 		const model = mutable(new Model())
 		let dummy
-		effect(() => {
+		const execute = memo(() => {
 			dummy = model.count
 		})
+		execute()
 		expect(dummy).toBe(0)
+
 		model.inc()
+		execute()
 		expect(dummy).toBe(1)
 	})
 
@@ -3912,12 +4193,15 @@ function testMutable(
 				foo: NaN,
 			})
 			let calls = 0
-			effect(() => {
+			const execute = memo(() => {
 				calls++
 				obj.foo
 			})
+			execute()
 			expect(calls).toBe(1)
+
 			obj.foo = NaN
+			execute()
 			expect(calls).toBe(1)
 		},
 	)
@@ -3930,26 +4214,31 @@ function testMutable(
 			const observed = mutable({ obj })
 
 			let calls = 0
-			effect(() => {
+			const execute = memo(() => {
 				calls++
 				observed.obj
 			})
-
+			execute()
 			expect(calls).toBe(1)
+
 			observed.obj = obj
+			execute()
 			expect(calls).toBe(1)
 
 			const obj2 = mutable({ foo: 1 })
 			const observed2 = mutable({ obj2 })
 
 			let calls2 = 0
-			effect(() => {
+			const execute2 = memo(() => {
 				calls2++
 				observed2.obj2
 			})
-
+			execute2()
 			expect(calls2).toBe(1)
+
 			observed2.obj2 = obj2
+			execute()
+			execute2()
 			expect(calls2).toBe(1)
 		},
 	)
@@ -3966,11 +4255,15 @@ function testMutable(
 		const value = mutable({})
 		const cValue = memo(() => value.foo)
 		let dummy
-		effect(() => {
+		const execute = memo(() => {
 			dummy = cValue()
 		})
+		execute()
+
 		expect(dummy).toBe(undefined)
+
 		value.foo = 1
+		execute()
 		expect(dummy).toBe(1)
 	})
 
@@ -4001,13 +4294,17 @@ function testMutable(
 		})
 
 		let dummy
-		effect(() => {
+		const execute = memo(() => {
 			dummy = c2()
 		})
+		execute()
+
 		expect(dummy).toBe(1)
 		expect(calls1).toBe(1)
 		expect(calls2).toBe(1)
+
 		value.foo++
+		execute()
 		expect(dummy).toBe(2)
 		// should not result in duplicate calls
 		expect(calls1).toBe(2)
@@ -4032,14 +4329,18 @@ function testMutable(
 			})
 
 			let dummy
-			effect(() => {
+			const execute = memo(() => {
 				dummy = c1() + c2()
 			})
+			execute()
 			expect(dummy).toBe(1)
 
 			expect(calls1).toBe(1)
 			expect(calls2).toBe(1)
+
 			value.foo++
+			execute()
+
 			expect(dummy).toBe(3)
 			// should not result in duplicate calls
 			expect(calls1).toBe(2)
@@ -4050,32 +4351,48 @@ function testMutable(
 	test(
 		lib + 'should avoid infinite loops with other effects',
 		expect => {
-			const nums = mutable({ num1: 0, num2: 1 })
+			batch(() => {
+				const nums = mutable({ num1: 0, num2: 1 })
 
-			let calls1 = 0,
-				calls2 = 0
-			effect(() => {
-				calls1++
-				nums.num1 = nums.num2
+				let calls1 = 0
+				let calls2 = 0
+
+				const execute1 = memo(() => {
+					calls1++
+					nums.num1 = nums.num2
+				})
+				execute1()
+				expect(nums.num1).toBe(1)
+				expect(nums.num2).toBe(1)
+
+				const execute2 = memo(() => {
+					calls2++
+					nums.num2 = nums.num1
+				})
+				execute1(), execute2()
+
+				expect(nums.num1).toBe(1)
+				expect(nums.num2).toBe(1)
+				expect(calls1).toBe(1)
+				expect(calls2).toBe(1)
+
+				nums.num2 = 4
+				execute1(), execute2()
+
+				expect(nums.num1).toBe(4)
+				expect(nums.num2).toBe(4)
+				expect(calls1).toBe(2)
+				expect(calls2).toBe(2)
+
+				nums.num1 = 10
+				execute1(), execute2()
+
+				expect(nums.num1).toBe(10)
+				expect(nums.num2).toBe(10)
+				// this is just implementation specific, but shouldnt run more than 3 times
+				expect(calls1).toBe(2)
+				expect(calls2).toBe(3)
 			})
-			effect(() => {
-				calls2++
-				nums.num2 = nums.num1
-			})
-			expect(nums.num1).toBe(1)
-			expect(nums.num2).toBe(1)
-			expect(calls1).toBe(1)
-			expect(calls2).toBe(1)
-			nums.num2 = 4
-			expect(nums.num1).toBe(4)
-			expect(nums.num2).toBe(4)
-			expect(calls1).toBe(2)
-			expect(calls2).toBe(2)
-			nums.num1 = 10
-			expect(nums.num1).toBe(10)
-			expect(nums.num2).toBe(10)
-			expect(calls1).toBe(3)
-			expect(calls2).toBe(3)
 		},
 	)
 
@@ -4089,16 +4406,20 @@ function testMutable(
 			const user = Object.create(original)
 
 			let dummy
-			effect(() => (dummy = user.foo))
+			const execute = memo(() => (dummy = user.foo))
+			execute()
 			expect(dummy).toBe(1)
 
 			original.foo = 2
+			execute()
 			expect(dummy).toBe(2)
 
 			user.foo = 3
+			execute()
 			expect(dummy).toBe(3)
 
 			user.foo = 4
+			execute()
 			expect(dummy).toBe(4)
 		},
 	)
@@ -4249,17 +4570,19 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o.value[0]
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			o.value[0] = 3
+			execute()
 			expect(calls).toBe(2)
 			expect(o.value[0]).toBe(3)
 
-			testValuesAndEffect(
+			testValues(
 				expect,
 				v => {
 					o.value[0] = v
@@ -4274,17 +4597,19 @@ function testMutable(
 
 		let calls = 0
 
-		effect(() => {
+		const execute = memo(() => {
 			calls += 1
 			o[0]
 		})
+		execute()
 		expect(calls).toBe(1)
 
 		o[0] = 3
+		execute()
 		expect(calls).toBe(2)
 		expect(o[0]).toBe(3)
 
-		testValuesAndEffect(
+		testValues(
 			expect,
 			v => {
 				o[0] = v
@@ -4300,17 +4625,19 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o[0][0]
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			o[0][0] = 3
+			execute()
 			expect(calls).toBe(2)
 			expect(o[0][0]).toBe(3)
 
-			testValuesAndEffect(
+			testValues(
 				expect,
 				v => {
 					o[0][0] = v
@@ -4328,17 +4655,19 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o[0].lala
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			o[0].lala = 3
+			execute()
 			expect(calls).toBe(2)
 			expect(o[0].lala).toBe(3)
 
-			testValuesAndEffect(
+			testValues(
 				expect,
 				v => {
 					o[0].lala = v
@@ -4356,14 +4685,16 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o.value.length
 			})
+			execute()
 			expect(calls).toBe(1)
 			expect(o.value.length).toBe(1)
 
 			o.value.splice(0, 1, 1)
+			execute()
 			expect(calls).toBe(1)
 		},
 	)
@@ -4377,14 +4708,17 @@ function testMutable(
 		expect(observed[0].foo).toBe(1)
 
 		let calls = 0
-		effect(() => {
+		const execute = memo(() => {
 			calls++
 			observed[0].foo
 		})
+		execute()
 		expect(calls).toBe(1)
 
 		expect(observed[0].foo).toBe(1)
+
 		observed[0].foo = 2
+		execute()
 		expect(observed[0].foo).toBe(2)
 		expect(calls).toBe(2)
 
@@ -4445,14 +4779,17 @@ function testMutable(
 		expect(clone).not.toBe(result)
 
 		let calls = 0
-		effect(() => {
+		const execute = memo(() => {
 			calls++
 			clone[0].foo
 		})
+		execute()
 		expect(calls).toBe(1)
 
 		expect(clone[0].foo).toBe(1)
+
 		clone[0].foo = 2
+		execute()
 		expect(clone[0].foo).toBe(2)
 		expect(result[0].foo).toBe(2)
 		expect(original[0].foo).toBe(2)
@@ -4545,16 +4882,22 @@ function testMutable(
 			let ret2 = 'idle'
 			const arr1 = mutable(new Array(11).fill(0))
 			const arr2 = mutable(new Array(11).fill(0))
-			effect(() => {
+			const execute1 = memo(() => {
 				ret1 =
 					arr1[10] === undefined ? 'arr[10] is set to empty' : 'idle'
 			})
-			effect(() => {
+			execute1()
+			const execute2 = memo(() => {
 				ret2 =
 					arr2[10] === undefined ? 'arr[10] is set to empty' : 'idle'
 			})
+			execute2()
+
 			arr1.length = 2
 			arr2.length = '2'
+			execute1()
+			execute2()
+
 			expect(ret1).toBe(ret2)
 		},
 	)
@@ -4575,7 +4918,7 @@ function testMutable(
 			o.value = obj1
 			expect(o.value).toHaveShape(obj1)
 
-			testValuesAndEffect(
+			testValues(
 				expect,
 				v => {
 					o.value = v
@@ -4601,7 +4944,7 @@ function testMutable(
 			o.value.deeper = obj1
 			expect(o.value.deeper).toHaveShape(obj1)
 
-			testValuesAndEffect(
+			testValues(
 				expect,
 				v => {
 					o.value.deeper = v
@@ -4627,7 +4970,7 @@ function testMutable(
 			o.deep.value = obj1
 			expect(o.deep.value).toHaveShape(obj1)
 
-			testValuesAndEffect(
+			testValues(
 				expect,
 				v => {
 					o.deep.value = v
@@ -4648,21 +4991,24 @@ function testMutable(
 			expect(o.deep.value).toHaveShape(obj1)
 
 			let calls = 0
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o.deep.value
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			o.deep.value = obj2
+			execute()
 			expect(o.deep.value).toHaveShape(obj2)
 			expect(calls).toBe(2)
 
 			o.deep.value = obj1
+			execute()
 			expect(o.deep.value).toHaveShape(obj1)
 			expect(calls).toBe(3)
 
-			testValuesAndEffect(
+			testValues(
 				expect,
 				v => {
 					o.deep.value = v
@@ -4678,15 +5024,16 @@ function testMutable(
 			const result = mutable([])
 
 			let read = 0
-			effect(() => {
+			const execute = memo(() => {
 				read++
 				if (read < 100) {
 					result.length
 					result.push(Date.now())
 					result.length
 				}
+				return read
 			})
-
+			execute()
 			expect(read).toBe(100)
 		},
 	)
@@ -4695,22 +5042,25 @@ function testMutable(
 		const result = mutable([69])
 
 		let calls = 0
-		effect(() => {
+		const execute1 = memo(() => {
 			calls++
 			result[40]
 		})
+		execute1()
 
 		let calls2 = 0
-		effect(() => {
+		const execute2 = memo(() => {
 			calls2++
 			result[2]
 		})
+		execute1(), execute2()
 
 		let calls3 = 0
-		effect(() => {
+		const execute3 = memo(() => {
 			calls3++
 			result.length
 		})
+		execute1(), execute2(), execute3()
 
 		expect(result.length).toBe(1)
 		expect(result[40]).toBe(undefined)
@@ -4722,40 +5072,54 @@ function testMutable(
 		expect(calls3).toBe(1)
 
 		result.length = 45
+		execute1(), execute2(), execute3()
+
 		expect(result.length).toBe(45)
 		expect(calls).toBe(1)
 		expect(calls2).toBe(1)
 		expect(calls3).toBe(2)
 
 		result[40] = true
+		execute1(), execute2(), execute3()
+
 		expect(result[40]).toBe(true)
 		expect(calls).toBe(2)
 		expect(calls2).toBe(1)
 		expect(calls3).toBe(2)
 
 		result[41] = true
+		execute1(), execute2(), execute3()
+
 		expect(result[41]).toBe(true)
 		expect(calls).toBe(2)
 		expect(calls2).toBe(1)
 		expect(calls3).toBe(2)
 
 		result[2] = true
+		execute1(), execute2(), execute3()
+
 		expect(result[2]).toBe(true)
 		expect(calls).toBe(2)
 		expect(calls2).toBe(2)
 		expect(calls3).toBe(2)
 
 		result.push()
+		execute1(), execute2(), execute3()
+
 		expect(calls).toBe(2)
 		expect(calls2).toBe(2)
 		expect(calls3).toBe(2)
 
 		result.unshift()
+		execute1(), execute2(), execute3()
+
 		expect(calls).toBe(2)
 		expect(calls2).toBe(2)
 		expect(calls3).toBe(2)
 
 		result.push(1)
+		execute1(), execute2(), execute3()
+
 		expect(calls).toBe(2)
 		expect(calls2).toBe(2)
 		expect(calls3).toBe(3)
@@ -4767,13 +5131,15 @@ function testMutable(
 		expect => {
 			const result = mutable([0])
 
-			effect(() => {
+			const execute1 = memo(() => {
 				result.push(1)
 			})
+			execute1()
 
-			effect(() => {
+			const execute2 = memo(() => {
 				result.push(2)
 			})
+			execute1(), execute2()
 
 			expect(result).toHaveShape([0, 1, 2])
 		},
@@ -4783,39 +5149,48 @@ function testMutable(
 		const result = mutable([{ username: 'lala' }])
 
 		let called = 0
-		effect(() => {
+		const execute = memo(() => {
 			try {
 				result[0].username
 			} catch (e) {}
 			called++
 		})
+		execute()
 
 		expect(result[0].username).toBe('lala')
 		expect(called).toBe(1)
 
 		result[0].username = 'lala2'
+		execute()
 		expect(result[0].username).toBe('lala2')
 		expect(called).toBe(2)
 
 		// setting to same value
 		result[0].username = 'lala2'
+		execute()
+
 		expect(result[0].username).toBe('lala2')
 		expect(called).toBe(2)
 
 		result.pop()
+		execute()
 		expect(called).toBe(3)
 		expect(result.length).toBe(0)
 
 		result.push({ username: 'lala2' })
+		execute()
 		expect(called).toBe(4)
 
 		result.push({ username: 'lala3' })
+		execute()
 		expect(called).toBe(4)
 
 		result.push({ username: 'lala4' })
+		execute()
 		expect(called).toBe(4)
 
 		result[0].username = 'lala5'
+		execute()
 		expect(called).toBe(5)
 	})
 
@@ -4825,21 +5200,25 @@ function testMutable(
 			const result = mutable([1])
 
 			let called = 0
-			effect(() => {
+			const execute = memo(() => {
 				JSON.stringify(result)
 				called++
 			})
+			execute()
 
 			expect(result[0]).toBe(1)
 			expect(called).toBe(1)
 
 			result.filter(i => i % 2)
+			execute()
 			expect(called).toBe(1)
 
 			result.filter(i => i % 2)
+			execute()
 			expect(called).toBe(1)
 
 			result.push(2)
+			execute()
 			expect(called).toBe(2)
 		},
 	)
@@ -4848,21 +5227,24 @@ function testMutable(
 		const result = mutable([1])
 
 		let called = 0
-		effect(() => {
+		const execute = memo(() => {
 			result.filter(i => i % 2)
 			called++
 		})
-
+		execute()
 		expect(result[0]).toBe(1)
 		expect(called).toBe(1)
 
 		result.push(2)
+		execute()
 		expect(called).toBe(2)
 
 		result.push(3)
+		execute()
 		expect(called).toBe(3)
 
 		result.push(4)
+		execute()
 		expect(called).toBe(4)
 	})
 
@@ -4874,16 +5256,18 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o[0]
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			o[0] = o[0]
+			execute()
 			expect(calls).toBe(1)
 
-			testValuesAndEffect(
+			testValues(
 				expect,
 				v => {
 					o[0] = v
@@ -4900,14 +5284,16 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o.value.length
 			})
+			execute()
 			expect(calls).toBe(1)
 			expect(o.value.length).toBe(1)
 
 			o.value.pop()
+			execute()
 			expect(calls).toBe(2)
 			expect(o.value.length).toBe(0)
 		},
@@ -4920,14 +5306,16 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o.value.length
 			})
+			execute()
 			expect(calls).toBe(1)
 			expect(o.value.length).toBe(1)
 
 			o.value.length = 0
+			execute()
 			expect(calls).toBe(2)
 			expect(o.value.length).toBe(0)
 		},
@@ -4941,15 +5329,17 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o.value[0]
 				o.value[1]
 			})
+			execute()
 			expect(calls).toBe(1)
 			expect(o.value.length).toBe(2)
 
 			o.value.length = 0
+			execute()
 			expect(calls).toBe(2)
 			expect(o.value.length).toBe(0)
 			expect(o.value[0]).toBe(undefined)
@@ -4964,15 +5354,17 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o.value
 				o.value[0]
 			})
+			execute()
 			expect(calls).toBe(1)
 			expect(o.value.length).toBe(2)
 
 			o.value.filter(() => {})
+			execute()
 
 			expect(calls).toBe(1)
 			expect(o.value.length).toBe(2)
@@ -4987,14 +5379,16 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o.value[0]
 			})
+			execute()
 			expect(calls).toBe(1)
 			expect(o.value.length).toBe(2)
 
 			o.value.push(2)
+			execute()
 
 			expect(calls).toBe(1)
 			expect(o.value.length).toBe(3)
@@ -5008,19 +5402,23 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o.value.length
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			o.value.pop()
+			execute()
 			expect(calls).toBe(2)
 
 			o.value.pop()
+			execute()
 			expect(calls).toBe(3)
 
 			o.value.push(1)
+			execute()
 			expect(calls).toBe(4)
 		},
 	)
@@ -5032,19 +5430,23 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o.value.length
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			o.value.filter(() => {})
+			execute()
 			expect(calls).toBe(1)
 
 			o.value.filter(() => {})
+			execute()
 			expect(calls).toBe(1)
 
 			o.value.push(1)
+			execute()
 			expect(calls).toBe(2)
 		},
 	)
@@ -5056,22 +5458,27 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o.length
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			o.pop()
+			execute()
 			expect(calls).toBe(2)
 
 			o.pop()
+			execute()
 			expect(calls).toBe(3)
 
 			o.push(1)
+			execute()
 			expect(calls).toBe(4)
 
 			o[0] = true
+			execute()
 			expect(calls).toBe(4)
 		},
 	)
@@ -5084,25 +5491,31 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o.length
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			o.filter(() => {})
+			execute()
 			expect(calls).toBe(1)
 
 			o.filter(() => {})
+			execute()
 			expect(calls).toBe(1)
 
 			o.push(3)
+			execute()
 			expect(calls).toBe(2)
 
 			o.push(4)
+			execute()
 			expect(calls).toBe(3)
 
 			o[0] = false
+			execute()
 			expect(calls).toBe(3)
 		},
 	)
@@ -5115,28 +5528,35 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o.value[0]
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			o.value.pop()
+			execute()
 			expect(calls).toBe(1)
 
 			o.value.push(10)
+			execute()
 			expect(calls).toBe(1)
 
 			o.value[0] = 123
+			execute()
 			expect(calls).toBe(2)
 
 			o.value.unshift(1)
+			execute()
 			expect(calls).toBe(3)
 
 			o.value.unshift(1)
+			execute()
 			expect(calls).toBe(3)
 
 			o.value.unshift(2)
+			execute()
 			expect(calls).toBe(4)
 		},
 	)
@@ -5149,28 +5569,35 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o[0]
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			o.pop()
+			execute()
 			expect(calls).toBe(1)
 
 			o.push(10)
+			execute()
 			expect(calls).toBe(1)
 
 			o[0] = 123
+			execute()
 			expect(calls).toBe(2)
 
 			o.unshift(1)
+			execute()
 			expect(calls).toBe(3)
 
 			o.unshift(1)
+			execute()
 			expect(calls).toBe(3)
 
 			o.unshift(2)
+			execute()
 			expect(calls).toBe(4)
 		},
 	)
@@ -5183,15 +5610,18 @@ function testMutable(
 
 			let calls = 0
 
-			effect(() => {
+			const execute = memo(() => {
 				calls += 1
 				o.value.forEach(() => {})
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			o.value.forEach((value, index) => {
+				// console.log(o.value)
 				o.value[index] = value * 2
 			})
+			execute()
 			expect(calls).toBe(2)
 		},
 	)
@@ -5204,26 +5634,27 @@ function testMutable(
 			let callsNumber = 0
 			let callsString = 0
 
-			effect(() => {
+			const execute1 = memo(() => {
 				callsNumber += 1
 				o[0]
 			})
-
-			effect(() => {
+			execute1()
+			const execute2 = memo(() => {
 				callsString += 1
 				o['0']
 			})
+			execute1(), execute2()
 
 			expect(callsNumber).toBe(1)
 			expect(callsString).toBe(1)
 
 			o[0] = 1
-
+			execute1(), execute2()
 			expect(callsNumber).toBe(2)
 			expect(callsString).toBe(2)
 
 			o['0'] = 2
-
+			execute1(), execute2()
 			expect(callsNumber).toBe(3)
 			expect(callsString).toBe(3)
 		},
@@ -5295,11 +5726,14 @@ function testMutable(
 		const search = arr[0]
 
 		let index = -1
-		effect(() => {
+		const execute = memo(() => {
 			index = arr.indexOf(search)
 		})
+		execute()
 		expect(index).toBe(0)
+
 		arr.reverse()
+		execute()
 		expect(index).toBe(1)
 		/*
 			console.log(
@@ -5337,12 +5771,15 @@ function testMutable(
 			const arr = mutable([1, 2, 3])
 
 			let calls = 0
-			effect(() => {
+			const execute = memo(() => {
 				calls++
 				arr.length
 			})
+			execute()
 			expect(calls).toBe(1)
+
 			delete arr[1]
+			execute()
 			expect(calls).toBe(1)
 		},
 	)
@@ -5354,14 +5791,17 @@ function testMutable(
 			const arr = mutable([1, 2, 3])
 
 			let calls = 0
-			effect(() => {
+			const execute = memo(() => {
 				calls++
 				for (let i = 0; i < arr.length; i++) {
 					arr[i]
 				}
 			})
+			execute()
 			expect(calls).toBe(1)
+
 			arr.shift()
+			execute()
 			expect(calls).toBe(2)
 		},
 	)
@@ -5374,15 +5814,17 @@ function testMutable(
 			const arr = mutable([1])
 
 			let calls = 0
-			effect(() => {
+			const execute = memo(() => {
 				calls++
 				if (arr.length > 0) {
 					arr.slice()
 				}
 			})
+			execute()
 			expect(calls).toBe(1)
 
 			arr.splice(0)
+			execute()
 			expect(calls).toBe(2)
 		},
 	)
@@ -5394,12 +5836,15 @@ function testMutable(
 			const array = new Array(3)
 			const observed = mutable(array)
 			let calls = 0
-			effect(() => {
+			const execute = memo(() => {
 				calls++
 				observed.length
 			})
+			execute()
 			expect(calls).toBe(1)
+
 			observed[1] = 1
+			execute()
 			expect(calls).toBe(1)
 		},
 	)
@@ -5411,16 +5856,23 @@ function testMutable(
 			const array = new Array(3)
 			const observed = mutable(array)
 			let calls = 0
-			effect(() => {
+			const execute = memo(() => {
 				calls++
 				observed.length
 			})
+			execute()
 			expect(calls).toBe(1)
+
 			observed.x = 'x'
+			execute()
 			expect(calls).toBe(1)
+
 			observed[-1] = 'x'
+			execute()
 			expect(calls).toBe(1)
+
 			observed[NaN] = 'x'
+			execute()
 			expect(calls).toBe(1)
 		},
 	)
@@ -5431,15 +5883,17 @@ function testMutable(
 		expect => {
 			const array = mutable([1])
 			let length = ''
-			effect(() => {
+			const execute = memo(() => {
 				length = ''
 				for (const key in array) {
 					length += key
 				}
 			})
+			execute()
 			expect(length).toBe('0')
+
 			array.push(1)
-			expect(length).toBe('01')
+			execute()
 			expect(length).toBe('01')
 		},
 	)
@@ -5459,12 +5913,17 @@ function testMutable(
 	test(lib + 'array: should observe iteration', expect => {
 		let dummy
 		const list = mutable(['Hello'])
-		effect(() => (dummy = list.join(' ')))
+		const execute = memo(() => (dummy = list.join(' ')))
+		execute()
 
 		expect(dummy).toBe('Hello')
+
 		list.push('World!')
+		execute()
 		expect(dummy).toBe('Hello World!')
+
 		list.shift()
+		execute()
 		expect(dummy).toBe('World!')
 	})
 
@@ -5473,12 +5932,17 @@ function testMutable(
 		expect => {
 			let dummy
 			const list = mutable(['Hello'])
-			effect(() => (dummy = list.join(' ')))
+			const execute = memo(() => (dummy = list.join(' ')))
+			execute()
 
 			expect(dummy).toBe('Hello')
+
 			list[1] = 'World!'
+			execute()
 			expect(dummy).toBe('Hello World!')
+
 			list[3] = 'Hello!'
+			execute()
 			expect(dummy).toBe('Hello World!  Hello!')
 		},
 	)
@@ -5489,13 +5953,16 @@ function testMutable(
 			let dummy
 			const list = mutable([])
 			list[1] = 'World!'
-			effect(() => (dummy = list.join(' ')))
+			const execute = memo(() => (dummy = list.join(' ')))
+			execute()
 			expect(dummy).toBe(' World!')
 
 			list[0] = 'Hello'
+			execute()
 			expect(dummy).toBe('Hello World!')
 
 			list.pop()
+			execute()
 			expect(dummy).toBe('Hello')
 		},
 	)
@@ -5507,11 +5974,14 @@ function testMutable(
 			const key = Symbol.isConcatSpreadable
 			let dummy
 			const array = mutable([])
-			effect(() => (dummy = array[key]))
+			const execute = memo(() => (dummy = array[key]))
+			execute()
 
 			expect(array[key]).toBe(undefined)
 			expect(dummy).toBe(undefined)
+
 			array[key] = true
+			execute()
 			expect(array[key]).toBe(true)
 			expect(dummy).toBe(true)
 		},
@@ -5524,15 +5994,27 @@ function testMutable(
 			const key = Symbol()
 			let dummy
 			const array = mutable([1, 2, 3])
-			effect(() => (dummy = array[key]))
+			const execute = memo(() => (dummy = array[key]))
+			execute()
 
 			expect(dummy).toBe(undefined)
+
 			array.pop()
+			execute()
+
 			array.shift()
+			execute()
+
 			array.splice(0, 1)
+			execute()
+
 			expect(dummy).toBe(undefined)
+
 			array[key] = 'value'
+			execute()
+
 			array.length = 0
+			execute()
 			expect(dummy).toBe('value')
 		},
 	)
@@ -5544,29 +6026,36 @@ function testMutable(
 			const observed = mutable([1])
 
 			let length
-			effect(() => {
+			const execute1 = memo(() => {
 				length = observed.length
 			})
+			execute1()
 
 			let a
-			effect(() => {
+			const execute2 = memo(() => {
 				a = observed[0]
 			})
+			execute2()
+
 			expect(length).toBe(1)
 			expect(a).toBe(1)
 			// console.log(observed)
 
 			observed[1] = 2
+			execute1(), execute2()
+
 			// console.log(observed)
 			expect(observed[1]).toBe(2)
 			expect(observed.length).toBe(2)
 			expect(length).toBe(2)
 
 			observed.unshift(3)
+			execute1(), execute2()
 			expect(length).toBe(3)
 			expect(a).toBe(3)
 
 			observed.length = 0
+			execute1(), execute2()
 			expect(length).toBe(0)
 			expect(a).toBe(undefined)
 		},
@@ -5593,7 +6082,7 @@ function testMutable(
 
 		let count = 0
 		let calls = 0
-		effect(() => {
+		const execute = memo(() => {
 			calls++
 			for (const key in obj) {
 				count += obj.includes(obj[key]) ? 1 : 0
@@ -5635,6 +6124,7 @@ function testMutable(
 			}
 			expect(count).toBe(16)
 		})
+		execute()
 
 		expect(calls).toBe(1)
 
@@ -5651,14 +6141,16 @@ function testMutable(
 				const arr = mutable([])
 				let calls1 = 0
 				let calls2 = 0
-				effect(() => {
+				const execute1 = memo(() => {
 					calls1++
 					arr[key](1)
 				})
-				effect(() => {
+				execute1()
+				const execute2 = memo(() => {
 					calls2++
 					arr[key](2)
 				})
+				execute2()
 				expect(arr.length).toBe(2)
 				expect(calls1).toBe(1)
 				expect(calls2).toBe(1)
@@ -5667,14 +6159,16 @@ function testMutable(
 				const arr = mutable([1, 2, 3, 4])
 				let calls1 = 0
 				let calls2 = 0
-				effect(() => {
+				const execute1 = memo(() => {
 					calls1++
 					arr[key]()
 				})
-				effect(() => {
+				execute1()
+				const execute2 = memo(() => {
 					calls2++
 					arr[key]()
 				})
+				execute2()
 				expect(arr.length).toBe(2)
 				expect(calls1).toBe(1)
 				expect(calls2).toBe(1)
@@ -5713,23 +6207,25 @@ function testMutable(
 	})
 
 	test(lib + 'array: vue array instrumentation: concat', expect => {
-		const a1 = mutable([1, { val: 2 }])
-		const a2 = mutable([{ val: 3 }])
-		const a3 = [4, 5]
+		batch(() => {
+			const a1 = mutable([1, { val: 2 }])
+			const a2 = mutable([{ val: 3 }])
+			const a3 = [4, 5]
 
-		let result = memo(() => a1.concat(a2, a3))
-		expect(result()).toHaveShape([1, { val: 2 }, { val: 3 }, 4, 5])
-		expect(isProxy(result()[1])).toBe(true)
-		expect(isProxy(result()[2])).toBe(true)
+			let result = memo(() => a1.concat(a2, a3))
+			expect(result()).toHaveShape([1, { val: 2 }, { val: 3 }, 4, 5])
+			expect(isProxy(result()[1])).toBe(true)
+			expect(isProxy(result()[2])).toBe(true)
 
-		a1.shift()
-		expect(result()).toHaveShape([{ val: 2 }, { val: 3 }, 4, 5])
+			a1.shift()
+			expect(result()).toHaveShape([{ val: 2 }, { val: 3 }, 4, 5])
 
-		a2.pop()
-		expect(result()).toHaveShape([{ val: 2 }, 4, 5])
+			a2.pop()
+			expect(result()).toHaveShape([{ val: 2 }, 4, 5])
 
-		a3.pop()
-		expect(result()).toHaveShape([{ val: 2 }, 4, 5])
+			a3.pop()
+			expect(result()).toHaveShape([{ val: 2 }, 4])
+		})
 	})
 
 	test(lib + 'array: vue array instrumentation: entries', expect => {
@@ -6069,14 +6565,7 @@ function testMutable(
 		document.body.textContent = ''
 	} catch (e) {}
 
-	function testValuesAndEffect(expect, set, get) {
-		let callsEffect = 0
-		effect(() => {
-			callsEffect += 1
-			get()
-			get()
-			get()
-		})
+	function testValues(expect, set, get) {
 		let callsMemo = 0
 		const value = memo(() => {
 			callsMemo += 1
@@ -6086,101 +6575,85 @@ function testMutable(
 			return get()
 		})
 
-		expect(callsEffect).toBe(1)
 		expect(callsMemo).toBe(0)
 
 		set(123)
 		expect(get()).toBe(123)
 		expect(value()).toBe(123)
-		expect(callsEffect).toBe(2)
 		expect(callsMemo).toBe(1)
 
 		set(321)
 		expect(get()).toBe(321)
 		expect(value()).toBe(321)
-		expect(callsEffect).toBe(3)
 		expect(callsMemo).toBe(2)
 
 		set(undefined)
 		expect(get()).toBe(undefined)
 		expect(value()).toBe(undefined)
-		expect(callsEffect).toBe(4)
 		expect(callsMemo).toBe(3)
 
 		set(null)
 		expect(get()).toBe(null)
 		expect(value()).toBe(null)
-		expect(callsEffect).toBe(5)
 		expect(callsMemo).toBe(4)
 
 		set(1)
 		expect(get()).toBe(1)
 		expect(value()).toBe(1)
-		expect(callsEffect).toBe(6)
 		expect(callsMemo).toBe(5)
 
 		set('')
 		expect(get()).toBe('')
 		expect(value()).toBe('')
-		expect(callsEffect).toBe(7)
 		expect(callsMemo).toBe(6)
 
 		set('string')
 		expect(get()).toBe('string')
 		expect(value()).toBe('string')
-		expect(callsEffect).toBe(8)
 		expect(callsMemo).toBe(7)
 
 		set([true])
 		expect(get()).toHaveShape([true])
 		expect(value()).toHaveShape([true])
 		expect(Array.isArray(get())).toBe(true)
-		expect(callsEffect).toBe(9)
 		expect(callsMemo).toBe(8)
 
 		set({ 0: true })
 		expect(get()).toHaveShape({ 0: true })
 		expect(value()).toHaveShape({ 0: true })
 		expect(Array.isArray(get())).toBe(false)
-		expect(callsEffect).toBe(10)
 		expect(callsMemo).toBe(9)
 
 		set([true])
 		expect(get()).toHaveShape([true])
 		expect(value()).toHaveShape([true])
 		expect(Array.isArray(get())).toBe(true)
-		expect(callsEffect).toBe(11)
 		expect(callsMemo).toBe(10)
 
 		set({ 0: true })
 		expect(get()).toHaveShape({ 0: true })
 		expect(value()).toHaveShape({ 0: true })
 		expect(Array.isArray(get())).toBe(false)
-		expect(callsEffect).toBe(12)
 		expect(callsMemo).toBe(11)
 
 		set(true)
 		expect(get()).toBe(true)
 		expect(value()).toBe(true)
-		expect(callsEffect).toBe(13)
 		expect(callsMemo).toBe(12)
 
 		set(false)
 		expect(get()).toBe(false)
 		expect(value()).toBe(false)
-		expect(callsEffect).toBe(14)
 		expect(callsMemo).toBe(13)
 
 		set(Infinity)
 		expect(get()).toBe(Infinity)
 		expect(value()).toBe(Infinity)
-		expect(callsEffect).toBe(15)
 		expect(callsMemo).toBe(14)
 
 		set(Infinity)
 		expect(get()).toBe(Infinity)
 		expect(value()).toBe(Infinity)
-		expect(callsEffect).toBe(15)
 		expect(callsMemo).toBe(14)
 
 		// symbol
@@ -6189,7 +6662,6 @@ function testMutable(
 		set(s)
 		expect(get()).toBe(s)
 		expect(value()).toBe(s)
-		expect(callsEffect).toBe(16)
 		expect(callsMemo).toBe(15)
 
 		// bigint
@@ -6197,7 +6669,6 @@ function testMutable(
 		set(bn)
 		expect(get()).toBe(bn)
 		expect(value()).toBe(bn)
-		expect(callsEffect).toBe(17)
 		expect(callsMemo).toBe(16)
 
 		// built-ins should work and return same value
@@ -6205,39 +6676,33 @@ function testMutable(
 		set(p)
 		expect(get()).toBe(p)
 		expect(value()).toBe(p)
-		expect(callsEffect).toBe(18)
 		expect(callsMemo).toBe(17)
 
 		const r = new RegExp('')
 		set(r)
 		expect(get()).toBe(r)
 		expect(value()).toBe(r)
-		expect(callsEffect).toBe(19)
 		expect(callsMemo).toBe(18)
 
 		const d = new Date()
 		set(d)
 		expect(get()).toBe(d)
 		expect(value()).toBe(d)
-		expect(callsEffect).toBe(20)
 		expect(callsMemo).toBe(19)
 
 		set(NaN)
 		expect(Object.is(get(), NaN)).toBe(true)
 		expect(Object.is(value(), NaN)).toBe(true)
-		expect(callsEffect).toBe(21)
 		expect(callsMemo).toBe(20)
 
 		set(0)
 		expect(get()).toBe(0)
 		expect(value()).toBe(0)
-		expect(callsEffect).toBe(22)
 		expect(callsMemo).toBe(21)
 
 		set(1)
 		expect(get()).toBe(1)
 		expect(value()).toBe(1)
-		expect(callsEffect).toBe(23)
 		expect(callsMemo).toBe(22)
 	}
 }
