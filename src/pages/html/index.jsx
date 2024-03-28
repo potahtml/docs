@@ -145,8 +145,7 @@ export default function () {
 				>
 					Predefined components are: <mark>collapse</mark>,{' '}
 					<mark>dynamic</mark>, <mark>for</mark>, <mark>head</mark>,{' '}
-					<mark>portal</mark>, <mark>promised</mark>,{' '}
-					<mark>show</mark>, <mark>switch</mark>
+					<mark>portal</mark>, <mark>show</mark>, <mark>switch</mark>
 				</Code>
 			</Section>
 

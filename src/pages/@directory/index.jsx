@@ -166,7 +166,7 @@ scrollToElement,
 scrollToSelector,
 scrollToSelectorWithFallback,
 scrollToTop,
-scrollToTopLeft,
+
 
 						} from 'pota/scroll'"
 						render={false}

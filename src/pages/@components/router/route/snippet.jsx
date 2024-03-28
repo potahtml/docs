@@ -1,4 +1,4 @@
-import { Route } from 'pota/router'
+import { Route, load } from 'pota/router'
 
 function App() {
   return (
@@ -19,6 +19,11 @@ function App() {
         </Route>
         <Route.Default>Oops! page not found on blog/</Route.Default>
       </Route>
+
+      <Route
+        path="/contact/"
+        children={load(() => import('/contact.jsx'))}
+      />
 
       <Route.Default>
         Oops! You arent in docs/ nor blog/

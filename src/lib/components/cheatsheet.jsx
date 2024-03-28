@@ -65,7 +65,6 @@ propsSplit, // const [newProps, children, divProps] = propsSplit(props, ['childr
 Show, // <Show when={true} fallback="ouch"/>
 Collapse, // <Collapse when={true}/>
 Dynamic, // <Dynamic component="div" children="Hola"/>
-Promised, // <Promised children={()=> new Promise(...)} fallback="Loading.."/> or Promised(()=> new Promise(...), 'Loading..')
 For, // <For each={[1, 2, 3]} children={[item => item * 1, item => item * 2]} />
 Head, // <Head><title>Hello World</title></Head>
 Switch, Match,// <Switch fallback="ouch"><Match when={true}/></Switch>

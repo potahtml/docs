@@ -11,7 +11,7 @@ export default function () {
 				wrapper, and routes can be nested. When a route is nested, the
 				paths are relative to the parent route.{' '}
 				<mark>{'<Route.Default/>'}</mark> can be used for rendering a
-				default/404 when no sibling routes match
+				default/404 when no sibling routes match.
 			</Header>
 
 			<Section title="Attributes">
@@ -93,6 +93,15 @@ export default function () {
 					</tbody>
 				</table>
 			</Section>
+
+			<p>
+				<mark>load</mark> function, as in{' '}
+				<mark>
+					{"children={load(()=>import('dynamic-import.jsx')}"}
+				</mark>{' '}
+				can be used for lazy loading. It will retry a couple of times
+				on network errors, and will scroll the document.
+			</p>
 
 			<Section title="Snippet">
 				<Code

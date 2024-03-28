@@ -18,13 +18,6 @@ export default function () {
 				already connected to the document.
 			</p>
 
-			<p>
-				<b>Warning:</b> On components loaded by <mark>lazy</mark> this
-				wont work as you expect as the <mark>ready</mark> callback
-				will fire before the component mounts. Thats because{' '}
-				<mark>lazy</mark> is a <mark>promise</mark>. So dont use this
-				API as a way to check for "onMount".
-			</p>
 			<Section title="Arguments">
 				<table>
 					<thead>

@@ -10,7 +10,6 @@ https://pota.quack.uy/Components/Head
 https://pota.quack.uy/Components/Library/
 https://pota.quack.uy/Components/Library/alert
 https://pota.quack.uy/Components/Portal
-https://pota.quack.uy/Components/Promised
 https://pota.quack.uy/Components/Router/A
 https://pota.quack.uy/Components/Router/Navigate
 https://pota.quack.uy/Components/Router/Route

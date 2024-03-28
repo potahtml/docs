@@ -1,5 +1,5 @@
 import { memo } from 'pota'
 
-const lazy = memo(() => {
+const lazyMemo = memo(() => {
   console.log('Will run only when called')
 })

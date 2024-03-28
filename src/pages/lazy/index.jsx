@@ -6,12 +6,34 @@ export default function () {
 	return (
 		<>
 			<Header title="lazy">
-				lazy creates a component thats lazy loaded via a dynamic
-				import. The resulting component can be used as{' '}
-				<mark>Component(props)</mark>. Mostly used as{' '}
-				<mark>children</mark> on a <mark>Route</mark> for code
-				splitting. Promises are run with the original owner when the
-				promise returns a function.
+				<mark>lazy</mark> is a <mark>promise</mark> loader. It is used
+				when you want to display something while a promise is loading,
+				or to run a callback after a promise is resolved.
+				<p>
+					<ol>
+						<li>
+							Allows to display/run something, or nothing while a
+							promise is resolving.
+						</li>
+						<li>
+							Allows to run a callback when the promise resolves.
+						</li>
+						<li>
+							Allows to get notified of errors, and display/run
+							something, or nothing. If wanted, a <mark>retry</mark>{' '}
+							function is given for retrying the promise.
+						</li>
+						<li>
+							All functions run with the original owner, so it's{' '}
+							<mark>Context</mark> friendly.
+						</li>
+						<li>
+							It will render what the promise returns. If the promise
+							returns a function it can be used as{' '}
+							<mark>Component(props)</mark>.
+						</li>
+					</ol>
+				</p>
 			</Header>
 
 			<Section title="Attributes">
@@ -27,31 +49,56 @@ export default function () {
 						<tr>
 							<td>fn</td>
 							<td>fn</td>
-							<td>a function that returns the import</td>
+							<td>a function that returns a promise</td>
 						</tr>
 						<tr>
-							<td>fallback</td>
-							<td>[fallback]</td>
+							<td>[options.onLoading]</td>
 							<td>
-								to render something in case the import/promise fails
-								for some reason
+								<mark>any</mark>
+							</td>
+							<td>renders something while the promise resolves</td>
+						</tr>
+						<tr>
+							<td>[options.onLoaded]</td>
+							<td>
+								<mark>Function</mark>
+							</td>
+							<td>runs a callback after the promise resolves</td>
+						</tr>
+						<tr>
+							<td>[options.onError]</td>
+							<td>
+								<mark>any</mark> |{' '}
+								<mark>(e: Error, retry: Function) => void)</mark>
+							</td>
+							<td>
+								renders something or runs a callback with the error
+								object and a retry function as argument
 							</td>
 						</tr>
 					</tbody>
 				</table>
-				<b>Return Value</b>: <mark>(props)=>Component</mark>
 			</Section>
 
-			<Section title="Snippet">
+			<Section title="When not to use lazy">
+				<p>
+					<mark>Lazy</mark> is not needed unless you use one of its
+					options. You may use a promise directly as follows. If the
+					promise resolves to a function, the function will run with
+					the original owner.
+				</p>
 				<Code
-					url="/pages/lazy/snippet.jsx"
+					url="/pages/lazy/no-need.jsx"
 					render={true}
 				></Code>
 			</Section>
 
-			<Section title="Test">
+			<Section title="Usage">
+				<p>
+					All the different uses of <mark>Lazy</mark>
+				</p>
 				<Code
-					url="/pages/lazy/test.jsx"
+					url="/pages/lazy/snippet.jsx"
 					render={true}
 				></Code>
 			</Section>
