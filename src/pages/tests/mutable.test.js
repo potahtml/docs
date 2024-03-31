@@ -4,6 +4,7 @@
  *
  * https://github.com/solidjs/solid/blob/main/packages/solid/store/test/
  * https://github.com/solidjs-community/solid-primitives/tree/main/packages/mutable/test
+ * https://github.com/solidjs-community/solid-primitives/blob/main/packages/map/test/index.test.ts
  * https://github.com/vobyjs/oby/blob/master/test/index.js
  * `https://github.com/vuejs/core/tree/main/packages/reactivity/__tests__`
  * https://discord.com/channels/722131463138705510/1217920934548082748
@@ -13,6 +14,7 @@
 // test stuff
 
 import { test, isProxy, measure } from 'pota/test'
+import { timing } from 'pota/lib'
 
 // oby
 
@@ -64,55 +66,110 @@ import {
 	root as rootPota,
 } from 'pota'
 
+// bench stuff
+
+const benchmarkTable = {}
+const doBenchmark = false
+
 // tests
 
 measure('solid', () =>
-	rootSolid(() =>
-		testMutable(
-			'solid',
-			mutableSolid,
-			memoSolid,
-			batchSolid,
-			signalSolid,
-			rootSolid,
-		),
+	testMutable(
+		'solid',
+		test,
+		mutableSolid,
+		memoSolid,
+		batchSolid,
+		signalSolid,
+		rootSolid,
 	),
 )
 
 measure('oby', () =>
-	rootOby(() =>
-		testMutable(
-			'oby',
-			mutableOby,
-			memoOby,
-			batchOby,
-			signalOby,
-			rootOby,
-		),
+	testMutable(
+		'oby',
+		test,
+		mutableOby,
+		memoOby,
+		batchOby,
+		signalOby,
+		rootOby,
 	),
 )
 
 measure('pota', () =>
-	rootPota(() =>
-		testMutable(
-			'pota',
-			mutablePota,
-			memoPota,
-			batchPota,
-			signalPota,
-			rootPota,
-		),
+	testMutable(
+		'pota',
+		test,
+		mutablePota,
+		memoPota,
+		batchPota,
+		signalPota,
+		rootPota,
 	),
 )
 
-document.body.textContent = ''
+document.body.textContent = 'Done'
 
-function testMutable(lib, mutable, memo, batch, signal, root) {
+if (doBenchmark) console.table(benchmarkTable)
+
+function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 	lib = lib + ': '
 	console.log('--------------------------------------')
 	console.log(lib)
 
-	test.resetCounter()
+	_test.reset()
+
+	const test = (title, fn, stop) => {
+		_test(
+			title,
+			expect => {
+				const dispose = root(dispose => {
+					fn(expect)
+					return dispose
+				})
+				dispose()
+			},
+			stop,
+		)
+	}
+
+	let supportsMap = false
+	let supportsSet = false
+	function detectSupport() {
+		// detect support for map/set
+		const map = new Map()
+		const set = new Set()
+		const result = mutable({ map, set })
+
+		// map
+		map.set('key', 1)
+
+		let called1 = 0
+		let execute = memo(() => {
+			called1++
+			result.map.has('key')
+		})
+		execute()
+		result.map.delete('key')
+		execute()
+
+		supportsMap = called1 !== 1
+
+		// set
+		set.add('key')
+		let called2 = 0
+		execute = memo(() => {
+			called2++
+			result.set.has('key')
+		})
+		execute()
+		result.set.delete('key')
+		execute()
+
+		supportsSet = called2 !== 1
+	}
+	detectSupport()
 
 	test(lib + 'equality: different object', expect => {
 		const source = { cat: 'quack' }
@@ -872,12 +929,19 @@ function testMutable(lib, mutable, memo, batch, signal, root) {
 						expect(isProxy(result)).toBe(false)
 						continue
 					}
+
 					expect(result).not.toBe(source)
 					expect(isProxy(result)).toBe(true)
+
 					continue
 				}
-				expect(result).toBe(source)
-				expect(isProxy(result)).toBe(false)
+				if (result instanceof Map && supportsMap) {
+					expect(result).not.toBe(source)
+					expect(isProxy(result)).toBe(true)
+				} else {
+					expect(result).toBe(source)
+					expect(isProxy(result)).toBe(false)
+				}
 			} catch (e) {
 				if (lib === 'solid: ') {
 					if (typeof source !== 'symbol') {
@@ -902,8 +966,13 @@ function testMutable(lib, mutable, memo, batch, signal, root) {
 		for (const source of sources) {
 			try {
 				const result = mutable({ o: source })
-				expect(result.o).toBe(source)
-				expect(isProxy(result.o)).toBe(false)
+				if (result.o instanceof Map && supportsMap) {
+					expect(result.o).not.toBe(source)
+					expect(isProxy(result.o)).toBe(true)
+				} else {
+					expect(result.o).toBe(source)
+					expect(isProxy(result.o)).toBe(false)
+				}
 			} catch (e) {
 				console.error(
 					'misc objects (nested): throws having nested',
@@ -924,7 +993,8 @@ function testMutable(lib, mutable, memo, batch, signal, root) {
 		expect(result.set instanceof Set).toBe(true)
 		expect(result.map instanceof Map).toBe(true)
 		expect(isProxy(result.set)).toBe(false)
-		expect(isProxy(result.map)).toBe(false)
+
+		expect(isProxy(result.map)).toBe(supportsMap ? true : false)
 
 		result.set.add(1)
 		result.set.delete(2)
@@ -1493,12 +1563,16 @@ function testMutable(lib, mutable, memo, batch, signal, root) {
 		lib + 'read and set inside extended class [solid, oby]',
 		expect => {
 			class Tests2 {
-				a = 1
 				get b() {
 					return this.a * 4
 				}
+				get logA() {
+					return this.a
+				}
 			}
-			class Test extends Tests2 {}
+			class Test extends Tests2 {
+				a = 1
+			}
 
 			const m = mutable(new Test())
 
@@ -1516,6 +1590,7 @@ function testMutable(lib, mutable, memo, batch, signal, root) {
 
 			// initial
 			expect(m.a).toBe(1)
+			expect(m.logA).toBe(1)
 			expect(m.b).toBe(4)
 			expect(calls).toBe(1)
 
@@ -1538,6 +1613,9 @@ function testMutable(lib, mutable, memo, batch, signal, root) {
 			class Test4 {
 				get b() {
 					return this.a * 4
+				}
+				get logA() {
+					return this.a
 				}
 			}
 			class Test3 extends Test4 {}
@@ -1562,6 +1640,7 @@ function testMutable(lib, mutable, memo, batch, signal, root) {
 
 			// initial
 			expect(m.a).toBe(1)
+			expect(m.logA).toBe(1)
 			expect(m.b).toBe(4)
 			expect(calls).toBe(1)
 
@@ -6564,6 +6643,1583 @@ function testMutable(lib, mutable, memo, batch, signal, root) {
 		const firstItem = Array.from(deep.values())[0]
 		expect(isProxy(firstItem)).toBe(true)
 	})
+
+	// map
+
+	if (supportsMap) {
+		// vue
+
+		test(lib + 'Map: instanceof', expect => {
+			const original = new Map()
+			const observed = mutable(original)
+			const observed2 = mutable({ value: original })
+			const observed3 = mutable([original])
+
+			expect(original instanceof Map).toBe(true)
+			expect(observed instanceof Map).toBe(true)
+			expect(observed2.value instanceof Map).toBe(true)
+			expect(observed3[0] instanceof Map).toBe(true)
+
+			expect(isProxy(original)).toBe(false)
+			expect(isProxy(observed)).toBe(true)
+			expect(isProxy(observed2.value)).toBe(true)
+			expect(isProxy(observed3[0])).toBe(true)
+		})
+
+		test(lib + 'Map: should observe mutations', expect => {
+			let dummy
+			const map = mutable(new Map())
+			const execute = memo(() => {
+				dummy = map.get('key')
+			})
+			execute()
+
+			expect(dummy).toBe(undefined)
+			map.set('key', 'value')
+			execute()
+
+			expect(dummy).toBe('value')
+			map.set('key', 'value2')
+			execute()
+
+			expect(dummy).toBe('value2')
+			map.delete('key')
+			execute()
+
+			expect(dummy).toBe(undefined)
+		})
+
+		test(
+			lib +
+				'Map: should observe mutations with observed value as key',
+			expect => {
+				let dummy
+				const key = mutable({})
+				const value = mutable({})
+				const map = mutable(new Map())
+				const execute = memo(() => {
+					dummy = map.get(key)
+				})
+				execute()
+
+				expect(dummy).toBe(undefined)
+				map.set(key, value)
+				execute()
+
+				expect(dummy).toBe(value)
+				map.delete(key)
+				execute()
+
+				expect(dummy).toBe(undefined)
+			},
+		)
+
+		test(lib + 'Map: should observe size mutations', expect => {
+			let dummy
+			const map = mutable(new Map())
+			const execute = memo(() => (dummy = map.size))
+			execute()
+
+			expect(dummy).toBe(0)
+
+			map.set('key1', 'value')
+			execute()
+
+			map.set('key2', 'value2')
+			execute()
+			expect(dummy).toBe(2)
+
+			map.delete('key1')
+			execute()
+			expect(dummy).toBe(1)
+
+			map.clear()
+			execute()
+			expect(dummy).toBe(0)
+		})
+
+		test(lib + 'Map: should observe for of iteration', expect => {
+			let dummy
+			const map = mutable(new Map())
+			const execute = memo(() => {
+				dummy = 0
+				for (let [key, num] of map) {
+					key
+					dummy += num
+				}
+			})
+			execute()
+
+			expect(dummy).toBe(0)
+			map.set('key1', 3)
+			execute()
+
+			expect(dummy).toBe(3)
+			map.set('key2', 2)
+			execute()
+
+			expect(dummy).toBe(5)
+
+			// iteration should track mutation of existing entries (#709)
+			map.set('key1', 4)
+			execute()
+			expect(dummy).toBe(6)
+
+			map.delete('key1')
+			execute()
+			expect(dummy).toBe(2)
+
+			map.clear()
+			execute()
+			expect(dummy).toBe(0)
+		})
+
+		test(lib + 'Map: should observe forEach iteration', expect => {
+			let dummy
+			const map = mutable(new Map())
+			const execute = memo(() => {
+				dummy = 0
+				map.forEach(num => (dummy += num))
+			})
+			execute()
+
+			expect(dummy).toBe(0)
+			map.set('key1', 3)
+			execute()
+
+			expect(dummy).toBe(3)
+			map.set('key2', 2)
+			execute()
+
+			expect(dummy).toBe(5)
+			// iteration should track mutation of existing entries (#709)
+			map.set('key1', 4)
+			execute()
+
+			expect(dummy).toBe(6)
+			map.delete('key1')
+			execute()
+
+			expect(dummy).toBe(2)
+			map.clear()
+			execute()
+
+			expect(dummy).toBe(0)
+		})
+
+		test(lib + 'Map: should observe keys iteration', expect => {
+			let dummy
+			const map = mutable(new Map())
+			const execute = memo(() => {
+				dummy = 0
+				for (let key of map.keys()) {
+					dummy += key
+				}
+			})
+			execute()
+
+			expect(dummy).toBe(0)
+			map.set(3, 3)
+			execute()
+
+			expect(dummy).toBe(3)
+			map.set(2, 2)
+			execute()
+
+			expect(dummy).toBe(5)
+			map.delete(3)
+			execute()
+
+			expect(dummy).toBe(2)
+			map.clear()
+			execute()
+
+			expect(dummy).toBe(0)
+		})
+
+		test(lib + 'Map: should observe values iteration', expect => {
+			let dummy
+			const map = mutable(new Map())
+			const execute = memo(() => {
+				dummy = 0
+				for (let num of map.values()) {
+					dummy += num
+				}
+			})
+			execute()
+			expect(dummy).toBe(0)
+
+			map.set('key1', 3)
+			execute()
+			expect(dummy).toBe(3)
+
+			map.set('key2', 2)
+			execute()
+			expect(dummy).toBe(5)
+
+			// iteration should track mutation of existing entries (#709)
+			map.set('key1', 4)
+			execute()
+			expect(dummy).toBe(6)
+
+			map.delete('key1')
+			execute()
+			expect(dummy).toBe(2)
+
+			map.clear()
+			execute()
+			expect(dummy).toBe(0)
+		})
+
+		test(lib + 'Map: should observe entries iteration', expect => {
+			let dummy
+			let dummy2
+			const map = mutable(new Map())
+			const execute = memo(() => {
+				dummy = ''
+				dummy2 = 0
+				for (let [key, num] of map.entries()) {
+					dummy += key
+					dummy2 += num
+				}
+			})
+			execute()
+
+			expect(dummy).toBe('')
+			expect(dummy2).toBe(0)
+			map.set('key1', 3)
+			execute()
+
+			expect(dummy).toBe('key1')
+			expect(dummy2).toBe(3)
+			map.set('key2', 2)
+			execute()
+
+			expect(dummy).toBe('key1key2')
+			expect(dummy2).toBe(5)
+			// iteration should track mutation of existing entries (#709)
+			map.set('key1', 4)
+			execute()
+
+			expect(dummy).toBe('key1key2')
+			expect(dummy2).toBe(6)
+			map.delete('key1')
+			execute()
+
+			expect(dummy).toBe('key2')
+			expect(dummy2).toBe(2)
+			map.clear()
+			execute()
+
+			expect(dummy).toBe('')
+			expect(dummy2).toBe(0)
+		})
+
+		test(lib + 'Map: should be triggered by clearing', expect => {
+			let dummy
+			const map = mutable(new Map())
+			const execute = memo(() => (dummy = map.get('key')))
+
+			expect(dummy).toBe(undefined)
+			map.set('key', 3)
+			execute()
+
+			expect(dummy).toBe(3)
+			map.clear()
+			execute()
+
+			expect(dummy).toBe(undefined)
+		})
+
+		test(
+			lib + 'Map: should observe custom property mutations',
+			expect => {
+				let dummy
+				const map = mutable(new Map())
+				const execute = memo(() => (dummy = map.customProp))
+				execute()
+
+				expect(dummy).toBe(undefined)
+				map.customProp = 'Hello World'
+				execute()
+
+				expect(dummy).toBe('Hello World')
+			},
+		)
+
+		test(
+			lib + 'Map: should not observe non value changing mutations',
+			expect => {
+				let dummy
+				const map = mutable(new Map())
+				let calls = 0
+				const execute = memo(() => {
+					calls++
+					dummy = map.get('key')
+				})
+				execute()
+
+				expect(dummy).toBe(undefined)
+				expect(calls).toBe(1)
+
+				map.set('key', undefined)
+				execute()
+				expect(dummy).toBe(undefined)
+				expect(calls).toBe(1)
+
+				map.set('key', 'value')
+				execute()
+				expect(dummy).toBe('value')
+				expect(calls).toBe(2)
+
+				map.set('key', 'value')
+				execute()
+				expect(dummy).toBe('value')
+				expect(calls).toBe(2)
+
+				map.set('key', undefined)
+				execute()
+				expect(dummy).toBe(undefined)
+				expect(calls).toBe(3)
+
+				map.delete('key')
+				execute()
+				expect(dummy).toBe(undefined)
+				expect(calls).toBe(3)
+
+				map.delete('key')
+				execute()
+				expect(dummy).toBe(undefined)
+				expect(calls).toBe(3)
+
+				map.clear()
+				execute()
+				expect(dummy).toBe(undefined)
+				expect(calls).toBe(3)
+			},
+		)
+
+		test(
+			lib + 'Map: should not pollute original Map with Proxies',
+			expect => {
+				const map = new Map()
+				const observed = mutable(map)
+				const original = {}
+				const value = mutable(original)
+				observed.set('key', value)
+				expect(map.get('key')).toBe(value)
+				expect(map.get('key')).not.toBe(original)
+			},
+		)
+
+		test(
+			lib +
+				'Map: should return observable versions of contained values',
+			expect => {
+				const observed = mutable(new Map())
+				const value = {}
+				observed.set('key', value)
+				const wrapped = observed.get('key')
+				expect(wrapped).not.toBe(value)
+			},
+		)
+
+		test(lib + 'Map: should observed nested data', expect => {
+			const observed = mutable(new Map())
+			observed.set('key', { a: 1 })
+			let dummy
+			const execute = memo(() => {
+				dummy = observed.get('key').a
+			})
+			execute()
+
+			observed.get('key').a = 2
+			expect(dummy).toBe(2)
+		})
+
+		test(
+			lib +
+				'Map: should observe nested values in iterations (forEach)',
+			expect => {
+				const map = mutable(new Map([[1, { foo: 1 }]]))
+				let dummy
+				const execute = memo(() => {
+					dummy = 0
+					map.forEach(value => {
+						dummy += value.foo
+					})
+				})
+				execute()
+
+				expect(dummy).toBe(1)
+				map.get(1).foo++
+				expect(dummy).toBe(2)
+			},
+		)
+
+		test(
+			lib +
+				'Map: should observe nested values in iterations (values)',
+			expect => {
+				const map = mutable(new Map([[1, { foo: 1 }]]))
+				let dummy
+				const execute = memo(() => {
+					dummy = 0
+					for (const value of map.values()) {
+						dummy += value.foo
+					}
+				})
+				execute()
+
+				expect(dummy).toBe(1)
+				map.get(1).foo++
+				expect(dummy).toBe(2)
+			},
+		)
+
+		test(
+			lib +
+				'Map: should observe nested values in iterations (entries)',
+			expect => {
+				const key = {}
+				const map = mutable(new Map([[key, { foo: 1 }]]))
+				let dummy
+				const execute = memo(() => {
+					dummy = 0
+					for (const [key, value] of map.entries()) {
+						key
+
+						dummy += value.foo
+					}
+				})
+				execute()
+
+				expect(dummy).toBe(1)
+				map.get(key).foo++
+				expect(dummy).toBe(2)
+			},
+		)
+
+		test(
+			lib +
+				'Map: should observe nested values in iterations (for...of)',
+			expect => {
+				const key = {}
+				const map = mutable(new Map([[key, { foo: 1 }]]))
+				let dummy
+				const execute = memo(() => {
+					dummy = 0
+					for (const [key, value] of map) {
+						key
+
+						dummy += value.foo
+					}
+				})
+				execute()
+
+				expect(dummy).toBe(1)
+				map.get(key).foo++
+				expect(dummy).toBe(2)
+			},
+		)
+
+		test(
+			lib +
+				'Map: should not be trigger when the value and the old value both are NaN',
+			expect => {
+				const map = mutable(new Map([['foo', NaN]]))
+				let calls = 0
+				const execute = memo(() => {
+					calls++
+					map.get('foo')
+				})
+				execute()
+
+				map.set('foo', NaN)
+				execute()
+
+				expect(calls).toBe(1)
+			},
+		)
+
+		test(
+			lib + 'Map: should work with reactive keys in raw map',
+			expect => {
+				const raw = new Map()
+				const key = mutable({})
+				raw.set(key, 1)
+				const map = mutable(raw)
+
+				expect(map.has(key)).toBe(true)
+				expect(map.get(key)).toBe(1)
+
+				expect(map.delete(key)).toBe(true)
+				expect(map.has(key)).toBe(false)
+				expect(map.get(key)).toBe(undefined)
+			},
+		)
+
+		test(
+			lib + 'Map: should track set of mutable keys in raw map',
+			expect => {
+				const raw = new Map()
+				const key = mutable({})
+				raw.set(key, 1)
+				const map = mutable(raw)
+
+				let dummy
+				const execute = memo(() => {
+					dummy = map.get(key)
+				})
+				execute()
+
+				expect(dummy).toBe(1)
+
+				map.set(key, 2)
+				execute()
+
+				expect(dummy).toBe(2)
+			},
+		)
+
+		test(
+			lib + 'Map: should track deletion of reactive keys in raw map',
+			expect => {
+				const raw = new Map()
+				const key = mutable({})
+				raw.set(key, 1)
+				const map = mutable(raw)
+
+				let dummy
+				const execute = memo(() => {
+					dummy = map.has(key)
+				})
+				execute()
+
+				expect(dummy).toBe(true)
+
+				map.delete(key)
+				execute()
+
+				expect(dummy).toBe(false)
+			},
+		)
+
+		// #877
+		test(
+			lib +
+				'Map: should not trigger key iteration when setting existing keys ',
+			expect => {
+				const map = mutable(new Map())
+
+				let calls = 0
+				const execute = memo(() => {
+					calls++
+					const keys = []
+					for (const key of map.keys()) {
+						keys.push(key)
+					}
+				})
+				execute()
+				expect(calls).toBe(1)
+
+				map.set('a', 0)
+				execute()
+				expect(calls).toBe(2)
+
+				map.set('b', 0)
+				execute()
+				expect(calls).toBe(3)
+
+				// keys didn't change, should not trigger
+				map.set('b', 1)
+				execute()
+
+				expect(calls).toBe(3)
+			},
+		)
+
+		test(
+			lib + 'Map: should return proxy from Map.set call ',
+			expect => {
+				const map = mutable(new Map())
+				const result = map.set('a', 'a')
+				expect(result).toBe(map)
+			},
+		)
+
+		test(
+			lib +
+				'Map: observing subtypes of IterableCollections(Map, Set)',
+			expect => {
+				// subtypes of Map
+				class CustomMap extends Map {}
+				const cmap = mutable(new CustomMap())
+
+				expect(cmap instanceof Map).toBe(true)
+
+				const val = {}
+				cmap.set('key', val)
+				expect(isProxy(cmap.get('key'))).toBe(true)
+				expect(cmap.get('key')).not.toBe(val)
+			},
+		)
+
+		test(
+			lib +
+				'Map: observing subtypes of IterableCollections(Map, Set) deep',
+			expect => {
+				// subtypes of Map
+				class CustomMap extends Map {}
+				const cmap = mutable({ value: new CustomMap() })
+
+				expect(cmap.value instanceof Map).toBe(true)
+
+				const val = {}
+				cmap.value.set('key', val)
+				expect(isProxy(cmap.value.get('key'))).toBe(true)
+				expect(cmap.value.get('key')).not.toBe(val)
+			},
+		)
+
+		test(
+			lib + 'Map: should work with observed value as key',
+			expect => {
+				const key = mutable({})
+				const m = mutable(new Map())
+				m.set(key, 1)
+				const roM = m
+
+				let calls = 0
+				const execute = memo(() => {
+					calls++
+					roM.get(key)
+				})
+				execute()
+
+				expect(calls).toBe(1)
+				m.set(key, 1)
+				execute()
+
+				expect(calls).toBe(1)
+				m.set(key, 2)
+				execute()
+
+				expect(calls).toBe(2)
+			},
+		)
+
+		// solid-primitives
+
+		test(lib + 'Map: behaves like a Map', expect => {
+			const obj1 = {}
+			const obj2 = {}
+
+			const map = mutable(
+				new Map([
+					[obj1, 123],
+					[1, 'foo'],
+				]),
+			)
+
+			expect(map.has(obj1)).toBe(true)
+			expect(map.has(1)).toBe(true)
+			expect(map.has(2)).toBe(false)
+
+			expect(map.get(obj1)).toBe(123)
+			expect(map.get(1)).toBe('foo')
+
+			map.set(obj2, 'bar')
+			expect(map.get(obj2)).toBe('bar')
+			map.set(obj1, 'change')
+			expect(map.get(obj1)).toBe('change')
+
+			expect(map.delete(obj2)).toBe(true)
+			expect(map.has(obj2)).toBe(false)
+
+			expect(map.size).toBe(2)
+			map.clear()
+			expect(map.size).toBe(0)
+
+			expect(map instanceof Map).toBe(true)
+		})
+
+		test(lib + 'Map: has() is reactive', expect => {
+			const map = mutable(
+				new Map([
+					[1, {}],
+					[1, {}],
+					[2, {}],
+					[3, {}],
+				]),
+			)
+
+			const captured = []
+			const execute = memo(() => {
+				captured.push(map.has(2))
+			})
+			execute()
+
+			expect(captured).toHaveShape([true])
+
+			map.set(4, {})
+			expect(captured).toHaveShape([true])
+
+			map.delete(4)
+			expect(captured).toHaveShape([true])
+
+			map.delete(2)
+			expect(captured).toHaveShape([true, false])
+
+			map.set(2, {})
+			expect(captured).toHaveShape([true, false, true])
+
+			map.clear()
+			expect(captured).toHaveShape([true, false, true, false])
+		})
+
+		test(lib + 'Map: get() is reactive', expect => {
+			const obj1 = {}
+			const obj2 = {}
+			const obj3 = {}
+			const obj4 = {}
+
+			const map = mutable(
+				new Map([
+					[1, obj1],
+					[1, obj2],
+					[2, obj3],
+					[3, obj4],
+				]),
+			)
+
+			let calls = 0
+			let dummy
+			const execute = memo(() => {
+				calls++
+				dummy = map.get(2)
+			})
+			execute()
+
+			map.set(4, {})
+			expect(calls).toBe(1)
+
+			map.delete(4)
+			expect(calls).toBe(1)
+
+			map.delete(2)
+			expect(dummy).toBe(undefined)
+			expect(calls).toBe(2)
+
+			map.set(2, obj4)
+			expect(dummy).toBe(mutable(obj4))
+
+			map.set(2, obj4)
+			expect(calls).toBe(3)
+
+			map.clear()
+			expect(dummy).toBe(undefined)
+			expect(calls).toBe(4)
+		})
+
+		test(lib + 'Map: spread values is reactive', expect => {
+			const map = mutable(
+				new Map([
+					[1, 'a'],
+					[1, 'b'],
+					[2, 'c'],
+					[3, 'd'],
+				]),
+			)
+
+			const captured = []
+
+			const execute = memo(() => captured.push([...map.values()]))
+			execute()
+
+			expect(captured.length).toBe(1)
+			expect(captured[0]).toHaveShape(['b', 'c', 'd'])
+
+			map.set(4, 'e')
+			expect(captured.length).toBe(2)
+			expect(captured[1]).toHaveShape(['b', 'c', 'd', 'e'])
+
+			map.set(4, 'e')
+			expect(captured.length).toBe(2)
+
+			map.delete(4)
+			expect(captured.length).toBe(3)
+			expect(captured[2]).toHaveShape(['b', 'c', 'd'])
+
+			map.delete(2)
+			expect(captured.length).toBe(4)
+			expect(captured[3]).toHaveShape(['b', 'd'])
+
+			map.delete(2)
+			expect(captured.length).toBe(4)
+
+			map.set(2, 'a')
+			expect(captured.length).toBe(5)
+			expect(captured[4]).toHaveShape(['b', 'd', 'a'])
+
+			map.set(2, 'b')
+			expect(captured.length).toBe(6)
+			expect(captured[5]).toHaveShape(['b', 'd', 'b'])
+
+			map.clear()
+			expect(captured.length).toBe(7)
+			expect(captured[6]).toHaveShape([])
+		})
+
+		test(lib + 'Map: .size is reactive', expect => {
+			const map = mutable(
+				new Map([
+					[1, {}],
+					[1, {}],
+					[2, {}],
+					[3, {}],
+				]),
+			)
+
+			const captured = []
+			const execute = memo(() => {
+				captured.push(map.size)
+			})
+			execute()
+
+			expect(captured.length).toBe(1)
+			expect(captured[0]).toBe(3)
+
+			map.set(4, {})
+			expect(captured.length).toBe(2)
+			expect(captured[1]).toBe(4)
+
+			map.delete(4)
+			expect(captured.length).toBe(3)
+			expect(captured[2]).toBe(3)
+
+			map.delete(2)
+			expect(captured.length).toBe(4)
+			expect(captured[3]).toBe(2)
+
+			map.delete(2)
+			expect(captured.length).toBe(4)
+
+			map.set(2, {})
+			expect(captured.length).toBe(5)
+			expect(captured[4]).toBe(3)
+
+			map.set(2, {})
+			expect(captured.length).toBe(5)
+
+			map.clear()
+			expect(captured.length).toBe(6)
+			expect(captured[5]).toBe(0)
+		})
+
+		test(lib + 'Map: .keys() is reactive', expect => {
+			const map = mutable(
+				new Map([
+					[1, 'a'],
+					[2, 'b'],
+					[3, 'c'],
+					[4, 'd'],
+				]),
+			)
+
+			const captured = []
+
+			const execute = memo(() => {
+				const run = []
+				for (const key of map.keys()) {
+					run.push(key)
+					if (key === 3) break // don't iterate over all keys
+				}
+				captured.push(run)
+			})
+			execute()
+
+			expect(captured.length).toBe(1)
+			expect(captured[0]).toHaveShape([1, 2, 3])
+
+			map.set(1)
+			expect(captured.length).toBe(1)
+
+			map.set(5)
+			expect(captured.length).toBe(1)
+
+			map.delete(1)
+			expect(captured.length).toBe(2)
+			expect(captured[1]).toHaveShape([2, 3])
+		})
+
+		test(lib + 'Map: .values() is reactive', expect => {
+			const map = mutable(
+				new Map([
+					[1, 'a'],
+					[2, 'b'],
+					[3, 'c'],
+					[4, 'd'],
+				]),
+			)
+
+			const captured = []
+
+			const execute = memo(() => {
+				const run = []
+				let i = 0
+				for (const v of map.values()) {
+					run.push(v)
+					if (i === 2) break // don't iterate over all keys
+					i += 1
+				}
+				captured.push(run)
+			})
+			execute()
+
+			expect(captured.length).toBe(1)
+			expect(captured[0]).toHaveShape(['a', 'b', 'c'])
+
+			map.set(1, 'e')
+			expect(captured.length).toBe(2)
+			expect(captured[1]).toHaveShape(['e', 'b', 'c'])
+
+			map.set(4, 'f')
+			expect(captured.length).toBe(2)
+
+			map.delete(4)
+			expect(captured.length).toBe(2)
+
+			map.delete(1)
+			expect(captured.length).toBe(3)
+			expect(captured[2]).toHaveShape(['b', 'c'])
+		})
+
+		test(lib + 'Map: .entries() is reactive', expect => {
+			const map = mutable(
+				new Map([
+					[1, 'a'],
+					[2, 'b'],
+					[3, 'c'],
+					[4, 'd'],
+				]),
+			)
+
+			const captured = []
+
+			const execute = memo(() => {
+				const run = []
+				let i = 0
+				for (const e of map.entries()) {
+					run.push(e)
+					if (i === 2) break // don't iterate over all keys
+					i += 1
+				}
+				captured.push(run)
+			})
+			execute()
+
+			expect(captured.length).toBe(1)
+			expect(captured[0]).toHaveShape([
+				[1, 'a'],
+				[2, 'b'],
+				[3, 'c'],
+			])
+
+			map.set(1, 'e')
+			expect(captured.length).toBe(2)
+			expect(captured[1]).toHaveShape([
+				[1, 'e'],
+				[2, 'b'],
+				[3, 'c'],
+			])
+
+			map.set(4, 'f')
+			expect(captured.length).toBe(2)
+
+			map.delete(4)
+			expect(captured.length).toBe(2)
+
+			map.delete(1)
+			expect(captured.length).toBe(3)
+			expect(captured[2]).toHaveShape([
+				[2, 'b'],
+				[3, 'c'],
+			])
+		})
+
+		test(lib + 'Map: .forEach() is reactive', expect => {
+			const map = mutable(
+				new Map([
+					[1, 'a'],
+					[2, 'b'],
+					[3, 'c'],
+					[4, 'd'],
+				]),
+			)
+
+			const captured = []
+
+			const execute = memo(() => {
+				const run = []
+				map.forEach((v, k) => {
+					run.push([k, v])
+				})
+				captured.push(run)
+			})
+			execute()
+
+			expect(captured.length).toBe(1)
+			expect(captured[0]).toHaveShape([
+				[1, 'a'],
+				[2, 'b'],
+				[3, 'c'],
+				[4, 'd'],
+			])
+
+			map.set(1, 'e')
+			expect(captured.length).toBe(2)
+			expect(captured[1]).toHaveShape([
+				[1, 'e'],
+				[2, 'b'],
+				[3, 'c'],
+				[4, 'd'],
+			])
+
+			map.delete(4)
+			expect(captured.length).toBe(3)
+			expect(captured[2]).toHaveShape([
+				[1, 'e'],
+				[2, 'b'],
+				[3, 'c'],
+			])
+		})
+	}
+	// misc 2
+
+	test(
+		lib + 'misc 2: avoids type confusion with inherited properties',
+		expect => {
+			class Test4 {
+				a = 13
+				get b() {
+					return this.a * 4
+				}
+				get myA() {
+					return this.a
+				}
+				set myA(value) {
+					this.a = value
+				}
+			}
+			class Test3 extends Test4 {}
+			class Tests2 extends Test3 {
+				a = 1
+			}
+			class Test extends Tests2 {}
+
+			const m = mutable(new Test())
+
+			let calls = 0
+			const execute = memo(() => {
+				m.b
+				calls++
+			})
+			execute()
+
+			const increment = () => {
+				m.a++
+				execute()
+			}
+
+			// initial
+			expect(m.a).toBe(1)
+			expect(m.b).toBe(4)
+			expect(m.myA).toBe(1)
+			expect(calls).toBe(1)
+
+			// incrementing
+			increment()
+			expect(m.a).toBe(2)
+			expect(m.b).toBe(8)
+			expect(m.myA).toBe(2)
+			expect(calls).toBe(2)
+
+			increment()
+			expect(m.a).toBe(3)
+			expect(m.b).toBe(12)
+			expect(m.myA).toBe(3)
+			expect(calls).toBe(3)
+		},
+	)
+
+	// misc
+
+	test(lib + 'misc 2: doesnt change keys', expect => {
+		let result
+
+		// object
+		result = mutable({})
+		expect(Object.keys(result).length).toBe(0)
+
+		// array
+		result = mutable([])
+		expect(Object.keys(result).length).toBe(0)
+
+		// deep object
+		result = mutable({ value: {} })
+		expect(Object.keys(result.value).length).toBe(0)
+
+		// deep array
+		result = mutable({ value: [] })
+		expect(Object.keys(result.value).length).toBe(0)
+
+		// map
+		result = mutable(new Map())
+		expect(Object.keys(result).length).toBe(0)
+	})
+
+	test(
+		lib + 'misc 2: reacts when getter/setter using external signal',
+		expect => {
+			const [read, write] = signal(1)
+			// object
+			const result = mutable({
+				get lala() {
+					read()
+					return 1
+				},
+				set lala(value) {
+					write(value)
+				},
+			})
+
+			let calls = 0
+			const execute = memo(() => {
+				result.lala
+				calls++
+			})
+			execute()
+			expect(calls).toBe(1)
+
+			write(1)
+			execute()
+			expect(calls).toBe(1)
+
+			result.lala = 1
+			execute()
+			expect(calls).toBe(1)
+
+			result.lala = 2
+			execute()
+			expect(calls).toBe(2)
+
+			write(2)
+			execute()
+			expect(calls).toBe(2)
+		},
+	)
+
+	test(
+		lib +
+			'misc 2: reacts when its only a getter with an external write',
+		expect => {
+			const [read, write] = signal(1)
+			// object
+			const result = mutable({
+				get lala() {
+					read()
+					return 1
+				},
+			})
+
+			let calls = 0
+			const execute = memo(() => {
+				result.lala
+				calls++
+			})
+			execute()
+			expect(calls).toBe(1)
+
+			write(1)
+			execute()
+			expect(calls).toBe(1)
+
+			write(2)
+			execute()
+			expect(calls).toBe(2)
+		},
+	)
+
+	test(lib + 'misc 2: proxy invariants', expect => {
+		const o = {
+			frozen: Object.freeze({}),
+		}
+
+		Object.defineProperty(o, 'test', {
+			configurable: false,
+			writable: false,
+			value: { test: 1 },
+		})
+
+		// if broken this will crash
+		let result = mutable(o)
+
+		expect(result.test).toBe(o.test)
+
+		expect(result.frozen).toBe(o.frozen)
+	})
+
+	// benchmark
+
+	// https://github.com/vobyjs/oby/blob/master/tasks/store.fixtures.js
+	// https://github.com/vobyjs/oby/blob/master/tasks/store.js
+
+	if (doBenchmark) {
+		const NOOP = () => {}
+
+		const OBJ = () => ({
+			str: 'string',
+			null: null,
+			undefined: undefined,
+			nr: 123,
+			bigint: 10n,
+			symbol: Symbol(),
+			re: /foo/g,
+			fn: function () {},
+			arr: [1, 2, 3, {}],
+			arrfilled: new Array(10_000).fill(0).map((_, idx) => idx),
+			/*arrBuf: new ArrayBuffer(12),
+			arrTyped: new Int8Array(new ArrayBuffer(24)),*/
+			obj: {
+				deep: {
+					deeper: true,
+				},
+			},
+			date: new Date(),
+			/*map: new Map([
+			['1', 1],
+			['2', 2],
+		]),*/
+			set: new Set([1, 2, 3]),
+		})
+
+		const OBJ_HUGE = () => ({
+			arr: new Array(100_000).fill(0).map((_, idx) => idx),
+			date: new Date(),
+			/*	map: new Map(
+			new Array(100_000)
+				.fill(0)
+				.map((_, idx) => idx)
+				.map(nr => [`${nr}`, nr]),
+		),
+		set: new Set(new Array(100_000).fill(0).map((_, idx) => idx)),*/
+		})
+
+		let superTotal = 0
+		const benchmark = (title, context, fn) => {
+			if (!benchmarkTable[title]) {
+				benchmarkTable[title] = {}
+				if (!benchmarkTable.total) {
+					benchmarkTable.total = {
+						'solid: ': 0,
+						'oby: ': 0,
+						'pota: ': 0,
+					}
+				}
+			}
+			try {
+				let total = 0
+				root(dispose => {
+					const ctx = context()
+					for (let i = 0; i < 3_000; i++) {
+						total += timing(() => {
+							fn(ctx)
+						})
+					}
+					dispose()
+				})
+				benchmarkTable[title][lib] = total
+				benchmarkTable.total[lib] += total
+			} catch (e) {
+				console.log(e)
+				benchmarkTable[title][lib] = e
+			}
+		}
+
+		// get
+		benchmark(
+			'access: primitive',
+			() => {
+				return mutable(OBJ())
+			},
+			ctx => {
+				ctx.str
+				ctx.nr
+				ctx.symbol
+			},
+		)
+		benchmark(
+			'access: shallow',
+			() => {
+				return mutable(OBJ())
+			},
+			ctx => {
+				ctx.arr
+				ctx.obj
+			},
+		)
+		benchmark(
+			'access: deep',
+			() => {
+				return mutable(OBJ())
+			},
+			ctx => {
+				ctx.arr[3].undefined
+				ctx.obj.deep.deeper
+			},
+		)
+
+		benchmark(
+			'access: array',
+			() => {
+				return mutable(OBJ())
+			},
+			ctx => {
+				ctx.arr.concat(4)
+				ctx.arr.entries()
+				ctx.arr.every(NOOP)
+				ctx.arr.filter(NOOP)
+				ctx.arr.find(NOOP)
+				ctx.arr.findIndex(NOOP)
+				ctx.arr.forEach(() => {})
+				ctx.arr.includes(1)
+				ctx.arr.indexOf(1)
+				ctx.arr.join()
+				ctx.arr.keys()
+				ctx.arr.lastIndexOf(1)
+				ctx.arr.map(NOOP)
+				ctx.arr.reduce(() => ({}))
+				ctx.arr.reduceRight(() => ({}))
+				ctx.arr.slice()
+				ctx.arr.some(NOOP)
+				ctx.arr.toLocaleString()
+				ctx.arr.toString()
+				ctx.arr.values()
+			},
+		)
+
+		benchmark(
+			'set: object:shallow',
+			() => {
+				return mutable(OBJ())
+			},
+			ctx => {
+				ctx.arr[0] = 1
+			},
+		)
+
+		benchmark(
+			'set: object:deep',
+			() => {
+				return mutable(OBJ())
+			},
+			ctx => {
+				ctx.obj.deep.deeper = true
+			},
+		)
+
+		benchmark(
+			'set: array',
+			() => {
+				return mutable(OBJ())
+			},
+			ctx => {
+				ctx.arr.copyWithin(0, 0, 0)
+				ctx.arr.push()
+				ctx.arr.splice(0, 0)
+			},
+		)
+
+		benchmark(
+			'set: object:shallow 2',
+			() => {
+				return mutable(OBJ())
+			},
+			ctx => {
+				ctx.arr[0] = 10
+				ctx.obj.foo = 10
+			},
+		)
+		benchmark(
+			'set: object:deep 2',
+			() => {
+				return mutable(OBJ())
+			},
+			ctx => {
+				ctx.arr[3].undefined = 10
+				ctx.obj.deep.deeper = 10
+			},
+		)
+
+		/*
+
+		benchmark(
+		'set: array 2',
+		() => {
+			return mutable(OBJ())
+		},
+		ctx => {
+			ctx.arr.copyWithin(0, 1, 2)
+			ctx.arr.fill(0)
+			ctx.arr.pop()
+			ctx.arr.push(-1, -2, -3)
+			ctx.arr.reverse()
+			ctx.arr.shift()
+			ctx.arr.sort()
+			ctx.arr.splice(0, 1, 2)
+			ctx.arr.unshift(5)
+		},
+	)
+	benchmark(
+		'mutate array: copyWithin',
+		() => {
+			return mutable(OBJ())
+		},
+		ctx => {
+			ctx.arrfilled.copyWithin(0, 1, 2)
+		},
+	)
+
+	benchmark(
+		'mutate array: fill',
+		() => {
+			return mutable(OBJ())
+		},
+		ctx => {
+			ctx.arrfilled.fill(0)
+		},
+	)
+
+	benchmark(
+		'mutate array: pop',
+		() => {
+			return mutable(OBJ())
+		},
+		ctx => {
+			ctx.arrfilled.pop()
+		},
+	)
+	benchmark(
+		'mutate array: push',
+		() => {
+			return mutable(OBJ())
+		},
+		ctx => {
+			ctx.arrfilled.push()
+		},
+	)
+	benchmark(
+		'mutate array: reverse ',
+		() => {
+			return mutable(OBJ())
+		},
+		ctx => {
+			ctx.arrfilled.reverse()
+		},
+	)
+	benchmark(
+		'mutate array: shift ',
+		() => {
+			return mutable(OBJ())
+		},
+		ctx => {
+			ctx.arrfilled.shift()
+		},
+	)
+	benchmark(
+		'mutate array: sort ',
+		() => {
+			return mutable(OBJ())
+		},
+		ctx => {
+			ctx.arrfilled.sort()
+		},
+	)
+	benchmark(
+		'mutate array: splice ',
+		() => {
+			return mutable(OBJ())
+		},
+		ctx => {
+			ctx.arrfilled.splice(0, 1, 2)
+		},
+	)
+	benchmark(
+		'mutate array: unshift ',
+		() => {
+			return mutable(OBJ())
+		},
+		ctx => {
+			ctx.arrfilled.unshift(5)
+		},
+	)
+
+	benchmark(
+		'delete: object:shallow ',
+		() => {
+			return mutable(OBJ())
+		},
+		ctx => {
+			delete ctx.arr
+		},
+	)
+	benchmark(
+		'delete: object:deep ',
+		() => {
+			return mutable(OBJ())
+		},
+		ctx => {
+			delete ctx.obj.deep.deeper
+		},
+	)*/
+		// create
+		benchmark(
+			'create: number',
+			() => {},
+			() => {
+				mutable(123)
+			},
+		)
+		benchmark(
+			'create: object',
+			() => {},
+			() => {
+				mutable({})
+			},
+		)
+		benchmark(
+			'create: array',
+			() => {},
+			() => {
+				mutable([])
+			},
+		)
+		/*benchmark(
+		'create: small',
+		() => {},
+		() => {
+			mutable(OBJ())
+		},
+	)
+	benchmark(
+		'create: huge',
+		() => {},
+		() => {
+			mutable(OBJ_HUGE())
+		},
+	)*/
+	}
 
 	function testValues(expect, set, get) {
 		let callsMemo = 0
