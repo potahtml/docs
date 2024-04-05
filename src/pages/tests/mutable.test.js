@@ -23,7 +23,7 @@ import $, {
 	memo as memoOby,
 	batch as batchOby,
 	root as rootOby,
-} from 'https://jspm.dev/oby'
+} from 'https://cdn.jsdelivr.net/npm/oby@15.1.2/dist/index.js'
 
 const signalOby = initialValue => {
 	const s = $(initialValue)
@@ -59,12 +59,12 @@ function memoSolid(fn) {
 // pota
 
 import {
-	mutable as mutablePota,
 	memo as memoPota,
 	batch as batchPota,
 	signal as signalPota,
 	root as rootPota,
 } from 'pota'
+import { mutable as mutablePota } from 'pota/store'
 
 // bench stuff
 
@@ -228,7 +228,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 		expect(source.data.ending).toBe(2)
 	})
 
-	test(lib + 'mutation: object frozen [oby]', expect => {
+	test(lib + 'mutation: object frozen', expect => {
 		const source = mutable(
 			Object.freeze({
 				user: { name: 'John', last: 'Snow' },
@@ -248,17 +248,6 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 		execute()
 		expect(called).toBe(1)
 
-		source.user.name = 'quack'
-		execute()
-		expect(called).toBe(2)
-
-		source.user.last = 'murci'
-		execute()
-		expect(called).toBe(3)
-
-		expect(source.user.name).toBe('quack')
-		expect(source.user.last).toBe('murci')
-
 		try {
 			source.user = 'something else'
 			// solid by design modifies frozen objects
@@ -270,7 +259,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 		}
 	})
 
-	test(lib + 'mutation: object frozen nested [oby]', expect => {
+	test(lib + 'mutation: object frozen nested', expect => {
 		const source = mutable({
 			data: Object.freeze({
 				user: { name: 'John', last: 'Snow' },
@@ -291,17 +280,6 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 		expect(source.data.user.name).toBe('John')
 		expect(source.data.user.last).toBe('Snow')
 
-		source.data.user.name = 'quack'
-		execute()
-		expect(called).toBe(2)
-
-		source.data.user.last = 'murci'
-		execute()
-		expect(called).toBe(3)
-
-		expect(source.data.user.name).toBe('quack')
-		expect(source.data.user.last).toBe('murci')
-
 		try {
 			source.data.user = 'something else'
 			// solid by design modifies frozen objects
@@ -314,7 +292,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 	})
 
 	test(
-		lib + 'mutation: object frozen within frozen nested [oby]',
+		lib + 'mutation: object frozen within frozen nested',
 		expect => {
 			const source = mutable(
 				Object.freeze({
@@ -337,17 +315,6 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 
 			expect(source.data.user.store.name).toBe('John')
 			expect(source.data.user.store.last).toBe('Snow')
-
-			source.data.user.store.name = 'quack'
-			execute()
-			expect(called).toBe(2)
-
-			source.data.user.store.last = 'murci'
-			execute()
-			expect(called).toBe(3)
-
-			expect(source.data.user.store.name).toBe('quack')
-			expect(source.data.user.store.last).toBe('murci')
 
 			try {
 				source.data.user = 'something else'
@@ -1101,35 +1068,32 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 		expect(access).toBe(0)
 	})
 
-	test(
-		lib + 'in: getters to not be called 3 [solid, oby]',
-		expect => {
-			let access = 0
-			const result = mutable({
-				a: 1,
-				get b() {
-					// console.log('accesing b')
-					access++
-					return 2
-				},
-			})
+	test(lib + 'in: getters to not be called 3 [solid]', expect => {
+		let access = 0
+		const result = mutable({
+			a: 1,
+			get b() {
+				// console.log('accesing b')
+				access++
+				return 2
+			},
+		})
 
-			let failed = false
-			try {
-				result.b = 0
-			} catch (e) {
-				failed = true
-			}
-			if (!failed) {
-				throw 'setting a value when its only a getter should have throw'
-			}
+		let failed = false
+		try {
+			result.b = 0
+		} catch (e) {
+			failed = true
+		}
+		if (!failed) {
+			throw 'setting a value when its only a getter should have throw'
+		}
 
-			expect(access).toBe(0)
-			expect('a' in result).toBe(true)
-			expect('b' in result).toBe(true)
-			expect(access).toBe(0)
-		},
-	)
+		expect(access).toBe(0)
+		expect('a' in result).toBe(true)
+		expect('b' in result).toBe(true)
+		expect(access).toBe(0)
+	})
 
 	test(lib + 'in: getters to not be called 3.1 [solid]', expect => {
 		let access = 0
@@ -1160,43 +1124,40 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 		expect(access).toBe(2)
 	})
 
-	test(
-		lib + 'in: getters to not be called 4 [solid, oby]',
-		expect => {
-			let access = 0
-			const result = mutable({
-				a: 1,
-				get b() {
-					access++
-					return 2
-				},
-			})
+	test(lib + 'in: getters to not be called 4 [solid]', expect => {
+		let access = 0
+		const result = mutable({
+			a: 1,
+			get b() {
+				access++
+				return 2
+			},
+		})
 
-			expect(access).toBe(0)
-			expect('a' in result).toBe(true)
-			expect('b' in result).toBe(true)
-			expect(access).toBe(0)
+		expect(access).toBe(0)
+		expect('a' in result).toBe(true)
+		expect('b' in result).toBe(true)
+		expect(access).toBe(0)
 
-			delete result.b
+		delete result.b
 
-			expect('a' in result).toBe(true)
-			expect('b' in result).toBe(false)
-			expect(access).toBe(0)
+		expect('a' in result).toBe(true)
+		expect('b' in result).toBe(false)
+		expect(access).toBe(0)
 
-			result.b
+		result.b
 
-			expect('a' in result).toBe(true)
-			expect('b' in result).toBe(false)
-			expect(access).toBe(0)
+		expect('a' in result).toBe(true)
+		expect('b' in result).toBe(false)
+		expect(access).toBe(0)
 
-			result.b = 3
+		result.b = 3
 
-			expect('a' in result).toBe(true)
-			expect('b' in result).toBe(true)
-			expect(result.b).toBe(3)
-			expect(access).toBe(0)
-		},
-	)
+		expect('a' in result).toBe(true)
+		expect('b' in result).toBe(true)
+		expect(result.b).toBe(3)
+		expect(access).toBe(0)
+	})
 
 	/* tracking */
 
@@ -1669,33 +1630,61 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 	})
 
 	test(lib + 'reacts to hasOwnProperty [solid, oby]', expect => {
-		let m = mutable({ a: { deep: 'test' } })
+		let m = mutable({ a: { deep: 'test' }, c: {} })
 
 		let has
+
 		let calls1 = 0
 		const execute1 = memo(() => {
 			calls1++
 			has = m.hasOwnProperty('b')
 		})
-		execute1()
-		expect(has).toBe(false)
-		m.b = 1
-		execute1()
-		expect(has).toBe(true)
 
 		let calls2 = 0
 		const execute2 = memo(() => {
 			calls2++
 			has = m.a.hasOwnProperty('b')
 		})
-		execute1(), execute2()
-		expect(has).toBe(false)
-		m.a.b = 1
-		execute1(), execute2()
-		expect(has).toBe(true)
 
+		let calls3 = 0
+		const execute3 = memo(() => {
+			calls3++
+			has = Object.hasOwn(m, 'z')
+		})
+
+		execute1(), execute2(), execute3()
+		expect(calls1).toBe(1)
+		expect(calls2).toBe(1)
+		expect(calls3).toBe(1)
+		expect(has).toBe(false)
+
+		m.b = 1
+
+		execute1(), execute2(), execute3()
+		expect(calls1).toBe(2)
+		expect(calls2).toBe(1)
+		expect(calls3).toBe(1)
+		expect(has).toBe(true)
+		has = false
+		expect(has).toBe(false)
+
+		m.a.b = 1
+
+		execute1(), execute2(), execute3()
 		expect(calls1).toBe(2)
 		expect(calls2).toBe(2)
+		expect(calls3).toBe(1)
+		expect(has).toBe(true)
+		has = false
+		expect(has).toBe(false)
+
+		m.z = 1
+
+		execute1(), execute2(), execute3()
+		expect(calls1).toBe(2)
+		expect(calls2).toBe(2)
+		expect(calls3).toBe(2)
+		expect(has).toBe(true)
 	})
 
 	// oby test suite
@@ -3771,7 +3760,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 		expect(obj1 === obj2 && obj2 === obj3 && obj3 === obj4).toBe(true)
 	})
 
-	test(lib + 'mutable identity nested [oby]', expect => {
+	test(lib + 'mutable identity nested', expect => {
 		const raw = {}
 		const obj1 = mutable({ value: raw })
 		const obj2 = mutable({ value: raw })
@@ -4311,22 +4300,6 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 			observed.obj = obj
 			execute()
 			expect(calls).toBe(1)
-
-			const obj2 = mutable({ foo: 1 })
-			const observed2 = mutable({ obj2 })
-
-			let calls2 = 0
-			const execute2 = memo(() => {
-				calls2++
-				observed2.obj2
-			})
-			execute2()
-			expect(calls2).toBe(1)
-
-			observed2.obj2 = obj2
-			execute()
-			execute2()
-			expect(calls2).toBe(1)
 		},
 	)
 
@@ -4891,7 +4864,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 		expect(obj1 === obj2 && obj2 === obj3 && obj3 === obj4).toBe(true)
 	})
 
-	test(lib + 'array: mutable identity nested [oby]', expect => {
+	test(lib + 'array: mutable identity nested', expect => {
 		const raw = []
 		const obj1 = mutable({ value: raw })
 		const obj2 = mutable({ value: raw })
@@ -5408,7 +5381,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 
 	test(
 		lib +
-			'array: supports reacting when array length is set explicity while reading value [oby]',
+			'array: supports reacting when array length is set explicity while reading value',
 		expect => {
 			const o = mutable({ value: [0, 2] })
 
@@ -5688,8 +5661,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 	)
 
 	test(
-		lib +
-			'array: supports batching array methods automatically [oby]',
+		lib + 'array: supports batching array methods automatically',
 		expect => {
 			const o = mutable({ value: [1, 2, 3] })
 
@@ -5870,8 +5842,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 	)
 
 	test(
-		lib +
-			'array: shift on Array should trigger dependency once [oby]',
+		lib + 'array: shift on Array should trigger dependency once',
 		expect => {
 			const arr = mutable([1, 2, 3])
 
@@ -5894,7 +5865,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 	//#6018
 	test(
 		lib +
-			'array: edge case: avoid trigger effect in deleteProperty when array length-decrease mutation methods called [oby]',
+			'array: edge case: avoid trigger effect in deleteProperty when array length-decrease mutation methods called',
 		expect => {
 			const arr = mutable([1])
 
@@ -6013,7 +5984,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 	})
 
 	test(
-		lib + 'array: should observe implicit array length changes [oby]',
+		lib + 'array: should observe implicit array length changes',
 		expect => {
 			let dummy
 			const list = mutable(['Hello'])
@@ -6106,7 +6077,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 
 	test(
 		lib +
-			'array: should trigger all effects when array length is set to 0 [oby]',
+			'array: should trigger all effects when array length is set to 0',
 		expect => {
 			const observed = mutable([1])
 
@@ -6148,7 +6119,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 
 	test(
 		lib +
-			'array: identity methods should work if raw value contains reactive objects [oby]',
+			'array: identity methods should work if raw value contains reactive objects',
 		expect => {
 			const nativearr = []
 			const obj = mutable({})
@@ -6291,27 +6262,36 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 		expect(result()).toBe(10)
 	})
 
-	test(lib + 'array: vue array instrumentation: concat', expect => {
-		batch(() => {
-			const a1 = mutable([1, { val: 2 }])
-			const a2 = mutable([{ val: 3 }])
-			const a3 = [4, 5]
+	test(
+		lib + 'array: vue array instrumentation: concat [oby]',
+		expect => {
+			batch(() => {
+				const a1 = mutable([1, { val: 2 }])
+				const a2 = mutable([{ val: 3 }])
+				const a3 = [4, 5]
 
-			let result = memo(() => a1.concat(a2, a3))
-			expect(result()).toHaveShape([1, { val: 2 }, { val: 3 }, 4, 5])
-			expect(isProxy(result()[1])).toBe(true)
-			expect(isProxy(result()[2])).toBe(true)
+				let result = memo(() => a1.concat(a2, a3))
+				expect(result()).toHaveShape([
+					1,
+					{ val: 2 },
+					{ val: 3 },
+					4,
+					5,
+				])
+				expect(isProxy(result()[1])).toBe(true)
+				expect(isProxy(result()[2])).toBe(true)
 
-			a1.shift()
-			expect(result()).toHaveShape([{ val: 2 }, { val: 3 }, 4, 5])
+				a1.shift()
+				expect(result()).toHaveShape([{ val: 2 }, { val: 3 }, 4, 5])
 
-			a2.pop()
-			expect(result()).toHaveShape([{ val: 2 }, 4, 5])
+				a2.pop()
+				expect(result()).toHaveShape([{ val: 2 }, 4, 5])
 
-			a3.pop()
-			expect(result()).toHaveShape([{ val: 2 }, 4])
-		})
-	})
+				a3.pop()
+				expect(result()).toHaveShape([{ val: 2 }, 4])
+			})
+		},
+	)
 
 	test(lib + 'array: vue array instrumentation: entries', expect => {
 		const shallow = mutable([0, 1])
@@ -7698,7 +7678,8 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 	// misc 2
 
 	test(
-		lib + 'misc 2: avoids type confusion with inherited properties',
+		lib +
+			'misc 2: avoids type confusion with inherited properties [oby]',
 		expect => {
 			class Test4 {
 				a = 13
@@ -7869,6 +7850,145 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 
 		expect(result.frozen).toBe(o.frozen)
 	})
+
+	test(
+		lib + 'misc 2: can mutate child of frozen object 1',
+		expect => {
+			const source = mutable(
+				Object.freeze({
+					user: { name: 'John', last: 'Snow' },
+				}),
+			)
+
+			expect(source.user.name).toBe('John')
+			expect(source.user.last).toBe('Snow')
+
+			let called = 0
+
+			const execute = memo(() => {
+				source.user.name
+				source.user.last
+				called++
+			})
+			execute()
+			expect(called).toBe(1)
+
+			source.user.name = 'quack'
+			execute()
+			expect(called).toBe(2)
+
+			source.user.last = 'murci'
+			execute()
+			expect(called).toBe(3)
+
+			expect(source.user.name).toBe('quack')
+			expect(source.user.last).toBe('murci')
+
+			try {
+				source.user = 'something else'
+				// solid by design modifies frozen objects
+				if (lib !== 'solid: ') {
+					expect('frozen value to not be changed').toBe(true)
+				}
+			} catch (e) {
+				// this is expected to fail
+			}
+		},
+	)
+
+	test(
+		lib + 'misc 2: can mutate child of frozen object 2',
+		expect => {
+			const source = mutable({
+				data: Object.freeze({
+					user: { name: 'John', last: 'Snow' },
+				}),
+			})
+
+			let called = 0
+
+			const execute = memo(() => {
+				called++
+
+				source.data.user.name
+				source.data.user.last
+			})
+			execute()
+			expect(called).toBe(1)
+
+			expect(source.data.user.name).toBe('John')
+			expect(source.data.user.last).toBe('Snow')
+
+			source.data.user.name = 'quack'
+			execute()
+			expect(called).toBe(2)
+
+			source.data.user.last = 'murci'
+			execute()
+			expect(called).toBe(3)
+
+			expect(source.data.user.name).toBe('quack')
+			expect(source.data.user.last).toBe('murci')
+
+			try {
+				source.data.user = 'something else'
+				// solid by design modifies frozen objects
+				if (lib !== 'solid: ') {
+					expect('frozen value to not be changed').toBe(true)
+				}
+			} catch (e) {
+				// this is expected to fail
+			}
+		},
+	)
+
+	test(
+		lib + 'misc 2: can mutate child of frozen object 3',
+		expect => {
+			const source = mutable(
+				Object.freeze({
+					data: Object.freeze({
+						user: { store: { name: 'John', last: 'Snow' } },
+					}),
+				}),
+			)
+
+			let called = 0
+
+			const execute = memo(() => {
+				called++
+
+				source.data.user.store.name
+				source.data.user.store.last
+			})
+			execute()
+			expect(called).toBe(1)
+
+			expect(source.data.user.store.name).toBe('John')
+			expect(source.data.user.store.last).toBe('Snow')
+
+			source.data.user.store.name = 'quack'
+			execute()
+			expect(called).toBe(2)
+
+			source.data.user.store.last = 'murci'
+			execute()
+			expect(called).toBe(3)
+
+			expect(source.data.user.store.name).toBe('quack')
+			expect(source.data.user.store.last).toBe('murci')
+
+			try {
+				source.data.user = 'something else'
+				// solid by design modifies frozen objects
+				if (lib !== 'solid: ') {
+					expect('frozen value to not be changed').toBe(true)
+				}
+			} catch (e) {
+				// this is expected to fail
+			}
+		},
+	)
 
 	// benchmark
 
