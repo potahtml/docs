@@ -1,4 +1,4 @@
-import { Switch, Match } from 'pota'
+import { Switch, Match } from 'pota/web'
 import { H2 } from './headings.jsx'
 
 export function Header(props) {

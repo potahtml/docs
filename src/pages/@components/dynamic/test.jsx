@@ -1,4 +1,5 @@
-import { render, Dynamic } from 'pota'
+import { render } from 'pota'
+import { Dynamic } from 'pota/web'
 
 function Bold(props) {
   return <b>{props.children}</b>

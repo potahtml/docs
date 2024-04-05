@@ -1,4 +1,5 @@
-import { render, signal, Show, css } from 'pota'
+import { render, signal, css } from 'pota'
+import { Show } from 'pota/web'
 
 function App() {
   const [showing, setShowing] = signal(false)

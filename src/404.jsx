@@ -1,4 +1,4 @@
-import { Head } from 'pota'
+import { Head } from 'pota/web'
 import { Code } from './lib/components/code/code.jsx'
 import { Header } from './lib/components/header.jsx'
 

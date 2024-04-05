@@ -1,4 +1,5 @@
-import { render, Show, signal } from 'pota'
+import { render, signal } from 'pota'
+import { Show } from 'pota/web'
 
 function Example() {
   const [showing, setShowing] = signal({
@@ -21,7 +22,6 @@ function Example() {
       <div>The value is:</div>
       {value => () => value().username}
       <hr />
-      <div>The value will be static if used as is</div>
       {value => <Test>{value().username}</Test>}
       <hr />
       <div>Is the value above .5?</div>

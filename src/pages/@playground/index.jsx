@@ -4,7 +4,8 @@ import { CheatSheet } from '../../lib/components/cheatsheet.jsx'
 import { Code } from '../../lib/components/code/code.jsx'
 import { Header } from '../../lib/components/header.jsx'
 
-import { Collapse, effect, signal } from 'pota'
+import { effect, signal } from 'pota'
+import { Collapse } from 'pota/web'
 
 import { compress, uncompress } from '../../lib/compress.js'
 import example from './default-example.js'

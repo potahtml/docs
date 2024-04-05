@@ -1,4 +1,5 @@
-import { render, Portal } from 'pota'
+import { render } from 'pota'
+import { Portal } from 'pota/web'
 
 function Test() {
   return ' me too!'

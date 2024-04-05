@@ -9,14 +9,10 @@ import {
 // rendering
 render, // render(thing, targetEl=document.body, {clear:false, relative:false})
 Component, // const comp = Component(Fancy, {children:[4,5,6]})
-customElement, // customElement("fancy-element", class Fancy extends HTMLElement{})
-CustomElement, // class Fancy extends CustomElement{}
 css, // css\`button { padding: \${props.padding} }\` // CSSStyleSheet
 
 // reactivity
 signal, // const [read, write] = signal(initialValue)
-signalify, // const state = signalify({some:true, thing:'bla'}) // only tracks whats defined on first level
-mutable, // const state = mutable({some:{thing:{deep:true}}}) // tracks all levels
 
 root, // root(fn)
 effect, // effect(fn)
@@ -61,7 +57,18 @@ propsPlugin, // propsPlugin('red', function(node, propName, propValue, props){no
 propsPluginNS, // propsPluginNS('red', function(node, propName, propValue, props){node.style.color = 'red'}) <div red:moo/>
 propsSplit, // const [newProps, children, divProps] = propsSplit(props, ['children'], ['id', 'class'])
 
+// pota version
+version
+} from 'pota'
+
+import {
+signalify, // const state = signalify({some:true, thing:'bla'}) // only tracks whats defined on first level
+mutable, // const state = mutable({some:{thing:{deep:true}}}) // tracks all levels
+} from 'pota/store'
+
+
 // JSX Components
+import {
 Show, // <Show when={true} fallback="ouch"/>
 Collapse, // <Collapse when={true}/>
 Dynamic, // <Dynamic component="div" children="Hola"/>
@@ -69,10 +76,10 @@ For, // <For each={[1, 2, 3]} children={[item => item * 1, item => item * 2]} />
 Head, // <Head><title>Hello World</title></Head>
 Switch, Match,// <Switch fallback="ouch"><Match when={true}/></Switch>
 Portal, // <Portal mount={document.body}>Hola</Portal>
-
-// pota version
-version
-} from 'pota'
+// custom element utils
+customElement, // customElement("fancy-element", class Fancy extends HTMLElement{})
+CustomElement, // class Fancy extends CustomElement{}
+} from 'pota/web'
 
 // html
 import {

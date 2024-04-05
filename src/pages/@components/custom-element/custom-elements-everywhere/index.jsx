@@ -75,7 +75,8 @@ render(() => <ce-with-children>hola</ce-with-children>);
 				<p>
 					<Code
 						code={`
-import { render, signal, Show } from "pota";
+import { render, signal } from "pota";
+import { Show } from "pota/web";
 import "/pages/%40components/custom-element/custom-elements-everywhere/custom-elements.js";
 
 const [show, setShow] = signal(true);
@@ -415,7 +416,8 @@ render(<p> label is: {camelCaseObj.label}</p>);
 				<p>
 					<Code
 						code={`
-import { render, ref, signalify } from "pota";
+import { render, ref } from "pota";
+import { signalify } from "pota/store";
 import "/pages/%40components/custom-element/custom-elements-everywhere/custom-elements.js";
 
 const state = signalify({

@@ -1,4 +1,5 @@
-import { signal, Show, Head } from 'pota'
+import { signal } from 'pota'
+import { Show, Head } from 'pota/web'
 
 function encode(text) {
 	return encodeURIComponent(

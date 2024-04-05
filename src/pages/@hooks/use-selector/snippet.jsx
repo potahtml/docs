@@ -1,4 +1,5 @@
-import { render, signal, For, css } from 'pota'
+import { render, signal, css } from 'pota'
+import { For } from 'pota/web'
 import { useSelector } from 'pota/hooks'
 
 const [selected, setSelected] = signal(3)

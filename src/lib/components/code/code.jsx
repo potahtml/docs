@@ -1,7 +1,8 @@
 import styles from './code.module.css'
 
 import { compress } from '../../compress.js'
-import { Show, signal, ref, memo, effect } from 'pota'
+import { signal, ref, memo, effect } from 'pota'
+import { Show } from 'pota/web'
 import { getValue } from 'pota/lib'
 import { prettierConfig } from '../../prettier-config.js'
 

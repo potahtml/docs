@@ -1,4 +1,5 @@
-import { Head, render } from 'pota'
+import { render } from 'pota'
+import { Head } from 'pota/web'
 
 function Component() {
   return (

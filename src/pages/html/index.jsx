@@ -162,7 +162,8 @@ export default function () {
 				</p>
 				<Code
 					code={`
-						import { render, signal, signalify } from 'pota'
+						import { render, signal  } from 'pota'
+						import { signalify } from 'pota/store'
 						import { htmlEffect } from 'pota/html'
 
 						const data = signalify({ test: 0 })
@@ -184,7 +185,8 @@ export default function () {
 
 				<Code
 					code={`
-						import { render, signal, signalify } from 'pota'
+						import { render, signal } from 'pota'
+						import { signalify } from 'pota/store'
 						import { htmlEffect } from 'pota/html'
 
 						const data = signalify({ test: 0 })
@@ -209,7 +211,8 @@ export default function () {
 
 				<Code
 					code={`
-						import { render, signalify } from 'pota'
+						import { render } from 'pota'
+						import { signalify } from 'pota/store'
 						import { htmlEffect } from 'pota/html'
 
 						const data = signalify({ test: 0 })
@@ -329,7 +332,8 @@ render(
 
 				<Code
 					code={`
-						import { render, signal, signalify } from 'pota'
+						import { render, signal } from 'pota'
+						import { signalify } from 'pota/store'
 						import { html, htmlEffect } from 'pota/html'
 
 						const data = signalify({ test: 0 })

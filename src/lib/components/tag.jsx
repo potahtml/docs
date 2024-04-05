@@ -1,4 +1,4 @@
-import { Show } from 'pota'
+import { Show } from 'pota/web'
 
 export function Tag(props) {
 	return (

@@ -1,4 +1,5 @@
-import { render, Collapse, signal } from 'pota'
+import { render, signal } from 'pota'
+import { Collapse } from 'pota/web'
 
 function Example() {
   const [showing, setShowing] = signal(true)

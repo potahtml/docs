@@ -25,6 +25,8 @@ export default `{
     "pota/components/alert": "/dist/preview/standalone/standalone.no-min.js",
     "pota/test": "/dist/preview/standalone/standalone.no-min.js",
     "pota/lib": "/dist/preview/standalone/standalone.no-min.js",
+    "pota/web": "/dist/preview/standalone/standalone.no-min.js",
+    "pota/store": "/dist/preview/standalone/standalone.no-min.js",
     "x/articles/": "/pages/%40articles/"
   }
 }`

@@ -213,14 +213,6 @@ export default function Menu() {
 								propsPlugin
 							</A>
 						</li>
-						<li>
-							<A
-								href="/props/:page"
-								params={{ page: 'propsProxy' }}
-							>
-								propsProxy
-							</A>
-						</li>
 					</ul>
 				</li>
 

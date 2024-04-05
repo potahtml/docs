@@ -34,8 +34,6 @@ export default function () {
 					code={`
 						import {
 							signal,
-							mutable,
-							signalify,
 							memo,
 							root,
 							renderEffect,
@@ -49,6 +47,15 @@ export default function () {
 							map,
 							owner,
 						} from 'pota'
+					`}
+					render={false}
+				></Code>
+				<Code
+					code={`
+						import {
+							mutable,
+							signalify,
+						} from 'pota/store'
 					`}
 					render={false}
 				></Code>
