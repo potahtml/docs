@@ -2,13 +2,13 @@ import { render, signal } from 'pota'
 import { Collapse } from 'pota/web'
 
 function Example() {
-  const [showing, setShowing] = signal(true)
+  const [showing, setShowing, updateShowing] = signal(true)
 
   return (
     <>
       <button
         name="button"
-        onClick={() => setShowing(showing => !showing)}
+        onClick={() => updateShowing(showing => !showing)}
       >
         toggle
       </button>

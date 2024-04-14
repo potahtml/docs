@@ -4,13 +4,13 @@ import { HTML } from 'pota/html'
 const html = HTML()
 
 function Counter() {
-  const [show, setShow] = signal(false)
-  const [show2, setShow2] = signal(false)
-  const [show3, setShow3] = signal(0)
+  const [show, setShow, updateShow] = signal(false)
+  const [show2, setShow2, updateShow2] = signal(false)
+  const [show3, setShow3, updateShow3] = signal(0)
 
-  setInterval(() => setShow(value => !value), 4000)
-  setInterval(() => setShow2(value => !value), 2000)
-  setInterval(() => setShow3(value => value + 1), 100)
+  setInterval(() => updateShow(value => !value), 4000)
+  setInterval(() => updateShow2(value => !value), 2000)
+  setInterval(() => updateShow3(value => value + 1), 100)
 
   return [
     // displays `asd`

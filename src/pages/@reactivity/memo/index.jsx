@@ -9,8 +9,10 @@ export default function () {
 				A regular memo will run right away after the definition. Memos
 				in pota are lazy, it holds the execution till it is used. If
 				the resulting lazy memo is not used, then the function will
-				never run. Written by{' '}
-				<a href="https://github.com/fabiospampinato">Fabio</a>
+				never run. It used to use a version writen by{' '}
+				<a href="https://github.com/fabiospampinato">Fabio</a> but has
+				been changed to create a STALE memo instead that starts
+				executing after called.
 			</Header>
 
 			<Section title="Arguments">

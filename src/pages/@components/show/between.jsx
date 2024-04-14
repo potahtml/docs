@@ -3,10 +3,10 @@ import { Show } from 'pota/web'
 
 function Example() {
   // signal toggles every 1 second
-  const [showing, setShowing] = signal(true)
+  const [showing, setShowing, updateShowing] = signal(true)
 
   setInterval(() => {
-    setShowing(showing => !showing)
+    updateShowing(showing => !showing)
   }, 1_000)
 
   return (

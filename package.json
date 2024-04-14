@@ -37,8 +37,8 @@
 						"pota.docs/node_modules/"
 					]
 				],
-				"minified": true,
-				"treeshake": true,
+				"minified": false,
+				"treeshake": false,
 				"babel": {
 					"plugins": [
 						[
@@ -61,6 +61,18 @@
 			{
 				"input": ["src/pages/benchmark/js-framework-benchmark.jsx"],
 				"output": "src/pages/benchmark/dist/main.js",
+				"minified": true,
+				"treeshake": true,
+				"root": false,
+				"babel": {
+					"presets": [["pota/babel-preset"]]
+				}
+			},
+			{
+				"input": [
+					"src/pages/benchmark/js-framework-benchmark-dev.jsx"
+				],
+				"output": "src/pages/benchmark/dist/main-dev.js",
 				"minified": true,
 				"treeshake": true,
 				"root": false,

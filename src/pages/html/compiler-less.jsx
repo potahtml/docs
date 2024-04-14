@@ -5,7 +5,8 @@ export const CompilerLess = (
   <Code
     code={`
 
-  // pota + solid reactivity - Compiler-less html example
+  // pota - Compiler-less html example
+  // Note: standalone includes everything, you probably would want to import from the depths
 
   import {
     render,
@@ -15,10 +16,10 @@ export const CompilerLess = (
   } from "https://cdn.jsdelivr.net/npm/pota@${version}/dist/standalone.js";
 
   function Counter() {
-    const [count, setCount] = signal(1);
+    const [count, setCount, updateCount] = signal(1);
     const double = memo(() => count() * 2);
 
-    const increment = () => setCount((count) => count + 1);
+    const increment = () => updateCount((count) => count + 1);
 
     html.define({ count, double });
 

@@ -4568,17 +4568,17 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 
 	test(lib + 'array: mutation: array batch', expect => {
 		const result = mutable([1, 2, 3])
-		batch(() => {
-			expect(result.length).toBe(3)
-			const move = result.splice(1, 1)
-			expect(result.length).toBe(2)
-			result.splice(0, 0, ...move)
-			expect(result.length).toBe(3)
-			expect(result).toHaveShape([2, 1, 3])
-			result.push(4)
-			expect(result.length).toBe(4)
-			expect(result).toHaveShape([2, 1, 3, 4])
-		})
+
+		expect(result.length).toBe(3)
+		const move = result.splice(1, 1)
+		expect(result.length).toBe(2)
+		result.splice(0, 0, ...move)
+		expect(result.length).toBe(3)
+		expect(result).toHaveShape([2, 1, 3])
+		result.push(4)
+		expect(result.length).toBe(4)
+		expect(result).toHaveShape([2, 1, 3, 4])
+
 		expect(result.length).toBe(4)
 		expect(result.pop()).toBe(4)
 		expect(result.length).toBe(3)

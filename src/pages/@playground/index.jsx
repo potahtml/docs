@@ -4,7 +4,7 @@ import { CheatSheet } from '../../lib/components/cheatsheet.jsx'
 import { Code } from '../../lib/components/code/code.jsx'
 import { Header } from '../../lib/components/header.jsx'
 
-import { effect, signal } from 'pota'
+import { effect, memo, signal, untrack } from 'pota'
 import { Collapse } from 'pota/web'
 
 import { compress, uncompress } from '../../lib/compress.js'
@@ -12,7 +12,6 @@ import example from './default-example.js'
 import importmap from './default-importmap.js'
 import { Monaco } from '../../lib/components/monaco/monaco.jsx'
 import { prettier } from '../../lib/prettier.js'
-import { bind } from 'pota/plugins/bind'
 
 function getCodeFromURL() {
 	return window.location.hash !== ''
@@ -30,48 +29,35 @@ export default function () {
 		fetched = {
 			code: fetched,
 			importmap: importmap,
-			lib: 'solid',
 		}
 	}
 
 	// initial value for code
-	const [source, setSource] = signal(
+	const [source, setSource, updateSource] = signal(
 		fetched || {
 			code: example,
 			importmap: importmap,
-			lib: 'solid',
 		},
 		{ equals: false },
 	)
 
 	// to update only the code
 	function updateCode(code) {
-		setSource(source => {
+		updateSource(source => {
 			source.code = code
 			return source
 		})
 	}
 	// to update only the importmap
 	function updateImportmap(importmap) {
-		setSource(source => {
+		updateSource(source => {
 			source.importmap = importmap
 			return source
 		})
 	}
 
-	// to update only the lib
-	const lib = bind(source().lib)
-
-	effect(() => {
-		lib()
-		setSource(source => {
-			source.lib = lib()
-			return source
-		})
-	})
-
 	// prettify initial value
-	prettier(source().code).then(updateCode)
+	prettier(untrack(source).code).then(updateCode)
 
 	// update hash
 	effect(() => {
@@ -79,6 +65,8 @@ export default function () {
 	})
 
 	const [tab, setTab] = signal('code')
+
+	const code = memo(() => autorun() && source())
 
 	return (
 		<>
@@ -132,28 +120,14 @@ export default function () {
 								<input
 									name="button"
 									type="checkbox"
-									checked={autorun()}
+									checked={untrack(autorun)}
 									onClick={() => setAutorun(checked => !checked)}
 								/>
 							</label>
 						</span>
-						<span>
-							<label
-								flair="selection-none"
-								style="vertical-align: middle;"
-							>
-								{' '}
-								Reactive Library{' '}
-								<select bind={lib}>
-									<option value="solid">solid</option>
-									<option value="oby">oby</option>
-									<option value="flimsy">flimsy</option>
-								</select>
-							</label>
-						</span>
 					</section>
 					<Code
-						code={() => autorun() && source()}
+						code={() => code()}
 						render={true}
 						preview={false}
 					/>

@@ -24,10 +24,6 @@ export default function () {
 							function is given for retrying the promise.
 						</li>
 						<li>
-							All functions run with the original owner, so it's{' '}
-							<mark>Context</mark> friendly.
-						</li>
-						<li>
 							It will render what the promise returns. If the promise
 							returns a function it can be used as{' '}
 							<mark>Component(props)</mark>.
@@ -83,9 +79,7 @@ export default function () {
 			<Section title="When not to use lazy">
 				<p>
 					<mark>Lazy</mark> is not needed unless you use one of its
-					options. You may use a promise directly as follows. If the
-					promise resolves to a function, the function will run with
-					the original owner.
+					options. You may use a promise directly as follows.
 				</p>
 				<Code
 					url="/pages/lazy/no-need.jsx"

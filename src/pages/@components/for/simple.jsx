@@ -3,8 +3,7 @@ import { For } from 'pota/web'
 
 function Example() {
   const [value, setValue] = signal([1, 2])
-  let a = value().length + 1
-  const content = () => a++
+  const content = () => value().length + 1
 
   return (
     <main>

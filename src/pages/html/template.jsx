@@ -4,12 +4,12 @@ import { HTML } from 'pota/html'
 const html = HTML()
 
 function Example() {
-  const [count, setCount] = signal(0)
+  const [count, setCount, updateCount] = signal(0)
 
-  setInterval(() => setCount(count => count + 1), 1_000)
+  setInterval(() => updateCount(count => count + 1), 1_000)
 
   const add10 = html`<button
-    onclick="${() => setCount(count => count + 10)}"
+    onclick="${() => updateCount(count => count + 10)}"
     name="button"
   >
     add 10

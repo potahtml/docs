@@ -1,10 +1,10 @@
 import { render, resolve, signal } from 'pota'
 
 function Menu(props) {
-  const [rendered, setRendered] = signal(0)
+  const [rendered, setRendered, updateRendered] = signal(0)
 
   const items = resolve(() => {
-    setRendered(rendered => rendered + 1)
+    updateRendered(rendered => rendered + 1)
     return props.children
   })
 

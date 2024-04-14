@@ -11,7 +11,8 @@ import {
 	untrack,
 } from 'pota'
 
-const [scriptLoading, setScriptsLoading] = signal(0)
+const [scriptLoading, setScriptsLoading, updateScriptsLoading] =
+	signal(0)
 const scriptsLoaded = memo(() => scriptLoading() === 3)
 
 function loadScript(src, onload) {
@@ -42,15 +43,15 @@ function load() {
 	loadScript(
 		'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.js',
 		() => {
-			setScriptsLoading(value => value + 1)
+			updateScriptsLoading(value => value + 1)
 			loadScript(
 				'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/editor/editor.main.nls.js',
 				() => {
-					setScriptsLoading(value => value + 1)
+					updateScriptsLoading(value => value + 1)
 					loadScript(
 						'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/editor/editor.main.js',
 						() => {
-							setScriptsLoading(value => value + 1)
+							updateScriptsLoading(value => value + 1)
 						},
 					)
 				},

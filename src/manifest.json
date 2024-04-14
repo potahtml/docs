@@ -6,7 +6,7 @@
   "display": "standalone",
   "background_color": "#0d1117",
   "theme_color": "#0d1117",
-  "description": "Small Web Renderer for Reactive Libraries.",
+  "description": "Small Reactive Web Renderer.",
   "icons": [
     {
       "src": "/assets/logo.png",

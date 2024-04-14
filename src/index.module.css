@@ -70,6 +70,12 @@ table {
 	margin-bottom: 20px;
 	margin-top: 10px;
 }
+thead {
+	position: sticky;
+	top: 0;
+	z-index: 10;
+	background: #070a0d;
+}
 th {
 	font-weight: bold;
 }

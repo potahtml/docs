@@ -52,19 +52,11 @@ export default function () {
 
 			<Section title="Babel Preset">
 				<p>
-					pota provides a babel preset for changing the reactive
-					library in use and also to transform JSX. By default, it
-					uses <a href="https://www.solidjs.com/">Solid</a>, but you
-					may change it to use{' '}
-					<a href="https://github.com/vobyjs/oby">Oby</a> or{' '}
-					<a href="https://github.com/fabiospampinato/flimsy">
-						Flimsy
-					</a>
+					pota provides a customized babel preset for transforming
+					JSX.
 				</p>
 				<code>
-					<pre>
-						{'presets: [["pota/babel-preset", {"lib":"oby"}]]'}
-					</pre>
+					<pre>{'presets: [["pota/babel-preset"]]'}</pre>
 				</code>
 			</Section>
 
@@ -84,24 +76,16 @@ npm run serve`}
 			<Section title="CDN">
 				<p>
 					<a href="https://www.jsdelivr.com/">jsdelivr</a> kindly
-					provides a cdn for standalone files
+					provides a cdn for standalone files. `standalone` includes
+					everything, you probably want to import from the depths of
+					the lib instead.
 				</p>
 				<code>
 					<pre>
 						{`
-// solid
 https://cdn.jsdelivr.net/npm/pota@${version}/dist/standalone.js
 https://cdn.jsdelivr.net/npm/pota@${version}/dist/standalone.no-min.js
-
-// oby
-https://cdn.jsdelivr.net/npm/pota@${version}/dist/standalone.oby.js
-https://cdn.jsdelivr.net/npm/pota@${version}/dist/standalone.oby.no-min.js
-
-// flimsy
-https://cdn.jsdelivr.net/npm/pota@${version}/dist/standalone.flimsy.js
-https://cdn.jsdelivr.net/npm/pota@${version}/dist/standalone.flimsy.no-min.js
-
-					`
+ `
 							.split('\n')
 							.map(item => item.trim())
 							.join('\n')

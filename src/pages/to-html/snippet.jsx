@@ -7,8 +7,8 @@ function Menu(props) {
 }
 
 function App() {
-	const [read, write] = signal(0)
-	setInterval(() => write(value => value + 1), 1000)
+	const [read, write, update] = signal(0)
+	setInterval(() => update(value => value + 1), 1000)
 	return (
 		<Menu>
 			<li>uno</li>

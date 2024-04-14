@@ -9,7 +9,6 @@ function addImportmap() {
     (props && props.importmap) ||
     `{
 
-  "comment": "If you change the reactive lib with the playground dropdown, then you dont need to change the imports here.",
 
   "imports": {
     "pota": "/dist/preview/standalone/standalone.no-min.js",
@@ -35,13 +34,6 @@ function addImportmap() {
     "x/articles/": "/pages/%40articles/"
   }
 }`
-
-  if (props && props.lib && props.lib !== 'solid') {
-    importmap = importmap.replace(
-      /standalone\/standalone.no-min.js/g,
-      'standalone/standalone.' + props.lib + '.no-min.js',
-    )
-  }
 
   // create importmap
 

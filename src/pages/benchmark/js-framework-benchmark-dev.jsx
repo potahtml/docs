@@ -1,6 +1,7 @@
 import { render, signal, batch } from 'pota'
 import { For } from 'pota/web'
 import { useSelector } from 'pota/hooks'
+import { measure, timing } from 'pota/lib'
 
 let idCounter = 1
 const adjectives = [
@@ -67,12 +68,13 @@ function buildData(count) {
   let data = new Array(count)
   for (let i = 0; i < count; i++) {
     const [label, setLabel, updateLabel] = signal(
-      `${adjectives[_random(adjectives.length)]} ${
+      `elegant green keyboard ${idCounter++}`,
+      /*  `${adjectives[_random(adjectives.length)]} ${
         colours[_random(colours.length)]
-      } ${nouns[_random(nouns.length)]}`,
+      } ${nouns[_random(nouns.length)]} ${idCounter++}`,*/
     )
     data[i] = {
-      id: idCounter++,
+      id: idCounter,
       label,
       updateLabel,
     }
@@ -95,10 +97,44 @@ const Button = ({ id, text, fn }) => (
 
 const App = () => {
   const [data, setData, updateData] = signal([]),
-    [selected, setSelected] = signal(-1),
+    [selected, setSelected] = signal(null),
     run = () => setData(buildData(1000)),
     runLots = () => {
       setData(buildData(10000))
+    },
+    bench = () => {
+      //  console.clear()
+      // warm
+      for (let k = 0; k < 5; k++) {
+        setData(buildData(10000))
+        setData([])
+      }
+
+      let createLarge = 0
+      let clearLarge = 0
+      let createSmall = 0
+      let clearSmall = 0
+      for (let k = 0; k < 10; k++) {
+        createLarge += timing(() => setData(buildData(10000)))
+        clearLarge += timing(() => setData([]))
+        console.log(
+          k + ' createLarge',
+          createLarge / (k + 1),
+          k + ' clearLarge',
+          clearLarge / (k + 1),
+        )
+      }
+      console.log('------------')
+      for (let k = 0; k < 10; k++) {
+        createSmall += timing(() => setData(buildData(1000)))
+        clearSmall += timing(() => setData([]))
+        console.log(
+          k + ' createSmall',
+          createSmall / (k + 1),
+          k + ' clearSmall',
+          clearSmall / (k + 1),
+        )
+      }
     },
     add = () => updateData(d => [...d, ...buildData(1000)]),
     update = () =>
@@ -162,6 +198,11 @@ const App = () => {
                 id="swaprows"
                 text="Swap Rows"
                 fn={swapRows}
+              />
+              <Button
+                id="bench"
+                text="bench"
+                fn={bench}
               />
             </div>
           </div>

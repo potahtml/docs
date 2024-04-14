@@ -6,28 +6,10 @@ export default function () {
 	return (
 		<>
 			<Header title="Reactivity">
-				The renderer doesnt provide its own reactivity. It uses{' '}
-				<a href="https://github.com/solidjs/solid">Solid</a> by
-				default and could be changed for{' '}
-				<a href="https://github.com/vobyjs/oby">Oby</a> or{' '}
-				<a href="https://github.com/fabiospampinato/flimsy">Flimsy</a>
+				Reactive Primitives are added out of necessity in a sensible
+				and abstracted API. Currently it uses a customized port to
+				Classes of the Solid Core Reactivity.
 			</Header>
-
-			<p>
-				However, a subset of the reactive library is exposed and
-				re-exported with slightly changes. You MUST import from the
-				renderer itself and not from the reactive library because the
-				renderer decorates them with useful information to be able to
-				render efficiently and as expected. It also provides the
-				abstraction, benefice of being able to switch the reactive
-				library in use.
-			</p>
-
-			<p>
-				Primitives will be added out of necessity in a sensible and
-				abstracted API. Because of this, most <mark>options</mark> has
-				been dropped from the original primitives.
-			</p>
 
 			<Section title="Snippet">
 				<Code
@@ -36,8 +18,8 @@ export default function () {
 							signal,
 							memo,
 							root,
-							renderEffect,
 							effect,
+							syncEffect,
 							syncEffect,
 							batch,
 							cleanup,
@@ -66,7 +48,7 @@ export default function () {
 					<thead>
 						<tr>
 							<th>name</th>
-							<th>argument</th>
+							<th>arguments</th>
 							<th>returns</th>
 							<th>description</th>
 						</tr>
@@ -77,8 +59,21 @@ export default function () {
 							<td>
 								(initialValue, {'{equals:false/(a,b)=>a===b}'}){' '}
 							</td>
-							<td>[read, write] </td>
-							<td>tuple to read and write values from/to a signal</td>
+							<td>
+								<mark>
+									[read, write, update] |{' '}
+									{
+										'{read:()=>value, write:(newValue)=>boolean, update:(prev)=>nextValue}'
+									}
+								</mark>
+							</td>
+							<td>
+								tuple to read and write values from/to a signal. Use
+								<mark>update</mark> for running a function that
+								receives the previous value and return to set a new
+								value. When using <mark>update</mark> the signal
+								doesnt track.
+							</td>
 						</tr>
 						<tr>
 							<td>signalify</td>
@@ -132,17 +127,6 @@ export default function () {
 							<td>creates a new tracking scope</td>
 						</tr>
 						<tr>
-							<td>renderEffect</td>
-							<td>fn</td>
-							<td>void</td>
-							<td>
-								function to re-run when dependencies change. the
-								difference with an effect is that an effect may run at
-								a later point in time while a renderEffect is
-								garanteed to run right away.
-							</td>
-						</tr>
-						<tr>
 							<td>effect</td>
 							<td>fn</td>
 							<td>void</td>
@@ -151,6 +135,17 @@ export default function () {
 						</tr>
 						<tr>
 							<td>syncEffect</td>
+							<td>fn</td>
+							<td>void</td>
+							<td>
+								function to re-run when dependencies change. the
+								difference with an effect is that an effect may run at
+								a later point in time while a syncEffect is garanteed
+								to run right away after your call.
+							</td>
+						</tr>
+						<tr>
+							<td>asyncEffect</td>
 							<td>{`(currentRunningEffect: Promise<any>) => any`}</td>
 							<td>any</td>
 

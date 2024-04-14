@@ -241,7 +241,7 @@ export default function () {
 import { render, Pota, signal } from 'pota'
 import { htmlEffect } from 'pota/html'
 
-const [read, write] = signal(0)
+const [read, write, update] = signal(0)
 
 let instanceNumber = 0
 
@@ -260,7 +260,7 @@ class Test extends Pota {
   }
 }
 
-setInterval(() => write(value => value + 1), 1000)
+setInterval(() => update(value => value + 1), 1000)
 
 render(
   <>
@@ -281,11 +281,11 @@ render(
 						import { render, signal } from 'pota'
 						import { htmlEffect } from 'pota/html'
 
-						const [read, write] = signal(0)
+						const [read, write, update] = signal(0)
 
 						setInterval(() => {
 						  console.log('updating the signal')
-						  write(value => value + 1)
+						  update(value => value + 1)
 						}, 1000)
 
 						// to check if we are reusing nodes

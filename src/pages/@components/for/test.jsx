@@ -6,8 +6,7 @@ function Example() {
   setInterval(() => setShowing(!showing()), 5_000)
 
   const [value, setValue] = signal([1, 2])
-  let a = value().length + 1
-  const content = () => a++
+  const content = () => value().length + 1
 
   return (
     <main>

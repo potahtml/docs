@@ -2,10 +2,10 @@ import { render, signal } from 'pota'
 import { Show } from 'pota/web'
 
 function Example() {
-  const [showing, setShowing] = signal(true)
+  const [showing, setShowing, updateShowing] = signal(true)
 
   setInterval(() => {
-    setShowing(showing => !showing)
+    updateShowing(showing => !showing)
   }, 1_000)
 
   const [fallback, setFallback] = signal(Math.random())

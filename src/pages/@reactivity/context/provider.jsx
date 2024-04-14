@@ -3,10 +3,10 @@ import { context, render, signal } from 'pota'
 const Context = context()
 
 function Component(props) {
-	const [value, setValue] = signal(0)
+	const [value, setValue, updateValue] = signal(0)
 
 	setInterval(() => {
-		setValue(num => (num += 1))
+		updateValue(num => (num += 1))
 	}, 1_000)
 
 	return (

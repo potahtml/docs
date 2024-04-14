@@ -2,14 +2,14 @@ import { render, signal, css } from 'pota'
 import { Show } from 'pota/web'
 
 function App() {
-  const [showing, setShowing] = signal(false)
+  const [showing, setShowing, updateShowing] = signal(false)
 
   return (
     <main>
       Toggles the children of the XML tags.
       <button
         name="button"
-        onClick={() => setShowing(showing => !showing)}
+        onClick={() => updateShowing(showing => !showing)}
       >
         toggle
       </button>

@@ -22,8 +22,8 @@ customElements.define(
 )
 
 function App() {
-  const [showing, setShowing] = signal(true)
-  setInterval(() => setShowing(showing => !showing), 1_000)
+  const [showing, setShowing, updateShowing] = signal(true)
+  setInterval(() => updateShowing(showing => !showing), 1_000)
 
   return (
     <main>

@@ -16,8 +16,8 @@ signal, // const [read, write] = signal(initialValue)
 
 root, // root(fn)
 effect, // effect(fn)
-renderEffect, // renderEffect(fn)
-syncEffect, // syncEffect((previousEffect) => await previousEffect)
+syncEffect, // syncEffect(fn)
+asyncEffect, // asyncEffect((previousEffect) => await previousEffect)
 memo, // memo(fn)
 writable, // const m = writable(fn); m(true) // now "m" is "true" till memo reruns
 batch, // batch(fn)
