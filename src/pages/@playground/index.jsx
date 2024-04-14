@@ -57,7 +57,7 @@ export default function () {
 	}
 
 	// prettify initial value
-	prettier(untrack(source).code).then(updateCode)
+	prettier(source.code).then(updateCode)
 
 	// update hash
 	effect(() => {
@@ -67,6 +67,7 @@ export default function () {
 	const [tab, setTab] = signal('code')
 
 	const code = memo(() => autorun() && source())
+	code()
 
 	return (
 		<>
@@ -127,7 +128,7 @@ export default function () {
 						</span>
 					</section>
 					<Code
-						code={() => code()}
+						code={code}
 						render={true}
 						preview={false}
 					/>
