@@ -59,8 +59,8 @@
 				"root": false
 			},
 			{
-				"input": ["src/pages/benchmark/js-framework-benchmark.jsx"],
-				"output": "src/pages/benchmark/dist/main.js",
+				"input": ["src/pages/benchmark/dev/index.jsx"],
+				"output": "src/pages/benchmark/dev/main.js",
 				"minified": true,
 				"treeshake": true,
 				"root": false,
@@ -69,10 +69,8 @@
 				}
 			},
 			{
-				"input": [
-					"src/pages/benchmark/js-framework-benchmark-dev.jsx"
-				],
-				"output": "src/pages/benchmark/dist/main-dev.js",
+				"input": ["src/pages/benchmark/regular/index.jsx"],
+				"output": "src/pages/benchmark/regular/main.js",
 				"minified": true,
 				"treeshake": true,
 				"root": false,
@@ -81,10 +79,8 @@
 				}
 			},
 			{
-				"input": [
-					"src/pages/benchmark/js-framework-benchmark-html.jsx"
-				],
-				"output": "src/pages/benchmark/dist/main-html.js",
+				"input": ["src/pages/benchmark/html/index.jsx"],
+				"output": "src/pages/benchmark/html/main.js",
 				"minified": true,
 				"treeshake": true,
 				"root": false,

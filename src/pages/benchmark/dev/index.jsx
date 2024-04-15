@@ -1,7 +1,7 @@
 import { render, signal, batch } from 'pota'
 import { For } from 'pota/web'
 import { useSelector } from 'pota/hooks'
-import { measure, timing } from 'pota/lib'
+import { timing } from 'pota/lib'
 
 let idCounter = 1
 const adjectives = [
