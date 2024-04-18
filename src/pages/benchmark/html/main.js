@@ -1,17 +1,3232 @@
-!function(){"use strict";const t=globalThis,e=t.Symbol,n=t.Object,s=n.assign,o=t=>"function"==typeof t,r=e(),i=e(),c=e(),l=e(),u="http://www.w3.org/",a={__proto__:null,svg:u+"2000/svg",math:u+"1998/Math/MathML",html:u+"1999/xhtml",xlink:u+"1999/xlink"};function d(t){return t[c]=void 0,t}const h=0,f=1,p=2;let b,v,g=null,m=null,w=0;class y{owner;owned;cleanups;context;constructor(t){this.owner=t,this.context=t?.context}dispose(){let t;const{owned:e,cleanups:n}=this;if(e){for(t=e.length-1;t>=0;t--)e[t].dispose();e.length=0}if(n){for(t=n.length-1;t>=0;t--)n[t]();n.length=0}}}class S extends y{state=f;updatedAt=0;fn;sources;sourceSlots;constructor(t,e){super(t),this.fn=e,t&&(t.owned?t.owned.push(this):t.owned=[this])}update(){this.dispose();const t=w,e=b,n=v;v=b=this;try{this.fn()}catch(e){throw this.updatedAt=t+1,e}finally{b=e,v=n}this.updatedAt<=t&&(this.updatedAt=t)}dispose(){const{sources:t,sourceSlots:e}=this;if(t){let n,s,o,r,i;for(;t.length;)n=t.pop(),s=n.observers,o=e.pop(),s&&s.length&&(r=s.pop(),i=n.observerSlots.pop(),o<s.length&&(r.sourceSlots[i]=o,s[o]=r,n.observerSlots[o]=i))}super.dispose(),this.state=h}}class x extends S{user=!0;constructor(t,e){super(t,e),m?m.push(this):N((()=>this.update()))}}class k extends S{constructor(t,e){super(t,e),N((()=>this.update()))}}class A extends S{state=f;pure=!0;value;observers;observerSlots;constructor(t,e,n){return super(t,e),n&&s(this,n),d(this.read.bind(this))}read(){if(this.state)if(this.state===f)this.update();else{const t=g;g=null,I((()=>j(this))),g=t}if(v){const t=this.observers?this.observers.length:0;v.sources?(v.sources.push(this),v.sourceSlots.push(t)):(v.sources=[this],v.sourceSlots=[t]),this.observers?(this.observers.push(v),this.observerSlots.push(v.sources.length-1)):(this.observers=[v],this.observerSlots=[v.sources.length-1])}return this.value}write(t){!1!==this.equals&&this.equals(this.value,t)||(this.value=t,this.observers&&this.observers.length&&I((()=>{for(let t,e=0;e<this.observers.length;e++)t=this.observers[e],t.state===h&&(t.pure?g.push(t):m.push(t),t.observers&&_(t)),t.state=f})))}equals(t,e){return t===e}update(){let t;this.dispose();const e=w,n=b,s=v;v=b=this;try{t=this.fn()}catch(t){throw this.state=f,this.owned&&(this.owned.forEach((t=>t.dispose())),this.owned.length=0),this.updatedAt=e+1,t}finally{b=n,v=s}this.updatedAt<=e&&(0!==this.updatedAt?this.write(t):this.value=t,this.updatedAt=e)}}class ${value;observers;observerSlots;constructor(t,e){this.value=t,e&&(s(this,e),this.save&&(this.prev=t)),this.read=d(this.read.bind(this)),this.write=this.write.bind(this),this.update=this.update.bind(this)}read(){if(v){const t=this.observers?this.observers.length:0;v.sources?(v.sources.push(this),v.sourceSlots.push(t)):(v.sources=[this],v.sourceSlots=[t]),this.observers?(this.observers.push(v),this.observerSlots.push(v.sources.length-1)):(this.observers=[v],this.observerSlots=[v.sources.length-1])}return this.value}write(t){return(!1===this.equals||!this.equals(this.value,t))&&(this.save&&(this.prev=this.value),this.value=t,this.observers&&this.observers.length&&I((()=>{for(let t,e=0;e<this.observers.length;e++)t=this.observers[e],t.state===h&&(t.pure?g.push(t):m.push(t),t.observers&&_(t)),t.state=f})),!0)}update(t){return"function"==typeof t&&(t=t(this.value)),this.write(t)}equals(t,e){return t===e}*[e.iterator](){yield this.read,yield this.write,yield this.update}}function C(t){const e=b,n=v,s=new y(b);b=s,v=void 0;try{return I((()=>t(s.dispose.bind(s))),!0)}finally{b=e,v=n}}function M(t,e=void 0){return new $(t,e)}function E(t){return new x(b,t)}function L(t,e=void 0){return new A(b,t,e)}const N=I;function q(t){return b&&(b.cleanups?b.cleanups.push(t):b.cleanups=[t]),t}function T(t){switch(t.state){case h:return;case p:return j(t)}const e=[];do{t.state&&e.push(t),t=t.owner}while(t&&t.updatedAt<w);for(let n,s=e.length-1;s>=0;s--)switch((t=e[s]).state){case f:t.update();break;case p:n=g,g=null,I((()=>j(t,e[0]))),g=n}}function I(t,e=!1){if(g)return t();let n=!1;e||(g=[]),m?n=!0:m=[],w++;try{const e=t();if(g&&(!function(t){for(let e=0;e<t.length;e++)T(t[e])}(g),g=null),!n){const t=m;m=null,t.length&&I((()=>function(t){let e,n,s=0;for(e=0;e<t.length;e++)n=t[e],n.user?t[s++]=n:T(n);for(e=0;e<s;e++)T(t[e])}(t)))}return e}catch(t){throw n||(m=null),g=null,t}}function j(t,e){t.state=h;for(let n,s=0;s<t.sources.length;s++)if(n=t.sources[s],n.sources)switch(n.state){case f:n!==e&&n.updatedAt<w&&T(n);break;case p:j(n,e)}}function _(t){for(let e,n=0;n<t.observers.length;n++)e=t.observers[n],e.state===h&&(e.state=p,e.pure?g.push(e):m.push(e),e.observers&&_(e))}function z(t=void 0){const n=e();return R.bind(null,n,t)}function R(t,e,n,s){if(void 0===n)return b?.context&&void 0!==b.context[t]?b.context[t]:e;{let e;return function(t){new k(b,t)}((()=>{b.context={...b.context,[t]:n},e=s()})),e}}const D=()=>{const t=b;return e=>o(e)?function(t,e){const n=b,s=v;b=t,v=void 0;try{return I(e,!0)}catch(t){throw t}finally{b=n,v=s}}(t,e):e},F=t=>{for(;"function"==typeof t;)t=t();return t},H=n.groupBy;function O(t,e){const n=t.indexOf(e);return-1!==n&&t.splice(n,1),t}function P(t){const{begin:e,end:n}=t,s=[e];let o=e;for(;o!==n;)o=o.nextSibling,s.push(o);return s}const U=(t,e)=>o(t)?E((()=>{e(F(t))})):e(t),W=Array.isArray,B=(t,...e)=>W(t)?t[0](...e,...t.slice(1)):t(...e),K=t=>null!==t&&"object"==typeof t,J=n.create.bind(null,null),G=n.entries,Q=t=>1===t.length?t[0]:t,V=n.freeze,X=n.fromEntries,Y=t=>null==t,Z=e.iterator,tt=queueMicrotask,et=V(J()),nt=JSON.stringify,st=Array.from;const ot=t=>o(t)&&c in t,rt=t=>o(t)&&r in t,it=t=>!ot(t)&&(o(t)||!W(t)&&K(t)&&!t.then);function ct(t){return t[r]=void 0,t}let lt,ut;const at=[];function dt(){ut=[[],[],[]],lt=!1}function ht(t,e){lt||(lt=!0,tt(ft)),ut[t].push(e)}function ft(){const t=ut;dt();for(const e of t)for(const t of e)B(t);for(const t of at)B(t)}dt();const pt=t=>ht(1,t),bt=J(),vt=J(),gt=(t,e,n=!0)=>{wt(bt,t,e,n)},mt=(t,e,n=!0)=>{wt(vt,t,e,n)},wt=(t,e,n,s)=>{t[e]=s?(...t)=>{const e=D();tt((()=>e((()=>n(...t)))))}:n},yt=(t,e,n={bubbles:!0,cancelable:!0,composed:!0})=>t.dispatchEvent(new CustomEvent(e,n)),St=(t,e,n)=>U(n,(n=>xt(t,e,n)));function xt(t,e,n){Y(n)?t[e]=null:t[e]=n,"value"===e&&(yt(t,"input"),yt(t,"change"))}const kt=(t,e,n,s)=>U(n,(n=>At(t,e,n,s)));function At(t,e,n,s){Y(n)?s&&a[s]?t.removeAttributeNS(a[s],e):t.removeAttribute(e):s&&a[s]?t.setAttributeNS(a[s],e,n):t.setAttribute(e,n)}const $t=(t,e,n)=>U(n,(n=>Ct(t,e,n))),Ct=(t,e,n)=>n?t.setAttribute(e,""):t.removeAttribute(e);function Mt(t,e){if(K(e)){let n;for(n in e)Et(t,n,e[n]);return}const n=typeof e;"string"!==n?"function"!==n||E((()=>{Mt(t,F(e))})):t.cssText=e}const Et=(t,e,n)=>U(n,(n=>Lt(t,e,n))),Lt=(t,e,n)=>Y(n)?t.removeProperty(e):t.setProperty(e,n);function Nt(t,e){switch(typeof e){case"string":Tt(t,e,!0);break;case"object":{let n;for(n in e)qt(t,n,e[n]);break}case"function":U(e,(e=>Nt(t,e)))}}const qt=(t,e,n)=>U(n,(n=>Tt(t,e,n))),Tt=(t,e,n)=>n?t.classList.add(...e.trim().split(/\s+/)):t.classList.remove(e),It=(t,e,n,s)=>n(t),jt=(t,e,n,s)=>ht(0,[n,t]),_t=(t,e,n,s)=>q((()=>n(t))),zt=J();function Rt(t){return t in zt||(t.startsWith("on")&&t.toLowerCase()in window?zt[t]=t.slice(2).toLowerCase():zt[t]=void 0),zt[t]}function Dt(t,e,n){t.addEventListener(e,n,o(n)?void 0:n);const s=()=>function(t,e,n){return t.removeEventListener(e,n),()=>Dt(t,e,n)}(t,e,n);return q(s),s}const Ft=(t,e,n,s)=>U(n,(n=>Ht(t,e,n,s))),Ht=(t,e,n,s)=>{K(n)?xt(t,e,n):"boolean"!=typeof n||e.includes("-")?(At(t,e,n,s),Y(n)&&xt(t,e,n)):xt(t,e,n)};gt("style",((t,e,n,s)=>Mt(t.style,n)),!1),mt("style",((t,e,n,s,o,r)=>Mt(t.style,K(n)?n:{[o]:n})),!1),mt("var",((t,e,n,s,o,r)=>Mt(t.style,{["--"+o]:n})),!1),gt("class",((t,e,n,s)=>(t=>"string"==typeof t)(n)?t.setAttribute("class",n):Nt(t,n)),!1),mt("class",((t,e,n,s,o,r)=>K(n)?Nt(t,n):qt(t,o,n)),!1);for(const t of["value","textContent","innerText","innerHTML"])gt(t,St,!1);mt("prop",((t,e,n,s,o,r)=>St(t,o,n)),!1),mt("attr",((t,e,n,s,o,r)=>kt(t,o,n)),!1),mt("bool",((t,e,n,s,o,r)=>$t(t,o,n)),!1),gt("onMount",jt,!1),mt("onMount",jt,!1),gt("onUnmount",_t,!1),mt("onUnmount",_t,!1),gt("ref",It,!1),mt("ref",It,!1),mt("on",((t,e,n,s,o,r)=>Dt(t,o,n)),!1);const Ot=(t,e)=>"is"in e||t.localName?.includes("-");const Pt=t=>document[t].bind(document),Ut=Pt("createElement"),Wt=Pt("createElementNS"),Bt=Pt("createTextNode"),Kt=document.adoptedStyleSheets;function Jt(t=[],e=[]){e=W(e)?e.flat(1/0):[e];for(let n,s=0;s<t.length;s++)n=t[s],n&&(0===e.length||!e.includes(n))&&n.remove();return e}const Gt="pota",Qt="<pota></pota>",[Vt,Xt]=function(){const t=new WeakMap,e=t.get.bind(t),n=t.set.bind(t);return[(t,s=void 0)=>{const o=e(t);return void 0!==o?o:void 0!==s?(s=s(t),n(t,s),s):void 0},n,t.has.bind(t),t.delete.bind(t),t]}();const Yt=new Map,Zt=new WeakMap,te=function(t){const e=z(t);return e.Provider=t=>e(t.value,(()=>fe(t.children))),e}(),ee=e();function ne(t,e){return t===ee?e.children:(V(e),void 0===e?se(t):ct(se(t).bind(null,e)))}function se(t){if(rt(t))return t;const e=K(t);let n=e?Zt.get(t):Yt.get(t);if(n)return n;switch(typeof t){case"string":n=ie.bind(null,t);break;case"function":if(i in t){n=oe.bind(null,t);break}if(ot(t)){n=re.bind(null,t);break}n=t;break;default:if(t instanceof Node){n=ce.bind(null,t);break}n=re.bind(null,t)}return e?Zt.set(t,n):Yt.set(t,n),ct(n)}function oe(t,e){const n=new t;return n.ready&&pt(n.ready.bind(n)),n.cleanup&&q(n.cleanup.bind(n)),n.render(e)}function re(t,e){return t}function ie(t,e){return function(t,e,n){const s=te();if(t&&t!==s)return te(t,(()=>e(t)));if(s&&"foreignObject"===n)return te(a.html,(()=>e(a.html)));return e(s)}(e?.xmlns||a[t],(n=>ce(n?Wt(n,t):Ut(t),e)),t)}function ce(t,e){return e&&function(t,e){let n,s;for(n in e){if(s=e[n],n in bt){bt[n](t,n,s,e);continue}let o=Rt(n);if(o)Dt(t,o,s);else if(n.includes(":")){let[r,i]=n.split(":");if(r in vt){vt[r](t,n,s,e,i,r);continue}if(o=Rt(r),o){Dt(t,o,s);continue}Ot(t,e)?xt(t,n,s):Ft(t,n,s,r)}else Ot(t,e)?xt(t,n,s):Ft(t,n,s)}}(t,e),t}function le(t,e,n){switch(typeof e){case"string":case"number":return de(t,Bt(e),n);case"function":{if(rt(e))return le(t,function(t){if(void 0===v)return t();const e=v;v=void 0;try{return t()}finally{v=e}}(e),n);let s=[];return t=ue(t,void 0,n),l in e?(E((()=>{s=Jt(s,e((e=>{const n=ue(t,void 0,!0),s=ue(t,void 0,!0);return[n,le(s,e,!0),s]})))})),q((()=>{Jt(s),t.remove()})),[s,t]):(E((()=>{s=Jt(s,le(t,e(),!0))})),q((()=>{Jt(s),t.remove()})),[s,t])}case"object":if(W(e))return 1===e.length?le(t,e[0],n):e.map((e=>le(t,e,n)));if(e instanceof Node)return e instanceof DocumentFragment?le(t,st(e.childNodes),n):de(t,e,n);if(null===e)return;if("then"in e){const[s,o]=M(void 0),r=e=>t.isConnected&&o(e);return e.then(r).catch(r),le(t,s,n)}return Z in e?le(t,st(e.values()),n):e instanceof CSSStyleSheet?(Kt.push(e),void q((()=>O(Kt,e)))):le(t,"toString"in e?e.toString():nt(e),n);case"undefined":return;default:return de(t,Bt(e.toString()),n)}}gt("children",((t,e,n)=>le(t,n)),!1);const ue=(t,e,n)=>de(t,Bt(""),n);let ae;function de(t,e,n){if(t===document.head){if(!ae){const t=document.head;ae=t.querySelector.bind(t)}const n=e.tagName;let s;"TITLE"===n?s=ae("title"):"META"===n?s=ae('meta[name="'+e.getAttribute("name")+'"]')||ae('meta[property="'+e.getAttribute("property")+'"]'):"LINK"===n&&"canonical"===e.rel&&(s=ae('link[rel="canonical"]')),s?s.replaceWith(e):t.appendChild(e)}else n?t.before(e):t.appendChild(e);return e}function he(t,e,n=et){const s=C((s=>(function(t,e=document.body,n){n.clear&&e&&(e.textContent="");const s=le(e,it(t)?se(t):t,n.relative);q((()=>Jt([s].flat(1/0))))}(t,e,n),s)));return q(s),s}const fe=t=>Q(pe(t).childNodes);function pe(t){const e=new DocumentFragment;return le(e,t),e}function be(t){const e=o(t)?L(t):()=>t;return L((()=>ve(e())))}function ve(t){if(o(t))return ve(t());if(W(t)){const e=[];for(let n of t)n=ve(n),W(n)?e.push(...n):e.push(n);return e}return t}function ge(t){const e=new CSSStyleSheet;return e.replace(t),e}const me=(t,...e)=>ge(String.raw({raw:t},...e));function we(t){t=W(t)?Q(t):t;const e=W(t)?t.map(ye):ye(t);return W(t)?ct(((...t)=>e.map((e=>e(t))))):ct(((...t)=>e(t)))}const ye=t=>o(t)?ot(t)?e=>{const n=t();return o(n)?ot(n)?n():n(...e):n}:e=>t(...e):()=>t;function Se(t,e,n){void 0===customElements.get(t)&&customElements.define(t,e,n)}const xe=J();class ke extends HTMLElement{constructor(){super(),this.attachShadow({mode:"open"}),this.addStyleSheets(this.constructor.styleSheets)}addStyleSheets(t=[]){for(const e of t)e instanceof CSSStyleSheet?this.shadowRoot.adoptedStyleSheets.push(e):this.addStyleSheetExternal(e)}addStyleSheetExternal(t){const e=xe[t];e?this.addStyleSheets([e]):fetch(t).then((t=>t.text())).then((t=>ge(t))).then((e=>{xe[t]=e,this.addStyleSheets([e])}))}query(t){return this.querySelector(t)}set html(t){"string"==typeof t?this.shadowRoot.innerHTML=t:this.shadowRoot.replaceChildren(pe(ne(t||"slot")))}set hidden(t){U(t,(t=>{t?this.setAttribute("hidden",""):this.removeAttribute("hidden")}))}emit(t,e){yt(this,t,e)}hasSlot(t){return null!==this.query(`:scope > [slot="${t}"]`)}}function Ae(t){he(t.children,t.mount)}const $e=t=>t;var Ce=Object.freeze({__proto__:null,Collapse:function(t){class e extends ke{static styleSheets=[me`
+(function () {
+	'use strict';
+
+	const version = '0.13.122';
+
+	const global = globalThis;
+
+	const Symbol = global.Symbol;
+
+	const Object$1 = global.Object;
+
+	const assign = Object$1.assign;
+
+	/**
+	 * Returns true when value is a Function
+	 *
+	 * @param {any} value
+	 * @returns {boolean} True when `value` is a Function
+	 */
+	const isFunction = value => typeof value === 'function';
+
+	// symbols
+
+	const $meta = Symbol();
+	const $component = Symbol();
+	const $class = Symbol();
+	const $reactive = Symbol();
+	const $map = Symbol();
+	const $internal = Symbol();
+
+	// supported namespaces
+
+	const prefix = 'http://www.w3.org/';
+	const NS = {
+	  __proto__: null,
+	  svg: prefix + '2000/svg',
+	  math: prefix + '1998/Math/MathML',
+	  html: prefix + '1999/xhtml',
+	  xlink: prefix + '1999/xlink'
+	};
+
+	/**
+	 * Marks a function as reactive. Reactive functions are ran inside
+	 * effects.
+	 *
+	 * @param {Function} fn - Function to mark as reactive
+	 * @returns {Function}
+	 */
+	function markReactive(fn) {
+	  fn[$reactive] = undefined;
+	  return fn;
+	}
+
+	/**
+	 * This is so far the core of Solid JS Reactivity, this may change.
+	 *
+	 * Adaptation for potas needs have been made:
+	 *
+	 * - Ported to Classes what does fit
+	 * - Signal has more options: `label` and `save` previous value
+	 * - Writing to a signal returns `true` when the value changes
+	 * - Signal is an object that could be used as signal.read/write or
+	 *   destructured as an array.
+	 * - Update function on Signal that could be used to use the old value
+	 */
+
+	const CLEAN = 0;
+	const STALE = 1;
+	const CHECK = 2;
+	let Owner;
+	let Listener;
+	let Updates = null;
+	let Effects = null;
+	let Time = 0;
+
+	// ROOT
+
+	class Root {
+	  owner;
+	  owned;
+	  cleanups;
+	  context;
+	  constructor(owner) {
+	    this.owner = owner;
+	    this.context = owner?.context;
+	  }
+	  dispose() {
+	    let i;
+	    const {
+	      owned,
+	      cleanups
+	    } = this;
+	    if (owned) {
+	      for (i = owned.length - 1; i >= 0; i--) {
+	        owned[i].dispose();
+	      }
+	      owned.length = 0;
+	    }
+	    if (cleanups) {
+	      for (i = cleanups.length - 1; i >= 0; i--) {
+	        cleanups[i]();
+	      }
+	      cleanups.length = 0;
+	    }
+	  }
+	}
+
+	// COMPUTATION
+
+	class Computation extends Root {
+	  state = STALE;
+	  updatedAt = 0;
+	  fn;
+	  sources;
+	  sourceSlots;
+	  constructor(owner, fn) {
+	    super(owner);
+	    this.fn = fn;
+	    if (owner) {
+	      if (owner.owned) {
+	        owner.owned.push(this);
+	      } else {
+	        owner.owned = [this];
+	      }
+	    }
+	  }
+	  update() {
+	    this.dispose();
+	    const time = Time;
+	    const prevOwner = Owner;
+	    const prevListener = Listener;
+	    Listener = Owner = this;
+	    try {
+	      this.fn();
+	    } catch (err) {
+	      this.updatedAt = time + 1;
+	      throw err;
+	    } finally {
+	      Owner = prevOwner;
+	      Listener = prevListener;
+	    }
+	    if (this.updatedAt <= time) {
+	      this.updatedAt = time;
+	    }
+	  }
+	  dispose() {
+	    const {
+	      sources,
+	      sourceSlots
+	    } = this;
+	    if (sources) {
+	      let source;
+	      let observers;
+	      let index;
+	      let observer;
+	      let slot;
+	      while (sources.length) {
+	        source = sources.pop();
+	        observers = source.observers;
+	        index = sourceSlots.pop();
+	        if (observers && observers.length) {
+	          observer = observers.pop();
+	          slot = source.observerSlots.pop();
+	          if (index < observers.length) {
+	            observer.sourceSlots[slot] = index;
+	            observers[index] = observer;
+	            source.observerSlots[index] = slot;
+	          }
+	        }
+	      }
+	    }
+	    super.dispose();
+	    this.state = CLEAN;
+	  }
+	}
+	class Effect extends Computation {
+	  user = true;
+	  constructor(owner, fn) {
+	    super(owner, fn);
+	    Effects ? Effects.push(this) : batch(() => this.update());
+	  }
+	}
+	class SyncEffect extends Computation {
+	  constructor(owner, fn) {
+	    super(owner, fn);
+	    batch(() => this.update());
+	  }
+	}
+
+	// SIGNALS
+
+	class Memo extends Computation {
+	  state = STALE;
+	  pure = true;
+	  value;
+	  observers;
+	  observerSlots;
+
+	  // options:
+	  // equals
+
+	  constructor(owner, fn, options) {
+	    super(owner, fn);
+	    if (options) {
+	      assign(this, options);
+	    }
+	    return markReactive(this.read.bind(this));
+	  }
+	  read() {
+	    // checkReadForbidden()
+
+	    if (this.state) {
+	      if (this.state === STALE) {
+	        this.update();
+	      } else {
+	        const updates = Updates;
+	        Updates = null;
+	        runUpdates(() => upstream(this));
+	        Updates = updates;
+	      }
+	    }
+	    if (Listener) {
+	      const sourceSlot = this.observers ? this.observers.length : 0;
+	      if (Listener.sources) {
+	        Listener.sources.push(this);
+	        Listener.sourceSlots.push(sourceSlot);
+	      } else {
+	        Listener.sources = [this];
+	        Listener.sourceSlots = [sourceSlot];
+	      }
+	      if (this.observers) {
+	        this.observers.push(Listener);
+	        this.observerSlots.push(Listener.sources.length - 1);
+	      } else {
+	        this.observers = [Listener];
+	        this.observerSlots = [Listener.sources.length - 1];
+	      }
+	    }
+	    return this.value;
+	  }
+	  write(value) {
+	    if (this.equals === false || !this.equals(this.value, value)) {
+	      this.value = value;
+	      if (this.observers && this.observers.length) {
+	        runUpdates(() => {
+	          for (let i = 0, observer; i < this.observers.length; i++) {
+	            observer = this.observers[i];
+	            if (observer.state === CLEAN) {
+	              if (observer.pure) {
+	                Updates.push(observer);
+	              } else {
+	                Effects.push(observer);
+	              }
+	              if (observer.observers) {
+	                downstream(observer);
+	              }
+	            }
+	            observer.state = STALE;
+	          }
+	        });
+	      }
+	    }
+	  }
+	  equals(a, b) {
+	    return a === b;
+	  }
+	  update() {
+	    this.dispose();
+	    let nextValue;
+	    const time = Time;
+	    const prevOwner = Owner;
+	    const prevListener = Listener;
+	    Listener = Owner = this;
+	    try {
+	      nextValue = this.fn();
+	    } catch (err) {
+	      this.state = STALE;
+	      if (this.owned) {
+	        this.owned.forEach(node => node.dispose());
+	        this.owned.length = 0;
+	      }
+	      this.updatedAt = time + 1;
+	      throw err;
+	    } finally {
+	      Owner = prevOwner;
+	      Listener = prevListener;
+	    }
+	    if (this.updatedAt <= time) {
+	      if (this.updatedAt !== 0) {
+	        this.write(nextValue);
+	      } else {
+	        this.value = nextValue;
+	      }
+	      this.updatedAt = time;
+	    }
+	  }
+	}
+
+	// SIGNAL
+
+	class Signal {
+	  value;
+	  observers;
+	  observerSlots;
+
+	  // options:
+	  // equals
+	  // save
+
+	  // `prev` if option save was given
+
+	  constructor(value, options) {
+	    this.value = value;
+	    if (options) {
+	      assign(this, options);
+	      if (this.save) {
+	        this.prev = value;
+	      }
+	    }
+	    this.read = markReactive(this.read.bind(this));
+	    this.write = this.write.bind(this);
+	    this.update = this.update.bind(this);
+	  }
+	  read() {
+	    // checkReadForbidden()
+
+	    if (Listener) {
+	      const sourceSlot = this.observers ? this.observers.length : 0;
+	      if (Listener.sources) {
+	        Listener.sources.push(this);
+	        Listener.sourceSlots.push(sourceSlot);
+	      } else {
+	        Listener.sources = [this];
+	        Listener.sourceSlots = [sourceSlot];
+	      }
+	      if (this.observers) {
+	        this.observers.push(Listener);
+	        this.observerSlots.push(Listener.sources.length - 1);
+	      } else {
+	        this.observers = [Listener];
+	        this.observerSlots = [Listener.sources.length - 1];
+	      }
+	    }
+	    return this.value;
+	  }
+	  write(value) {
+	    if (this.equals === false || !this.equals(this.value, value)) {
+	      if (this.save) {
+	        this.prev = this.value;
+	      }
+	      this.value = value;
+	      if (this.observers && this.observers.length) {
+	        runUpdates(() => {
+	          for (let i = 0, observer; i < this.observers.length; i++) {
+	            observer = this.observers[i];
+	            if (observer.state === CLEAN) {
+	              if (observer.pure) {
+	                Updates.push(observer);
+	              } else {
+	                Effects.push(observer);
+	              }
+	              if (observer.observers) {
+	                downstream(observer);
+	              }
+	            }
+	            observer.state = STALE;
+	          }
+	        });
+	      }
+	      return true;
+	    }
+	    return false;
+	  }
+	  update(value) {
+	    if (typeof value === 'function') {
+	      value = value(this.value);
+	    }
+	    return this.write(value);
+	  }
+	  equals(a, b) {
+	    return a === b;
+	  }
+	  *[Symbol.iterator]() {
+	    yield this.read;
+	    yield this.write;
+	    yield this.update;
+	  }
+	}
+
+	// API
+
+	/**
+	 * Creates a new root
+	 *
+	 * @param {(dispose: Function) => any} fn
+	 * @returns {any}
+	 */
+	function root(fn) {
+	  const prevOwner = Owner;
+	  const prevListener = Listener;
+	  const root = new Root(Owner);
+	  Owner = root;
+	  Listener = undefined;
+	  try {
+	    return runUpdates(() => fn(root.dispose.bind(root)), true);
+	  } finally {
+	    Owner = prevOwner;
+	    Listener = prevListener;
+	  }
+	}
+
+	/**
+	 * Creates a signal
+	 *
+	 * @template T
+	 * @param {any} [initialValue] - Initial value of the signal
+	 * @param {SignalOptions} [options] - Signal options
+	 * @returns {SignalObject<T>}
+	 */
+	function signal(initialValue, options = undefined) {
+	  return new Signal(initialValue, options);
+	}
+
+	/**
+	 * Creates an effect
+	 *
+	 * @param {Function} fn
+	 */
+	function effect(fn) {
+	  return new Effect(Owner, fn);
+	}
+
+	/**
+	 * Creates a syncEffect
+	 *
+	 * @param {Function} fn
+	 */
+	function syncEffect(fn) {
+	  return new SyncEffect(Owner, fn);
+	}
+
+	/**
+	 * Creates a read-only signal from the return value of a function that
+	 * automatically updates
+	 *
+	 * @param {Function} fn - Function to re-run when dependencies change
+	 * @param {SignalOptions} [options]
+	 * @returns {Signal} - Read only signal
+	 */
+	function memo(fn, options = undefined) {
+	  return new Memo(Owner, fn, options);
+	}
+
+	/**
+	 * Batches changes to signals
+	 *
+	 * @param {Function} fn
+	 * @returns {any}
+	 */
+	const batch = runUpdates;
+
+	/**
+	 * Returns current owner
+	 *
+	 * @returns {typeof Owner}
+	 */
+	function owner() {
+	  return Owner;
+	}
+	function runWithOwner(owner, fn) {
+	  const prevOwner = Owner;
+	  const prevListener = Listener;
+	  Owner = owner;
+	  Listener = undefined;
+	  try {
+	    return runUpdates(fn, true);
+	  } catch (err) {
+	    throw err;
+	  } finally {
+	    Owner = prevOwner;
+	    Listener = prevListener;
+	  }
+	}
+
+	/**
+	 * Disables tracking for a function
+	 *
+	 * @param {Function} fn - Function to run with tracking disabled
+	 * @returns {any}
+	 */
+	function untrack(fn) {
+	  if (Listener === undefined) {
+	    return fn();
+	  }
+	  const prevListener = Listener;
+	  Listener = undefined;
+	  try {
+	    return fn();
+	  } finally {
+	    Listener = prevListener;
+	  }
+	}
+
+	/**
+	 * Runs a callback on cleanup, returns callback
+	 *
+	 * @template T
+	 * @param {Generic<T>} fn
+	 * @returns {Generic<T>}
+	 */
+	function cleanup(fn) {
+	  if (Owner) {
+	    if (Owner.cleanups) {
+	      Owner.cleanups.push(fn);
+	    } else {
+	      Owner.cleanups = [fn];
+	    }
+	  }
+	  return fn;
+	}
+
+	// UPDATES
+
+	function runTop(node) {
+	  switch (node.state) {
+	    case CLEAN:
+	      {
+	        return;
+	      }
+	    case CHECK:
+	      {
+	        return upstream(node);
+	      }
+	  }
+	  const ancestors = [];
+	  do {
+	    if (node.state) {
+	      ancestors.push(node);
+	    }
+	    node = node.owner;
+	  } while (node && node.updatedAt < Time);
+	  for (let i = ancestors.length - 1, updates; i >= 0; i--) {
+	    node = ancestors[i];
+	    switch (node.state) {
+	      case STALE:
+	        {
+	          node.update();
+	          break;
+	        }
+	      case CHECK:
+	        {
+	          updates = Updates;
+	          Updates = null;
+	          runUpdates(() => upstream(node, ancestors[0]));
+	          Updates = updates;
+	          break;
+	        }
+	    }
+	  }
+	}
+	function runUpdates(fn, init = false) {
+	  if (Updates) {
+	    return fn();
+	  }
+	  let wait = false;
+	  if (!init) {
+	    Updates = [];
+	  }
+	  if (Effects) {
+	    wait = true;
+	  } else {
+	    Effects = [];
+	  }
+	  Time++;
+	  try {
+	    const res = fn();
+	    if (Updates) {
+	      runQueue(Updates);
+	      Updates = null;
+	    }
+	    if (!wait) {
+	      const effects = Effects;
+	      Effects = null;
+	      if (effects.length) {
+	        runUpdates(() => runEffects(effects));
+	      }
+	    }
+	    return res;
+	  } catch (err) {
+	    if (!wait) {
+	      Effects = null;
+	    }
+	    Updates = null;
+	    throw err;
+	  }
+	}
+	function runQueue(queue) {
+	  for (let i = 0; i < queue.length; i++) {
+	    runTop(queue[i]);
+	  }
+	}
+	function runEffects(queue) {
+	  let i;
+	  let effect;
+	  let userLength = 0;
+	  for (i = 0; i < queue.length; i++) {
+	    effect = queue[i];
+	    if (!effect.user) {
+	      runTop(effect);
+	    } else {
+	      queue[userLength++] = effect;
+	    }
+	  }
+	  for (i = 0; i < userLength; i++) {
+	    runTop(queue[i]);
+	  }
+	}
+	function upstream(node, ignore) {
+	  node.state = CLEAN;
+	  for (let i = 0, source; i < node.sources.length; i++) {
+	    source = node.sources[i];
+	    if (source.sources) {
+	      switch (source.state) {
+	        case STALE:
+	          {
+	            if (source !== ignore && source.updatedAt < Time) {
+	              runTop(source);
+	            }
+	            break;
+	          }
+	        case CHECK:
+	          {
+	            upstream(source, ignore);
+	            break;
+	          }
+	      }
+	    }
+	  }
+	}
+	function downstream(node) {
+	  for (let i = 0, observer; i < node.observers.length; i++) {
+	    observer = node.observers[i];
+	    if (observer.state === CLEAN) {
+	      observer.state = CHECK;
+	      if (observer.pure) {
+	        Updates.push(observer);
+	      } else {
+	        Effects.push(observer);
+	      }
+	      observer.observers && downstream(observer);
+	    }
+	  }
+	}
+
+	/*
+
+	let readForbid = false
+
+	function checkReadForbidden() {
+		if (readForbid) {
+			console.trace('Signal Read!')
+		}
+	}
+	export function readForbidden(fn, value) {
+		const prev = readForbid
+		try {
+			readForbid = value
+			return fn()
+		} finally {
+			readForbid = prev
+		}
+	}
+	*/
+
+	/**
+	 * Creates a context and returns a function to get or set the value
+	 *
+	 * @param {any} [defaultValue] - Default value for the context
+	 * @returns {typeof Context} Context
+	 */
+	function Context(defaultValue = undefined) {
+	  const id = Symbol();
+	  return useContext.bind(null, id, defaultValue);
+	}
+
+	/**
+	 * @overload Gets the context value
+	 * @returns {any} Context value
+	 */
+	/**
+	 * @overload Runs `fn` with a new value as context
+	 * @param {any} newValue - New value for the context
+	 * @param {Function} fn - Callback to run with the new context value
+	 * @returns {Children} Children
+	 */
+	/**
+	 * @param {any} newValue
+	 * @param {Function} fn
+	 */
+	function useContext(id, defaultValue, newValue, fn) {
+	  if (newValue === undefined) {
+	    return Owner?.context && Owner.context[id] !== undefined ? Owner.context[id] : defaultValue;
+	  } else {
+	    let res;
+	    syncEffect(() => {
+	      Owner.context = {
+	        ...Owner.context,
+	        [id]: newValue
+	      };
+	      res = fn();
+	    });
+	    return res;
+	  }
+	}
+
+	/**
+	 * Returns a function on which you can pass functions to run with the
+	 * current owner
+	 *
+	 * @returns {(fn) => any}
+	 */
+	const withOwner = () => {
+	  const o = Owner;
+	  return fn => isFunction(fn) ? runWithOwner(o, fn) : fn;
+	};
+
+	/**
+	 * A self contained signal function, when an argument is present it
+	 * writes to the signal, when theres no argument it reads the signal.
+	 *
+	 * @param {any} [value] - Optional initial value
+	 * @returns {Signal}
+	 */
+	function signalFunction(value) {
+	  const [read, write] = signal(value);
+	  return markReactive((...args) => args.length ? write(args[0]) : read());
+	}
+
+	/**
+	 * Unwraps values. If the argument is a function then it runs it
+	 * recursively and returns the value
+	 *
+	 * @param {Function | any} value - Maybe function
+	 * @returns {any}
+	 */
+	const getValue = value => {
+	  while (typeof value === 'function') value = value();
+	  return value;
+	};
+
+	const groupBy = Object$1.groupBy;
+
+	/**
+	 * Removes a value from an array
+	 *
+	 * @param {any[]} array
+	 * @param {any} value To remove from the array
+	 * @returns {any[]}
+	 */
+	function removeFromArray(array, value) {
+	  const index = array.indexOf(value);
+	  if (index !== -1) array.splice(index, 1);
+	  return array;
+	}
+
+	// MAP
+
+
+	/**
+	 * Reactive Map
+	 *
+	 * @param {Each} list
+	 * @param {Function} callback
+	 * @param {boolean} sort
+	 */
+	function map(list, callback, sort) {
+	  const cache = new Map();
+	  const duplicates = new Map(); // for when caching by value is not possible [1, 2, 1, 1, 1]
+
+	  let runId = 0;
+	  let rows = [];
+	  /** @type any[] */
+	  let prev = [];
+	  function clear() {
+	    for (let i = 0; i < prev.length; i++) {
+	      prev[i].dispose(true);
+	    }
+	    cache.clear();
+	    duplicates.clear();
+	    rows.length = 0;
+	    prev.length = 0;
+	  }
+
+	  // to get rid of all nodes when parent disposes
+	  cleanup(clear);
+	  class Row {
+	    constructor(item, index, fn, isDupe) {
+	      this.runId = -1;
+	      this.item = item;
+	      this.index = index;
+	      this.isDupe = isDupe;
+	      this.disposer = undefined;
+	      this.nodes = root(disposer => {
+	        this.disposer = disposer;
+	        /** @type Children[] */
+	        return fn(item, index);
+	      });
+	    }
+	    get begin() {
+	      return this.nodes[0];
+	    }
+	    get end() {
+	      return this.nodes[this.nodes.length - 1];
+	    }
+	    dispose(all) {
+	      // skip cache deletion as we are going to clear the full map
+	      if (all === undefined) {
+	        // delete from cache
+	        if (!this.isDupe) {
+	          cache.delete(this.item);
+	        } else {
+	          const arr = duplicates.get(this.item);
+	          arr.length === 1 ? duplicates.delete(this.item) : removeFromArray(arr, this);
+	        }
+	      }
+	      this.disposer();
+	    }
+	  }
+
+	  /**
+	   * @param {Function} fn
+	   * @returns {Children}
+	   */
+	  function mapper(fn) {
+	    const cb = fn ? (item, index) => fn(callback(item, index), index) : callback;
+	    const items = (getValue(list) || []).entries();
+	    runId++;
+	    rows = [];
+	    const hasPrev = prev.length;
+	    for (const [index, item] of items) {
+	      let row = hasPrev ? cache.get(item) : undefined;
+
+	      // if the item doesnt exists, create it
+	      if (row === undefined) {
+	        row = new Row(item, index, cb, false);
+	        cache.set(item, row);
+	      } else if (row.runId === runId) {
+	        // a map will save only 1 of any primitive duplicates, say: [1, 1, 1, 1]
+	        // if the saved value was already used on this run, create a new one
+	        let dupes = duplicates.get(item);
+	        if (!dupes) {
+	          dupes = [];
+	          duplicates.set(item, dupes);
+	        }
+	        for (let i = 0; i < dupes.length; i++) {
+	          if (dupes[i].runId !== runId) {
+	            row = dupes[i];
+	            break;
+	          }
+	        }
+	        if (row.runId === runId) {
+	          row = new Row(item, index, cb, true);
+	          dupes.push(row);
+	        }
+	      }
+	      row.runId = runId; // mark used on this run
+	      row.index = index; // save sort order
+	      rows.push(row);
+	    }
+
+	    // remove rows that arent present on the current run
+	    if (rows.length === 0) {
+	      clear();
+	    } else {
+	      for (let i = 0; i < prev.length; i++) {
+	        if (prev[i].runId !== runId) {
+	          prev[i].dispose();
+	        }
+	      }
+	    }
+
+	    // reorder elements
+	    // `rows.length > 1` because no need for sorting when there are no items
+	    // prev.length > 0 to skip sorting on creation as its already sorted
+	    if (sort && rows.length > 1 && prev.length) {
+	      // if the planets align it handles swapping
+	      // a = sorted
+	      // b = unsorted
+	      const {
+	        a,
+	        b
+	      } = groupBy(rows, (value, index) => rows[index] === prev[index] ? 'a' : 'b');
+	      if (a && b && a.length && b.length && b.length < a.length && b.every(item => prev.includes(item))) {
+	        for (const usort of b) {
+	          for (const sort of a) {
+	            if (usort.index === sort.index - 1) {
+	              sort.begin.before(...nodesFromRow(usort));
+	              break;
+	            } else if (usort.index === sort.index + 1) {
+	              sort.end.after(...nodesFromRow(usort));
+	              break;
+	            }
+	          }
+	        }
+	      }
+
+	      // handles all other cases
+	      // best for any combination of: push/pop/shift/unshift/insertion/deletion
+	      // must check in reverse as on creation stuff is added to the end
+
+	      let current = rows[rows.length - 1];
+	      for (let i = rows.length - 1; i > 0; i--) {
+	        const previous = rows[i - 1];
+	        if (current.begin.previousSibling !== previous.end) {
+	          current.begin.before(...nodesFromRow(previous));
+	        }
+	        current = previous;
+	      }
+	    }
+
+	    // save sorted list
+	    prev = rows;
+
+	    // return external representation
+	    return rows.map(item => item.nodes);
+	  }
+	  mapper[$map] = undefined;
+	  return mapper;
+	}
+	function nodesFromRow(row) {
+	  const {
+	    begin,
+	    end
+	  } = row;
+	  const nodes = [begin];
+	  let nextSibling = begin;
+	  while (nextSibling !== end) {
+	    nextSibling = nextSibling.nextSibling;
+	    nodes.push(nextSibling);
+	  }
+	  return nodes;
+	}
+
+	/**
+	 * Creates an asynchronously effect
+	 *
+	 * @param {(currentRunningEffect: Promise<any>) => any} fn - A
+	 *   function that receives a `currentRunningEffect` that should be
+	 *   awaited for when wanting to run effects synchronously, that's it
+	 *   one effect after another.
+	 */
+	function asyncEffect(fn) {
+	  const queue = [];
+	  effect(() => {
+	    const {
+	      promise,
+	      resolve
+	    } = Promise.withResolvers();
+	    queue.push(promise);
+	    function onDone() {
+	      removeFromArray(queue, promise);
+	      resolve();
+	    }
+	    fn(queue.length === 1 ? undefined : queue[queue.length - 2]).then(onDone).catch(onDone);
+	  });
+	}
+
+	/**
+	 * Lazy and writable version of `memo`, its writable and will run the
+	 * function only when used
+	 *
+	 * @author ryansolid
+	 * @param {Function} fn - Function to re-run when dependencies change
+	 * @returns {((...args) => any) | (() => any)}
+	 */
+	function writable(fn) {
+	  const result = memo(() => signal(fn()));
+	  return markReactive((...args) => {
+	    return args.length ? result().write(args[0]) : result().read();
+	  });
+	}
+
+	/**
+	 * Runs a function inside an effect if value is a function
+	 *
+	 * @param {any} value
+	 * @param {(value) => any} fn
+	 */
+	const withValue = (value, fn) => isFunction(value) ? effect(() => {
+	  fn(getValue(value));
+	}) : fn(value);
+
+	const isArray = Array.isArray;
+
+	/**
+	 * Runs arrays of functions with arguments
+	 *
+	 * @param {Function | Function[]} fn
+	 * @param {...any} args? - Arguments to pass to the functions
+	 */
+	const call = (fn, ...args) => isArray(fn) ? fn[0](...args, ...fn.slice(1)) : fn(...args);
+
+	/**
+	 * Calls an array of functions
+	 *
+	 * @param {Function[]} fns
+	 */
+	const callAll = fns => {
+	  for (const fn of fns) fn();
+	};
+
+	/**
+	 * Creates a context and returns a function to get or set the value
+	 *
+	 * @param {any} [defaultValue] - Default value for the context
+	 * @returns {typeof Context} Context
+	 */
+	function contextSimple(defaultValue = undefined) {
+	  let value = defaultValue;
+
+	  /**
+	   * @overload Gets the context value
+	   * @returns {any} Context value
+	   */
+	  /**
+	   * @overload Runs `fn` with a new value as context
+	   * @param {any} newValue - New value for the context
+	   * @param {Function} fn - Callback to run with the new context value
+	   * @returns {any}
+	   */
+	  /**
+	   * @param {any | undefined} newValue
+	   * @param {Function | undefined} fn
+	   */
+	  function Context(newValue, fn) {
+	    if (newValue === undefined) {
+	      return value;
+	    } else {
+	      const parent = Context();
+	      value = newValue;
+	      const result = fn();
+	      value = parent;
+	      return result;
+	    }
+	  }
+	  return Context;
+	}
+
+	/**
+	 * Returns true when value is an Object and not null
+	 *
+	 * @param {any} value
+	 * @returns {boolean}
+	 */
+	const isObject = value => value !== null && typeof value === 'object';
+
+	const copy = o => isObject(o) ? structuredClone(o) : o;
+
+	const defineProperties = Object$1.defineProperties;
+
+	const create = Object$1.create;
+
+	const defineProperty = Object$1.defineProperty;
+
+	/**
+	 * Object.defineProperty with `enumerable` and `configurable` set to
+	 * `true` unless overwriten by `descriptor` argument
+	 *
+	 * @param {object} target
+	 * @param {PropertyKey} key
+	 * @param {PropertyDescriptor} descriptor
+	 */
+	const redefineProperty = (target, key, descriptor) => defineProperty(target, key, assign(create(defaults), descriptor));
+	const defaults = {
+	  __proto__: null,
+	  configurable: true,
+	  enumerable: true
+	};
+
+	/**
+	 * Returns an object without a prototype
+	 *
+	 * @type {Function}
+	 * @returns {Props} Empty object
+	 */
+	const empty = Object$1.create.bind(null, null);
+	const emptyArray = () => [];
+
+	const entries = Object$1.entries;
+
+	/**
+	 * Flats an array/childNodes to the first children if the length is 1
+	 *
+	 * @param {any[] | NodeListOf<ChildNode>} arr
+	 * @returns {any}
+	 */
+	const flat = arr => arr.length === 1 ? arr[0] : arr;
+
+	const freeze = Object$1.freeze;
+
+	const fromEntries = Object$1.fromEntries;
+
+	/**
+	 * Keeps state in the function as a bind param
+	 *
+	 * @param {Function} fn - Function to which add state to it
+	 * @param {object} [state] - To which add state to it
+	 * @returns {Function} A copy of the function with the state
+	 */
+	const functionState = (fn, state = empty()) => fn.bind(null, state);
+
+	const getOwnPropertyNames = Object$1.getOwnPropertyNames;
+
+	const getValueWithArguments = (value, ...args) => typeof value === 'function' ? args.length ? getValue(value(...args)) : getValue(value()) : value;
+
+	/**
+	 * Unwraps `value` and returns `element` if result is a `Node`, else
+	 * `undefined` in the case isn't a `Node`
+	 *
+	 * @param {Function | any} value - Maybe function
+	 * @param {...any} args? - Arguments
+	 * @returns {Node | undefined}
+	 */
+	function getValueElement(value, ...args) {
+	  const element = getValueWithArguments(value, ...args);
+	  return element instanceof Node ? element : undefined;
+	}
+
+	const hasOwnProperty = Object$1.hasOwn;
+
+	const isExtensible = Object$1.isExtensible;
+
+	const isNaN = Number.isNaN;
+
+	/**
+	 * Returns `true` if the value is `null` or `undefined`
+	 *
+	 * @param {any} value
+	 * @returns {boolean}
+	 */
+	const isNullUndefined = value => value === undefined || value === null;
+
+	/**
+	 * Returns `true` if the property is defined in the prototype and
+	 * absent in the object
+	 *
+	 * @param {{}} target
+	 * @param {PropertyKey} key
+	 */
+	const isPrototypeProperty = (target, key) =>
+	// must do `key in target` to check that it DOES have it somewhere
+	// must do !hasOwnProperty to check that isnt an own property
+	key in target && !hasOwnProperty(target, key);
+
+	/**
+	 * Returns true when value is a string
+	 *
+	 * @param {any} value
+	 * @returns {boolean}
+	 */
+	const isString = value => typeof value === 'string';
+
+	const iterator = Symbol.iterator;
+
+	const keys = Object$1.keys;
+
+	function measure(name, cb) {
+	  console.time(name);
+	  const r = cb();
+	  console.timeEnd(name);
+	  return r;
+	}
+	function timing(fn) {
+	  const start = performance.now();
+	  fn();
+	  return performance.now() - start;
+	}
+
+	const microtask = queueMicrotask;
+
+	/** @type {Function} */
+	const noop = () => {};
+
+	const nothing = freeze(empty());
+
+	// an optional value is `true` by default, so most of the time is undefined which means is `true`
+	// to avoid having conditions like `if(something.bla === undefined || something.bla)`
+	// this function will short it to `if(optional(something.bla))`
+	// additionally the value is resolved, for cases like `when={() => show() && optional(props.when)}`
+
+
+	/**
+	 * Returns true when value is true or undefined
+	 *
+	 * @param {Function | boolean | undefined} value
+	 * @returns {boolean} True when value is true or undefined
+	 */
+	const optional = value => value === undefined || getValue(value);
+
+	function* range(start, stop, step = 1) {
+	  yield start;
+	  while (start < stop) {
+	    yield start += step;
+	  }
+	}
+
+	const stringify = JSON.stringify;
+
+	const toArray = Array.from;
+
+	/**
+	 * Creates a WeakMap to store data
+	 *
+	 * @returns {[
+	 * 	(
+	 * 		reference: WeakKey,
+	 * 		createIfNotExistsAs?: (target: any) => any,
+	 * 	) => any,
+	 * 	(key: WeakKey, value: any) => void,
+	 * 	Function,
+	 * 	Function,
+	 * 	WeakMap<WeakKey, any>,
+	 * ]}
+	 */
+
+	function weakStore() {
+	  const store = new WeakMap();
+	  const get = store.get.bind(store);
+	  const set = store.set.bind(store);
+	  return [(target, defaults = undefined) => {
+	    const o = get(target);
+	    if (o !== undefined) return o;
+	    if (defaults !== undefined) {
+	      /**
+	       * Default values should be passed as a function, so we dont
+	       * constantly initialize values when giving them
+	       */
+	      defaults = defaults(target);
+	      set(target, defaults);
+	      return defaults;
+	    }
+	  }, set, store.has.bind(store), store.delete.bind(store), store];
+	}
+
+	/**
+	 * Returns true when value is reactive (a signal)
+	 *
+	 * @param {any} value
+	 * @returns {boolean}
+	 */
+	const isReactive = value => isFunction(value) && $reactive in value;
+
+	/**
+	 * Returns true if the `value` is a `Component`
+	 *
+	 * @param {any} value
+	 * @returns {boolean}
+	 */
+	const isComponent = value => isFunction(value) && $component in value;
+
+	/**
+	 * Returns true if the value can be made a Component
+	 *
+	 * @param {any} value
+	 * @returns {boolean}
+	 */
+	const isComponentable = value => !isReactive(value) && (isFunction(value) ||
+	// avoid [1,2] and support { toString(){ return "something"} }
+	!isArray(value) && isObject(value) && !value.then);
+
+	// allows to tell a `signal function` from a `component function`
+	// signals and user functions go in effects, for reactivity
+	// components and callbacks are untracked and wont go in effects to avoid re-rendering
+
+
+	/**
+	 * Marks a function as a `Component`.
+	 *
+	 * @param {Function} fn - Function to mark as a `Component`
+	 * @returns {Component}
+	 */
+	function markComponent(fn) {
+	  fn[$component] = undefined;
+	  return fn;
+	}
+
+	/**
+	 * The purpose of this file is to guarantee the timing of some
+	 * callbacks. It queues a microtask, then the callbacks are added to a
+	 * position in the array. These are run in priority.
+	 *
+	 * `onMount` should only run after a thing has been mounted
+	 *
+	 * `ready` should only run after all pending things to be mounted, has
+	 * been mounted
+	 */
+
+	/** @type boolean */
+	let added;
+
+	/** @type [][] */
+	let queue;
+
+	/** @type Function[] */
+	const finally_ = [];
+
+	/** Resets the Scheduler */
+	function reset() {
+	  queue = [[], [], []];
+	  added = false;
+	}
+
+	// initialization
+	reset();
+
+	/**
+	 * Queues a callback at a priority
+	 *
+	 * @param {PropertyKey} priority - Priority
+	 * @param {Function | Function[]} fn - Function to run once the
+	 *   callbacks at this priority run
+	 */
+	function add(priority, fn) {
+	  enqueue();
+	  queue[priority].push(fn);
+	}
+	function enqueue() {
+	  if (!added) {
+	    added = true;
+	    microtask(run);
+	  }
+	}
+	/** Runs all queued callbacks */
+	function run() {
+	  const q = queue;
+	  reset();
+	  for (const fns of q) {
+	    for (const fn of fns) {
+	      call(fn);
+	    }
+	  }
+	  for (const fn of finally_) {
+	    call(fn);
+	  }
+	}
+
+	/**
+	 * Queue a function to run onMount (before ready)
+	 *
+	 * @param {Function | Function[]} fn
+	 */
+	const onMount = fn => add(0, fn);
+
+	/**
+	 * Queue a function to run ready (after onMount)
+	 *
+	 * @param {Function | Function[]} fn
+	 * @url https://pota.quack.uy/ready
+	 */
+	const ready = fn => add(1, fn);
+
+	/**
+	 * Queue a function to run after all user defined processes
+	 *
+	 * @param {Function | Function[]} fn
+	 */
+	const onDone = fn => add(2, fn);
+
+	/**
+	 * Finally_ is intended to never be cleaned.
+	 *
+	 * @param {VoidFunction | Function} fn
+	 */
+	function onFinally(fn) {
+	  enqueue();
+	  finally_.push(fn);
+	}
+
+	const plugins = empty();
+	const pluginsNS = empty();
+
+	/**
+	 * Defines a prop that can be used on any Element
+	 *
+	 * @param {string} propName - Name of the prop
+	 * @param {(
+	 * 	node: Elements,
+	 * 	propName: string,
+	 * 	propValue: Function | any,
+	 * 	props: object,
+	 * ) => void} fn
+	 *   - Function to run when this prop is found on any Element
+	 *
+	 * @param {boolean} [runOnMicrotask=true] - To avoid the problem of
+	 *   needed props not being set, or children elements not created yet.
+	 *   Default is `true`
+	 * @url https://pota.quack.uy/props/propsPlugin
+	 */
+	const propsPlugin = (propName, fn, runOnMicrotask = true) => {
+	  plugin(plugins, propName, fn, runOnMicrotask);
+	};
+
+	/**
+	 * Defines a namespaced prop that can be used on any Element
+	 *
+	 * @param {string} NSName - Name of the namespace
+	 * @param {(
+	 * 	node: Elements,
+	 * 	propName: string,
+	 * 	propValue: Function | any,
+	 * 	props: object,
+	 * 	localName: string,
+	 * 	ns: string,
+	 * ) => void} fn
+	 *   - Function to run when this prop is found on any Element
+	 *
+	 * @param {boolean} [runOnMicrotask=true] - Set to run on a microtask
+	 *   to avoid the problem of needed props not being set, or children
+	 *   elements not being created yet. Default is `true`
+	 */
+	const propsPluginNS = (NSName, fn, runOnMicrotask = true) => {
+	  plugin(pluginsNS, NSName, fn, runOnMicrotask);
+	};
+	const plugin = (plugins, name, fn, runOnMicrotask) => {
+	  plugins[name] = !runOnMicrotask ? fn : (...args) => {
+	    const owned = withOwner();
+	    microtask(() => owned(() => fn(...args)));
+	  };
+	};
+
+	/**
+	 * @param {Elements} node
+	 * @param {string} eventName
+	 * @param {any} [data]
+	 */
+
+	const emit = (node, eventName, data = {
+	  bubbles: true,
+	  cancelable: true,
+	  composed: true
+	}) => node.dispatchEvent(new CustomEvent(eventName, data));
+
+	/**
+	 * @param {Elements} node
+	 * @param {string} name
+	 * @param {unknown} value
+	 * @param {object} props
+	 * @param {string} localName
+	 * @param {string} ns
+	 */
+	const setPropertyNS = (node, name, value, props, localName, ns) => setProperty(node, localName, value);
+
+	/**
+	 * @param {Elements} node
+	 * @param {string} name
+	 * @param {unknown} value
+	 * @url https://pota.quack.uy/props/setProperty
+	 */
+	const setProperty = (node, name, value) => withValue(value, value => _setProperty(node, name, value));
+
+	/**
+	 * @param {Elements} node
+	 * @param {string} name
+	 * @param {unknown} value
+	 */
+	function _setProperty(node, name, value) {
+	  // if the value is null or undefined it will be set to null
+	  if (isNullUndefined(value)) {
+	    // defaulting to undefined breaks `progress` tag and the whole page
+	    node[name] = null;
+	  } else {
+	    node[name] = value;
+	  }
+	  if (name === 'value') {
+	    emit(node, 'input');
+	    emit(node, 'change');
+	  }
+	}
+
+	// NODE ATTRIBUTES
+
+	/**
+	 * @param {Elements} node
+	 * @param {string} name
+	 * @param {unknown} value
+	 * @param {object} props
+	 * @param {string} localName
+	 * @param {string} ns
+	 */
+	const setAttributeNS = (node, name, value, props, localName, ns) => setAttribute(node, localName, value);
+
+	/**
+	 * @param {Elements} node
+	 * @param {string} name
+	 * @param {unknown} value
+	 * @param {string} [ns]
+	 * @url https://pota.quack.uy/props/setAttribute
+	 */
+	const setAttribute = (node, name, value, ns) => withValue(value, value => _setAttribute(node, name, value, ns));
+
+	/**
+	 * @param {Elements} node
+	 * @param {string} name
+	 * @param {unknown} value
+	 * @param {string} [ns]
+	 */
+	function _setAttribute(node, name, value, ns) {
+	  // if the value is null or undefined it will be removed
+	  if (isNullUndefined(value)) {
+	    ns && NS[ns] ? node.removeAttributeNS(NS[ns], name) : node.removeAttribute(name);
+	  } else {
+	    ns && NS[ns] ? node.setAttributeNS(NS[ns], name, value) : node.setAttribute(name, value);
+	  }
+	}
+
+	// BOOL ATTRIBUTES
+
+	/**
+	 * @param {Elements} node
+	 * @param {string} name
+	 * @param {unknown} value
+	 * @param {object} props
+	 * @param {string} localName
+	 * @param {string} ns
+	 */
+	const setBoolNS = (node, name, value, props, localName, ns) => setBool(node, localName, value);
+
+	/**
+	 * @param {Elements} node
+	 * @param {string} name
+	 * @param {unknown} value
+	 * @url https://pota.quack.uy/props/setBool
+	 */
+	const setBool = (node, name, value) => withValue(value, value => _setBool(node, name, value));
+
+	/**
+	 * @param {Elements} node
+	 * @param {string} name
+	 * @param {unknown} value
+	 */
+	const _setBool = (node, name, value) =>
+	// if the value is falsy gets removed
+	!value ? node.removeAttribute(name) : node.setAttribute(name, '');
+
+	// node style
+
+
+	/**
+	 * @param {Elements} node
+	 * @param {string} name
+	 * @param {unknown} value
+	 * @param {object} props
+	 * @url https://pota.quack.uy/props/setStyle
+	 */
+	const setStyle = (node, name, value, props) => setNodeStyle(node.style, value);
+
+	/**
+	 * @param {Elements} node
+	 * @param {string} name
+	 * @param {unknown} value
+	 * @param {object} props
+	 * @param {string} localName
+	 * @param {string} ns
+	 */
+	const setStyleNS = (node, name, value, props, localName, ns) => setNodeStyle(node.style, isObject(value) ? value : {
+	  [localName]: value
+	});
+
+	/**
+	 * @param {Elements} node
+	 * @param {string} name
+	 * @param {unknown} value
+	 * @param {object} props
+	 * @param {string} localName
+	 * @param {string} ns
+	 */
+	const setVarNS = (node, name, value, props, localName, ns) => setNodeStyle(node.style, {
+	  ['--' + localName]: value
+	});
+
+	/**
+	 * @param {CSSStyleDeclaration} style
+	 * @param {unknown} value
+	 */
+	function setNodeStyle(style, value) {
+	  if (isObject(value)) {
+	    let name;
+	    for (name in value) {
+	      setStyleValue(style, name, value[name]);
+	    }
+	    return;
+	  }
+	  const type = typeof value;
+	  if (type === 'string') {
+	    style.cssText = value;
+	    return;
+	  }
+	  if (type === 'function') {
+	    effect(() => {
+	      setNodeStyle(style, getValue(value));
+	    });
+	    return;
+	  }
+	}
+
+	/**
+	 * @param {Elements} node
+	 * @param {string} name
+	 * @param {unknown} value
+	 */
+	const setElementStyle = (node, name, value) => setStyleValue(node.style, name, value);
+
+	/**
+	 * @param {CSSStyleDeclaration} style
+	 * @param {string} name
+	 * @param {unknown} value
+	 */
+	const setStyleValue = (style, name, value) => withValue(value, value => _setStyleValue(style, name, value));
+
+	/**
+	 * @param {CSSStyleDeclaration} style
+	 * @param {string} name
+	 * @param {string | null} value
+	 */
+	const _setStyleValue = (style, name, value) =>
+	// if the value is null or undefined it will be removed
+	isNullUndefined(value) ? style.removeProperty(name) : style.setProperty(name, value);
+
+	// node class / classList
+
+
+	/**
+	 * @param {Elements} node
+	 * @param {string} name
+	 * @param {object | string | ArrayLike<any>} value
+	 * @param {object} props
+	 */
+	const setClass = (node, name, value, props) => isString(value) ? node.setAttribute('class', value) : setClassList(node, value);
+
+	/**
+	 * @param {Elements} node
+	 * @param {string} name
+	 * @param {object | string | ArrayLike<any>} value
+	 * @param {object} props
+	 * @param {string} localName
+	 * @param {string} ns
+	 */
+	const setClassNS = (node, name, value, props, localName, ns) => isObject(value) ? setClassList(node, value) : setClassListValue(node, localName, value);
+
+	// todo: the name of the class is not reactive
+
+	/**
+	 * @param {Elements} node
+	 * @param {object | string | ArrayLike<any>} value
+	 */
+	function setClassList(node, value) {
+	  switch (typeof value) {
+	    case 'string':
+	      {
+	        _setClassListValue(node, value, true);
+	        break;
+	      }
+	    case 'object':
+	      {
+	        let name;
+	        for (name in value) {
+	          setClassListValue(node, name, value[name]);
+	        }
+	        break;
+	      }
+	    case 'function':
+	      {
+	        withValue(value, value => setClassList(node, value));
+	        break;
+	      }
+	  }
+	}
+	/**
+	 * @param {Elements} node
+	 * @param {string} name
+	 * @param {unknown} value
+	 */
+	const setClassListValue = (node, name, value) => withValue(value, value => _setClassListValue(node, name, value));
+
+	/**
+	 * @param {Elements} node
+	 * @param {string} name
+	 * @param {unknown} value
+	 */
+
+	const _setClassListValue = (node, name, value) =>
+	// null, undefined or false, the class is removed
+	!value ? node.classList.remove(name) : node.classList.add(...name.trim().split(/\s+/));
+
+	/**
+	 * @param {Elements} node
+	 * @param {string} name
+	 * @param {Function} value
+	 * @param {object} props
+	 */
+	const setRef = (node, name, value, props) => value(node);
+
+	/**
+	 * @param {Elements} node
+	 * @param {string} name
+	 * @param {Function} value
+	 * @param {object} props
+	 */
+	const setOnMount = (node, name, value, props) =>
+	// timing is already controlled by onMount
+	onMount([value, node]);
+
+	/**
+	 * @param {Elements} node
+	 * @param {string} name
+	 * @param {Function} value
+	 * @param {object} props
+	 */
+	const setUnmount = (node, name, value, props) =>
+	// we need to ensure the timing of the cleanup callback
+	// so we queue it to run it at a specific time
+	cleanup(() => value(node));
+
+	/**
+	 * @param {Elements} node
+	 * @param {string} name
+	 * @param {EventListenerOrEventListenerObject} value
+	 * @param {object} props
+	 * @param {string} localName
+	 * @param {string} ns
+	 */
+	const setEventNS = (node, name, value, props, localName, ns) => addEventListener(node, localName, value);
+	const EventNames = empty();
+
+	/**
+	 * Returns an event name when the string could be mapped to an event
+	 *
+	 * @param {string} name - String to check for a mapped event
+	 * @returns {string | undefined} Returns the event name or null in
+	 *   case isnt found
+	 */
+	function eventName(name) {
+	  if (name in EventNames) {
+	    return EventNames[name];
+	  }
+	  if (name.startsWith('on') && name.toLowerCase() in window) {
+	    EventNames[name] = name.slice(2).toLowerCase();
+	  } else {
+	    EventNames[name] = undefined;
+	  }
+	  return EventNames[name];
+	}
+
+	/**
+	 * Adds an event listener to a node
+	 *
+	 * @param {Elements} node - Element to add the event listener
+	 * @param {string} type - The name of the event listener
+	 * @param {EventListenerOrEventListenerObject} handler - Function to
+	 *   handle the event
+	 * @returns {Function} - An `off` function for removing the event
+	 *   listener
+	 * @url https://pota.quack.uy/props/EventListener
+	 */
+	function addEventListener(node, type, handler) {
+	  node.addEventListener(type, handler, isFunction(handler) ? undefined : handler);
+	  const off = () => removeEventListener(node, type, handler);
+
+	  /**
+	   * Removes event on tracking scope disposal.
+	   *
+	   * Situation: the event was added to the `document` manually using
+	   * `addEventListener`, say to listen for clicks as a "click
+	   * outside". The event needs to be removed when the component that
+	   * added it is disposed.
+	   */
+	  cleanup(off);
+	  return off;
+	}
+
+	/**
+	 * Removes an event listener from a node
+	 *
+	 * @param {Elements} node - Element to add the event listener
+	 * @param {string} type - The name of the event listener
+	 * @param {EventListenerOrEventListenerObject} handler - Function to
+	 *   handle the event
+	 * @returns {Function} - An `on` function for adding back the event
+	 *   listener
+	 * @url https://pota.quack.uy/props/EventListener
+	 */
+	function removeEventListener(node, type, handler) {
+	  node.removeEventListener(type, handler);
+	  return () => addEventListener(node, type, handler);
+	}
+
+	// NODE UNKNOWN PROPERTIES / ATTRIBUTES
+
+
+	/**
+	 * @param {Elements} node
+	 * @param {string} name
+	 * @param {unknown} value
+	 * @param {string} [ns]
+	 */
+	const setUnknownProp = (node, name, value, ns) => withValue(value, value => _setUnknownProp(node, name, value, ns));
+
+	/**
+	 * @param {Elements} node
+	 * @param {string} name
+	 * @param {unknown} value
+	 * @param {string} [ns]
+	 */
+	const _setUnknownProp = (node, name, value, ns) => {
+	  if (isObject(value)) {
+	    // when not null object
+	    _setProperty(node, name, value);
+	  } else if (typeof value === 'boolean' && !name.includes('-')) {
+	    // when boolean and name doesnt have a hyphen
+	    _setProperty(node, name, value);
+	  } else {
+	    // fallback to attribute
+	    _setAttribute(node, name, value, ns);
+	    // to be able to delete properties
+	    isNullUndefined(value) && _setProperty(node, name, value);
+	  }
+	};
+
+	propsPlugin('style', setStyle, false);
+	propsPluginNS('style', setStyleNS, false);
+	propsPluginNS('var', setVarNS, false);
+	propsPlugin('class', setClass, false);
+	propsPluginNS('class', setClassNS, false);
+	for (const item of ['value', 'textContent', 'innerText', 'innerHTML']) {
+	  propsPlugin(item, setProperty, false);
+	}
+	propsPluginNS('prop', setPropertyNS, false);
+	propsPluginNS('attr', setAttributeNS, false);
+	propsPluginNS('bool', setBoolNS, false);
+	propsPlugin('onMount', setOnMount, false);
+	propsPluginNS('onMount', setOnMount, false);
+	propsPlugin('onUnmount', setUnmount, false);
+	propsPluginNS('onUnmount', setUnmount, false);
+
+	// ref
+
+	propsPlugin('ref', setRef, false);
+	propsPluginNS('ref', setRef, false);
+	propsPluginNS('on', setEventNS, false);
+	const isCustomElement = (node, props) =>
+	// document-fragment wont have a localName
+	'is' in props || node.localName?.includes('-');
+
+	/**
+	 * Assigns props to an Element
+	 *
+	 * @param {Elements} node - Element to which assign props
+	 * @param {object} props - Props to assign
+	 */
+	function assignProps(node, props) {
+	  let name;
+	  let value;
+	  for (name in props) {
+	    value = props[name];
+
+	    // run plugins
+	    if (name in plugins) {
+	      plugins[name](node, name, value, props);
+	      continue;
+	    }
+
+	    // onClick={handler}
+	    let event = eventName(name);
+	    if (event) {
+	      addEventListener(node, event, value);
+	      continue;
+	    }
+	    if (name.includes(':')) {
+	      // with ns
+	      let [ns, localName] = name.split(':');
+
+	      // run plugins NS
+	      if (ns in pluginsNS) {
+	        pluginsNS[ns](node, name, value, props, localName, ns);
+	        continue;
+	      }
+
+	      // onClick:my-ns={handler}
+	      event = eventName(ns);
+	      if (event) {
+	        addEventListener(node, event, value);
+	        continue;
+	      }
+	      isCustomElement(node, props) ? _setProperty(node, name, value) : setUnknownProp(node, name, value, ns);
+	      continue;
+	    }
+
+	    // catch all
+	    isCustomElement(node, props) ? _setProperty(node, name, value) : setUnknownProp(node, name, value);
+	  }
+	}
+
+	const bind = fn => document[fn].bind(document);
+	const createElement = bind('createElement');
+	const createElementNS = bind('createElementNS');
+	const createTextNode = bind('createTextNode');
+	const adoptedStyleSheets = document.adoptedStyleSheets;
+	function toDiff(prev = [], node = []) {
+	  node = isArray(node) ? node.flat(Infinity) : [node];
+	  for (let i = 0, item; i < prev.length; i++) {
+	    item = prev[i];
+	    item && (node.length === 0 || !node.includes(item)) && item.remove();
+	  }
+	  return node;
+	}
+
+	/** @returns {TreeWalker} */
+	function walker() {
+	  const walk = document.createTreeWalker(document, NodeFilter.SHOW_ELEMENT);
+	  walker = () => walk;
+	  return walker();
+	}
+
+	const id = 'pota';
+	const tag = `<pota></pota>`;
+	const [get, set] = weakStore();
+	function parse(content) {
+	  let cached = get(content);
+	  if (!cached) {
+	    const template = createElement('template');
+	    template.innerHTML = content.join(tag).replaceAll(`"${tag}"`, `"${id}"`)
+	    // avoid double br when self-closing
+	    .replace(/<br\s*\/\s*>/g, '<br>')
+	    // self-close
+	    .replace(/<([a-z-]+)([^/>]*)\/\s*>/gi, '<$1 $2></$1>');
+	    cached = template.content;
+	    set(content, cached);
+	  }
+	  return cached;
+	}
+	const Clones = new Map();
+	function cloneNode(content, xmlns) {
+	  const cached = Clones.get(content);
+	  if (cached) {
+	    return cached.cloneNode(true);
+	  }
+	  let template = xmlns ? createElementNS(xmlns, 'template') : createElement('template');
+	  template.innerHTML = content;
+	  template = xmlns ? template.firstChild : template.content.childNodes.length === 1 ? template.content.firstChild : template.content;
+	  Clones.set(content, template);
+	  return template.cloneNode(true);
+	}
+
+	// REACTIVITE PRIMITIVES
+
+
+	// STATE
+
+	const Components = new Map();
+	const WeakComponents = new WeakMap();
+	const useXMLNS = context();
+
+	// COMPONENTS
+
+	/** Used by the JSX transform, as <>...</> or <Fragment>...</Fragment>. */
+	const Fragment = Symbol();
+
+	/**
+	 * Creates components for things. When props argument is given, the
+	 * props become fixed. When props argument is ommited, it allows you
+	 * to keep calling the returned function with new props. Returns a
+	 * function because we need to render from parent to children instead
+	 * of from children to parent. This allows to properly set the
+	 * reactivity tree (think of nested effects that clear inner effects,
+	 * context, etc).
+	 *
+	 * @param {string | Function | Element | object | symbol} value -
+	 *   Component
+	 * @param {any} [props] Object
+	 * @url https://pota.quack.uy/Component
+	 */
+
+	function Component(value, props) {
+	  if (value === Fragment) {
+	    return props.children;
+	  }
+
+	  /** Freeze props so isnt directly writable */
+	  freeze(props);
+
+	  /**
+	   * Create a callable function to pass `props`. When `props` its not
+	   * defined it allows the user to make a `Factory` of components,
+	   * when `props` its defined the `props` are fixed.
+	   */
+
+	  return props === undefined ? Factory(value) : markComponent(Factory(value).bind(null, props));
+	}
+
+	/**
+	 * Creates a component that could be called with a props object
+	 *
+	 * @param {Componenteable} value
+	 * @returns {Component}
+	 */
+
+	function Factory(value) {
+	  if (isComponent(value)) {
+	    return value;
+	  }
+	  const isWeak = isObject(value);
+	  let component = isWeak ? WeakComponents.get(value) : Components.get(value);
+	  if (component) {
+	    return component;
+	  }
+	  switch (typeof value) {
+	    case 'string':
+	      {
+	        // string component, 'div' becomes <div>
+	        component = createTag.bind(null, value);
+	        break;
+	      }
+	    case 'function':
+	      {
+	        if ($class in value) {
+	          // class component <MyComponent../>
+	          component = createClass.bind(null, value);
+	          break;
+	        }
+
+	        /**
+	         * ```js
+	         * const [Count, setCount] = signal(1)
+	         * return <Count />
+	         * ```
+	         */
+	        if (isReactive(value)) {
+	          component = createAnything.bind(null, value);
+	          break;
+	        }
+
+	        // function component <MyComponent../>
+	        component = value;
+	        break;
+	      }
+	    default:
+	      {
+	        if (value instanceof Node) {
+	          // node component <div>
+	          component = createNode.bind(null, value);
+	          break;
+	        }
+	        component = createAnything.bind(null, value);
+	        break;
+	      }
+	  }
+
+	  // save in cache
+	  isWeak ? WeakComponents.set(value, component) : Components.set(value, component);
+	  return markComponent(component);
+	}
+	function createClass(value, props) {
+	  const i = new value();
+	  i.ready && ready(i.ready.bind(i));
+	  i.cleanup && cleanup(i.cleanup.bind(i));
+	  return i.render(props);
+	}
+	function createAnything(value, props) {
+	  return value;
+	}
+
+	/**
+	 * Creates a x/html element from a tagName
+	 *
+	 * @param {string} tagName
+	 * @param {Props} props
+	 * @returns {Elements} Element
+	 */
+	function createTag(tagName, props) {
+	  /**
+	   * Namespace, use props xmlns or special case svg, math, etc in case
+	   * of missing xmlns attribute
+	   */
+	  const xmlns = props?.xmlns || NS[tagName];
+	  return withXMLNS(xmlns, xmlns => createNode(xmlns ? createElementNS(xmlns, tagName) : createElement(tagName), props), tagName);
+	}
+	function withXMLNS(xmlns, fn, tagName) {
+	  const nsContext = useXMLNS();
+	  if (xmlns && xmlns !== nsContext) {
+	    // the xmlns changed, use the new xmlns
+	    return useXMLNS(xmlns, () => fn(xmlns));
+	  }
+
+	  /**
+	   * `foreignObject` children are created with html xmlns (default
+	   * browser behaviour)
+	   */
+	  if (nsContext && tagName === 'foreignObject') {
+	    return useXMLNS(NS.html, () => fn(NS.html));
+	  }
+	  return fn(nsContext);
+	}
+	function template(content, props) {
+	  return markComponent(() => withXMLNS(props ? props[0].xmlns : undefined, xmlns => {
+	    const node = cloneNode(content, xmlns);
+	    if (props) {
+	      const nodes = [];
+	      let child;
+	      /** The node could be a fragment */
+	      if (node.nodeType === 1 &&
+	      // element
+	      node.hasAttribute('pota')) {
+	        nodes.push(node);
+	        node.removeAttribute('pota');
+	      }
+
+	      /**
+	       * First walk then modify it, so the modifications dont make
+	       * the walk worse. It also allows to re-use the same walker,
+	       * as creating children right now could cause a new instance
+	       * of template that will use the same walker and mess up our
+	       * current walk. While this is not optimal is fast enough,
+	       * requires some more work on the babel plugin.
+	       */
+	      const walk = walker();
+	      walk.currentNode = node;
+	      while (child = walk.nextNode()) {
+	        if (child.hasAttribute('pota')) {
+	          nodes.push(child);
+	          child.removeAttribute('pota');
+	          if (nodes.length === props.length) {
+	            // done
+	            break;
+	          }
+	        }
+	      }
+	      let i = 0;
+	      for (const child of nodes) {
+	        assignProps(child, props[i++]);
+	      }
+	    }
+	    return node;
+	  }));
+	}
+
+	/**
+	 * Assigns props to an element and creates its children
+	 *
+	 * @param {Elements} node
+	 * @param {Props} props
+	 * @returns {Elements} Element
+	 */
+	function createNode(node, props) {
+	  if (props) {
+	    assignProps(node, props);
+	  }
+	  return node;
+	}
+
+	/**
+	 * Creates the children for a parent
+	 *
+	 * @param {Elements} parent
+	 * @param {Children} child
+	 * @param {boolean} [relative]
+	 * @returns {Children}
+	 */
+	function createChildren(parent, child, relative) {
+	  switch (typeof child) {
+	    // string/number
+	    case 'string':
+	    case 'number':
+	      {
+	        return insertNode(parent, createTextNode(child), relative);
+	      }
+	    case 'function':
+	      {
+	        // component
+	        if (isComponent(child)) {
+	          return createChildren(parent, untrack(child), relative);
+	        }
+	        let node = [];
+
+	        // signal/memo/external/user provided function
+	        // needs placeholder to stay in position
+	        parent = createPlaceholder(parent, undefined /*child.name*/, relative);
+
+	        // For
+	        if ($map in child) {
+	          effect(() => {
+	            node = toDiff(node, child(child => {
+	              /**
+	               * Wrap the item with placeholders, for when stuff in
+	               * between moves. If a `Show` adds and removes nodes, we
+	               * dont have a reference to these nodes. By delimiting
+	               * with a shore, we can just handle anything in between
+	               * as a group.
+	               */
+	              const begin = createPlaceholder(parent, undefined /*begin*/, true);
+	              const end = createPlaceholder(parent, undefined /*end*/, true);
+	              return [begin, createChildren(end, child, true), end];
+	            }));
+	          });
+	          cleanup(() => {
+	            toDiff(node);
+	            parent.remove();
+	          });
+	          return [node, parent];
+	        }
+
+	        // maybe a signal so needs an effect
+	        effect(() => {
+	          node = toDiff(node, createChildren(parent, child(), true));
+	        });
+	        cleanup(() => {
+	          toDiff(node);
+	          parent.remove();
+	        });
+	        /**
+	         * A placeholder is created and added to the document but doesnt
+	         * form part of the children. The placeholder needs to be
+	         * returned so it forms part of the group of children. If
+	         * children are moved and the placeholder is not moved with
+	         * them, then, whenever children update these will be at the
+	         * wrong place. wrong place: where the placeholder is and not
+	         * where the children were moved to
+	         */
+	        return [node, parent];
+	      }
+	    case 'object':
+	      {
+	        // children/fragments
+	        if (isArray(child)) {
+	          if (child.length === 1) {
+	            return createChildren(parent, child[0], relative);
+	          }
+	          return child.map(child => createChildren(parent, child, relative));
+	        }
+
+	        // Node/DocumentFragment
+	        if (child instanceof Node) {
+	          /**
+	           * DocumentFragment are special as only the children get added
+	           * to the document and the document becomes empty. If we dont
+	           * insert them 1 by 1 then we wont have a reference to them
+	           * for deletion on cleanup with node.remove()
+	           */
+	          if (child instanceof DocumentFragment) {
+	            return createChildren(parent, toArray(child.childNodes), relative);
+	          }
+	          return insertNode(parent, child, relative);
+	        }
+
+	        /**
+	         * The value is `null`, as in {null} or like a show returning
+	         * `null` on the falsy case
+	         */
+	        if (child === null) {
+	          return undefined;
+	        }
+
+	        // async components
+	        if ('then' in child) {
+	          const [value, setValue] = signal(undefined);
+	          const onResult = result => parent.isConnected && setValue(result);
+	          child.then(onResult).catch(onResult);
+	          return createChildren(parent, value, relative);
+	        }
+
+	        // iterable/Map/Set/NodeList
+	        if (iterator in child) {
+	          return createChildren(parent, toArray(child.values()), relative);
+	        }
+
+	        // CSSStyleSheet
+	        if (child instanceof CSSStyleSheet) {
+	          adoptedStyleSheets.push(child);
+	          cleanup(() => removeFromArray(adoptedStyleSheets, child));
+	          return undefined;
+	        }
+
+	        // object.toString fancy objects
+	        return createChildren(parent,
+	        // Object.create(null) would fail to convert to string
+	        'toString' in child ? child.toString() : stringify(child), relative);
+	      }
+	    case 'undefined':
+	      {
+	        return undefined;
+	      }
+	    default:
+	      {
+	        // boolean/bigint/symbol/catch all
+	        // toString() is needed for `Symbol`
+	        return insertNode(parent, createTextNode(child.toString()), relative);
+	      }
+	  }
+	}
+	propsPlugin('children', (node, propName, propValue) => createChildren(node, propValue), false);
+
+	/**
+	 * Creates placeholder to keep nodes in position
+	 *
+	 * @param {Elements} parent
+	 * @param {unknown} text
+	 * @param {boolean} [relative]
+	 * @returns {Elements}
+	 */
+	const createPlaceholder = (parent, text, relative) => {
+	  return insertNode(parent, createTextNode(''), relative);
+
+	  /* dev */
+	  return insertNode(parent, document.createComment((text || '') + (relative ? ' relative' : '')), relative);
+	};
+	let headQuerySelector;
+
+	/**
+	 * Adds the element to the document
+	 *
+	 * @param {Elements} parent
+	 * @param {Elements} node
+	 * @param {boolean} [relative]
+	 * @returns {Elements}
+	 */
+
+	function insertNode(parent, node, relative) {
+	  // special case `head`
+	  if (parent === document.head) {
+	    if (!headQuerySelector) {
+	      const head = document.head;
+	      headQuerySelector = head.querySelector.bind(head);
+	    }
+	    const name = node.tagName;
+
+	    // search for tags that should be unique
+	    let prev;
+	    if (name === 'TITLE') {
+	      prev = headQuerySelector('title');
+	    } else if (name === 'META') {
+	      prev = headQuerySelector('meta[name="' + node.getAttribute('name') + '"]') || headQuerySelector('meta[property="' + node.getAttribute('property') + '"]');
+	    } else if (name === 'LINK' && node.rel === 'canonical') {
+	      prev = headQuerySelector('link[rel="canonical"]');
+	    }
+
+	    // replace old node if there's any
+	    prev ? prev.replaceWith(node) : parent.appendChild(node);
+	  } else {
+	    relative ? parent.before(node) : parent.appendChild(node);
+	  }
+	  return node;
+	}
+
+	// RENDERING
+
+	/**
+	 * Inserts children into a parent
+	 *
+	 * @param {any} children - Thing to render
+	 * @param {Elements | undefined} [parent] - Mount point, defaults to
+	 *   document.body
+	 * @param {{ clear?: boolean; relative?: boolean }} [options] -
+	 *   Mounting options
+	 * @returns {Function} Disposer
+	 * @url https://pota.quack.uy/render
+	 */
+	function render(children, parent, options = nothing) {
+	  const dispose = root(dispose => {
+	    insert(children, parent, options);
+	    return dispose;
+	  });
+
+	  // run dispose when the parent scope disposes
+	  cleanup(dispose);
+	  return dispose;
+	}
+
+	/**
+	 * @param {any} children - Thing to render
+	 * @param {Elements} [parent] - Mount point, defaults to
+	 *   `document.body`
+	 * @param {{ clear?: boolean; relative?: boolean }} [options] -
+	 *   Mounting options
+	 */
+	function insert(children, parent = document.body, options) {
+	  if (options.clear && parent) parent.textContent = '';
+	  const node = createChildren(parent, isComponentable(children) ? Factory(children) : children, options.relative);
+	  cleanup(() => toDiff([node].flat(Infinity)));
+	  return node;
+	}
+
+	/**
+	 * Creates and returns HTML Elements for `children`
+	 *
+	 * @param {Children} children
+	 * @returns {Children}
+	 * @url https://pota.quack.uy/toHTML
+	 */
+	const toHTML = children =>
+	/**
+	 * DocumentFragment is transformed to an `Array` of `Node/Element`,
+	 * that way we can keep a reference to the nodes. Because when the
+	 * DocumentFragment is used, it removes the nodes from the
+	 * DocumentFragment and then we will lose the reference.
+	 */
+
+	flat(toHTMLFragment(children).childNodes);
+
+	/**
+	 * Creates and returns a DocumentFragment for `children`
+	 *
+	 * @param {Children} children
+	 * @returns {DocumentFragment}
+	 * @url https://pota.quack.uy/toHTML
+	 */
+	function toHTMLFragment(children) {
+	  const fragment = new DocumentFragment();
+	  createChildren(fragment, children);
+	  return fragment;
+	}
+
+	/**
+	 * Resolves and returns `children` in a memo
+	 *
+	 * @param {Function | Children} fn
+	 * @returns {Signal} Memo
+	 * @url https://pota.quack.uy/resolve
+	 */
+	function resolve(fn) {
+	  const children = isFunction(fn) ? memo(fn) : () => fn;
+	  return memo(() => unwrap(children()));
+	}
+
+	/**
+	 * Recursively unwrap children functions
+	 *
+	 * @param {Children} children
+	 * @returns {Children}
+	 */
+	function unwrap(children) {
+	  if (isFunction(children)) {
+	    return unwrap(children());
+	  }
+	  if (isArray(children)) {
+	    const childrens = [];
+	    for (let child of children) {
+	      child = unwrap(child);
+	      isArray(child) ? childrens.push(...child) : childrens.push(child);
+	    }
+	    return childrens;
+	  }
+	  return children;
+	}
+
+	/**
+	 * Creates a context and returns a function to get or set the value
+	 *
+	 * @param {any} [defaultValue] - Default value for the context
+	 * @returns {Function & { Provider: ({ value }) => Elements }}
+	 *   Context
+	 * @url https://pota.quack.uy/Reactivity/Context
+	 */
+	function context(defaultValue = undefined) {
+	  /** @type {Function & { Provider: ({ value }) => Elements }} */
+	  const ctx = Context(defaultValue);
+
+	  /**
+	   * Sets the `value` for the context
+	   *
+	   * @param {object} props
+	   * @param {any} props.value
+	   * @param {Children} [props.children]
+	   * @returns {Children} Children
+	   * @url https://pota.quack.uy/Reactivity/Context
+	   */
+	  ctx.Provider = props => ctx(props.value, () => toHTML(props.children));
+	  return ctx;
+	}
+
+	/**
+	 * A Promise loader handler. Allows to display/run something or
+	 * nothing while a promise is resolving. Allows to run a callback when
+	 * the promise resolves. Allows to get notified of errors, and
+	 * display/run something or nothing, if wanted a `retry` function is
+	 * given for retrying the promise. All functions run with the original
+	 * owner, so it's `Context` friendly.
+	 *
+	 * @param {() => Promise<any>} fn - Function that returns a promise
+	 * @param {{
+	 * 	onLoading?: any
+	 * 	onLoaded?: Function
+	 * 	onError?: ((e: Error, retry: Function) => any) | any
+	 * }} [options]
+	 *
+	 * @returns {Component}
+	 * @url https://pota.quack.uy/lazy
+	 */
+	const lazy = (fn, options = nothing) => markComponent(props => {
+	  const {
+	    onLoading,
+	    onLoaded,
+	    onError
+	  } = options;
+	  const [value, setValue] = signal(onLoading);
+	  const owned = withOwner();
+	  const retry = () => fn().then(r => {
+	    setValue(markComponent(() => {
+	      r = isObject(r) && r.default ? r.default : r;
+	      return isFunction(r) ? r(props) : r;
+	    }));
+	    microtask(() => owned(onLoaded));
+	  }).catch(e => onError ? setValue(markComponent(() => isFunction(onError) ? onError(e, retry) : onError)) : console.error(e));
+	  retry();
+	  return value;
+	});
+	const Lazy = props => lazy(props.children, props);
+
+	/**
+	 * Creates a stylesheet from a css string
+	 *
+	 * @param {string} css
+	 * @returns {CSSStyleSheet}
+	 */
+
+	function sheet(css) {
+	  const sheet = new CSSStyleSheet();
+	  sheet.replace(css);
+	  return sheet;
+	}
+
+	/**
+	 * Creates tagged css and returns a CSSStyleSheet. Mostly for css
+	 * highlighting in js
+	 *
+	 * @param {TemplateStringsArray} template
+	 * @param {...any} values
+	 * @returns {CSSStyleSheet}
+	 */
+	const css = (template, ...values) => sheet(String.raw({
+	  raw: template
+	}, ...values));
+
+	/**
+	 * Makes of `children` a function. Reactive children will run as is,
+	 * non-reactive children will run untracked, regular children will
+	 * just return.
+	 *
+	 * @param {Children} children
+	 * @returns {Function}
+	 */
+	function makeCallback(children) {
+	  /**
+	   * When children is an array, as in >${[0, 1, 2]}< then children
+	   * will end as `[[0, 1, 2]]`, so flat it
+	   */
+
+	  children = isArray(children) ? flat(children) : children;
+	  const callbacks = !isArray(children) ? callback(children) : children.map(callback);
+	  return !isArray(children) ? markComponent((...args) => callbacks(args)) : markComponent((...args) => callbacks.map(callback => callback(args)));
+	}
+	const callback = child => isFunction(child) ? isReactive(child) ? args => {
+	  /**
+	   * The function inside the `for` is saved in a signal. The
+	   * result of the signal is our callback
+	   *
+	   * ```js
+	   * htmlEffect(
+	   * 	html =>
+	   * 		html`<table>
+	   * 			<tr>
+	   * 				<th>name</th>
+	   * 			</tr>
+	   * 			<for each="${tests}">
+	   * 				${item =>
+	   * 					html`<tr>
+	   * 						<td>${item.name}</td>
+	   * 					</tr>`}
+	   * 			</for>
+	   * 		</table>`,
+	   * )
+	   * ```
+	   */
+	  const r = child();
+	  return isFunction(r) ? isReactive(r) ? r() : r(...args) : r;
+	} : args => child(...args) : () => child;
+
+	/**
+	 * Extend `Pota` and define a `render(props){}` method to create a
+	 * class component. `ready(cb)` and `cleanup(cb)` methods will be
+	 * registered automatically
+	 *
+	 * @url https://pota.quack.uy/Classes
+	 */
+	class Pota {}
+	Pota[$class] = undefined;
+
+	// const [others, local] = propsSplit(props, ['children'])
+
+
+	/**
+	 * Split an object into multiple sub objects
+	 *
+	 * @param {Props} props
+	 * @param {...string[]} args
+	 * @returns {Props[]} - Array of objects
+	 * @url https://pota.quack.uy/props/propsSplit
+	 */
+	function propsSplit(props, ...args) {
+	  const result = [];
+	  const used = empty();
+	  for (const _props of args) {
+	    const target = empty();
+	    for (const key of _props) {
+	      used[key] = null;
+	      target[key] = props[key];
+	    }
+	    result.push(target);
+	  }
+	  const target = empty();
+	  for (const key of keys(props)) {
+	    if (used[key] === undefined) {
+	      target[key] = props[key];
+	    }
+	  }
+	  result.unshift(target);
+	  return result;
+	}
+
+	// VERSION
+
+	const camelCase = s => s.replace(/-([a-z])/g, g => g[1].toUpperCase());
+
+	/**
+	 * Defines a custom Element (if isnt defined already)
+	 *
+	 * @param {string} name - Name for the custom element
+	 * @param {CustomElementConstructor} constructor - Class for the
+	 *   custom element
+	 * @param {ElementDefinitionOptions} [options] - Options passed to
+	 *   `customElements.define`
+	 */
+	function customElement(name, constructor, options) {
+	  if (customElements.get(name) === undefined) {
+	    customElements.define(name, constructor, options);
+	  }
+	}
+	const cachedSheets = empty();
+	class CustomElement extends HTMLElement {
+	  constructor() {
+	    super();
+	    this.attachShadow({
+	      mode: 'open'
+	    });
+	    this.addStyleSheets(this.constructor.styleSheets);
+	  }
+
+	  /* CSS API */
+
+	  /**
+	   * Adds a style sheet to the custom element
+	   *
+	   * @param {(CSSStyleSheet | string)[]} styleSheets
+	   */
+	  addStyleSheets(styleSheets = []) {
+	    for (const sheet of styleSheets) {
+	      sheet instanceof CSSStyleSheet ? this.shadowRoot.adoptedStyleSheets.push(sheet) : this.addStyleSheetExternal(sheet);
+	    }
+	  }
+
+	  /**
+	   * Adds the stylesheet from urls. It uses a cache, to avoid having
+	   * to fire a request for each external sheet when used in more than
+	   * one custom element. Also, all reference the same object.
+	   *
+	   * @param {string} url
+	   */
+	  addStyleSheetExternal(url) {
+	    const styleSheet = cachedSheets[url];
+	    !styleSheet ? fetch(url).then(r => r.text()).then(css => sheet(css)).then(styleSheet => {
+	      cachedSheets[url] = styleSheet;
+	      this.addStyleSheets([styleSheet]);
+	    }) : this.addStyleSheets([styleSheet]);
+	  }
+
+	  /* DOM API */
+
+	  /**
+	   * Shortcut for querySelector
+	   *
+	   * @param {string} query
+	   */
+	  query(query) {
+	    return this.querySelector(query);
+	  }
+	  /**
+	   * Shortcut for this.shadowRoot.innerHTML
+	   *
+	   * @param {string} value
+	   */
+	  set html(value) {
+	    if (typeof value === 'string') {
+	      this.shadowRoot.innerHTML = value;
+	    } else {
+	      this.shadowRoot.replaceChildren(toHTMLFragment(Component(value || 'slot')));
+	    }
+	  }
+
+	  /**
+	   * Toggles attribute `hidden`
+	   *
+	   * @param {boolean} value
+	   */
+	  set hidden(value) {
+	    withValue(value, value => {
+	      value ? this.setAttribute('hidden', '') : this.removeAttribute('hidden');
+	    });
+	  }
+
+	  /* EVENTS API */
+
+	  emit(eventName, data) {
+	    emit(this, eventName, data);
+	  }
+
+	  /* SLOTS API */
+
+	  hasSlot(name) {
+	    return this.query(`:scope > [slot="${name}"]`) !== null;
+	  }
+	}
+
+	/**
+	 * Similar to `Show`, but doesn't remove its children from the
+	 * document
+	 *
+	 * @param {{
+	 * 	when: When
+	 * 	children?: Children
+	 * }} props
+	 * @returns {Children}
+	 * @url https://pota.quack.uy/Components/Collapse
+	 */
+	function Collapse(props) {
+	  class CollapseElement extends CustomElement {
+	    static styleSheets = [css`
 				:host {
 					display: contents;
 				}
-			`];set when(t){U(t,(t=>this.html=F(t)?"<slot/>":""))}}return Se("pota-collapse",e),ne("pota-collapse",{when:t.when,children:t.children})},CustomElement:ke,Dynamic:t=>ne(t.component,{...t,component:void 0}),For:t=>function(t,e,n){const s=new Map,o=new Map;let r=0,i=[],c=[];function u(){for(let t=0;t<c.length;t++)c[t].dispose(!0);s.clear(),o.clear(),i.length=0,c.length=0}q(u);class a{constructor(t,e,n,s){this.runId=-1,this.item=t,this.index=e,this.isDupe=s,this.disposer=void 0,this.nodes=C((s=>(this.disposer=s,n(t,e))))}get begin(){return this.nodes[0]}get end(){return this.nodes[this.nodes.length-1]}dispose(t){if(void 0===t)if(this.isDupe){const t=o.get(this.item);1===t.length?o.delete(this.item):O(t,this)}else s.delete(this.item);this.disposer()}}function d(l){const d=l?(t,n)=>l(e(t,n),n):e,h=(F(t)||[]).entries();r++,i=[];const f=c.length;for(const[t,e]of h){let n=f?s.get(e):void 0;if(void 0===n)n=new a(e,t,d,!1),s.set(e,n);else if(n.runId===r){let s=o.get(e);s||(s=[],o.set(e,s));for(let t=0;t<s.length;t++)if(s[t].runId!==r){n=s[t];break}n.runId===r&&(n=new a(e,t,d,!0),s.push(n))}n.runId=r,n.index=t,i.push(n)}if(0===i.length)u();else for(let t=0;t<c.length;t++)c[t].runId!==r&&c[t].dispose();if(n&&i.length>1&&c.length){const{a:t,b:e}=H(i,((t,e)=>i[e]===c[e]?"a":"b"));if(t&&e&&t.length&&e.length&&e.length<t.length&&e.every((t=>c.includes(t))))for(const n of e)for(const e of t){if(n.index===e.index-1){e.begin.before(...P(n));break}if(n.index===e.index+1){e.end.after(...P(n));break}}let n=i[i.length-1];for(let t=i.length-1;t>0;t--){const e=i[t-1];n.begin.previousSibling!==e.end&&n.begin.before(...P(e)),n=e}}return c=i,i.map((t=>t.nodes))}return d[l]=void 0,d}(t.each,we(t.children),!0),Head:t=>ne(Ae,{mount:document.head,children:t.children}),Match:$e,Portal:Ae,Show:function(t){const e=we(t.children),n=L((()=>F(t.when))),s=L((()=>!!n())),o=Y(t.fallback)?void 0:L((()=>be(t.fallback)));return L((()=>s()?e(n):o))},Switch:function(t){const e=be((()=>t.children)),n=Y(t.fallback)?void 0:L((()=>be(t.fallback))),s=L((()=>e().find((t=>!!F(t.when))))),o=L((()=>s()&&F(s().when))),r=L((()=>s()&&we(s().children)));return L((()=>s()?r()(o):n))},customElement:Se});const Me=X(G(Ce).map((([t,e])=>[t.toLowerCase(),e])));const Ee=function(t={unwrap:!0}){const e={...Me};function n(n,...s){const o=function(t){let e=Vt(t);if(!e){const n=Ut("template");n.innerHTML=t.join(Qt).replaceAll(`"${Qt}"`,`"${Gt}"`).replace(/<br\s*\/\s*>/g,"<br>").replace(/<([a-z-]+)([^/>]*)\/\s*>/gi,"<$1 $2></$1>"),e=n.content,Xt(t,e)}return e}(n);let r=0;const i=Q(st(o.childNodes).map((function t(n){if(1===n.nodeType){const i=n.localName;if(i===Gt)return s[r++];const c=J();for(let{name:t,value:e}of n.attributes)e===Gt&&(e=s[r++]),"."===t[0]?c["prop:"+(o=t.slice(1),o.replace(/-([a-z])/g,(t=>t[1].toUpperCase())))]=e:"?"===t[0]?c["bool:"+t.slice(1)]=e:"@"===t[0]?c["on:"+t.slice(1)]=e:c[t]=e;return n.childNodes.length&&(c.children=Q(st(n.childNodes).map(t))),ne(e[i]||i,c)}return n.cloneNode();var o})));return t.unwrap?fe(i):i}return n.components=e,n.define=t=>{let n;for(n in t)e[n.toLowerCase()]=t[n]},n}();let Le=1;const Ne=["pretty","large","big","small","tall","short","long","handsome","plain","quaint","clean","elegant","easy","angry","crazy","helpful","mushy","odd","unsightly","adorable","important","inexpensive","cheap","expensive","fancy"],qe=["red","yellow","blue","green","pink","brown","purple","brown","white","black","orange"],Te=["table","chair","house","bbq","desk","car","pony","cookie","sandwich","burger","pizza","mouse","keyboard"];function Ie(t){return Math.round(1e3*Math.random())%t}function je(t){let e=new Array(t);for(let n=0;n<t;n++){const[t,s]=M(`${Ne[Ie(Ne.length)]} ${qe[Ie(qe.length)]} ${Te[Ie(Te.length)]}`);e[n]={id:Le++,label:t,setLabel:s}}return e}const _e=({id:t,text:e,fn:n})=>Ee`<div class="col-sm-6 smallpad">
+			`];
+
+	    /** @param {When} value - To toggle children */
+	    set when(value) {
+	      withValue(value, value => this.html = getValue(value) ? '<slot/>' : '');
+	    }
+	  }
+	  customElement('pota-collapse', CollapseElement);
+	  return Component('pota-collapse', {
+	    when: props.when,
+	    children: props.children
+	  });
+	}
+
+	/**
+	 * Creates components dynamically
+	 *
+	 * @param {{
+	 * 	component: Componenteable
+	 * } & Props} props
+	 * @returns {Component}
+	 * @url https://pota.quack.uy/Components/Dynamic
+	 */
+
+	const Dynamic = props =>
+	// `component` needs to be deleted else it will end in the tag as an attribute
+	Component(props.component, {
+	  ...props,
+	  component: undefined
+	});
+
+	/**
+	 * Renders reactive values from an signal that returns an Iterable
+	 * object
+	 *
+	 * @param {object} props
+	 * @param {Each} props.each
+	 * @param {Children} [props.children]
+	 * @returns {Children}
+	 * @url https://pota.quack.uy/Components/For
+	 */
+	const For = props => map(props.each, makeCallback(props.children), true);
+
+	/**
+	 * Portals children to a different element while keeping the original
+	 * scope
+	 *
+	 * @param {object} props
+	 * @param {Elements} props.mount
+	 * @param {Children} [props.children]
+	 * @url https://pota.quack.uy/Components/Portal
+	 */
+	function Portal(props) {
+	  // use `render` instead of `insert` so in case the mount point is removed the portal is disposed
+	  render(props.children, props.mount);
+	}
+
+	/**
+	 * Mounts children on `document.head`
+	 *
+	 * @param {{
+	 * 	children?: Children
+	 * }} props
+	 * @returns {Children}
+	 * @url https://pota.quack.uy/Components/Head
+	 */
+	const Head = props => Component(Portal, {
+	  mount: document.head,
+	  children: props.children
+	});
+
+	/**
+	 * Renders its children based on a condition
+	 *
+	 * @param {object} props
+	 * @param {When} props.when
+	 * @param {Children} [props.fallback]
+	 * @param {Children} [props.children]
+	 * @returns {Children}
+	 * @url https://pota.quack.uy/Components/Show
+	 */
+	function Show(props) {
+	  const callback = makeCallback(props.children);
+	  const value = memo(() => getValue(props.when));
+	  const condition = memo(() => !!value());
+
+	  // needs resolve to avoid re-rendering
+	  const fallback = isNullUndefined(props.fallback) ? undefined : memo(() => resolve(props.fallback));
+	  return memo(() => condition() ? callback(value) : fallback);
+	}
+
+	/**
+	 * Identity function, given `x` returns `x`
+	 *
+	 * @template T
+	 * @param {T} x
+	 * @returns {T}
+	 */
+	const identity = x => x;
+
+	/**
+	 * Renders the first child that matches the given `when` condition, or
+	 * a fallback in case of no match
+	 *
+	 * @param {object} props
+	 * @param {Children} [props.children]
+	 * @param {Children} [props.fallback]
+	 * @returns {Children}
+	 * @url https://pota.quack.uy/Components/Switch
+	 */
+	function Switch(props) {
+	  const children = resolve(() => props.children);
+	  const fallback = isNullUndefined(props.fallback) ? undefined : memo(() => resolve(props.fallback));
+	  const match = memo(() => children().find(match => !!getValue(match.when)));
+	  const value = memo(() => match() && getValue(match().when));
+	  const callback = memo(() => match() && makeCallback(match().children));
+	  return memo(() => match() ? callback()(value) : fallback);
+	}
+
+	/**
+	 * Renders the content if the `when` condition is true
+	 *
+	 * @param {object} props
+	 * @param {When} props.when
+	 * @param {Children} [props.children]
+	 * @returns {Children}
+	 */
+	const Match = identity;
+
+	var defaultRegistryTemplate = /*#__PURE__*/Object.freeze({
+		__proto__: null,
+		Collapse: Collapse,
+		CustomElement: CustomElement,
+		Dynamic: Dynamic,
+		For: For,
+		Head: Head,
+		Match: Match,
+		Portal: Portal,
+		Show: Show,
+		Switch: Switch,
+		customElement: customElement
+	});
+
+	const defaultRegistry = fromEntries(entries(defaultRegistryTemplate).map(([k, v]) => [k.toLowerCase(), v]));
+
+	/**
+	 * Function to create cached tagged template components
+	 *
+	 * @param {object} [options]
+	 * @param {boolean} [options.unwrap] - To return a `Node/Element` or
+	 *   an array of `Node/Elements`. Defaults to `true`
+	 * @returns {Function & {
+	 * 	define: ({ components }) => void
+	 * 	components: {}
+	 * }}
+	 * @url https://pota.quack.uy/HTML
+	 */
+
+	function HTML(options = {
+	  unwrap: true
+	}) {
+	  const components = {
+	    ...defaultRegistry
+	  };
+
+	  /**
+	   * Creates tagged template components
+	   *
+	   * @param {TemplateStringsArray} template
+	   * @param {...any} values
+	   * @returns {Children}
+	   * @url https://pota.quack.uy/HTML
+	   */
+
+	  function html(template, ...values) {
+	    const cached = parse(template);
+	    let index = 0;
+	    function nodes(node) {
+	      // Node.ELEMENT_NODE
+	      if (node.nodeType === 1) {
+	        const localName = node.localName;
+	        if (localName === id) {
+	          return values[index++];
+	        }
+
+	        // gather props
+	        const props = empty();
+	        for (let {
+	          name,
+	          value
+	        } of node.attributes) {
+	          if (value === id) {
+	            value = values[index++];
+	          }
+	          if (name[0] === '.') {
+	            props['prop:' + camelCase(name.slice(1))] = value;
+	          } else if (name[0] === '?') {
+	            props['bool:' + name.slice(1)] = value;
+	          } else if (name[0] === '@') {
+	            props['on:' + name.slice(1)] = value;
+	          } else {
+	            props[name] = value;
+	          }
+	        }
+
+	        // gather children
+	        if (node.childNodes.length) {
+	          props.children = flat(toArray(node.childNodes).map(nodes));
+	        }
+	        return Component(components[localName] || localName, props);
+	      } else {
+	        return node.cloneNode();
+	      }
+	    }
+	    const result = flat(toArray(cached.childNodes).map(nodes));
+	    return options.unwrap ? toHTML(result) : result;
+	  }
+	  html.components = components;
+	  html.define = userComponents => {
+	    let name;
+	    for (name in userComponents) {
+	      components[name.toLowerCase()] = userComponents[name];
+	    }
+	  };
+	  return html;
+	}
+	const html = HTML();
+
+	/**
+	 * Runs an `effect` on an `html` template. Reacts to reactive
+	 * interpolated values, or to the reactivity used in the body of the
+	 * function you pass.
+	 *
+	 * @param {(html) => any} fn - Function to run as an effect. It
+	 *   receives `html` argument for template creation.
+	 * @param {object} [options]
+	 * @param {boolean} [options.unwrap] - To return a `Node/Element` or
+	 *   an array of `Node/Elements`. Defaults to `true`
+	 * @param {boolean} [options.updateTrigger] - To return an `update`
+	 *   function in case its desired to trigger updates manually.
+	 *   Defaults to `false`
+	 * @returns {Children}
+	 * @url https://pota.quack.uy/HTML
+	 */
+	const htmlEffect = (fn, options = {
+	  unwrap: true,
+	  updateTrigger: false
+	}) => {
+	  /** Copy the components from the global registry */
+	  const html_ = HTML(options);
+	  html_.components = html.components;
+	  const [get, set] = weakStore();
+	  const disposeHTMLEffect = [];
+	  function _html(template, ...values) {
+	    // when template is cached just update the signals
+	    let cached = get(template);
+	    if (cached) {
+	      /**
+	       * Purpose:
+	       *
+	       * 1. Track the `values` by reading, so we track the interpolated
+	       *    values.
+	       * 2. Aditionally, this will also rerun when reactive values used
+	       *    on the body of the function you pass to the effect
+	       *    update.
+	       * 3. Update the `signals` when `values` change.
+	       *
+	       * It batches changes so it updates the template in one shot
+	       */
+	      batch(() => {
+	        for (let key = 0; key < values.length; key++) {
+	          // getValue(value) causes tracking
+	          cached[0][key].write(values[key]);
+	        }
+	      });
+
+	      /**
+	       * It needs to return the result because when used unwrapped and
+	       * nesting (ex calling html twice inside the htmlEffect), the
+	       * second call will use the value of the first call. The result
+	       * is a reference to the nodes created before, so it always use
+	       * the same nodes, and reactivity on these nodes is live.
+	       *
+	       * ```js
+	       * htmlEffect(html => {
+	       * 	const ELEMENTS = html`<div>
+	       * 		double ${data.test * 2}
+	       * 	</div>`
+	       * 	// ^ these elements are needed in the next line
+	       * 	return html`<div>${data.test} ${ELEMENTS}</div>`
+	       * })
+	       * ```
+	       */
+	      return cached[1];
+	    }
+
+	    /**
+	     * Creates the html with `signals` in place of the interpolated
+	     * `values`. This is to avoid having to create the template more
+	     * than once. Once the template is created, then the only thing
+	     * that will update is the `signals`.
+	     *
+	     * It creates a root because when any of the `values` changes
+	     * inside the body of the function that you pass to `htmlEffect`,
+	     * or when the interpolated `values` change, it causes disposal
+	     * (aka removing the elements), and htmlEffect re-runs. To avoid
+	     * having the elements removed by the disposal of the body of your
+	     * own function we create a root.
+	     */
+	    const signals = [];
+	    let result;
+	    root(dispose => {
+	      disposeHTMLEffect.push(dispose);
+
+	      /**
+	       * HTML is created with the `signals` in place of the `values`.
+	       * Pota will add one effect for each signal. So this wont
+	       * re-run.
+	       */
+	      result = html_(template, ...values.map((value, key) => {
+	        signals[key] = signal(value);
+	        // give accesors to template instead of the `values`
+	        return signals[key].read;
+	      }));
+	    });
+
+	    // save the `signals` in the cached template
+	    set(template, [signals, result]);
+	    return result;
+	  }
+
+	  /**
+	   * This effect will re-run when the `values` interpolated change, or
+	   * when any signal that you use on the `htmlEffect` function body
+	   * change. It cause re-runs of what we are batching above.
+	   */
+
+	  const update = () => fn(_html);
+	  let result;
+	  syncEffect(() => {
+	    result = update();
+	  });
+
+	  /** Dispose the effect when whatever started it is disposed. */
+	  cleanup(() => callAll(disposeHTMLEffect));
+	  return options.updateTrigger ? [result, update] : result;
+	};
+
+	/**
+	 * Returns a `isSelected` function that will return `true` when the
+	 * argument for it matches the original signal `value`.
+	 *
+	 * @param {Signal} value - Signal with the current value
+	 * @returns {(item: any) => Signal} Signal that you can run with a
+	 *   value to know if matches the original signal
+	 */
+	function useSelector(value) {
+	  const map = new Map();
+	  let prev;
+	  effect(() => {
+	    const selected = value();
+	    if (selected === prev) return;
+	    const previous = map.get(prev);
+	    if (previous) previous.write(false);
+	    const current = map.get(selected);
+	    if (current) current.write(true);
+	    prev = selected;
+	  });
+
+	  /**
+	   * Is selected function, it will return `true` when the value
+	   * matches the current signal.
+	   *
+	   * @param {any} item - Values to compare with current
+	   * @returns {Signal} A signal with a boolean value
+	   */
+	  return function isSelected(item) {
+	    let selected = map.get(item);
+	    if (!selected) {
+	      selected = signal(item === value());
+	      selected.counter = 0;
+	      map.set(item, selected);
+	    }
+	    selected.counter++;
+	    cleanup(() => {
+	      if (--selected.counter === 0) {
+	        map.delete(item);
+	      }
+	    });
+	    return selected.read;
+	  };
+	}
+
+	/**
+	 * Creates a `setTimeout` that autodisposes. The `delay` could be
+	 * reactive. The timeout is NOT started automatically.
+	 *
+	 * @param {Function} callback - Callback to run once delay completes
+	 * @param {Signal | number} delay - Delay number or signal
+	 * @param {any[]} args - Arguments to pass to the callback
+	 * @returns {{ start: Function; stop: Function }}
+	 */
+	function useTimeout(callback, delay, ...args) {
+	  let id;
+	  const fn = {
+	    start: () => {
+	      withValue(delay, delay => {
+	        fn.stop();
+	        if (delay < Infinity) id = setTimeout(callback, delay, ...args);
+	      });
+	      return fn;
+	    },
+	    stop: () => clearTimeout(id)
+	  };
+	  cleanup(fn.stop);
+	  return fn;
+	}
+
+	let idCounter = 1;
+	const adjectives = ['pretty', 'large', 'big', 'small', 'tall', 'short', 'long', 'handsome', 'plain', 'quaint', 'clean', 'elegant', 'easy', 'angry', 'crazy', 'helpful', 'mushy', 'odd', 'unsightly', 'adorable', 'important', 'inexpensive', 'cheap', 'expensive', 'fancy'],
+	  colours = ['red', 'yellow', 'blue', 'green', 'pink', 'brown', 'purple', 'brown', 'white', 'black', 'orange'],
+	  nouns = ['table', 'chair', 'house', 'bbq', 'desk', 'car', 'pony', 'cookie', 'sandwich', 'burger', 'pizza', 'mouse', 'keyboard'];
+	function _random(max) {
+	  return Math.round(Math.random() * 1000) % max;
+	}
+	function buildData(count) {
+	  let data = new Array(count);
+	  for (let i = 0; i < count; i++) {
+	    const [label, setLabel] = signal(`${adjectives[_random(adjectives.length)]} ${colours[_random(colours.length)]} ${nouns[_random(nouns.length)]}`);
+	    data[i] = {
+	      id: idCounter++,
+	      label,
+	      setLabel
+	    };
+	  }
+	  return data;
+	}
+	const bbutton = ({
+	  id,
+	  text,
+	  fn
+	}) => html`<div class="col-sm-6 smallpad">
     <button
-      id="${t}"
+      id="${id}"
       class="btn btn-primary btn-block"
       type="button"
-      onClick="${n}"
+      onClick="${fn}"
     >
-      ${e}
+      ${text}
     </button>
-  </div>`;he((()=>{const[t,e]=M([]),[n,s]=M([]),o=function(t){const e=new Map;let n;return E((()=>{const s=t();if(s===n)return;const o=e.get(n);o&&o.write(!1);const r=e.get(s);r&&r.write(!0),n=s})),function(n){let s=e.get(n);return s||(s=M(n===t()),s.counter=0,e.set(n,s)),s.counter++,q((()=>{0==--s.counter&&e.delete(n)})),s.read}}(n);return Ee.define({bbutton:_e}),Ee`<div class="container">
+  </div>`;
+	const App = () => {
+	  const [data, setData] = signal([]);
+	  const [selected, setSelected] = signal([]);
+	  const run = () => setData(buildData(1000));
+	  const runLots = () => {
+	    setData(buildData(10000));
+	  };
+	  const add = () => setData(d => [...d, ...buildData(1000)]);
+	  const update = () => batch(() => {
+	    for (let i = 0, d = data(), len = d.length; i < len; i += 10) d[i].setLabel(l => l + ' !!!');
+	  });
+	  const swapRows = () => {
+	    const d = data().slice();
+	    if (d.length > 998) {
+	      let tmp = d[1];
+	      d[1] = d[998];
+	      d[998] = tmp;
+	      setData(d);
+	    }
+	  };
+	  const clear = () => setData([]);
+	  const remove = id => setData(d => {
+	    const idx = d.findIndex(datum => datum.id === id);
+	    d.splice(idx, 1);
+	    return [...d];
+	  });
+	  const isSelected = useSelector(selected);
+	  html.define({
+	    bbutton
+	  });
+	  return html`<div class="container">
     <div class="jumbotron">
       <div class="row">
         <div class="col-md-6">
@@ -22,32 +3237,32 @@
             <bbutton
               id="run"
               text="Create 1,000 rows"
-              fn="${()=>e(je(1e3))}"
+              fn="${run}"
             />
             <bbutton
               id="runlots"
               text="Create 10,000 rows"
-              fn="${()=>{e(je(1e4))}}"
+              fn="${runLots}"
             />
             <bbutton
               id="add"
               text="Append 1,000 rows"
-              fn="${()=>e((t=>[...t,...je(1e3)]))}"
+              fn="${add}"
             />
             <bbutton
               id="update"
               text="Update every 10th row"
-              fn="${()=>N((()=>{for(let e=0,n=t(),s=n.length;e<s;e+=10)n[e].setLabel((t=>t+" !!!"))}))}"
+              fn="${update}"
             />
             <bbutton
               id="clear"
               text="Clear"
-              fn="${()=>e([])}"
+              fn="${clear}"
             />
             <bbutton
               id="swaprows"
               text="Swap Rows"
-              fn="${()=>{const n=t().slice();if(n.length>998){let t=n[1];n[1]=n[998],n[998]=t,e(n)}}}"
+              fn="${swapRows}"
             />
           </div>
         </div>
@@ -55,26 +3270,39 @@
     </div>
     <div
       class="table table-hover table-striped test-data"
-      onClick="${t=>{const n=t.target;void 0!==n.setSelected?s(n.setSelected):void 0!==n.removeRow&&(t=>{e((e=>{const n=e.findIndex((e=>e.id===t));return e.splice(n,1),[...e]}))})(n.removeRow)}}"
+      onClick="${e => {
+    const element = e.target;
+    if (element.setSelected !== undefined) {
+      setSelected(element.setSelected);
+    } else if (element.removeRow !== undefined) {
+      remove(element.removeRow);
+    }
+  }}"
     >
       <div>
-        <For each="${t}">
-          ${t=>{const{id:e,label:n}=t;return Ee`<tr class:danger="${o(e)}">
-              <td class="col-md-1">${e}</td>
+        <For each="${data}">
+          ${row => {
+    const {
+      id,
+      label
+    } = row;
+    return html`<tr class:danger="${isSelected(id)}">
+              <td class="col-md-1">${id}</td>
               <td class="col-md-4">
-                <a .set-selected="${e}">${n}</a>
+                <a .set-selected="${id}">${label}</a>
               </td>
               <td class="col-md-1">
                 <a>
                   <span
                     class="glyphicon glyphicon-remove"
                     aria-hidden="true"
-                    .remove-row="${e}"
+                    .remove-row="${id}"
                   />
                 </a>
               </td>
               <td class="col-md-6" />
-            </tr>`}}
+            </tr>`;
+  }}
         </For>
       </div>
     </div>
@@ -82,5 +3310,9 @@
       class="preloadicon glyphicon glyphicon-remove"
       aria-hidden="true"
     />
-  </div>`}),document.getElementById("main"))}();
+  </div>`;
+	};
+	render(App, document.getElementById('main'));
+
+})();
 //# sourceMappingURL=main.js.map

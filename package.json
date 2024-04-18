@@ -54,15 +54,15 @@
 			{
 				"input": ["src/pages/@playground/preview/index.jsx"],
 				"output": "src/dist/preview/",
-				"minified": true,
-				"treeshake": true,
+				"minified": false,
+				"treeshake": false,
 				"root": false
 			},
 			{
 				"input": ["src/pages/benchmark/dev/index.jsx"],
 				"output": "src/pages/benchmark/dev/main.js",
-				"minified": true,
-				"treeshake": true,
+				"minified": false,
+				"treeshake": false,
 				"root": false,
 				"babel": {
 					"presets": [["pota/babel-preset"]]
@@ -71,8 +71,8 @@
 			{
 				"input": ["src/pages/benchmark/regular/index.jsx"],
 				"output": "src/pages/benchmark/regular/main.js",
-				"minified": true,
-				"treeshake": true,
+				"minified": false,
+				"treeshake": false,
 				"root": false,
 				"babel": {
 					"presets": [["pota/babel-preset"]]
@@ -81,8 +81,8 @@
 			{
 				"input": ["src/pages/benchmark/html/index.jsx"],
 				"output": "src/pages/benchmark/html/main.js",
-				"minified": true,
-				"treeshake": true,
+				"minified": false,
+				"treeshake": false,
 				"root": false,
 				"babel": {
 					"presets": [["pota/babel-preset"]]
