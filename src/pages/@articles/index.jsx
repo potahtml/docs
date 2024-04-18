@@ -8,18 +8,16 @@ export default function () {
 			<Header title={<Tag>Articles ...</Tag>}> </Header>
 
 			<Section title="Entries">
-				<p>
-					<ol>
-						<li>
-							<a href="/articles/anatomy-of-a-signals-based-reactive-renderer">
-								Anatomy Of A Signals Based Reactive Renderer
-							</a>{' '}
-							- Implementing from scratch the core parts of a signals
-							based reactive web renderer: rendering, placeholders,
-							node creation and node disposal. (Jan 29, 2024)
-						</li>
-					</ol>
-				</p>
+				<ol>
+					<li>
+						<a href="/articles/anatomy-of-a-signals-based-reactive-renderer">
+							Anatomy Of A Signals Based Reactive Renderer
+						</a>{' '}
+						- Implementing from scratch the core parts of a signals
+						based reactive web renderer: rendering, placeholders, node
+						creation and node disposal. (Jan 29, 2024)
+					</li>
+				</ol>
 			</Section>
 		</>
 	)

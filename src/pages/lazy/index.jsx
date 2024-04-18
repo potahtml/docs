@@ -9,27 +9,23 @@ export default function () {
 				<mark>lazy</mark> is a <mark>promise</mark> loader. It is used
 				when you want to display something while a promise is loading,
 				or to run a callback after a promise is resolved.
-				<p>
-					<ol>
-						<li>
-							Allows to display/run something, or nothing while a
-							promise is resolving.
-						</li>
-						<li>
-							Allows to run a callback when the promise resolves.
-						</li>
-						<li>
-							Allows to get notified of errors, and display/run
-							something, or nothing. If wanted, a <mark>retry</mark>{' '}
-							function is given for retrying the promise.
-						</li>
-						<li>
-							It will render what the promise returns. If the promise
-							returns a function it can be used as{' '}
-							<mark>Component(props)</mark>.
-						</li>
-					</ol>
-				</p>
+				<ol>
+					<li>
+						Allows to display/run something, or nothing while a
+						promise is resolving.
+					</li>
+					<li>Allows to run a callback when the promise resolves.</li>
+					<li>
+						Allows to get notified of errors, and display/run
+						something, or nothing. If wanted, a <mark>retry</mark>{' '}
+						function is given for retrying the promise.
+					</li>
+					<li>
+						It will render what the promise returns. If the promise
+						returns a function it can be used as{' '}
+						<mark>Component(props)</mark>.
+					</li>
+				</ol>
 			</Header>
 
 			<Section title="Attributes">

@@ -14,34 +14,34 @@ export default function () {
 					<mark>setProperty</mark> will be used when any of the
 					following is true:
 				</p>
-				<p>
-					<ol>
-						<li>
-							the element has a dash on the <mark>tagName</mark>, as
-							custom elements do
-						</li>
-						<li>
-							value is <mark>object</mark>, <mark>null</mark> or{' '}
-							<mark>undefined</mark>
-						</li>
-						<li>
-							value is <mark>boolean</mark> and <mark>name</mark>{' '}
-							doesnt contain hyphens
-						</li>
-					</ol>
-				</p>
+
+				<ol>
+					<li>
+						the element has a dash on the <mark>tagName</mark>, as
+						custom elements do
+					</li>
+					<li>
+						value is <mark>object</mark>, <mark>null</mark> or{' '}
+						<mark>undefined</mark>
+					</li>
+					<li>
+						value is <mark>boolean</mark> and <mark>name</mark> doesnt
+						contain hyphens
+					</li>
+				</ol>
+
 				<p>
 					<mark>setAttribute</mark> will be also used when any of the
 					following is true:
 				</p>
-				<p>
-					<ol>
-						<li>
-							value is <mark>not an object</mark>, <mark>null</mark>{' '}
-							or <mark>undefined</mark>
-						</li>
-					</ol>
-				</p>
+
+				<ol>
+					<li>
+						value is <mark>not an object</mark>, <mark>null</mark> or{' '}
+						<mark>undefined</mark>
+					</li>
+				</ol>
+
 				<p>
 					While this does not work for every situation, it's a
 					sensible default that works in most cases. To change this
@@ -51,15 +51,16 @@ export default function () {
 
 			<Section title="Namespace To Force Props Type">
 				<p>A namespace can be used to force the prop kind</p>
-				<p>
-					<table>
-						<thead>
-							<tr>
-								<th>Name</th>
-								<th>Kind</th>
-								<th>Description</th>
-							</tr>
-						</thead>
+
+				<table>
+					<thead>
+						<tr>
+							<th>Name</th>
+							<th>Kind</th>
+							<th>Description</th>
+						</tr>
+					</thead>
+					<tbody>
 						<tr>
 							<td>
 								<mark>attr:name</mark>
@@ -87,8 +88,9 @@ export default function () {
 							</td>
 							<td>adds/remove based on truthy/falsy</td>
 						</tr>
-					</table>
-				</p>
+					</tbody>
+				</table>
+
 				<Section title="lit-style attributes/properties">
 					<p>
 						<mark>
@@ -96,16 +98,16 @@ export default function () {
 						</mark>{' '}
 						may use lit-style attributes/properties
 					</p>
-					<p>
-						<table>
-							<thead>
-								<tr>
-									<th>Name</th>
-									<th>Kind</th>
-									<th>Description</th>
-								</tr>
-							</thead>
 
+					<table>
+						<thead>
+							<tr>
+								<th>Name</th>
+								<th>Kind</th>
+								<th>Description</th>
+							</tr>
+						</thead>
+						<tbody>
 							<tr>
 								<td>
 									<mark>.someProp="true"</mark>
@@ -135,8 +137,9 @@ export default function () {
 								</td>
 								<td>adds/remove based on truthy/falsy</td>
 							</tr>
-						</table>
-					</p>
+						</tbody>
+					</table>
+
 					<p>
 						<b>See Also</b>: <a href="/props/attr%3A__">attr:__</a>,{' '}
 						<a href="/props/prop%3A__">prop:__</a>,{' '}
@@ -197,14 +200,14 @@ export default function () {
 			</Section>
 
 			<Section title="Props With Default Behavior">
-				<p>
-					<table>
-						<thead>
-							<tr>
-								<th>Name</th>
-								<th>Description</th>
-							</tr>
-						</thead>
+				<table>
+					<thead>
+						<tr>
+							<th>Name</th>
+							<th>Description</th>
+						</tr>
+					</thead>
+					<tbody>
 						<tr>
 							<td>
 								<mark>
@@ -251,8 +254,8 @@ export default function () {
 							</td>
 							<td>sets a css var in the element</td>
 						</tr>
-					</table>
-				</p>
+					</tbody>
+				</table>
 			</Section>
 
 			<Section title="SVG">

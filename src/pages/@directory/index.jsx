@@ -21,19 +21,17 @@ export default function () {
 						render={false}
 					/>
 				</p>
-				<p>
-					<ol>
-						<li>
-							<a href="/hooks/useSelector">useSelector</a> - Most
-							performant way to have an <mark>isSelected</mark>{' '}
-							signal.
-						</li>
-						<li>
-							<a href="/hooks/useTimeout">useTimeout</a> - For
-							creating setTimeouts that autodispose.
-						</li>
-					</ol>
-				</p>
+
+				<ol>
+					<li>
+						<a href="/hooks/useSelector">useSelector</a> - Most
+						performant way to have an <mark>isSelected</mark> signal.
+					</li>
+					<li>
+						<a href="/hooks/useTimeout">useTimeout</a> - For creating
+						setTimeouts that autodispose.
+					</li>
+				</ol>
 			</Section>
 
 			<Section title="Props Plugins">
@@ -56,40 +54,35 @@ export default function () {
 						render={false}
 					/>
 				</p>
-				<p>
-					<ol>
-						<li>
-							<a href="/props/plugins/autofocus">autofocus</a> -
-							automatically focus the field
-						</li>
-						<li>
-							<a href="/props/plugins/bind">bind</a> - automatically
-							bind the value of a form field to a signal
-						</li>
-						<li>
-							<a href="/props/plugins/onClickOutside">
-								onClickOutside
-							</a>{' '}
-							- runs a function when clicking outside the element
-						</li>
-						<li>
-							<a href="/props/plugins/pasteTextPlain">
-								pasteTextPlain
-							</a>{' '}
-							- forces pasting as text/plain
-						</li>
-						<li>
-							<a href="/props/plugins/useClipboard">useClipboard</a> -
-							allows to copy to clipboard the return value of a
-							function, the string set as the prop value or the{' '}
-							<mark>innerText</mark> of the element
-						</li>
-						<li>
-							<a href="/props/plugins/useFullscreen">useFullscreen</a>{' '}
-							- on click it will fullscreen the element
-						</li>
-					</ol>
-				</p>
+
+				<ol>
+					<li>
+						<a href="/props/plugins/autofocus">autofocus</a> -
+						automatically focus the field
+					</li>
+					<li>
+						<a href="/props/plugins/bind">bind</a> - automatically
+						bind the value of a form field to a signal
+					</li>
+					<li>
+						<a href="/props/plugins/onClickOutside">onClickOutside</a>{' '}
+						- runs a function when clicking outside the element
+					</li>
+					<li>
+						<a href="/props/plugins/pasteTextPlain">pasteTextPlain</a>{' '}
+						- forces pasting as text/plain
+					</li>
+					<li>
+						<a href="/props/plugins/useClipboard">useClipboard</a> -
+						allows to copy to clipboard the return value of a
+						function, the string set as the prop value or the{' '}
+						<mark>innerText</mark> of the element
+					</li>
+					<li>
+						<a href="/props/plugins/useFullscreen">useFullscreen</a> -
+						on click it will fullscreen the element
+					</li>
+				</ol>
 			</Section>
 
 			<Section title="Animations">

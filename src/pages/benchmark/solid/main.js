@@ -833,7 +833,7 @@
 						children: e => {
 							let t = e.id
 							return (() => {
-								// return G()
+								return G()
 
 								const n = G(),
 									r = n.firstChild,

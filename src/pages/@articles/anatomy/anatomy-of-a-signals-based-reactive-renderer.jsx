@@ -15,24 +15,24 @@ export default function () {
 			<p>
 				In case you dont know what Signals are, here there are a few
 				links:
-				<ol>
-					<li>
-						<a href="https://www.youtube.com/watch?v=Jp7QBjY5K34">
-							Ryan K Carniato - Revolutionary Signals (video)
-						</a>
-					</li>
-					<li>
-						<a href="https://dev.to/ryansolid/a-hands-on-introduction-to-fine-grained-reactivity-3ndf">
-							A Hands-on Introduction to Fine-Grained Reactivity
-						</a>
-					</li>
-					<li>
-						<a href="https://dev.to/this-is-learning/making-the-case-for-signals-in-javascript-4c7i">
-							Making the Case for Signals in JavaScript
-						</a>
-					</li>
-				</ol>
 			</p>
+			<ol>
+				<li>
+					<a href="https://www.youtube.com/watch?v=Jp7QBjY5K34">
+						Ryan K Carniato - Revolutionary Signals (video)
+					</a>
+				</li>
+				<li>
+					<a href="https://dev.to/ryansolid/a-hands-on-introduction-to-fine-grained-reactivity-3ndf">
+						A Hands-on Introduction to Fine-Grained Reactivity
+					</a>
+				</li>
+				<li>
+					<a href="https://dev.to/this-is-learning/making-the-case-for-signals-in-javascript-4c7i">
+						Making the Case for Signals in JavaScript
+					</a>
+				</li>
+			</ol>
 			<Section title="Introduction">
 				<p>
 					With Signals, it may be a bit confusing at first how things
@@ -65,7 +65,6 @@ export default function () {
 					articles.
 				</p>
 			</Section>
-
 			<Section title="insert">
 				<p>
 					We need a function with the purpose to insert{' '}
@@ -119,21 +118,21 @@ create(2 + 2, document.body);
 					That's a bit too simplistic, let's make it more fancy by
 					adding more data-types
 				</p>
-				<p>
-					<ol>
-						<li>
-							Avoiding <mark>null</mark> and <mark>undefined</mark> by
-							returning early
-						</li>
-						<li>
-							Allowing <mark>Nodes</mark> by inserting them directly
-						</li>
-						<li>
-							Allowing <mark>functions</mark>, by calling the function
-							and recursing with the returned value
-						</li>
-					</ol>
-				</p>
+
+				<ol>
+					<li>
+						Avoiding <mark>null</mark> and <mark>undefined</mark> by
+						returning early
+					</li>
+					<li>
+						Allowing <mark>Nodes</mark> by inserting them directly
+					</li>
+					<li>
+						Allowing <mark>functions</mark>, by calling the function
+						and recursing with the returned value
+					</li>
+				</ol>
+
 				<p></p>
 
 				<Code
@@ -625,7 +624,6 @@ create(button, document.body);
 					<mark>placeholders</mark>.
 				</p>
 			</Section>
-
 			<Section title="render">
 				<p>
 					The <mark>render</mark> function, it's the one that creates
@@ -682,7 +680,9 @@ create(button, document.body);
 					<a href="https://github.com/ryansolid/dom-expressions/tree/main/packages/dom-expressions">
 						dom-expressions
 					</a>
-					.<p></p>
+					.
+					<br />
+					<br />
 					If you enjoy this topic you can join{' '}
 					<a href="https://discord.gg/solidjs">SolidJS</a> Discord to
 					chat!

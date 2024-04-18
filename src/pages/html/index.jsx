@@ -11,41 +11,39 @@ export default function () {
 					templates. Inspired and influenced by{' '}
 					<a href="https://github.com/trusktr">@trusktr</a>
 				</p>
-				<p>
-					It comes in two flavors that you can choose
-					<ol>
-						<li>
-							1. Returns a <mark>Node/Element</mark> or an{' '}
-							<mark>Array</mark> of <mark>Node/Element</mark>.{' '}
-							<ol>
-								<li>
-									<b>PROS</b>: very easy to use the Element when is a
-									single children or if you dont mind the array.{' '}
-								</li>
-								<li>
-									<b>CONS</b>: doesn't play nicely with nested
-									reactivity and context as elements have to be
-									created before returning, which means that if you
-									nest the result in a context then it wont be using
-									the context value as the element is already created.
-								</li>
-							</ol>
-						</li>
-						<li>
-							2. Behaves as any other component, it could return{' '}
-							<mark>Node/Element/Function/Array</mark>.{' '}
-							<ol>
-								<li>
-									<b>PROS</b>: plays nicely with nested reactivity and
-									reactive context.{' '}
-								</li>
-								<li>
-									<b>CONS</b>: you dont get an Element.
-								</li>
-							</ol>
-						</li>
-					</ol>
-				</p>
+				It comes in two flavors that you can choose
+				<ol>
+					<li>
+						1. Returns a <mark>Node/Element</mark> or an{' '}
+						<mark>Array</mark> of <mark>Node/Element</mark>.{' '}
+						<ol>
+							<li>
+								<b>PROS</b>: very easy to use the Element when is a
+								single children or if you dont mind the array.{' '}
+							</li>
+							<li>
+								<b>CONS</b>: doesn't play nicely with nested
+								reactivity and context as elements have to be created
+								before returning, which means that if you nest the
+								result in a context then it wont be using the context
+								value as the element is already created.
+							</li>
+						</ol>
+					</li>
+					<li>
+						2. Behaves as any other component, it could return{' '}
+						<mark>Node/Element/Function/Array</mark>.{' '}
+						<ol>
+							<li>
+								<b>PROS</b>: plays nicely with nested reactivity and
+								reactive context.{' '}
+							</li>
+							<li>
+								<b>CONS</b>: you dont get an Element.
+							</li>
+						</ol>
+					</li>
+				</ol>
 			</Header>
 
 			<Section title="As HTMLElement">
