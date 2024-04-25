@@ -31,7 +31,12 @@
 		/>
 
 		<script>
-			window.location.href.includes('?playground') && console.clear()
+			if (
+				!location.href.includes('localhost') &&
+				location.href.includes('?playground')
+			) {
+				console.clear()
+			}
 		</script>
 		<script
 			crossorigin="anonymous"
