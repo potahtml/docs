@@ -707,7 +707,7 @@
 	        ...Owner.context,
 	        [id]: newValue
 	      };
-	      res = fn();
+	      res = untrack(fn);
 	    });
 	    return res;
 	  }
@@ -2580,8 +2580,8 @@
 	   * ```
 	   */
 	  const r = child();
-	  return isFunction(r) ? isReactive(r) ? r() : r(...args) : r;
-	} : args => child(...args) : () => child;
+	  return isFunction(r) ? isReactive(r) ? r() : untrack(() => r(...args)) : r;
+	} : args => untrack(() => child(...args)) : () => child;
 
 	/**
 	 * Extend `Pota` and define a `render(props){}` method to create a

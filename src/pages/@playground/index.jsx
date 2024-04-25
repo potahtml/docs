@@ -4,7 +4,7 @@ import { CheatSheet } from '../../lib/components/cheatsheet.jsx'
 import { Code } from '../../lib/components/code/code.jsx'
 import { Header } from '../../lib/components/header.jsx'
 
-import { effect, memo, signal, untrack } from 'pota'
+import { effect, memo, signal } from 'pota'
 import { Collapse } from 'pota/web'
 
 import { compress, uncompress } from '../../lib/compress.js'
@@ -22,7 +22,7 @@ function getCodeFromURL() {
 }
 
 export default function () {
-	const [autorun, setAutorun] = signal(true)
+	const [autorun, setAutorun, updateAutorun] = signal(true)
 
 	let fetched = getCodeFromURL()
 	if (typeof fetched === 'string') {
@@ -57,7 +57,7 @@ export default function () {
 	}
 
 	// prettify initial value
-	prettier(source.code).then(updateCode)
+	prettier(source().code).then(updateCode)
 
 	// update hash
 	effect(() => {
@@ -65,9 +65,6 @@ export default function () {
 	})
 
 	const [tab, setTab] = signal('code')
-
-	const code = memo(() => autorun() && source())
-	code()
 
 	return (
 		<>
@@ -121,14 +118,14 @@ export default function () {
 								<input
 									name="button"
 									type="checkbox"
-									checked={untrack(autorun)}
-									onClick={() => setAutorun(checked => !checked)}
+									checked={autorun()}
+									onClick={() => updateAutorun(checked => !checked)}
 								/>
 							</label>
 						</span>
 					</section>
 					<Code
-						code={code}
+						code={() => autorun() && source()}
 						render={true}
 						preview={false}
 					/>
