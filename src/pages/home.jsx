@@ -22,6 +22,7 @@ export default function Home() {
 						alt="Pota Logo"
 					/>
 				</h1>
+
 				<p>
 					<b>pota</b> is a <em>small</em> and pluggable Reactive Web
 					Renderer. It's compiler-less, includes an <mark>html</mark>{' '}

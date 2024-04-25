@@ -17,6 +17,13 @@ import { useLocation } from 'pota/router'
 
 const location = useLocation()
 
+window.addEventListener('resize', () => {
+	document.querySelector('#menu').style.display = window.matchMedia(
+		'(max-width: 750px)',
+	).matches
+		? 'none'
+		: 'inherit'
+})
 render(() => {
 	return (
 		<main

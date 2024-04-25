@@ -1,7 +1,7 @@
 (function () {
 	'use strict';
 
-	const version = '0.13.122';
+	const version = '0.13.123';
 
 	const global = globalThis;
 

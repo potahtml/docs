@@ -67,10 +67,12 @@
 
 .montevideo {
 	position: fixed;
-	right: 23px;
-	top: 3px;
+	right: 33px;
+	top: 13px;
 	font-size: 260%;
-	padding: 10px;
+	padding: 5px;
 	cursor: pointer;
 	z-index: 1;
+	background-color: rgba(13 17 23 /0.4);
+	border-radius: 4px;
 }

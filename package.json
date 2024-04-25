@@ -48,7 +48,14 @@
 							}
 						]
 					],
-					"presets": [["pota/babel-preset"]]
+					"presets": [
+						[
+							"pota/babel-preset",
+							{
+								"development": false
+							}
+						]
+					]
 				}
 			},
 			{
@@ -65,7 +72,7 @@
 				"treeshake": false,
 				"root": false,
 				"babel": {
-					"presets": [["pota/babel-preset"]]
+					"presets": [["pota/babel-preset", { "development": true }]]
 				}
 			},
 			{
