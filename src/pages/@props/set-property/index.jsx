@@ -6,7 +6,7 @@ export default function () {
 	return (
 		<>
 			<Header title="setProperty">
-				<mark>setProperty</mark> is a helper for setting attributes
+				<mark>setProperty</mark> is a helper for setting properties
 				that may come from reactive values
 			</Header>
 

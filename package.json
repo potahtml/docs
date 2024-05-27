@@ -18,7 +18,7 @@
 		"dom-flair": "^6.0.56",
 		"fflate": "^0.8.2",
 		"kompiler": "^7.0.154",
-		"pota": "^0.13.121"
+		"validate-html-nesting": "^1.2.2"
 	},
 	"kompiler": {
 		"builds": [
@@ -48,14 +48,7 @@
 							}
 						]
 					],
-					"presets": [
-						[
-							"pota/babel-preset",
-							{
-								"development": false
-							}
-						]
-					]
+					"presets": [["pota/babel-preset"]]
 				}
 			},
 			{
@@ -72,7 +65,7 @@
 				"treeshake": false,
 				"root": false,
 				"babel": {
-					"presets": [["pota/babel-preset", { "development": true }]]
+					"presets": [["pota/babel-preset"]]
 				}
 			},
 			{

@@ -6,8 +6,8 @@ export default function () {
 	return (
 		<>
 			<Header title="setStyle">
-				<mark>setStyle</mark> is a helper for setting attributes that
-				may come from reactive values
+				<mark>setStyle</mark> is a helper for setting style properties
+				that may come from reactive values
 			</Header>
 
 			<Section title="Snippet">

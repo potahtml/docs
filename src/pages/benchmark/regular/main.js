@@ -21,12 +21,10 @@
 
 	// symbols
 
-	const $meta = Symbol();
 	const $component = Symbol();
 	const $class = Symbol();
 	const $reactive = Symbol();
 	const $map = Symbol();
-	const $internal = Symbol();
 
 	// supported namespaces
 
@@ -80,9 +78,12 @@
 	  owned;
 	  cleanups;
 	  context;
-	  constructor(owner) {
+	  constructor(owner, options) {
 	    this.owner = owner;
 	    this.context = owner?.context;
+	    if (options) {
+	      assign(this, options);
+	    }
 	  }
 	  dispose() {
 	    let i;
@@ -113,8 +114,8 @@
 	  fn;
 	  sources;
 	  sourceSlots;
-	  constructor(owner, fn) {
-	    super(owner);
+	  constructor(owner, fn, options) {
+	    super(owner, options);
 	    this.fn = fn;
 	    if (owner) {
 	      if (owner.owned) {
@@ -175,14 +176,14 @@
 	}
 	class Effect extends Computation {
 	  user = true;
-	  constructor(owner, fn) {
-	    super(owner, fn);
+	  constructor(owner, fn, options) {
+	    super(owner, fn, options);
 	    Effects ? Effects.push(this) : batch(() => this.update());
 	  }
 	}
 	class SyncEffect extends Computation {
-	  constructor(owner, fn) {
-	    super(owner, fn);
+	  constructor(owner, fn, options) {
+	    super(owner, fn, options);
 	    batch(() => this.update());
 	  }
 	}
@@ -200,10 +201,7 @@
 	  // equals
 
 	  constructor(owner, fn, options) {
-	    super(owner, fn);
-	    if (options) {
-	      assign(this, options);
-	    }
+	    super(owner, fn, options);
 	    return markReactive(this.read.bind(this));
 	  }
 	  read() {
@@ -372,7 +370,7 @@
 	    return false;
 	  }
 	  update(value) {
-	    if (typeof value === 'function') {
+	    if (isFunction(value)) {
 	      value = value(this.value);
 	    }
 	    return this.write(value);
@@ -393,12 +391,13 @@
 	 * Creates a new root
 	 *
 	 * @param {(dispose: Function) => any} fn
+	 * @param {OwnerOptions} options
 	 * @returns {any}
 	 */
-	function root(fn) {
+	function root(fn, options = undefined) {
 	  const prevOwner = Owner;
 	  const prevListener = Listener;
-	  const root = new Root(Owner);
+	  const root = new Root(Owner, options);
 	  Owner = root;
 	  Listener = undefined;
 	  try {
@@ -425,18 +424,20 @@
 	 * Creates an effect
 	 *
 	 * @param {Function} fn
+	 * @param {OwnerOptions} options
 	 */
-	function effect(fn) {
-	  return new Effect(Owner, fn);
+	function effect(fn, options = undefined) {
+	  return new Effect(Owner, fn, options);
 	}
 
 	/**
 	 * Creates a syncEffect
 	 *
 	 * @param {Function} fn
+	 * @param {OwnerOptions} options
 	 */
-	function syncEffect(fn) {
-	  return new SyncEffect(Owner, fn);
+	function syncEffect(fn, options = undefined) {
+	  return new SyncEffect(Owner, fn, options);
 	}
 
 	/**
@@ -445,7 +446,7 @@
 	 *
 	 * @param {Function} fn - Function to re-run when dependencies change
 	 * @param {SignalOptions} [options]
-	 * @returns {Signal} - Read only signal
+	 * @returns {SignalAccessor} - Read only signal
 	 */
 	function memo(fn, options = undefined) {
 	  return new Memo(Owner, fn, options);
@@ -651,26 +652,21 @@
 	    }
 	  }
 	}
-
-	/*
-
-	let readForbid = false
-
+	let readForbid = false;
 	function checkReadForbidden() {
-		if (readForbid) {
-			console.trace('Signal Read!')
-		}
+	  if (readForbid) {
+	    console.trace('Signal Read!');
+	  }
 	}
-	export function readForbidden(fn, value) {
-		const prev = readForbid
-		try {
-			readForbid = value
-			return fn()
-		} finally {
-			readForbid = prev
-		}
+	function readForbidden(fn, value) {
+	  const prev = readForbid;
+	  try {
+	    readForbid = value;
+	    return fn();
+	  } finally {
+	    readForbid = prev;
+	  }
 	}
-	*/
 
 	/**
 	 * Creates a context and returns a function to get or set the value
@@ -725,6 +721,17 @@
 	};
 
 	/**
+	 * Returns an owned function
+	 *
+	 * @param {function | undefined} cb
+	 * @returns {() => any}
+	 */
+	const owned = cb => {
+	  const o = Owner;
+	  return (...args) => cb && runWithOwner(o, () => cb(...args));
+	};
+
+	/**
 	 * A self contained signal function, when an argument is present it
 	 * writes to the signal, when theres no argument it reads the signal.
 	 *
@@ -743,10 +750,10 @@
 	 * @param {Function | any} value - Maybe function
 	 * @returns {any}
 	 */
-	const getValue = value => {
+	function getValue(value) {
 	  while (typeof value === 'function') value = value();
 	  return value;
-	};
+	}
 
 	const groupBy = Object$1.groupBy;
 
@@ -833,7 +840,10 @@
 	   */
 	  function mapper(fn) {
 	    const cb = fn ? (item, index) => fn(callback(item, index), index) : callback;
-	    const items = (getValue(list) || []).entries();
+	    const value = getValue(list) || [];
+
+	    /** To allow iterate objects as if were an array with indexes */
+	    const items = 'entries' in value ? value.entries() : Object.entries(value);
 	    runId++;
 	    rows = [];
 	    const hasPrev = prev.length;
@@ -986,9 +996,7 @@
 	 * @param {any} value
 	 * @param {(value) => any} fn
 	 */
-	const withValue = (value, fn) => isFunction(value) ? effect(() => {
-	  fn(getValue(value));
-	}) : fn(value);
+	const withValue$1 = (value, fn) => isFunction(value) ? effect(() => fn(getValue(value))) : fn(value);
 
 	const isArray = Array.isArray;
 
@@ -1181,6 +1189,7 @@
 	/** @type {Function} */
 	const noop = () => {};
 
+	/** An empty frozen object */
 	const nothing = freeze(empty());
 
 	// an optional value is `true` by default, so most of the time is undefined which means is `true`
@@ -1422,10 +1431,7 @@
 	  plugin(pluginsNS, NSName, fn, runOnMicrotask);
 	};
 	const plugin = (plugins, name, fn, runOnMicrotask) => {
-	  plugins[name] = !runOnMicrotask ? fn : (...args) => {
-	    const owned = withOwner();
-	    microtask(() => owned(() => fn(...args)));
-	  };
+	  plugins[name] = !runOnMicrotask ? fn : (...args) => microtask(owned(() => fn(...args)));
 	};
 
 	/**
@@ -1439,6 +1445,17 @@
 	  cancelable: true,
 	  composed: true
 	}) => node.dispatchEvent(new CustomEvent(eventName, data));
+
+	/**
+	 * Runs a function inside an effect if value is a function
+	 *
+	 * @param {PropertyKey} name
+	 * @param {any} value
+	 * @param {(value) => any} fn
+	 */
+	function withValue(name, value, fn) {
+	  isFunction(value) ? effect(() => fn(getValue(value))) : fn(value);
+	}
 
 	/**
 	 * @param {Elements} node
@@ -1456,7 +1473,7 @@
 	 * @param {unknown} value
 	 * @url https://pota.quack.uy/props/setProperty
 	 */
-	const setProperty = (node, name, value) => withValue(value, value => _setProperty(node, name, value));
+	const setProperty = (node, name, value) => withValue(name, value, value => _setProperty(node, name, value));
 
 	/**
 	 * @param {Elements} node
@@ -1496,7 +1513,7 @@
 	 * @param {string} [ns]
 	 * @url https://pota.quack.uy/props/setAttribute
 	 */
-	const setAttribute = (node, name, value, ns) => withValue(value, value => _setAttribute(node, name, value, ns));
+	const setAttribute = (node, name, value, ns) => withValue(name, value, value => _setAttribute(node, name, value, ns));
 
 	/**
 	 * @param {Elements} node
@@ -1531,7 +1548,7 @@
 	 * @param {unknown} value
 	 * @url https://pota.quack.uy/props/setBool
 	 */
-	const setBool = (node, name, value) => withValue(value, value => _setBool(node, name, value));
+	const setBool = (node, name, value) => withValue(name, value, value => _setBool(node, name, value));
 
 	/**
 	 * @param {Elements} node
@@ -1596,9 +1613,7 @@
 	    return;
 	  }
 	  if (type === 'function') {
-	    effect(() => {
-	      setNodeStyle(style, getValue(value));
-	    });
+	    effect(() => setNodeStyle(style, getValue(value)));
 	    return;
 	  }
 	}
@@ -1615,7 +1630,7 @@
 	 * @param {string} name
 	 * @param {unknown} value
 	 */
-	const setStyleValue = (style, name, value) => withValue(value, value => _setStyleValue(style, name, value));
+	const setStyleValue = (style, name, value) => withValue(name, value, value => _setStyleValue(style, name, value));
 
 	/**
 	 * @param {CSSStyleDeclaration} style
@@ -1670,7 +1685,7 @@
 	      }
 	    case 'function':
 	      {
-	        withValue(value, value => setClassList(node, value));
+	        withValue('classList', value, value => setClassList(node, value));
 	        break;
 	      }
 	  }
@@ -1680,7 +1695,7 @@
 	 * @param {string} name
 	 * @param {unknown} value
 	 */
-	const setClassListValue = (node, name, value) => withValue(value, value => _setClassListValue(node, name, value));
+	const setClassListValue = (node, name, value) => withValue(name, value, value => _setClassListValue(node, name, value));
 
 	/**
 	 * @param {Elements} node
@@ -1803,7 +1818,7 @@
 	 * @param {unknown} value
 	 * @param {string} [ns]
 	 */
-	const setUnknownProp = (node, name, value, ns) => withValue(value, value => _setUnknownProp(node, name, value, ns));
+	const setUnknownProp = (node, name, value, ns) => withValue(name, value, value => _setUnknownProp(node, name, value, ns));
 
 	/**
 	 * @param {Elements} node
@@ -1846,64 +1861,85 @@
 
 	propsPlugin('ref', setRef, false);
 	propsPluginNS('ref', setRef, false);
+	propsPlugin('__dev', noop, false);
+	propsPlugin('xmlns', noop, false);
 	propsPluginNS('on', setEventNS, false);
-	const isCustomElement = (node, props) =>
-	// document-fragment wont have a localName
-	'is' in props || node.localName?.includes('-');
 
 	/**
 	 * Assigns props to an Element
 	 *
 	 * @param {Elements} node - Element to which assign props
 	 * @param {object} props - Props to assign
+	 * @param {boolean} [isCustomElement] - Is custom element
 	 */
-	function assignProps(node, props) {
+	function assignProps(node, props, isCustomElement) {
 	  let name;
-	  let value;
 	  for (name in props) {
-	    value = props[name];
+	    assignProp(node, name, props[name], props, isCustomElement);
+	  }
+	  return node;
+	}
 
-	    // run plugins
-	    if (name in plugins) {
-	      plugins[name](node, name, value, props);
-	      continue;
+	/**
+	 * Assigns a prop to an Element
+	 *
+	 * @param {Elements} node
+	 * @param {PropertyKey} name
+	 * @param {any} value
+	 * @param {object} props
+	 * @param {boolean} [isCE]
+	 */
+	function assignProp(node, name, value, props, isCE) {
+	  if (isObject(value) && 'then' in value) {
+	    value.then(owned(value => assignProp(node, name, value, props, isCE)));
+	    return;
+	  }
+
+	  // run plugins
+	  if (name in plugins) {
+	    plugins[name](node, name, value, props);
+	    return;
+	  }
+
+	  // onClick={handler}
+	  let event = eventName(name);
+	  if (event) {
+	    addEventListener(node, event, value);
+	    return;
+	  }
+	  if (name.includes(':')) {
+	    // with ns
+	    let [ns, localName] = name.split(':');
+
+	    // run plugins NS
+	    if (ns in pluginsNS) {
+	      pluginsNS[ns](node, name, value, props, localName, ns);
+	      return;
 	    }
 
-	    // onClick={handler}
-	    let event = eventName(name);
+	    // onClick:my-ns={handler}
+	    event = eventName(ns);
 	    if (event) {
 	      addEventListener(node, event, value);
-	      continue;
+	      return;
 	    }
-	    if (name.includes(':')) {
-	      // with ns
-	      let [ns, localName] = name.split(':');
-
-	      // run plugins NS
-	      if (ns in pluginsNS) {
-	        pluginsNS[ns](node, name, value, props, localName, ns);
-	        continue;
-	      }
-
-	      // onClick:my-ns={handler}
-	      event = eventName(ns);
-	      if (event) {
-	        addEventListener(node, event, value);
-	        continue;
-	      }
-	      isCustomElement(node, props) ? _setProperty(node, name, value) : setUnknownProp(node, name, value, ns);
-	      continue;
-	    }
-
-	    // catch all
-	    isCustomElement(node, props) ? _setProperty(node, name, value) : setUnknownProp(node, name, value);
+	    isCustomElement(node, props, isCE) ? _setProperty(node, name, value) : setUnknownProp(node, name, value, ns);
+	    return;
 	  }
+
+	  // catch all
+	  isCustomElement(node, props, isCE) ? _setProperty(node, name, value) : setUnknownProp(node, name, value);
 	}
+	const isCustomElement = (node, props, isCustomElement) =>
+	// DocumentFragment doesn't have a localName
+	isCustomElement !== undefined ? isCustomElement : 'is' in props || node.localName?.includes('-');
 
 	const bind = fn => document[fn].bind(document);
 	const createElement = bind('createElement');
 	const createElementNS = bind('createElementNS');
 	const createTextNode = bind('createTextNode');
+	const importNode = bind('importNode');
+	const createTreeWalker = bind('createTreeWalker');
 	const adoptedStyleSheets = document.adoptedStyleSheets;
 	function toDiff(prev = [], node = []) {
 	  node = isArray(node) ? node.flat(Infinity) : [node];
@@ -1915,10 +1951,31 @@
 	}
 
 	/** @returns {TreeWalker} */
+	let _walker;
 	function walker() {
-	  const walk = document.createTreeWalker(document, NodeFilter.SHOW_ELEMENT);
-	  walker = () => walk;
-	  return walker();
+	  if (!_walker) {
+	    _walker = createTreeWalker(document, NodeFilter.SHOW_ELEMENT);
+	  }
+	  return _walker;
+	}
+	function walkElements(node, fn) {
+	  const walk = walker();
+	  walk.currentNode = node;
+
+	  /**
+	   * The first node is not walked by the walker. Also the first node
+	   * could be a DocumentFragment
+	   */
+	  if (node.nodeType === 1) {
+	    fn(node);
+	  }
+	  let r;
+	  while (node = walk.nextNode()) {
+	    r = fn(node);
+	    if (!r && r !== undefined) {
+	      break;
+	    }
+	  }
 	}
 
 	const id = 'pota';
@@ -1938,17 +1995,11 @@
 	  }
 	  return cached;
 	}
-	const Clones = new Map();
 	function cloneNode(content, xmlns) {
-	  const cached = Clones.get(content);
-	  if (cached) {
-	    return cached.cloneNode(true);
-	  }
 	  let template = xmlns ? createElementNS(xmlns, 'template') : createElement('template');
 	  template.innerHTML = content;
 	  template = xmlns ? template.firstChild : template.content.childNodes.length === 1 ? template.content.firstChild : template.content;
-	  Clones.set(content, template);
-	  return template.cloneNode(true);
+	  return template;
 	}
 
 	// REACTIVITE PRIMITIVES
@@ -1956,14 +2007,15 @@
 
 	// STATE
 
-	const Components = new Map();
-	const WeakComponents = new WeakMap();
 	const useXMLNS = context();
 
 	// COMPONENTS
 
-	/** Used by the JSX transform, as <>...</> or <Fragment>...</Fragment>. */
-	const Fragment = Symbol();
+	/**
+	 * Used by the regular JSX transform, as <>...</> or
+	 * <Fragment>...</Fragment>.
+	 */
+	const Fragment = props => props.children;
 
 	/**
 	 * Creates components for things. When props argument is given, the
@@ -1993,7 +2045,6 @@
 	   * defined it allows the user to make a `Factory` of components,
 	   * when `props` its defined the `props` are fixed.
 	   */
-
 	  return props === undefined ? Factory(value) : markComponent(Factory(value).bind(null, props));
 	}
 
@@ -2008,23 +2059,18 @@
 	  if (isComponent(value)) {
 	    return value;
 	  }
-	  const isWeak = isObject(value);
-	  let component = isWeak ? WeakComponents.get(value) : Components.get(value);
-	  if (component) {
-	    return component;
-	  }
 	  switch (typeof value) {
 	    case 'string':
 	      {
 	        // string component, 'div' becomes <div>
-	        component = createTag.bind(null, value);
+	        value = createTag.bind(null, value);
 	        break;
 	      }
 	    case 'function':
 	      {
 	        if ($class in value) {
 	          // class component <MyComponent../>
-	          component = createClass.bind(null, value);
+	          value = createClass.bind(null, value);
 	          break;
 	        }
 
@@ -2035,29 +2081,34 @@
 	         * ```
 	         */
 	        if (isReactive(value)) {
-	          component = createAnything.bind(null, value);
+	          value = createAnything.bind(null, value);
 	          break;
 	        }
 
 	        // function component <MyComponent../>
-	        component = value;
+	        // value = value
 	        break;
 	      }
 	    default:
 	      {
 	        if (value instanceof Node) {
 	          // node component <div>
-	          component = createNode.bind(null, value);
+	          value = createNode.bind(null, value);
 	          break;
 	        }
-	        component = createAnything.bind(null, value);
+	        value = createAnything.bind(null, value);
 	        break;
 	      }
 	  }
-
-	  // save in cache
-	  isWeak ? WeakComponents.set(value, component) : Components.set(value, component);
-	  return markComponent(component);
+	  return markComponent(value);
+	}
+	function createComponent(value) {
+	  const component = Factory(value);
+	  return props => {
+	    /** Freeze props so isnt directly writable */
+	    freeze(props);
+	    return markComponent(() => component(props));
+	  };
 	}
 	function createClass(value, props) {
 	  const i = new value();
@@ -2100,47 +2151,54 @@
 	  }
 	  return fn(nsContext);
 	}
-	function template(content, props) {
-	  return markComponent(() => withXMLNS(props ? props[0].xmlns : undefined, xmlns => {
-	    const node = cloneNode(content, xmlns);
-	    if (props) {
-	      const nodes = [];
-	      let child;
-	      /** The node could be a fragment */
-	      if (node.nodeType === 1 &&
-	      // element
-	      node.hasAttribute('pota')) {
-	        nodes.push(node);
-	        node.removeAttribute('pota');
-	      }
 
-	      /**
-	       * First walk then modify it, so the modifications dont make
-	       * the walk worse. It also allows to re-use the same walker,
-	       * as creating children right now could cause a new instance
-	       * of template that will use the same walker and mess up our
-	       * current walk. While this is not optimal is fast enough,
-	       * requires some more work on the babel plugin.
-	       */
-	      const walk = walker();
-	      walk.currentNode = node;
-	      while (child = walk.nextNode()) {
-	        if (child.hasAttribute('pota')) {
-	          nodes.push(child);
-	          child.removeAttribute('pota');
-	          if (nodes.length === props.length) {
-	            // done
-	            break;
-	          }
+	// PARTIALS
+
+	function createPartial(content, xmlns) {
+	  return createPartialComponent(content, xmlns, false);
+	}
+	function createPartialImportNode(content, xmlns) {
+	  return createPartialComponent(content, xmlns, true);
+	}
+	function createPartialComponent(content, xmlns, isImportNode) {
+	  function clone() {
+	    const node = withXMLNS(xmlns, xmlns => cloneNode(content, xmlns));
+	    clone = isImportNode ? importNode.bind(null, node, true) : node.cloneNode.bind(node, true);
+	    return clone();
+	  }
+	  return markComponent(props => assignPropsPartial(xmlns, () => clone(), props, isImportNode));
+	}
+	function assignPropsPartial(xmlns, clone, props, isCustomElement) {
+	  const node = clone();
+	  if (props) {
+	    /**
+	     * First walk then modify it, so the modifications dont make the
+	     * walk worse (example: creating children will increase the number
+	     * of nodes). It also allows to re-use the same walker, as
+	     * creating children right now could cause a new instance of
+	     * template that will use the same walker and mess up our current
+	     * walk. While this is not optimal is fast enough, requires some
+	     * more work on the babel plugin.
+	     */
+	    const nodes = [];
+	    walkElements(node, node => {
+	      if (node.hasAttribute('pota')) {
+	        node.removeAttribute('pota');
+	        nodes.push(node);
+
+	        // done
+	        if (nodes.length === props.length) {
+	          return false;
 	        }
 	      }
-	      let i = 0;
-	      for (const child of nodes) {
-	        assignProps(child, props[i++]);
+	    });
+	    withXMLNS(xmlns, xmlns => {
+	      for (let i = 0; i < nodes.length; i++) {
+	        assignProps(nodes[i], props[i], i === 0 ? isCustomElement : undefined);
 	      }
-	    }
-	    return node;
-	  }));
+	    });
+	  }
+	  return node instanceof DocumentFragment ? toArray(node.childNodes) : node;
 	}
 
 	/**
@@ -2165,12 +2223,16 @@
 	 * @param {boolean} [relative]
 	 * @returns {Children}
 	 */
-	function createChildren(parent, child, relative) {
+	function createChildren(parent, child, relative, prev = undefined) {
 	  switch (typeof child) {
 	    // string/number
 	    case 'string':
 	    case 'number':
 	      {
+	        if (prev instanceof Text) {
+	          prev.nodeValue = child;
+	          return prev;
+	        }
 	        return insertNode(parent, createTextNode(child), relative);
 	      }
 	    case 'function':
@@ -2209,8 +2271,9 @@
 	        }
 
 	        // maybe a signal so needs an effect
+
 	        effect(() => {
-	          node = toDiff(node, createChildren(parent, child(), true));
+	          node = toDiff(node, createChildren(parent, child(), true, node[0]));
 	        });
 	        cleanup(() => {
 	          toDiff(node);
@@ -2231,10 +2294,7 @@
 	      {
 	        // children/fragments
 	        if (isArray(child)) {
-	          if (child.length === 1) {
-	            return createChildren(parent, child[0], relative);
-	          }
-	          return child.map(child => createChildren(parent, child, relative));
+	          return child.length === 1 ? createChildren(parent, child[0], relative) : child.map(child => createChildren(parent, child, relative));
 	        }
 
 	        // Node/DocumentFragment
@@ -2309,10 +2369,17 @@
 	const createPlaceholder = (parent, text, relative) => {
 	  return insertNode(parent, createTextNode(''), relative);
 
-	  /* dev */
-	  return insertNode(parent, document.createComment((text || '') + (relative ? ' relative' : '')), relative);
+	  /* dev
+	  return insertNode(
+	  	parent,
+	  	document.createComment(
+	  		(text || '') + (relative ? ' relative' : ''),
+	  	),
+	  	relative,
+	  ) */
 	};
-	let headQuerySelector;
+	const head = document.head;
+	const headQuerySelector = head.querySelector.bind(head);
 
 	/**
 	 * Adds the element to the document
@@ -2325,20 +2392,16 @@
 
 	function insertNode(parent, node, relative) {
 	  // special case `head`
-	  if (parent === document.head) {
-	    if (!headQuerySelector) {
-	      const head = document.head;
-	      headQuerySelector = head.querySelector.bind(head);
-	    }
-	    const name = node.tagName;
+	  if (parent === head) {
+	    const name = node.localName;
 
 	    // search for tags that should be unique
 	    let prev;
-	    if (name === 'TITLE') {
+	    if (name === 'title') {
 	      prev = headQuerySelector('title');
-	    } else if (name === 'META') {
+	    } else if (name === 'meta') {
 	      prev = headQuerySelector('meta[name="' + node.getAttribute('name') + '"]') || headQuerySelector('meta[property="' + node.getAttribute('property') + '"]');
-	    } else if (name === 'LINK' && node.rel === 'canonical') {
+	    } else if (name === 'link' && node.rel === 'canonical') {
 	      prev = headQuerySelector('link[rel="canonical"]');
 	    }
 
@@ -2501,13 +2564,13 @@
 	    onError
 	  } = options;
 	  const [value, setValue] = signal(onLoading);
-	  const owned = withOwner();
+	  const _onLoaded = owned(onLoaded);
 	  const retry = () => fn().then(r => {
 	    setValue(markComponent(() => {
 	      r = isObject(r) && r.default ? r.default : r;
 	      return isFunction(r) ? r(props) : r;
 	    }));
-	    microtask(() => owned(onLoaded));
+	    microtask(_onLoaded);
 	  }).catch(e => onError ? setValue(markComponent(() => isFunction(onError) ? onError(e, retry) : onError)) : console.error(e));
 	  retry();
 	  return value;
@@ -2708,7 +2771,7 @@
 	   * @param {boolean} value
 	   */
 	  set hidden(value) {
-	    withValue(value, value => {
+	    withValue$1(value, value => {
 	      value ? this.setAttribute('hidden', '') : this.removeAttribute('hidden');
 	    });
 	  }
@@ -2747,7 +2810,7 @@
 
 	    /** @param {When} value - To toggle children */
 	    set when(value) {
-	      withValue(value, value => this.html = getValue(value) ? '<slot/>' : '');
+	      withValue$1(value, value => this.html = getValue(value) ? '<slot/>' : '');
 	    }
 	  }
 	  customElement('pota-collapse', CollapseElement);
@@ -2854,9 +2917,12 @@
 	 * @url https://pota.quack.uy/Components/Switch
 	 */
 	function Switch(props) {
-	  const children = resolve(() => props.children);
-	  const fallback = isNullUndefined(props.fallback) ? undefined : memo(() => resolve(props.fallback));
-	  const match = memo(() => children().find(match => !!getValue(match.when)));
+	  const matches = resolve(() => props.children);
+	  const fallback = isNullUndefined(props.fallback) ? memo(() => {
+	    const r = matches().find(match => !('when' in match));
+	    return r && r.children;
+	  }) : memo(() => resolve(props.fallback));
+	  const match = memo(() => matches().find(match => !!getValue(match.when)));
 	  const value = memo(() => match() && getValue(match().when));
 	  const callback = memo(() => match() && makeCallback(match().children));
 	  return memo(() => match() ? callback()(value) : fallback);
@@ -2930,7 +2996,7 @@
 	  let id;
 	  const fn = {
 	    start: () => {
-	      withValue(delay, delay => {
+	      withValue$1(delay, delay => {
 	        fn.stop();
 	        if (delay < Infinity) id = setTimeout(callback, delay, ...args);
 	      });
@@ -2942,6 +3008,9 @@
 	  return fn;
 	}
 
+	var _partial = createPartial("<div class='col-sm-6 smallpad'><button pota class='btn btn-primary btn-block' type=button></button></div>"),
+	  _partial2 = createPartial("<div class=container><div class=jumbotron><div class=row><div class=col-md-6><h1>pota Keyed</h1></div><div class=col-md-6><div pota class=row></div></div></div></div><table pota class='table table-hover table-striped test-data'><tbody pota></tbody></table><span class='preloadicon glyphicon glyphicon-remove' aria-hidden=true></span></div>"),
+	  _partial3 = createPartial("<tr pota><td pota class=col-md-1></td><td class=col-md-4><a pota></a></td><td class=col-md-1><a><span pota class='glyphicon glyphicon-remove' aria-hidden=true></span></a></td><td class=col-md-6></td></tr>");
 	let idCounter = 1;
 	const adjectives = ['pretty', 'large', 'big', 'small', 'tall', 'short', 'long', 'handsome', 'plain', 'quaint', 'clean', 'elegant', 'easy', 'angry', 'crazy', 'helpful', 'mushy', 'odd', 'unsightly', 'adorable', 'important', 'inexpensive', 'cheap', 'expensive', 'fancy'],
 	  colours = ['red', 'yellow', 'blue', 'green', 'pink', 'brown', 'purple', 'brown', 'white', 'black', 'orange'],
@@ -2965,12 +3034,14 @@
 	  id,
 	  text,
 	  fn
-	}) => template("<div class='col-sm-6 smallpad'><button pota class='btn btn-primary btn-block' type=button></button></div>", [{
+	}) => _partial([{
 	  id: id,
 	  onClick: fn,
 	  children: text
 	}]);
 	const App = () => {
+	  var _Button = createComponent(Button),
+	    _For = createComponent(For);
 	  const [data, setData] = signal([]),
 	    [selected, setSelected] = signal(null),
 	    run = () => setData(buildData(1000)),
@@ -2997,31 +3068,31 @@
 	      return [...d];
 	    }),
 	    isSelected = useSelector(selected);
-	  return template("<div class=container><div class=jumbotron><div class=row><div class=col-md-6><h1>pota Keyed</h1></div><div class=col-md-6><div pota class=row></div></div></div></div><table pota class='table table-hover table-striped test-data'><tbody pota></tbody></table><span class='preloadicon glyphicon glyphicon-remove' aria-hidden=true></span></div>", [{
-	    children: [Component(Button, {
+	  return _partial2([{
+	    children: [_Button({
+	      fn: run,
 	      id: "run",
-	      text: "Create 1,000 rows",
-	      fn: run
-	    }), Component(Button, {
+	      text: "Create 1,000 rows"
+	    }), _Button({
+	      fn: runLots,
 	      id: "runlots",
-	      text: "Create 10,000 rows",
-	      fn: runLots
-	    }), Component(Button, {
+	      text: "Create 10,000 rows"
+	    }), _Button({
+	      fn: add,
 	      id: "add",
-	      text: "Append 1,000 rows",
-	      fn: add
-	    }), Component(Button, {
+	      text: "Append 1,000 rows"
+	    }), _Button({
+	      fn: update,
 	      id: "update",
-	      text: "Update every 10th row",
-	      fn: update
-	    }), Component(Button, {
+	      text: "Update every 10th row"
+	    }), _Button({
+	      fn: clear,
 	      id: "clear",
-	      text: "Clear",
-	      fn: clear
-	    }), Component(Button, {
+	      text: "Clear"
+	    }), _Button({
+	      fn: swapRows,
 	      id: "swaprows",
-	      text: "Swap Rows",
-	      fn: swapRows
+	      text: "Swap Rows"
 	    })]
 	  }, {
 	    onClick: e => {
@@ -3033,14 +3104,14 @@
 	      }
 	    }
 	  }, {
-	    children: Component(For, {
+	    children: _For({
 	      each: data,
 	      children: row => {
 	        const {
 	          id,
 	          label
 	        } = row;
-	        return template("<tr pota><td pota class=col-md-1></td><td class=col-md-4><a pota></a></td><td class=col-md-1><a><span pota class='glyphicon glyphicon-remove' aria-hidden=true></span></a></td><td class=col-md-6></td></tr>", [{
+	        return _partial3([{
 	          "class:danger": isSelected(id)
 	        }, {
 	          textContent: id
