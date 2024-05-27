@@ -79,8 +79,8 @@ import { render, signal } from "pota";
 import { Show } from "pota/web";
 import "/pages/%40components/custom-element/custom-elements-everywhere/custom-elements.js";
 
-const [show, setShow] = signal(true);
-const toggle = () => setShow((value) => !value);
+const [show, setShow, updateShow] = signal(true);
+const toggle = () => updateShow((value) => !value);
 
 render(
 	<>

@@ -4,9 +4,9 @@ import { HTML } from 'pota/html'
 const html = HTML()
 
 function Component() {
-  const [show, setShow] = signal(false)
+  const [show, setShow, updateShow] = signal(false)
 
-  setInterval(() => setShow(value => !value), 4000)
+  setInterval(() => updateShow(value => !value), 4000)
 
   return [
     // displays `asd`
