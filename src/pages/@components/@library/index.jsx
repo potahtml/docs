@@ -95,7 +95,7 @@ render(
 					animation. Using the component <mark>alert</mark> will
 					include the animations <mark>pota-scale-fade-out</mark> and{' '}
 					<mark>pota-scale-fade-in</mark>. Refer to this{' '}
-					<a href="https://github.com/potahtml/pota/blob/master/src/components/library/%40theme/animations.js">
+					<a href="https://github.com/potahtml/pota/blob/master/src/web/library/%40theme/animations.js">
 						file
 					</a>{' '}
 					for the full list of animations.
@@ -184,7 +184,7 @@ render(
 					At the moment, the list of tokens is huge, and the port of
 					shoelace to pota has not been completed yet. Please refer to
 					this{' '}
-					<a href="https://github.com/potahtml/pota/blob/master/src/components/library/%40theme/tokens.js">
+					<a href="https://github.com/potahtml/pota/blob/master/src/web/library/%40theme/tokens.js">
 						file
 					</a>{' '}
 					for a list of tokens.
