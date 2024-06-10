@@ -1,7 +1,7 @@
 (function () {
 	'use strict';
 
-	const version = '0.13.123';
+	const version = '0.13.125';
 
 	const global = globalThis;
 
@@ -743,6 +743,8 @@
 	  return markReactive((...args) => args.length ? write(args[0]) : read());
 	}
 
+	const entries = Object$1.entries;
+
 	/**
 	 * Unwraps values. If the argument is a function then it runs it
 	 * recursively and returns the value
@@ -756,6 +758,22 @@
 	}
 
 	const groupBy = Object$1.groupBy;
+
+	/**
+	 * Returns true when value is an Object and not null
+	 *
+	 * @param {any} value
+	 * @returns {boolean}
+	 */
+	const isObject = value => value !== null && typeof value === 'object';
+
+	/**
+	 * Returns true when value is Iterable
+	 *
+	 * @param {any} value
+	 * @returns {boolean} True when `value` is Iterable
+	 */
+	const isIterable = value => isObject(value) && 'values' in value;
 
 	/**
 	 * Removes a value from an array
@@ -843,7 +861,7 @@
 	    const value = getValue(list) || [];
 
 	    /** To allow iterate objects as if were an array with indexes */
-	    const items = 'entries' in value ? value.entries() : Object.entries(value);
+	    const items = isIterable(value) ? value.entries() : entries(value);
 	    runId++;
 	    rows = [];
 	    const hasPrev = prev.length;
@@ -1054,14 +1072,6 @@
 	  return Context;
 	}
 
-	/**
-	 * Returns true when value is an Object and not null
-	 *
-	 * @param {any} value
-	 * @returns {boolean}
-	 */
-	const isObject = value => value !== null && typeof value === 'object';
-
 	const copy = o => isObject(o) ? structuredClone(o) : o;
 
 	const defineProperties = Object$1.defineProperties;
@@ -1093,8 +1103,6 @@
 	 */
 	const empty = Object$1.create.bind(null, null);
 	const emptyArray = () => [];
-
-	const entries = Object$1.entries;
 
 	/**
 	 * Flats an array/childNodes to the first children if the length is 1
@@ -3169,14 +3177,26 @@
 	 */
 	function useSelector(value) {
 	  const map = new Map();
-	  let prev;
-	  effect(() => {
-	    const selected = value();
-	    if (selected === prev) return;
-	    const previous = map.get(prev);
-	    if (previous) previous.write(false);
-	    const current = map.get(selected);
-	    if (current) current.write(true);
+	  let prev = [];
+	  syncEffect(() => {
+	    const val = value();
+	    const selected = isIterable(val) ? toArray(val.values()) : [val];
+
+	    // unselect
+	    for (const value of prev) {
+	      if (!selected.includes(value)) {
+	        const current = map.get(value);
+	        current && current.write(false);
+	      }
+	    }
+
+	    // select
+	    for (const value of selected) {
+	      if (!prev.includes(value)) {
+	        const current = map.get(value);
+	        current && current.write(true);
+	      }
+	    }
 	    prev = selected;
 	  });
 
@@ -3190,7 +3210,7 @@
 	  return function isSelected(item) {
 	    let selected = map.get(item);
 	    if (!selected) {
-	      selected = signal(item === value());
+	      selected = signal(prev.includes(item));
 	      selected.counter = 0;
 	      map.set(item, selected);
 	    }

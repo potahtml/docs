@@ -18,7 +18,8 @@
 		"dom-flair": "^6.0.56",
 		"fflate": "^0.8.2",
 		"kompiler": "^7.0.154",
-		"validate-html-nesting": "^1.2.2"
+		"validate-html-nesting": "^1.2.2",
+		"../pota": "*"
 	},
 	"kompiler": {
 		"builds": [

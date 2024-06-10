@@ -7,18 +7,22 @@ export default function () {
 		<>
 			<Header title="useSelector">
 				Selector is a helper to create a conditional read-only signal.
-				A signal generator. It returns a function that evaluates to
-				true when the argument matches the original signal. The
-				important thing, is that creates one effect instead of one
-				effect for each checked value.
+				A signal generator. It returns a function that evaluates to{' '}
+				<mark>true</mark> when the argument matches the original
+				signal. The thing to remember, is that creates 1 effect
+				instead of N effects for N values.
 			</Header>
 
 			<Section title="Using selector">
 				<p>
-					Automatically create signals for the values and returns true
-					when the value matches
+					Automatically create signals for the values and returns{' '}
+					<mark>true</mark> when a value matches
 				</p>
 				<Code url="/pages/@hooks/use-selector/snippet.jsx"></Code>
+			</Section>
+			<Section title="Using selector with multiple values">
+				<p>Using it with multiple values</p>
+				<Code url="/pages/@hooks/use-selector/snippet-multiple.jsx"></Code>
 			</Section>
 		</>
 	)
