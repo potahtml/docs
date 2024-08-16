@@ -64,16 +64,6 @@
 	width: 100%;
 }
 
-[flair~='scroll-y'] {
-	will-change: scroll-position;
-	transform: translatez(0);
-
-	overflow-y: auto;
-	overflow-x: hidden;
-
-	min-height: 0;
-}
-
 /* fix container overflows parent and stuff gets aligned to the center and wont scroll properly  */
 /*[flair~='FLEXBOX-BUG'],
 [flair~='scroll'] > *,
@@ -99,6 +89,16 @@
 	max-width: 100%;
 	max-height: 100%;
 	overflow: hidden;
+}
+
+[flair~='scroll-y'] {
+	will-change: scroll-position;
+	transform: translatez(0);
+
+	overflow-y: auto;
+	overflow-x: hidden;
+
+	min-height: 0;
 }
 
 /* cursor  */

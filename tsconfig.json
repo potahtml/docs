@@ -11,6 +11,7 @@
     "target": "ESNext",
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "moduleResolution": "NodeNext",
+    "allowSyntheticDefaultImports": true,
 
     "jsx": "react-jsx",
     "jsxImportSource": "pota",

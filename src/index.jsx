@@ -57,7 +57,7 @@ render(
 				<aside
 					id="menu"
 					flair="grow col"
-					class={stylesMenu.menu}
+					class={'menu ' + stylesMenu.menu}
 				>
 					<nav flair="grow col scroll-y scroll-thin">
 						<Menu />

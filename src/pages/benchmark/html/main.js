@@ -1,7 +1,7 @@
 (function () {
 	'use strict';
 
-	const version = '0.13.125';
+	const version = '0.13.126';
 
 	const global = globalThis;
 
@@ -1443,18 +1443,6 @@
 	};
 
 	/**
-	 * @param {Elements} node
-	 * @param {string} eventName
-	 * @param {any} [data]
-	 */
-
-	const emit = (node, eventName, data = {
-	  bubbles: true,
-	  cancelable: true,
-	  composed: true
-	}) => node.dispatchEvent(new CustomEvent(eventName, data));
-
-	/**
 	 * Runs a function inside an effect if value is a function
 	 *
 	 * @param {PropertyKey} name
@@ -1495,10 +1483,6 @@
 	    node[name] = null;
 	  } else {
 	    node[name] = value;
-	  }
-	  if (name === 'value') {
-	    emit(node, 'input');
-	    emit(node, 'change');
 	  }
 	}
 
@@ -2169,12 +2153,16 @@
 	  return createPartialComponent(content, xmlns, true);
 	}
 	function createPartialComponent(content, xmlns, isImportNode) {
-	  function clone() {
+	  let clone = () => {
 	    const node = withXMLNS(xmlns, xmlns => cloneNode(content, xmlns));
 	    clone = isImportNode ? importNode.bind(null, node, true) : node.cloneNode.bind(node, true);
 	    return clone();
-	  }
-	  return markComponent(props => assignPropsPartial(xmlns, () => clone(), props, isImportNode));
+	  };
+	  return markComponent(props => {
+	    /** Freeze props so isnt directly writable */
+	    freeze(props);
+	    return markComponent(() => assignPropsPartial(xmlns, () => clone(), props, isImportNode));
+	  });
 	}
 	function assignPropsPartial(xmlns, clone, props, isCustomElement) {
 	  const node = clone();
@@ -2699,6 +2687,18 @@
 	// VERSION
 
 	const camelCase = s => s.replace(/-([a-z])/g, g => g[1].toUpperCase());
+
+	/**
+	 * @param {Elements} node
+	 * @param {string} eventName
+	 * @param {any} [data]
+	 */
+
+	const emit = (node, eventName, data = {
+	  bubbles: true,
+	  cancelable: true,
+	  composed: true
+	}) => node.dispatchEvent(new CustomEvent(eventName, data));
 
 	/**
 	 * Defines a custom Element (if isnt defined already)
