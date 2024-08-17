@@ -1,7 +1,7 @@
 (function () {
 	'use strict';
 
-	const version = '0.13.126';
+	const version = '0.13.130';
 
 	const global = globalThis;
 
@@ -1770,7 +1770,7 @@
 	 * @url https://pota.quack.uy/props/EventListener
 	 */
 	function addEventListener(node, type, handler) {
-	  node.addEventListener(type, handler, isFunction(handler) ? undefined : handler);
+	  node.addEventListener(type, handler, isFunction(handler) && handler);
 	  const off = () => removeEventListener(node, type, handler);
 
 	  /**
@@ -1797,7 +1797,7 @@
 	 * @url https://pota.quack.uy/props/EventListener
 	 */
 	function removeEventListener(node, type, handler) {
-	  node.removeEventListener(type, handler);
+	  node.removeEventListener(type, handler, isFunction(handler) && handler);
 	  return () => addEventListener(node, type, handler);
 	}
 
@@ -2440,7 +2440,7 @@
 	 * @param {{ clear?: boolean; relative?: boolean }} [options] -
 	 *   Mounting options
 	 */
-	function insert(children, parent = document.body, options) {
+	function insert(children, parent = document.body, options = {}) {
 	  if (options.clear && parent) parent.textContent = '';
 	  const node = createChildren(parent, isComponentable(children) ? Factory(children) : children, options.relative);
 	  cleanup(() => toDiff([node].flat(Infinity)));
