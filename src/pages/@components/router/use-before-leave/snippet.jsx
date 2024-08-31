@@ -1,4 +1,4 @@
-import { useBeforeLeave } from 'pota/router'
+import { useBeforeLeave } from 'pota/web'
 
 function Example() {
 	// prevents navigation

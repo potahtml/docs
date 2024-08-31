@@ -42,7 +42,7 @@ customElements.define('custom-element', CustomElement)
 render(
   () =>
     html` <custom-element
-      string-attribute="lala"
+      attr:string-attribute="lala"
       boolean="${true}"
     >
       Test

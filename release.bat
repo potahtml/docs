@@ -1,12 +1,11 @@
 
 :: save changes
 
-call git add --all
-call git commit -m "update docs"
-call git push
+rem call git add --all
+rem call git commit -m "update docs"
+rem call git push
 
-call cpx ./src/** S:/www/quack.uy/client/pota.quack.uy/
-call cpx ./node_modules/** S:/www/quack.uy/client/pota.quack.uy/node_modules/
+call cpx -L ./** S:/www/quack.uy/client/pota.quack.uy/
 
 :: save changes on pota.quack.uy
 

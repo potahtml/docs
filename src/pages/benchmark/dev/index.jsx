@@ -1,7 +1,7 @@
-import { render, signal, batch } from 'pota'
+import { batch, render, signal } from 'pota'
+import { useSelector } from 'pota/plugin/useSelector'
+import { timing } from 'pota/plugin/useTime'
 import { For } from 'pota/web'
-import { useSelector } from 'pota/hooks'
-import { timing } from 'pota/lib'
 
 let idCounter = 1
 const adjectives = [
@@ -98,7 +98,7 @@ const Button = ({ id, text, fn }) => (
 const App = () => {
   const [data, setData, updateData] = signal([]),
     [selected, setSelected] = signal(null),
-    run = () => setData(buildData(1000)),
+    run = () => setData(buildData(10)),
     runLots = () => {
       setData(buildData(10000))
     },
@@ -212,10 +212,11 @@ const App = () => {
         class="table table-hover table-striped test-data"
         onClick={e => {
           const element = e.target
-          if (element.setSelected !== undefined) {
-            setSelected(element.setSelected)
-          } else if (element.removeRow !== undefined) {
-            remove(element.removeRow)
+          const { selectRow, removeRow } = element
+          if (selectRow !== undefined) {
+            setSelected(selectRow)
+          } else if (removeRow !== undefined) {
+            remove(removeRow)
           }
         }}
       >
@@ -233,7 +234,7 @@ const App = () => {
                   <td class="col-md-4">
                     <a
                       textContent={label}
-                      prop:setSelected={id}
+                      prop:selectRow={id}
                     />
                   </td>
                   <td class="col-md-1">

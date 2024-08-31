@@ -1,4 +1,5 @@
-import { render, Pota, css } from 'pota'
+import { Pota, render } from 'pota'
+import { css } from 'pota/std'
 
 const div = document.createElement('div')
 div.textContent = 'Im a div! '

@@ -1,14 +1,9 @@
-import { render, ref, effect } from 'pota'
+import { render } from 'pota'
 import { HTML } from 'pota/html'
 
 const html = HTML()
 
 function Component() {
-  const element = ref()
-  effect(() => {
-    console.log('element is', element())
-  })
-
   return html`
     <test-test
       attr:example-attr-1="${1}"
@@ -22,7 +17,6 @@ function Component() {
       dash-boolean-true="${true}"
       dash-boolean-false="${false}"
       string="${'hola'}"
-      ref="${element}"
       bool:booltruetest="${true}"
       bool:boolfalsetest="${false}"
     >

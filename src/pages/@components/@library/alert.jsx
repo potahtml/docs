@@ -339,7 +339,8 @@ render(
 				<Code
 					code={`
 
-import { render, css } from 'pota'
+import { render } from 'pota'
+import { css } from 'pota/std'
 
 import 'pota/components/alert'
 

@@ -9,7 +9,6 @@ import {
 // rendering
 render, // render(thing, targetEl=document.body, {clear:false, relative:false})
 Component, // const comp = Component(Fancy, {children:[4,5,6]})
-css, // css\`button { padding: \${props.padding} }\` // CSSStyleSheet
 
 // reactivity
 signal, // const [read, write] = signal(initialValue)
@@ -26,7 +25,7 @@ cleanup, // cleanup(fn)
 ready, // ready(fn)
 context, // const use = Context({}); let value = use(); use({newValue}, fn)
 map, // map([1, 2, 3], (item, index) => [item, index])
-withOwner, // const owned = withOwner(); owned(fn)
+owned, // const ownedFn = owned(fn); ownedFn({foo:"bar"})
 withValue, // withValue(signal, value => console.log(value))
 
 // events
@@ -76,6 +75,7 @@ For, // <For each={[1, 2, 3]} children={[item => item * 1, item => item * 2]} />
 Head, // <Head><title>Hello World</title></Head>
 Switch, Match,// <Switch fallback="ouch"><Match when={true}/></Switch>
 Portal, // <Portal mount={document.body}>Hola</Portal>
+Router, // <Router path="/">Hola home</Router>
 // custom element utils
 customElement, // customElement("fancy-element", class Fancy extends HTMLElement{})
 CustomElement, // class Fancy extends CustomElement{}
@@ -87,6 +87,12 @@ htmlEffect, // htmlEffect((html)=> html\`<div>\${some.non.reactive.object}</div>
 HTML, // const html = HTML({unwrap:true}); (props)=> html\`<div>\${props.children}</div>\`
 html, // (props)=> html\`<div>\${props.children}</div>\` // <div/>
 } from 'pota/html'
+
+// css
+import {
+css, // css\`button { padding: \${props.padding} }\` // CSSStyleSheet
+} from 'pota/std'
+
 `}
 	/>
 )

@@ -1,6 +1,6 @@
-import { render, signal, batch } from 'pota'
+import { batch, render, signal } from 'pota'
+import { useSelector } from 'pota/plugin/useSelector'
 import { For } from 'pota/web'
-import { useSelector } from 'pota/hooks'
 
 let idCounter = 1
 const adjectives = [
@@ -171,10 +171,11 @@ const App = () => {
         class="table table-hover table-striped test-data"
         onClick={e => {
           const element = e.target
-          if (element.setSelected !== undefined) {
-            setSelected(element.setSelected)
-          } else if (element.removeRow !== undefined) {
-            remove(element.removeRow)
+          const { selectRow, removeRow } = element
+          if (selectRow !== undefined) {
+            setSelected(selectRow)
+          } else if (removeRow !== undefined) {
+            remove(removeRow)
           }
         }}
       >

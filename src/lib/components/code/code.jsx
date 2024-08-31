@@ -1,12 +1,12 @@
 import styles from './code.module.css'
 
-import { compress } from '../../compress.js'
-import { signal, ref, memo, effect } from 'pota'
+import { effect, memo, ref, signal } from 'pota'
+import { getValue } from 'pota/std'
 import { Show } from 'pota/web'
-import { getValue } from 'pota/lib'
+import { compress } from '../../compress.js'
 import { prettierConfig } from '../../prettier-config.js'
 
-import 'pota/plugins/pasteTextPlain'
+import 'pota/plugin/pasteTextPlain'
 
 export function Code(props) {
 	if (props.url) {

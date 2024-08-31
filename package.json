@@ -6,38 +6,22 @@
 	"type": "module",
 	"homepage": "https://pota.quack.uy/",
 	"scripts": {
-		"dev": "concurrently --kill-others \"npm:dev:*\"",
-		"dev:compiler": "kompiler",
-		"dev:source": "cpx ../pota/** ./node_modules/pota/ -w",
-		"dev:standalone": "cpx ./node_modules/pota/dist/** ./src/dist/preview/standalone/ -w",
+		"dev": "kompiler",
 		"update": "npm update --include=dev --save && npm run dev"
 	},
 	"dependencies": {
-		"concurrently": "^8.2.2",
-		"cpx2": "^7.0.1",
 		"dom-flair": "^6.0.56",
 		"fflate": "^0.8.2",
-		"kompiler": "^7.0.154",
-		"validate-html-nesting": "^1.2.2",
-		"../pota": "*"
+		"kompiler": "^7.0.157",
+		"pota": "file:../npm/pota"
 	},
 	"kompiler": {
+		"watch": ["../pota/babel-preset"],
 		"builds": [
 			{
 				"input": ["src/index.jsx"],
 				"output": "src/dist/",
-				"watch": ["node_modules"],
-				"map": [
-					["pota.docs/src/node_modules", "pota.docs/node_modules"],
-					[
-						"pota.docs/src/dist/preview/src/",
-						"pota.docs/node_modules/pota/src/"
-					],
-					[
-						"pota.docs/src/dist/preview/node_modules/",
-						"pota.docs/node_modules/"
-					]
-				],
+				"map": [["/src/node_modules", "/node_modules"]],
 				"minified": false,
 				"treeshake": false,
 				"babel": {
@@ -63,7 +47,7 @@
 				"input": ["src/pages/benchmark/dev/index.jsx"],
 				"output": "src/pages/benchmark/dev/main.js",
 				"minified": false,
-				"treeshake": false,
+				"treeshake": true,
 				"root": false,
 				"babel": {
 					"presets": [["pota/babel-preset"]]
@@ -73,7 +57,7 @@
 				"input": ["src/pages/benchmark/regular/index.jsx"],
 				"output": "src/pages/benchmark/regular/main.js",
 				"minified": false,
-				"treeshake": false,
+				"treeshake": true,
 				"root": false,
 				"babel": {
 					"presets": [["pota/babel-preset"]]
@@ -83,7 +67,7 @@
 				"input": ["src/pages/benchmark/html/index.jsx"],
 				"output": "src/pages/benchmark/html/main.js",
 				"minified": false,
-				"treeshake": false,
+				"treeshake": true,
 				"root": false,
 				"babel": {
 					"presets": [["pota/babel-preset"]]

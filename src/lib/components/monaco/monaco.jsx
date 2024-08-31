@@ -1,15 +1,17 @@
 import styles from './monaco.module.css'
 
 import {
+	addEventListener,
+	cleanup,
+	effect,
+	memo,
 	ref,
 	signal,
-	effect,
-	cleanup,
-	addEventListener,
-	memo,
-	getValue,
 	untrack,
 } from 'pota'
+import { onDocumentSize } from 'pota/plugin/useDocumentSize'
+
+import { getValue } from 'pota/std'
 
 const [scriptLoading, setScriptsLoading, updateScriptsLoading] =
 	signal(0)
@@ -106,7 +108,7 @@ export function Monaco(props) {
 		})
 
 		// resize
-		addEventListener(window, 'resize', () => editor.layout(), false)
+		onDocumentSize(() => editor.layout())
 
 		// shorcuts
 		editor.onKeyDown(e => {

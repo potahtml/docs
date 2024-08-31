@@ -1,34 +1,402 @@
 (function () {
 	'use strict';
 
-	const version = '0.13.130';
-
 	const global = globalThis;
-
-	const Symbol = global.Symbol;
-
+	const window = global;
+	const CSSStyleSheet = global.CSSStyleSheet;
+	const document$1 = global.document;
+	const DocumentFragment = global.DocumentFragment;
 	const Object$1 = global.Object;
-
+	const Promise$1 = global.Promise;
+	const Symbol = global.Symbol;
+	const queueMicrotask = global.queueMicrotask;
 	const assign = Object$1.assign;
+	const entries = Object$1.entries;
+	const freeze = Object$1.freeze;
+	const fromEntries = Object$1.fromEntries;
+	const groupBy = Object$1.groupBy;
+	const isArray = Array.isArray;
+	const toArray = Array.from;
+	const iterator = Symbol.iterator;
+	const stringify = JSON.stringify;
+	const history = global.history;
+	const location$1 = global.location;
+	const origin$1 = location$1.origin;
+	const promise = fn => new Promise$1(fn);
 
 	/**
-	 * Returns true when value is a Function
+	 * Given a promise it adds `onDone` to `then` and `catch`
+	 *
+	 * ```js
+	 * resolved(promise, onDone)
+	 * // is same as
+	 * promise.then(onDone).catch(onDone)
+	 * ```
+	 */
+	const resolved = (promise, onDone) => promise.then(onDone).catch(onDone);
+	const setAttribute$1 = (node, name, value) => node.setAttribute(name, value);
+	const removeAttribute = (node, name) => node.removeAttribute(name);
+	const isConnected = node => node.isConnected;
+	const activeElement = () => document$1.activeElement;
+	const documentElement = document$1.documentElement;
+
+	/**
+	 * Runs an array of functions
+	 *
+	 * @param {Iterable<Function>} fns
+	 */
+	const call = fns => {
+	  for (const fn of fns) fn();
+	};
+	const bind = fn => document$1[fn].bind(document$1);
+	const createElement = bind('createElement');
+	const createElementNS = bind('createElementNS');
+	const createTextNode = bind('createTextNode');
+	bind('importNode');
+	bind('createTreeWalker');
+
+	/**
+	 * Returns an object without a prototype
+	 *
+	 * @type {Function}
+	 * @returns {Props} Empty object
+	 */
+	const empty = Object$1.create.bind(null, null);
+
+	/**
+	 * Flats an array/childNodes to the first children if the length is 1
+	 *
+	 * @param {any[] | NodeListOf<ChildNode>} arr
+	 * @returns {any}
+	 */
+	const flat = arr => arr.length === 1 ? arr[0] : arr;
+
+	/**
+	 * Keeps state in the function as the first param
+	 *
+	 * @template T
+	 * @param {T} fn - Function to which add state to it
+	 * @param {DataStore<Map> | DataStore<WeakMap>} [state] - Passed to
+	 *   `fn` as first param
+	 * @returns {T} A copy of the function with the state
+	 */
+	const withState = /* #__NO_SIDE_EFFECTS__ */(fn, state = cacheStore) => fn.bind(null, state());
+
+	/**
+	 * Returns `document` for element. That could be a `shadowRoot`
+	 *
+	 * @param {Elements} node
+	 * @returns {Document | ShadowRoot}
+	 */
+
+	const getDocumentForElement = node => {
+	  const document = node.getRootNode();
+	  const {
+	    nodeType
+	  } = document;
+	  // getRootNode returns:
+	  // 1. Node for isConnected = false
+	  // 2. Document for isConnected = true
+	  // 3. shadowRoot for custom elements
+
+	  // always return a Document-like
+	  return nodeType === 11 || nodeType === 9 ? document : node.ownerDocument;
+	};
+
+	/**
+	 * Unwraps values. If the argument is a function then it runs it
+	 * recursively and returns the value
+	 *
+	 * @param {Function | any} value - Maybe function
+	 * @returns {any}
+	 */
+	function getValue(value) {
+	  while (typeof value === 'function') value = value();
+	  return value;
+	}
+
+	/**
+	 * Identity function, given `x` returns `x`
+	 *
+	 * @template T
+	 * @param {T} x
+	 * @returns {T}
+	 */
+	const identity = x => x;
+
+	/**
+	 * Returns `true` when `typeof` of `value` is `function`
 	 *
 	 * @param {any} value
-	 * @returns {boolean} True when `value` is a Function
+	 * @returns {boolean}
 	 */
 	const isFunction = value => typeof value === 'function';
 
+	/**
+	 * Returns `true` when value is Iterable
+	 *
+	 * @param {any} value
+	 * @returns {boolean}
+	 */
+	const isIterable = value => isObject(value) && 'values' in value;
+
+	/**
+	 * Returns `true` if the value is `null` or `undefined`
+	 *
+	 * @param {any} value
+	 * @returns {boolean}
+	 */
+	const isNullUndefined = value => value === undefined || value === null;
+
+	/**
+	 * Returns `true` when typeof of value is object and not null
+	 *
+	 * @param {any} value
+	 * @returns {boolean}
+	 */
+	const isObject = value => value !== null && typeof value === 'object';
+
+	/**
+	 * Returns `true` when `typeof` of `value` is `string`
+	 *
+	 * @param {any} value
+	 * @returns {boolean}
+	 */
+	const isString = value => typeof value === 'string';
+
+	/**
+	 * Returns `true` when `typeof` of `value` is `boolean`
+	 *
+	 * @param {any} value
+	 * @returns {boolean}
+	 */
+	const isBoolean = value => typeof value === 'boolean';
+	const noop = () => {};
+
+	/** An empty frozen object */
+	const nothing = freeze(empty());
+
+	// an optional value is `true` by default, so most of the time is undefined which means is `true`
+	// to avoid having conditions like `if(something.bla === undefined || something.bla)`
+	// this function will short it to `if(optional(something.bla))`
+	// additionally the value is resolved, for cases like `when={() => show() && optional(props.when)}`
+
+	/**
+	 * Returns `true` when value is true or undefined
+	 *
+	 * @param {Function | boolean | undefined} value
+	 * @returns {boolean} True when value is true or undefined
+	 */
+	const optional = value => value === undefined || getValue(value);
+	const querySelector = (node, query) => node.querySelector(query);
+
+	/**
+	 * Removes a value from an array
+	 *
+	 * @param {any[]} array
+	 * @param {any} value To remove from the array
+	 * @returns {any[]}
+	 */
+	function removeFromArray(array, value) {
+	  const index = array.indexOf(value);
+	  if (index !== -1) array.splice(index, 1);
+	  return array;
+	}
+	function walkParents(context, propertyName, cb) {
+	  while (context) {
+	    if (cb(context)) return true;
+	    context = context[propertyName];
+	  }
+	}
+
+	/**
+	 * Store template
+	 *
+	 * @typedef {(
+	 * 	reference: any,
+	 * 	createIfNotExistsAs?: ((target: any) => any) | Function,
+	 * ) => any} DataStoreGet
+	 *
+	 *
+	 * @typedef {(key: any, value: any) => void} DataStoreSet
+	 *
+	 * @typedef {(key: any) => boolean} DataStoreHas
+	 *
+	 * @typedef {(key: any) => boolean} DataStoreDelete
+	 */
+
+	class DataStore {
+	  constructor(kind) {
+	    const store = new kind();
+	    const get = store.get.bind(store);
+	    const set = store.set.bind(store);
+	    const has = store.has.bind(store);
+	    this.get = (target, defaults = undefined) => {
+	      const o = get(target);
+	      if (o !== undefined) {
+	        return o;
+	      }
+	      if (defaults !== undefined) {
+	        /**
+	         * Default values should be passed as a function, so we dont
+	         * constantly initialize values when giving them
+	         */
+	        defaults = defaults(target);
+	        set(target, defaults);
+	        return defaults;
+	      }
+	    };
+	    this.set = set;
+	    this.has = has;
+	    this.delete = store.delete.bind(store);
+	  }
+	  *[Symbol.iterator]() {
+	    yield this.get;
+	    yield this.set;
+	    yield this.has;
+	    yield this.delete;
+	  }
+	}
+
+	/**
+	 * Creates a WeakMap to store data
+	 *
+	 * @returns {[
+	 * 	DataStoreGet,
+	 * 	DataStoreSet,
+	 * 	DataStoreHas,
+	 * 	DataStoreDelete,
+	 * ] & {
+	 * 	get: DataStoreGet
+	 * 	set: DataStoreSet
+	 * 	has: DataStoreHas
+	 * 	delete: DataStoreDelete
+	 * }}
+	 */
+	const weakStore = () => new DataStore(WeakMap);
+
+	/**
+	 * Creates a Map to store data
+	 *
+	 * @returns {[
+	 * 	DataStoreGet,
+	 * 	DataStoreSet,
+	 * 	DataStoreHas,
+	 * 	DataStoreDelete,
+	 * ] & {
+	 * 	get: DataStoreGet
+	 * 	set: DataStoreSet
+	 * 	has: DataStoreHas
+	 * 	del: DataStoreDelete
+	 * }}
+	 */
+	const cacheStore = () => new DataStore(Map);
+	const classListAdd = (node, className) => node.classList.add(className);
+	const classListRemove = (node, className) => node.classList.remove(className);
+
+	/**
+	 * - Returns `adoptedStyleSheets` for a document
+	 *
+	 * @param {Document | ShadowRoot} document
+	 */
+	const adoptedStyleSheetsGet = document => document.adoptedStyleSheets;
+
+	/**
+	 * Adds a style sheet to the document
+	 *
+	 * @param {Document | ShadowRoot} document
+	 * @param {CSSStyleSheet} styleSheet
+	 */
+	const adoptedStyleSheetsAdd = (document, styleSheet) => adoptedStyleSheetsGet(document).push(styleSheet);
+
+	/**
+	 * Removes a style sheet from the document
+	 *
+	 * @param {Document | ShadowRoot} document
+	 * @param {CSSStyleSheet} styleSheet
+	 */
+	const adoptedStyleSheetsRemove = (document, styleSheet) => removeFromArray(adoptedStyleSheetsGet(document), styleSheet);
+
+	/**
+	 * Adds a style sheet to the custom element
+	 *
+	 * @param {Document | ShadowRoot} document
+	 * @param {(CSSStyleSheet | string)[]} styleSheets
+	 */
+	function addStyleSheets(document, styleSheets = []) {
+	  for (const sheet of styleSheets) {
+	    if (sheet) {
+	      sheet instanceof CSSStyleSheet ? adoptedStyleSheetsAdd(document, sheet) : addStyleSheetExternal(document, sheet);
+	    }
+	  }
+	}
+
+	/**
+	 * Adds the stylesheet from urls. It uses a cache, to avoid having to
+	 * fire a request for each external sheet when used in more than one
+	 * custom element. Also, all reference the same object.
+	 *
+	 * @param {Document | ShadowRoot} document
+	 * @param {string} text
+	 */
+	const addStyleSheetExternal = withState((state, document, text) => {
+	  state.get(text, text => text.startsWith('http') ? fetch(text).then(r => r.text()).then(css => sheet(css)) : promise(resolve => resolve(sheet(text)))).then(styleSheet => adoptedStyleSheetsAdd(document, styleSheet));
+	});
+
+	/**
+	 * Creates tagged css and returns a CSSStyleSheet. Mostly for css
+	 * highlighting in js
+	 *
+	 * @param {TemplateStringsArray} template
+	 * @param {...any} values
+	 * @returns {CSSStyleSheet}
+	 */
+	const css = (template, ...values) => sheet(String.raw({
+	  raw: template
+	}, ...values));
+
+	/**
+	 * Creates a stylesheet from a css string
+	 *
+	 * @param {string} css
+	 * @returns {CSSStyleSheet}
+	 */
+	const sheet = withState((cache, css) => cache.get(css, css => {
+	  const sheet = new CSSStyleSheet();
+	  /**
+	   * Replace is asynchronous and can accept @import statements
+	   * referencing external resources.
+	   */
+	  sheet.replace(css);
+	  return sheet;
+	}));
+
+	/**
+	 * @param {Elements} node
+	 * @param {string} eventName
+	 * @param {any} [data]
+	 */
+
+	const emit = (node, eventName, data = {
+	  bubbles: true,
+	  cancelable: true,
+	  composed: true
+	}) => node.dispatchEvent(new CustomEvent(eventName, data));
+	const preventDefault = e => e.preventDefault();
+
 	// symbols
 
-	const $component = Symbol();
-	const $class = Symbol();
-	const $reactive = Symbol();
-	const $map = Symbol();
+	const $isComponent = Symbol();
+	const $isClass = Symbol();
+	const $isReactive = Symbol();
+	const $isMap = Symbol();
 
 	// supported namespaces
 
 	const prefix = 'http://www.w3.org/';
+
+	// when a tag/attribute is missing the namespace this puts it back in
+
 	const NS = {
 	  __proto__: null,
 	  svg: prefix + '2000/svg',
@@ -36,18 +404,6 @@
 	  html: prefix + '1999/xhtml',
 	  xlink: prefix + '1999/xlink'
 	};
-
-	/**
-	 * Marks a function as reactive. Reactive functions are ran inside
-	 * effects.
-	 *
-	 * @param {Function} fn - Function to mark as reactive
-	 * @returns {Function}
-	 */
-	function markReactive(fn) {
-	  fn[$reactive] = undefined;
-	  return fn;
-	}
 
 	/**
 	 * This is so far the core of Solid JS Reactivity, this may change.
@@ -59,7 +415,8 @@
 	 * - Writing to a signal returns `true` when the value changes
 	 * - Signal is an object that could be used as signal.read/write or
 	 *   destructured as an array.
-	 * - Update function on Signal that could be used to use the old value
+	 * - Signals can save and wont run functions
+	 * - `update` function on Signal that could be used to use the old value
 	 */
 
 	const CLEAN = 0;
@@ -412,10 +769,11 @@
 	 * Creates a signal
 	 *
 	 * @template T
-	 * @param {any} [initialValue] - Initial value of the signal
+	 * @param {T} [initialValue] - Initial value of the signal
 	 * @param {SignalOptions} [options] - Signal options
 	 * @returns {SignalObject<T>}
 	 */
+	/* #__NO_SIDE_EFFECTS__ */
 	function signal(initialValue, options = undefined) {
 	  return new Signal(initialValue, options);
 	}
@@ -427,7 +785,7 @@
 	 * @param {OwnerOptions} options
 	 */
 	function effect(fn, options = undefined) {
-	  return new Effect(Owner, fn, options);
+	  new Effect(Owner, fn, options);
 	}
 
 	/**
@@ -448,6 +806,8 @@
 	 * @param {SignalOptions} [options]
 	 * @returns {SignalAccessor} - Read only signal
 	 */
+
+	/* #__NO_SIDE_EFFECTS__ */
 	function memo(fn, options = undefined) {
 	  return new Memo(Owner, fn, options);
 	}
@@ -459,15 +819,6 @@
 	 * @returns {any}
 	 */
 	const batch = runUpdates;
-
-	/**
-	 * Returns current owner
-	 *
-	 * @returns {typeof Owner}
-	 */
-	function owner() {
-	  return Owner;
-	}
 	function runWithOwner(owner, fn) {
 	  const prevOwner = Owner;
 	  const prevListener = Listener;
@@ -506,8 +857,8 @@
 	 * Runs a callback on cleanup, returns callback
 	 *
 	 * @template T
-	 * @param {Generic<T>} fn
-	 * @returns {Generic<T>}
+	 * @param {T} fn
+	 * @returns {T}
 	 */
 	function cleanup(fn) {
 	  if (Owner) {
@@ -652,21 +1003,6 @@
 	    }
 	  }
 	}
-	let readForbid = false;
-	function checkReadForbidden() {
-	  if (readForbid) {
-	    console.trace('Signal Read!');
-	  }
-	}
-	function readForbidden(fn, value) {
-	  const prev = readForbid;
-	  try {
-	    readForbid = value;
-	    return fn();
-	  } finally {
-	    readForbid = prev;
-	  }
-	}
 
 	/**
 	 * Creates a context and returns a function to get or set the value
@@ -674,7 +1010,7 @@
 	 * @param {any} [defaultValue] - Default value for the context
 	 * @returns {typeof Context} Context
 	 */
-	function Context(defaultValue = undefined) {
+	function Context$1(defaultValue = undefined) {
 	  const id = Symbol();
 	  return useContext.bind(null, id, defaultValue);
 	}
@@ -710,17 +1046,6 @@
 	}
 
 	/**
-	 * Returns a function on which you can pass functions to run with the
-	 * current owner
-	 *
-	 * @returns {(fn) => any}
-	 */
-	const withOwner = () => {
-	  const o = Owner;
-	  return fn => isFunction(fn) ? runWithOwner(o, fn) : fn;
-	};
-
-	/**
 	 * Returns an owned function
 	 *
 	 * @param {function | undefined} cb
@@ -732,64 +1057,91 @@
 	};
 
 	/**
-	 * A self contained signal function, when an argument is present it
-	 * writes to the signal, when theres no argument it reads the signal.
-	 *
-	 * @param {any} [value] - Optional initial value
-	 * @returns {Signal}
-	 */
-	function signalFunction(value) {
-	  const [read, write] = signal(value);
-	  return markReactive((...args) => args.length ? write(args[0]) : read());
-	}
-
-	const entries = Object$1.entries;
-
-	/**
-	 * Unwraps values. If the argument is a function then it runs it
-	 * recursively and returns the value
-	 *
-	 * @param {Function | any} value - Maybe function
-	 * @returns {any}
-	 */
-	function getValue(value) {
-	  while (typeof value === 'function') value = value();
-	  return value;
-	}
-
-	const groupBy = Object$1.groupBy;
-
-	/**
-	 * Returns true when value is an Object and not null
+	 * Returns true when value is reactive (a signal)
 	 *
 	 * @param {any} value
 	 * @returns {boolean}
 	 */
-	const isObject = value => value !== null && typeof value === 'object';
+	const isReactive = value => isFunction(value) && $isReactive in value;
 
 	/**
-	 * Returns true when value is Iterable
+	 * Marks a function as reactive. Reactive functions are ran inside
+	 * effects.
 	 *
-	 * @param {any} value
-	 * @returns {boolean} True when `value` is Iterable
+	 * @param {Function} fn - Function to mark as reactive
+	 * @returns {Function}
 	 */
-	const isIterable = value => isObject(value) && 'values' in value;
-
-	/**
-	 * Removes a value from an array
-	 *
-	 * @param {any[]} array
-	 * @param {any} value To remove from the array
-	 * @returns {any[]}
-	 */
-	function removeFromArray(array, value) {
-	  const index = array.indexOf(value);
-	  if (index !== -1) array.splice(index, 1);
-	  return array;
+	function markReactive(fn) {
+	  fn[$isReactive] = undefined;
+	  return fn;
 	}
 
-	// MAP
+	/**
+	 * Runs a function inside an effect if value is a function
+	 *
+	 * @param {any} value
+	 * @param {(value) => any} fn
+	 */
+	const withValue = (value, fn) => isFunction(value) ? effect(() => fn(getValue(value))) : fn(value);
 
+	/**
+	 * Runs a function inside an effect if value is a function
+	 *
+	 * @param {any} value
+	 * @param {(value) => any} fn
+	 */
+	function withPrevValue(value, fn) {
+	  if (isFunction(value)) {
+	    let prev = undefined;
+	    effect(() => {
+	      const val = getValue(value);
+	      fn(val, prev);
+	      prev = val;
+	    });
+	  } else {
+	    fn(value);
+	  }
+	}
+
+	/**
+	 * A Promise loader handler. Allows to display/run something or
+	 * nothing while a promise is resolving. Allows to run a callback when
+	 * the promise resolves. Allows to get notified of errors, and
+	 * display/run something or nothing, if wanted a `retry` function is
+	 * given for retrying the promise. All functions run with the original
+	 * owner, so it's `Context` friendly.
+	 *
+	 * @param {() => Promise<any>} fn - Function that returns a promise
+	 * @param {{
+	 * 	onLoading?: any
+	 * 	onLoaded?: Function
+	 * 	onError?: ((e: Error, retry: Function) => any) | any
+	 * }} [options]
+	 *
+	 * @returns {Component}
+	 * @url https://pota.quack.uy/lazy
+	 */
+	const lazy = (fn, options = nothing) => markComponent(props => {
+	  const {
+	    onLoading,
+	    onLoaded,
+	    onError
+	  } = options;
+	  const [value, setValue] = signal(onLoading);
+	  const _onLoaded = owned(onLoaded);
+	  const retry = () => fn().then(r => {
+	    setValue(markComponent(() => {
+	      r = isObject(r) && r.default ? r.default : r;
+	      return isFunction(r) ? r(props) : r;
+	    }));
+	    microtask(_onLoaded);
+	  }).catch(e => onError ? setValue(markComponent(() => isFunction(onError) ? onError(e, retry) : onError)) : console.error(e));
+	  retry();
+	  return value;
+	});
+	const microtask = fn => queueMicrotask(owned(fn));
+
+	// MAP
 
 	/**
 	 * Reactive Map
@@ -918,31 +1270,35 @@
 	        a,
 	        b
 	      } = groupBy(rows, (value, index) => rows[index] === prev[index] ? 'a' : 'b');
+	      let unsorted = b?.length;
 	      if (a && b && a.length && b.length && b.length < a.length && b.every(item => prev.includes(item))) {
 	        for (const usort of b) {
 	          for (const sort of a) {
 	            if (usort.index === sort.index - 1) {
 	              sort.begin.before(...nodesFromRow(usort));
+	              unsorted--;
 	              break;
 	            } else if (usort.index === sort.index + 1) {
 	              sort.end.after(...nodesFromRow(usort));
+	              unsorted--;
 	              break;
 	            }
 	          }
 	        }
 	      }
+	      if (unsorted) {
+	        // handles all other cases
+	        // best for any combination of: push/pop/shift/unshift/insertion/deletion
+	        // must check in reverse as on creation stuff is added to the end
 
-	      // handles all other cases
-	      // best for any combination of: push/pop/shift/unshift/insertion/deletion
-	      // must check in reverse as on creation stuff is added to the end
-
-	      let current = rows[rows.length - 1];
-	      for (let i = rows.length - 1; i > 0; i--) {
-	        const previous = rows[i - 1];
-	        if (current.begin.previousSibling !== previous.end) {
-	          current.begin.before(...nodesFromRow(previous));
+	        let current = rows[rows.length - 1];
+	        for (let i = rows.length - 1; i > 0; i--) {
+	          const previous = rows[i - 1];
+	          if (current.begin.previousSibling !== previous.end) {
+	            current.begin.before(...nodesFromRow(previous));
+	          }
+	          current = previous;
 	        }
-	        current = previous;
 	      }
 	    }
 
@@ -952,7 +1308,7 @@
 	    // return external representation
 	    return rows.map(item => item.nodes);
 	  }
-	  mapper[$map] = undefined;
+	  mapper[$isMap] = undefined;
 	  return mapper;
 	}
 	function nodesFromRow(row) {
@@ -970,302 +1326,37 @@
 	}
 
 	/**
-	 * Creates an asynchronously effect
+	 * Resolves and returns `children` in a memo
 	 *
-	 * @param {(currentRunningEffect: Promise<any>) => any} fn - A
-	 *   function that receives a `currentRunningEffect` that should be
-	 *   awaited for when wanting to run effects synchronously, that's it
-	 *   one effect after another.
+	 * @param {Function | Children} fn
+	 * @returns {Function} Memo
+	 * @url https://pota.quack.uy/resolve
 	 */
-	function asyncEffect(fn) {
-	  const queue = [];
-	  effect(() => {
-	    const {
-	      promise,
-	      resolve
-	    } = Promise.withResolvers();
-	    queue.push(promise);
-	    function onDone() {
-	      removeFromArray(queue, promise);
-	      resolve();
-	    }
-	    fn(queue.length === 1 ? undefined : queue[queue.length - 2]).then(onDone).catch(onDone);
-	  });
+	function resolve(fn) {
+	  const children = isFunction(fn) ? memo(fn) : () => fn;
+	  return memo(() => unwrap(children()));
 	}
 
 	/**
-	 * Lazy and writable version of `memo`, its writable and will run the
-	 * function only when used
+	 * Recursively unwrap children functions
 	 *
-	 * @author ryansolid
-	 * @param {Function} fn - Function to re-run when dependencies change
-	 * @returns {((...args) => any) | (() => any)}
+	 * @param {Children} children
+	 * @returns {Children}
 	 */
-	function writable(fn) {
-	  const result = memo(() => signal(fn()));
-	  return markReactive((...args) => {
-	    return args.length ? result().write(args[0]) : result().read();
-	  });
-	}
-
-	/**
-	 * Runs a function inside an effect if value is a function
-	 *
-	 * @param {any} value
-	 * @param {(value) => any} fn
-	 */
-	const withValue$1 = (value, fn) => isFunction(value) ? effect(() => fn(getValue(value))) : fn(value);
-
-	const isArray = Array.isArray;
-
-	/**
-	 * Runs arrays of functions with arguments
-	 *
-	 * @param {Function | Function[]} fn
-	 * @param {...any} args? - Arguments to pass to the functions
-	 */
-	const call = (fn, ...args) => isArray(fn) ? fn[0](...args, ...fn.slice(1)) : fn(...args);
-
-	/**
-	 * Calls an array of functions
-	 *
-	 * @param {Function[]} fns
-	 */
-	const callAll = fns => {
-	  for (const fn of fns) fn();
-	};
-
-	/**
-	 * Creates a context and returns a function to get or set the value
-	 *
-	 * @param {any} [defaultValue] - Default value for the context
-	 * @returns {typeof Context} Context
-	 */
-	function contextSimple(defaultValue = undefined) {
-	  let value = defaultValue;
-
-	  /**
-	   * @overload Gets the context value
-	   * @returns {any} Context value
-	   */
-	  /**
-	   * @overload Runs `fn` with a new value as context
-	   * @param {any} newValue - New value for the context
-	   * @param {Function} fn - Callback to run with the new context value
-	   * @returns {any}
-	   */
-	  /**
-	   * @param {any | undefined} newValue
-	   * @param {Function | undefined} fn
-	   */
-	  function Context(newValue, fn) {
-	    if (newValue === undefined) {
-	      return value;
-	    } else {
-	      const parent = Context();
-	      value = newValue;
-	      const result = fn();
-	      value = parent;
-	      return result;
-	    }
+	function unwrap(children) {
+	  if (isFunction(children)) {
+	    return unwrap(children());
 	  }
-	  return Context;
-	}
-
-	const copy = o => isObject(o) ? structuredClone(o) : o;
-
-	const defineProperties = Object$1.defineProperties;
-
-	const create = Object$1.create;
-
-	const defineProperty = Object$1.defineProperty;
-
-	/**
-	 * Object.defineProperty with `enumerable` and `configurable` set to
-	 * `true` unless overwriten by `descriptor` argument
-	 *
-	 * @param {object} target
-	 * @param {PropertyKey} key
-	 * @param {PropertyDescriptor} descriptor
-	 */
-	const redefineProperty = (target, key, descriptor) => defineProperty(target, key, assign(create(defaults), descriptor));
-	const defaults = {
-	  __proto__: null,
-	  configurable: true,
-	  enumerable: true
-	};
-
-	/**
-	 * Returns an object without a prototype
-	 *
-	 * @type {Function}
-	 * @returns {Props} Empty object
-	 */
-	const empty = Object$1.create.bind(null, null);
-	const emptyArray = () => [];
-
-	/**
-	 * Flats an array/childNodes to the first children if the length is 1
-	 *
-	 * @param {any[] | NodeListOf<ChildNode>} arr
-	 * @returns {any}
-	 */
-	const flat = arr => arr.length === 1 ? arr[0] : arr;
-
-	const freeze = Object$1.freeze;
-
-	const fromEntries = Object$1.fromEntries;
-
-	/**
-	 * Keeps state in the function as a bind param
-	 *
-	 * @param {Function} fn - Function to which add state to it
-	 * @param {object} [state] - To which add state to it
-	 * @returns {Function} A copy of the function with the state
-	 */
-	const functionState = (fn, state = empty()) => fn.bind(null, state);
-
-	const getOwnPropertyNames = Object$1.getOwnPropertyNames;
-
-	const getValueWithArguments = (value, ...args) => typeof value === 'function' ? args.length ? getValue(value(...args)) : getValue(value()) : value;
-
-	/**
-	 * Unwraps `value` and returns `element` if result is a `Node`, else
-	 * `undefined` in the case isn't a `Node`
-	 *
-	 * @param {Function | any} value - Maybe function
-	 * @param {...any} args? - Arguments
-	 * @returns {Node | undefined}
-	 */
-	function getValueElement(value, ...args) {
-	  const element = getValueWithArguments(value, ...args);
-	  return element instanceof Node ? element : undefined;
-	}
-
-	const hasOwnProperty = Object$1.hasOwn;
-
-	const isExtensible = Object$1.isExtensible;
-
-	const isNaN = Number.isNaN;
-
-	/**
-	 * Returns `true` if the value is `null` or `undefined`
-	 *
-	 * @param {any} value
-	 * @returns {boolean}
-	 */
-	const isNullUndefined = value => value === undefined || value === null;
-
-	/**
-	 * Returns `true` if the property is defined in the prototype and
-	 * absent in the object
-	 *
-	 * @param {{}} target
-	 * @param {PropertyKey} key
-	 */
-	const isPrototypeProperty = (target, key) =>
-	// must do `key in target` to check that it DOES have it somewhere
-	// must do !hasOwnProperty to check that isnt an own property
-	key in target && !hasOwnProperty(target, key);
-
-	/**
-	 * Returns true when value is a string
-	 *
-	 * @param {any} value
-	 * @returns {boolean}
-	 */
-	const isString = value => typeof value === 'string';
-
-	const iterator = Symbol.iterator;
-
-	const keys = Object$1.keys;
-
-	function measure(name, cb) {
-	  console.time(name);
-	  const r = cb();
-	  console.timeEnd(name);
-	  return r;
-	}
-	function timing(fn) {
-	  const start = performance.now();
-	  fn();
-	  return performance.now() - start;
-	}
-
-	const microtask = queueMicrotask;
-
-	/** @type {Function} */
-	const noop = () => {};
-
-	/** An empty frozen object */
-	const nothing = freeze(empty());
-
-	// an optional value is `true` by default, so most of the time is undefined which means is `true`
-	// to avoid having conditions like `if(something.bla === undefined || something.bla)`
-	// this function will short it to `if(optional(something.bla))`
-	// additionally the value is resolved, for cases like `when={() => show() && optional(props.when)}`
-
-
-	/**
-	 * Returns true when value is true or undefined
-	 *
-	 * @param {Function | boolean | undefined} value
-	 * @returns {boolean} True when value is true or undefined
-	 */
-	const optional = value => value === undefined || getValue(value);
-
-	function* range(start, stop, step = 1) {
-	  yield start;
-	  while (start < stop) {
-	    yield start += step;
-	  }
-	}
-
-	const stringify = JSON.stringify;
-
-	const toArray = Array.from;
-
-	/**
-	 * Creates a WeakMap to store data
-	 *
-	 * @returns {[
-	 * 	(
-	 * 		reference: WeakKey,
-	 * 		createIfNotExistsAs?: (target: any) => any,
-	 * 	) => any,
-	 * 	(key: WeakKey, value: any) => void,
-	 * 	Function,
-	 * 	Function,
-	 * 	WeakMap<WeakKey, any>,
-	 * ]}
-	 */
-
-	function weakStore() {
-	  const store = new WeakMap();
-	  const get = store.get.bind(store);
-	  const set = store.set.bind(store);
-	  return [(target, defaults = undefined) => {
-	    const o = get(target);
-	    if (o !== undefined) return o;
-	    if (defaults !== undefined) {
-	      /**
-	       * Default values should be passed as a function, so we dont
-	       * constantly initialize values when giving them
-	       */
-	      defaults = defaults(target);
-	      set(target, defaults);
-	      return defaults;
+	  if (isArray(children)) {
+	    const childrens = [];
+	    for (let child of children) {
+	      child = unwrap(child);
+	      isArray(child) ? childrens.push(...child) : childrens.push(child);
 	    }
-	  }, set, store.has.bind(store), store.delete.bind(store), store];
+	    return childrens;
+	  }
+	  return children;
 	}
-
-	/**
-	 * Returns true when value is reactive (a signal)
-	 *
-	 * @param {any} value
-	 * @returns {boolean}
-	 */
-	const isReactive = value => isFunction(value) && $reactive in value;
 
 	/**
 	 * Returns true if the `value` is a `Component`
@@ -1273,7 +1364,7 @@
 	 * @param {any} value
 	 * @returns {boolean}
 	 */
-	const isComponent = value => isFunction(value) && $component in value;
+	const isComponent = value => isFunction(value) && $isComponent in value;
 
 	/**
 	 * Returns true if the value can be made a Component
@@ -1285,10 +1376,53 @@
 	// avoid [1,2] and support { toString(){ return "something"} }
 	!isArray(value) && isObject(value) && !value.then);
 
+	/**
+	 * Makes of `children` a function. Reactive children will run as is,
+	 * non-reactive children will run untracked, regular children will
+	 * just return.
+	 *
+	 * @param {Children} children
+	 * @returns {Function}
+	 */
+	function makeCallback(children) {
+	  /**
+	   * When children is an array, as in >${[0, 1, 2]}< then children
+	   * will end as `[[0, 1, 2]]`, so flat it
+	   */
+
+	  children = isArray(children) ? flat(children) : children;
+	  const callbacks = !isArray(children) ? callback(children) : children.map(callback);
+	  return !isArray(children) ? markComponent((...args) => callbacks(args)) : markComponent((...args) => callbacks.map(callback => callback(args)));
+	}
+	const callback = child => isFunction(child) ? isReactive(child) ? args => {
+	  /**
+	   * The function inside the `for` is saved in a signal. The
+	   * result of the signal is our callback
+	   *
+	   * ```js
+	   * htmlEffect(
+	   * 	html =>
+	   * 		html`<table>
+	   * 			<tr>
+	   * 				<th>name</th>
+	   * 			</tr>
+	   * 			<for each="${tests}">
+	   * 				${item =>
+	   * 					html`<tr>
+	   * 						<td>${item.name}</td>
+	   * 					</tr>`}
+	   * 			</for>
+	   * 		</table>`,
+	   * )
+	   * ```
+	   */
+	  const r = child();
+	  return isFunction(r) ? isReactive(r) ? r() : untrack(() => r(...args)) : r;
+	} : args => untrack(() => child(...args)) : () => child;
+
 	// allows to tell a `signal function` from a `component function`
 	// signals and user functions go in effects, for reactivity
 	// components and callbacks are untracked and wont go in effects to avoid re-rendering
-
 
 	/**
 	 * Marks a function as a `Component`.
@@ -1297,33 +1431,77 @@
 	 * @returns {Component}
 	 */
 	function markComponent(fn) {
-	  fn[$component] = undefined;
+	  fn[$isComponent] = undefined;
 	  return fn;
+	}
+
+	/**
+	 * Adds an event listener to a node
+	 *
+	 * @param {Elements} node - Element to add the event listener
+	 * @param {(keyof WindowEventMap & keyof GlobalEventHandlersEventMap)
+	 * 	| string} type
+	 *   - The name of the event listener
+	 *
+	 * @param {EventListener
+	 * 	| EventListenerObject
+	 * 	| (EventListenerObject & AddEventListenerOptions)} handler
+	 *   - Function to handle the event
+	 *
+	 * @returns {Function} - An `off` function for removing the event
+	 *   listener
+	 * @url https://pota.quack.uy/props/EventListener
+	 */
+	function addEventListener$1(node, type, handler) {
+	  node.addEventListener(type, handler, !isFunction(handler) && handler);
+
+	  /**
+	   * Removes event on tracking scope disposal.
+	   *
+	   * Situation: the event was added to the `document` manually using
+	   * `addEventListener`, say to listen for clicks as a "click
+	   * outside". The event needs to be removed when the component that
+	   * added it is disposed.
+	   */
+
+	  return cleanup(() => removeEventListener(node, type, handler));
+	}
+
+	/**
+	 * Removes an event listener from a node
+	 *
+	 * @param {Elements} node - Element to add the event listener
+	 * @param {(keyof WindowEventMap & keyof GlobalEventHandlersEventMap)
+	 * 	| string} type
+	 *   - The name of the event listener
+	 *
+	 * @param {EventListener
+	 * 	| EventListenerObject
+	 * 	| (EventListenerObject & AddEventListenerOptions)} handler
+	 *   - Function to handle the event
+	 *
+	 * @returns {Function} - An `on` function for adding back the event
+	 *   listener
+	 * @url https://pota.quack.uy/props/EventListener
+	 */
+	function removeEventListener(node, type, handler) {
+	  node.removeEventListener(type, handler, !isFunction(handler) && handler);
+	  return () => addEventListener$1(node, type, handler);
 	}
 
 	/**
 	 * The purpose of this file is to guarantee the timing of some
 	 * callbacks. It queues a microtask, then the callbacks are added to a
-	 * position in the array. These are run in priority.
-	 *
-	 * `onMount` should only run after a thing has been mounted
-	 *
-	 * `ready` should only run after all pending things to be mounted, has
-	 * been mounted
+	 * position in the array. These are run with a priority.
 	 */
 
 	/** @type boolean */
 	let added;
 
 	/** @type [][] */
-	let queue;
-
-	/** @type Function[] */
-	const finally_ = [];
-
-	/** Resets the Scheduler */
+	let queue$1;
 	function reset() {
-	  queue = [[], [], []];
+	  queue$1 = [[], [], [], [], [], []];
 	  added = false;
 	}
 
@@ -1334,67 +1512,97 @@
 	 * Queues a callback at a priority
 	 *
 	 * @param {PropertyKey} priority - Priority
-	 * @param {Function | Function[]} fn - Function to run once the
-	 *   callbacks at this priority run
+	 * @param {Function} fn - Function to run once the callbacks at this
+	 *   priority run
 	 */
 	function add(priority, fn) {
-	  enqueue();
-	  queue[priority].push(fn);
-	}
-	function enqueue() {
 	  if (!added) {
 	    added = true;
-	    microtask(run);
+	    queueMicrotask(run);
 	  }
+	  queue$1[priority].push(owned(fn));
 	}
+
 	/** Runs all queued callbacks */
 	function run() {
-	  const q = queue;
+	  const q = queue$1;
 	  reset();
 	  for (const fns of q) {
-	    for (const fn of fns) {
-	      call(fn);
-	    }
-	  }
-	  for (const fn of finally_) {
-	    call(fn);
+	    fns.length && call(fns);
 	  }
 	}
 
 	/**
-	 * Queue a function to run onMount (before ready)
+	 * Queue a function to run before everything else (onProps, onRef,
+	 * onMount, ready) ex focus restoration
 	 *
-	 * @param {Function | Function[]} fn
+	 * @param {Function} fn
 	 */
-	const onMount = fn => add(0, fn);
+	const onFixes = fn => add(0, fn);
 
 	/**
-	 * Queue a function to run ready (after onMount)
+	 * Queue a function to run before (onRef, onMount, ready) ex running
+	 * user functions on elements via plugins
 	 *
-	 * @param {Function | Function[]} fn
+	 * @param {Function} fn
+	 */
+	const onProps = fn => add(1, fn);
+
+	/**
+	 * Queue a function to run onRef (before onMount, after onProps)
+	 *
+	 * @param {Function} fn
+	 */
+	const onRef = fn => add(2, fn);
+
+	/**
+	 * Queue a function to run onMount (before ready, after onRef)
+	 *
+	 * @param {Function} fn
+	 */
+	const onMount = fn => add(3, fn);
+
+	/**
+	 * Queue a function to run on ready (after onMount)
+	 *
+	 * @param {Function} fn
 	 * @url https://pota.quack.uy/ready
 	 */
-	const ready = fn => add(1, fn);
+	const ready = fn => add(4, fn);
 
 	/**
 	 * Queue a function to run after all user defined processes
 	 *
-	 * @param {Function | Function[]} fn
+	 * @param {Function} fn
 	 */
-	const onDone = fn => add(2, fn);
+	const onDone = fn => add(5, fn);
 
 	/**
-	 * Finally_ is intended to never be cleaned.
-	 *
-	 * @param {VoidFunction | Function} fn
+	 * @param {Elements} node
+	 * @param {string} name
+	 * @param {EventListenerOrEventListenerObject} value
+	 * @param {object} props
+	 * @param {string} localName
+	 * @param {string} ns
 	 */
-	function onFinally(fn) {
-	  enqueue();
-	  finally_.push(fn);
-	}
+	const setEventNS = (node, name, value, props, localName, ns) => addEventListener$1(node, localName, value);
 
-	const plugins = empty();
-	const pluginsNS = empty();
+	/**
+	 * Returns an event name when the string could be mapped to an event
+	 *
+	 * @param {string} name - String to check for a mapped event
+	 * @returns {string | undefined} Returns the event name or null in
+	 *   case isnt found
+	 */
+	const eventName = withState((state, name) => state.get(name, name => name.startsWith('on') && name.toLowerCase() in window ? name.slice(2).toLowerCase() : null));
+	/*
+	const eventNames = new Set(
+		keys(global).filter(prop => prop.startsWith('on')),
+	)
+	*/
+
+	const plugins = cacheStore();
+	const pluginsNS = cacheStore();
 
 	/**
 	 * Defines a prop that can be used on any Element
@@ -1408,13 +1616,13 @@
 	 * ) => void} fn
 	 *   - Function to run when this prop is found on any Element
 	 *
-	 * @param {boolean} [runOnMicrotask=true] - To avoid the problem of
+	 * @param {boolean} [onMicrotask=true] - To avoid the problem of
 	 *   needed props not being set, or children elements not created yet.
 	 *   Default is `true`
 	 * @url https://pota.quack.uy/props/propsPlugin
 	 */
-	const propsPlugin = (propName, fn, runOnMicrotask = true) => {
-	  plugin(plugins, propName, fn, runOnMicrotask);
+	const propsPlugin = (propName, fn, onMicrotask) => {
+	  plugin(plugins, propName, fn, onMicrotask);
 	};
 
 	/**
@@ -1431,27 +1639,31 @@
 	 * ) => void} fn
 	 *   - Function to run when this prop is found on any Element
 	 *
-	 * @param {boolean} [runOnMicrotask=true] - Set to run on a microtask
-	 *   to avoid the problem of needed props not being set, or children
+	 * @param {boolean} [onMicrotask=true] - Set to run on a microtask to
+	 *   avoid the problem of needed props not being set, or children
 	 *   elements not being created yet. Default is `true`
 	 */
-	const propsPluginNS = (NSName, fn, runOnMicrotask = true) => {
-	  plugin(pluginsNS, NSName, fn, runOnMicrotask);
-	};
-	const plugin = (plugins, name, fn, runOnMicrotask) => {
-	  plugins[name] = !runOnMicrotask ? fn : (...args) => microtask(owned(() => fn(...args)));
+	const propsPluginNS = (NSName, fn, onMicrotask) => {
+	  plugin(pluginsNS, NSName, fn, onMicrotask);
 	};
 
 	/**
-	 * Runs a function inside an effect if value is a function
+	 * Defines prop and namespaced prop that can be used on any Element
 	 *
-	 * @param {PropertyKey} name
-	 * @param {any} value
-	 * @param {(value) => any} fn
+	 * @param {string} propName - Name of the prop/namespace
+	 * @param {Function} fn - Function to run when this prop is found on
+	 *   any Element
+	 * @param {boolean} [onMicrotask=true] - Set to run on a microtask to
+	 *   avoid the problem of needed props not being set, or children
+	 *   elements not being created yet. Default is `true`
 	 */
-	function withValue(name, value, fn) {
-	  isFunction(value) ? effect(() => fn(getValue(value))) : fn(value);
-	}
+	const propsPluginBoth = (propName, fn, onMicrotask) => {
+	  plugin(plugins, propName, fn, onMicrotask);
+	  plugin(pluginsNS, propName, fn, onMicrotask);
+	};
+	const plugin = (plugins, name, fn, onMicrotask = true) => {
+	  plugins.set(name, !onMicrotask ? fn : (...args) => onProps(() => fn(...args)));
+	};
 
 	/**
 	 * @param {Elements} node
@@ -1469,7 +1681,7 @@
 	 * @param {unknown} value
 	 * @url https://pota.quack.uy/props/setProperty
 	 */
-	const setProperty = (node, name, value) => withValue(name, value, value => _setProperty(node, name, value));
+	const setProperty = (node, name, value) => withValue(value, value => _setProperty(node, name, value));
 
 	/**
 	 * @param {Elements} node
@@ -1505,7 +1717,7 @@
 	 * @param {string} [ns]
 	 * @url https://pota.quack.uy/props/setAttribute
 	 */
-	const setAttribute = (node, name, value, ns) => withValue(name, value, value => _setAttribute(node, name, value, ns));
+	const setAttribute = (node, name, value, ns) => withValue(value, value => _setAttribute(node, name, value, ns));
 
 	/**
 	 * @param {Elements} node
@@ -1522,7 +1734,41 @@
 	  }
 	}
 
+	// NODE UNKNOWN PROPERTIES / ATTRIBUTES
+
+
+	/**
+	 * @param {Elements} node
+	 * @param {string} name
+	 * @param {unknown} value
+	 * @param {string} [ns]
+	 */
+	const setUnknownProp = (node, name, value, ns) => withValue(value, value => _setUnknownProp(node, name, value, ns));
+
+	/**
+	 * @param {Elements} node
+	 * @param {string} name
+	 * @param {unknown} value
+	 * @param {string} [ns]
+	 */
+	const _setUnknownProp = (node, name, value, ns) => {
+	  if (isObject(value)) {
+	    // when not null object
+	    _setProperty(node, name, value);
+	  } else if (isBoolean(value) && !name.includes('-')) {
+	    // when boolean and name doesnt have a hyphen
+	    _setProperty(node, name, value);
+	  } else {
+	    // fallback to attribute
+	    _setAttribute(node, name, value, ns);
+
+	    // to be able to delete properties
+	    isNullUndefined(value) && _setProperty(node, name, value);
+	  }
+	};
+
 	// BOOL ATTRIBUTES
+
 
 	/**
 	 * @param {Elements} node
@@ -1540,7 +1786,7 @@
 	 * @param {unknown} value
 	 * @url https://pota.quack.uy/props/setBool
 	 */
-	const setBool = (node, name, value) => withValue(name, value, value => _setBool(node, name, value));
+	const setBool = (node, name, value) => withValue(value, value => _setBool(node, name, value));
 
 	/**
 	 * @param {Elements} node
@@ -1605,24 +1851,17 @@
 	    return;
 	  }
 	  if (type === 'function') {
-	    effect(() => setNodeStyle(style, getValue(value)));
+	    withValue(value, value => setNodeStyle(style, getValue(value)));
 	    return;
 	  }
 	}
-
-	/**
-	 * @param {Elements} node
-	 * @param {string} name
-	 * @param {unknown} value
-	 */
-	const setElementStyle = (node, name, value) => setStyleValue(node.style, name, value);
 
 	/**
 	 * @param {CSSStyleDeclaration} style
 	 * @param {string} name
 	 * @param {unknown} value
 	 */
-	const setStyleValue = (style, name, value) => withValue(name, value, value => _setStyleValue(style, name, value));
+	const setStyleValue = (style, name, value) => withValue(value, value => _setStyleValue(style, name, value));
 
 	/**
 	 * @param {CSSStyleDeclaration} style
@@ -1632,6 +1871,53 @@
 	const _setStyleValue = (style, name, value) =>
 	// if the value is null or undefined it will be removed
 	isNullUndefined(value) ? style.removeProperty(name) : style.setProperty(name, value);
+
+	/** Returns true or false with a `chance` of getting `true` */
+	const randomId = () => crypto.getRandomValues(new BigUint64Array(1))[0].toString(36);
+
+	/**
+	 * @param {Elements} node
+	 * @param {string} name
+	 * @param {string} value
+	 * @param {object} props
+	 */
+	const setCSS = (node, name, value, props) => setNodeCSS(node, value);
+
+	/**
+	 * @param {Elements} node
+	 * @param {string} value
+	 */
+	const setNodeCSS = withState((state, node, value) => {
+	  classListAdd(node, state.get(value, value => {
+	    const id = 'c' + randomId();
+	    adoptedStyleSheetsAdd(getDocumentForElement(node), sheet(value.replace(/class/g, '.' + id)));
+	    return id;
+	  }));
+	});
+
+	/**
+	 * @param {Elements} node
+	 * @param {string} name
+	 * @param {Function} value
+	 * @param {object} props
+	 */
+	const setRef = (node, name, value, props) => onRef(() => value(node));
+
+	/**
+	 * @param {Elements} node
+	 * @param {string} name
+	 * @param {Function} value
+	 * @param {object} props
+	 */
+	const setOnMount = (node, name, value, props) => onMount(() => value(node));
+
+	/**
+	 * @param {Elements} node
+	 * @param {string} name
+	 * @param {Function} value
+	 * @param {object} props
+	 */
+	const setUnmount = (node, name, value, props) => cleanup(() => value(node));
 
 	// node class / classList
 
@@ -1652,9 +1938,7 @@
 	 * @param {string} localName
 	 * @param {string} ns
 	 */
-	const setClassNS = (node, name, value, props, localName, ns) => isObject(value) ? setClassList(node, value) : setClassListValue(node, localName, value);
-
-	// todo: the name of the class is not reactive
+	const setClassNS = (node, name, value, props, localName, ns) => isFunction(value) ? setClassListValue(node, localName, value) : setClassList(node, value);
 
 	/**
 	 * @param {Elements} node
@@ -1677,7 +1961,7 @@
 	      }
 	    case 'function':
 	      {
-	        withValue('classList', value, value => setClassList(node, value));
+	        withValue(value, value => setClassList(node, value));
 	        break;
 	      }
 	  }
@@ -1687,7 +1971,12 @@
 	 * @param {string} name
 	 * @param {unknown} value
 	 */
-	const setClassListValue = (node, name, value) => withValue(name, value, value => _setClassListValue(node, name, value));
+	const setClassListValue = (node, name, value) => withPrevValue(value, (value, prev) => {
+	  // on initialization do not remove whats not there
+	  if (!value && !prev) ; else {
+	    _setClassListValue(node, name, value);
+	  }
+	});
 
 	/**
 	 * @param {Elements} node
@@ -1697,172 +1986,35 @@
 
 	const _setClassListValue = (node, name, value) =>
 	// null, undefined or false, the class is removed
-	!value ? node.classList.remove(name) : node.classList.add(...name.trim().split(/\s+/));
+	!value ? classListRemove(node, name) : classListAdd(node, ...name.trim().split(/\s+/));
 
-	/**
-	 * @param {Elements} node
-	 * @param {string} name
-	 * @param {Function} value
-	 * @param {object} props
-	 */
-	const setRef = (node, name, value, props) => value(node);
-
-	/**
-	 * @param {Elements} node
-	 * @param {string} name
-	 * @param {Function} value
-	 * @param {object} props
-	 */
-	const setOnMount = (node, name, value, props) =>
-	// timing is already controlled by onMount
-	onMount([value, node]);
-
-	/**
-	 * @param {Elements} node
-	 * @param {string} name
-	 * @param {Function} value
-	 * @param {object} props
-	 */
-	const setUnmount = (node, name, value, props) =>
-	// we need to ensure the timing of the cleanup callback
-	// so we queue it to run it at a specific time
-	cleanup(() => value(node));
-
-	/**
-	 * @param {Elements} node
-	 * @param {string} name
-	 * @param {EventListenerOrEventListenerObject} value
-	 * @param {object} props
-	 * @param {string} localName
-	 * @param {string} ns
-	 */
-	const setEventNS = (node, name, value, props, localName, ns) => addEventListener(node, localName, value);
-	const EventNames = empty();
-
-	/**
-	 * Returns an event name when the string could be mapped to an event
-	 *
-	 * @param {string} name - String to check for a mapped event
-	 * @returns {string | undefined} Returns the event name or null in
-	 *   case isnt found
-	 */
-	function eventName(name) {
-	  if (name in EventNames) {
-	    return EventNames[name];
-	  }
-	  if (name.startsWith('on') && name.toLowerCase() in window) {
-	    EventNames[name] = name.slice(2).toLowerCase();
-	  } else {
-	    EventNames[name] = undefined;
-	  }
-	  return EventNames[name];
-	}
-
-	/**
-	 * Adds an event listener to a node
-	 *
-	 * @param {Elements} node - Element to add the event listener
-	 * @param {string} type - The name of the event listener
-	 * @param {EventListenerOrEventListenerObject} handler - Function to
-	 *   handle the event
-	 * @returns {Function} - An `off` function for removing the event
-	 *   listener
-	 * @url https://pota.quack.uy/props/EventListener
-	 */
-	function addEventListener(node, type, handler) {
-	  node.addEventListener(type, handler, isFunction(handler) && handler);
-	  const off = () => removeEventListener(node, type, handler);
-
-	  /**
-	   * Removes event on tracking scope disposal.
-	   *
-	   * Situation: the event was added to the `document` manually using
-	   * `addEventListener`, say to listen for clicks as a "click
-	   * outside". The event needs to be removed when the component that
-	   * added it is disposed.
-	   */
-	  cleanup(off);
-	  return off;
-	}
-
-	/**
-	 * Removes an event listener from a node
-	 *
-	 * @param {Elements} node - Element to add the event listener
-	 * @param {string} type - The name of the event listener
-	 * @param {EventListenerOrEventListenerObject} handler - Function to
-	 *   handle the event
-	 * @returns {Function} - An `on` function for adding back the event
-	 *   listener
-	 * @url https://pota.quack.uy/props/EventListener
-	 */
-	function removeEventListener(node, type, handler) {
-	  node.removeEventListener(type, handler, isFunction(handler) && handler);
-	  return () => addEventListener(node, type, handler);
-	}
-
-	// NODE UNKNOWN PROPERTIES / ATTRIBUTES
-
-
-	/**
-	 * @param {Elements} node
-	 * @param {string} name
-	 * @param {unknown} value
-	 * @param {string} [ns]
-	 */
-	const setUnknownProp = (node, name, value, ns) => withValue(name, value, value => _setUnknownProp(node, name, value, ns));
-
-	/**
-	 * @param {Elements} node
-	 * @param {string} name
-	 * @param {unknown} value
-	 * @param {string} [ns]
-	 */
-	const _setUnknownProp = (node, name, value, ns) => {
-	  if (isObject(value)) {
-	    // when not null object
-	    _setProperty(node, name, value);
-	  } else if (typeof value === 'boolean' && !name.includes('-')) {
-	    // when boolean and name doesnt have a hyphen
-	    _setProperty(node, name, value);
-	  } else {
-	    // fallback to attribute
-	    _setAttribute(node, name, value, ns);
-	    // to be able to delete properties
-	    isNullUndefined(value) && _setProperty(node, name, value);
-	  }
-	};
-
-	propsPlugin('style', setStyle, false);
-	propsPluginNS('style', setStyleNS, false);
-	propsPluginNS('var', setVarNS, false);
-	propsPlugin('class', setClass, false);
-	propsPluginNS('class', setClassNS, false);
-	for (const item of ['value', 'textContent', 'innerText', 'innerHTML']) {
-	  propsPlugin(item, setProperty, false);
-	}
 	propsPluginNS('prop', setPropertyNS, false);
 	propsPluginNS('attr', setAttributeNS, false);
 	propsPluginNS('bool', setBoolNS, false);
-	propsPlugin('onMount', setOnMount, false);
-	propsPluginNS('onMount', setOnMount, false);
-	propsPlugin('onUnmount', setUnmount, false);
-	propsPluginNS('onUnmount', setUnmount, false);
-
-	// ref
-
-	propsPlugin('ref', setRef, false);
-	propsPluginNS('ref', setRef, false);
+	propsPluginNS('on', setEventNS, false);
+	propsPluginNS('var', setVarNS, false);
+	for (const item of ['value', 'textContent', 'innerText', 'innerHTML']) {
+	  propsPlugin(item, setProperty, false);
+	}
 	propsPlugin('__dev', noop, false);
 	propsPlugin('xmlns', noop, false);
-	propsPluginNS('on', setEventNS, false);
+	propsPluginBoth('css', setCSS, false);
+	propsPluginBoth('onMount', setOnMount, false);
+	propsPluginBoth('onUnmount', setUnmount, false);
+	propsPluginBoth('ref', setRef, false);
+	propsPlugin('style', setStyle, false);
+	propsPluginNS('style', setStyleNS, false);
+	propsPlugin('class', setClass, false);
+	propsPluginNS('class', setClassNS, false);
+
+	// catch all
 
 	/**
 	 * Assigns props to an Element
 	 *
 	 * @param {Elements} node - Element to which assign props
 	 * @param {object} props - Props to assign
-	 * @param {boolean} [isCustomElement] - Is custom element
+	 * @param {number} [isCustomElement] - Is custom element
 	 */
 	function assignProps(node, props, isCustomElement) {
 	  let name;
@@ -1876,27 +2028,28 @@
 	 * Assigns a prop to an Element
 	 *
 	 * @param {Elements} node
-	 * @param {PropertyKey} name
+	 * @param {string} name
 	 * @param {any} value
 	 * @param {object} props
-	 * @param {boolean} [isCE]
+	 * @param {number} [isCE]
 	 */
 	function assignProp(node, name, value, props, isCE) {
 	  if (isObject(value) && 'then' in value) {
 	    value.then(owned(value => assignProp(node, name, value, props, isCE)));
 	    return;
 	  }
-
 	  // run plugins
-	  if (name in plugins) {
-	    plugins[name](node, name, value, props);
+
+	  let plugin = plugins.get(name);
+	  if (plugin) {
+	    plugin(node, name, value, props);
 	    return;
 	  }
 
 	  // onClick={handler}
 	  let event = eventName(name);
 	  if (event) {
-	    addEventListener(node, event, value);
+	    addEventListener$1(node, event, value);
 	    return;
 	  }
 	  if (name.includes(':')) {
@@ -1904,15 +2057,16 @@
 	    let [ns, localName] = name.split(':');
 
 	    // run plugins NS
-	    if (ns in pluginsNS) {
-	      pluginsNS[ns](node, name, value, props, localName, ns);
+	    plugin = pluginsNS.get(ns);
+	    if (plugin) {
+	      plugin(node, name, value, props, localName, ns);
 	      return;
 	    }
 
 	    // onClick:my-ns={handler}
 	    event = eventName(ns);
 	    if (event) {
-	      addEventListener(node, event, value);
+	      addEventListener$1(node, event, value);
 	      return;
 	    }
 	    isCustomElement(node, props, isCE) ? _setProperty(node, name, value) : setUnknownProp(node, name, value, ns);
@@ -1923,78 +2077,10 @@
 	  isCustomElement(node, props, isCE) ? _setProperty(node, name, value) : setUnknownProp(node, name, value);
 	}
 	const isCustomElement = (node, props, isCustomElement) =>
-	// DocumentFragment doesn't have a localName
+	// DocumentFragment doesn't have a `localName?`
 	isCustomElement !== undefined ? isCustomElement : 'is' in props || node.localName?.includes('-');
 
-	const bind = fn => document[fn].bind(document);
-	const createElement = bind('createElement');
-	const createElementNS = bind('createElementNS');
-	const createTextNode = bind('createTextNode');
-	const importNode = bind('importNode');
-	const createTreeWalker = bind('createTreeWalker');
-	const adoptedStyleSheets = document.adoptedStyleSheets;
-	function toDiff(prev = [], node = []) {
-	  node = isArray(node) ? node.flat(Infinity) : [node];
-	  for (let i = 0, item; i < prev.length; i++) {
-	    item = prev[i];
-	    item && (node.length === 0 || !node.includes(item)) && item.remove();
-	  }
-	  return node;
-	}
-
-	/** @returns {TreeWalker} */
-	let _walker;
-	function walker() {
-	  if (!_walker) {
-	    _walker = createTreeWalker(document, NodeFilter.SHOW_ELEMENT);
-	  }
-	  return _walker;
-	}
-	function walkElements(node, fn) {
-	  const walk = walker();
-	  walk.currentNode = node;
-
-	  /**
-	   * The first node is not walked by the walker. Also the first node
-	   * could be a DocumentFragment
-	   */
-	  if (node.nodeType === 1) {
-	    fn(node);
-	  }
-	  let r;
-	  while (node = walk.nextNode()) {
-	    r = fn(node);
-	    if (!r && r !== undefined) {
-	      break;
-	    }
-	  }
-	}
-
-	const id = 'pota';
-	const tag = `<pota></pota>`;
-	const [get, set] = weakStore();
-	function parse(content) {
-	  let cached = get(content);
-	  if (!cached) {
-	    const template = createElement('template');
-	    template.innerHTML = content.join(tag).replaceAll(`"${tag}"`, `"${id}"`)
-	    // avoid double br when self-closing
-	    .replace(/<br\s*\/\s*>/g, '<br>')
-	    // self-close
-	    .replace(/<([a-z-]+)([^/>]*)\/\s*>/gi, '<$1 $2></$1>');
-	    cached = template.content;
-	    set(content, cached);
-	  }
-	  return cached;
-	}
-	function cloneNode(content, xmlns) {
-	  let template = xmlns ? createElementNS(xmlns, 'template') : createElement('template');
-	  template.innerHTML = content;
-	  template = xmlns ? template.firstChild : template.content.childNodes.length === 1 ? template.content.firstChild : template.content;
-	  return template;
-	}
-
-	// REACTIVITE PRIMITIVES
+	// CONSTANTS
 
 
 	// STATE
@@ -2060,7 +2146,7 @@
 	      }
 	    case 'function':
 	      {
-	        if ($class in value) {
+	        if ($isClass in value) {
 	          // class component <MyComponent../>
 	          value = createClass.bind(null, value);
 	          break;
@@ -2093,14 +2179,6 @@
 	      }
 	  }
 	  return markComponent(value);
-	}
-	function createComponent(value) {
-	  const component = Factory(value);
-	  return props => {
-	    /** Freeze props so isnt directly writable */
-	    freeze(props);
-	    return markComponent(() => component(props));
-	  };
 	}
 	function createClass(value, props) {
 	  const i = new value();
@@ -2139,62 +2217,9 @@
 	   * browser behaviour)
 	   */
 	  if (nsContext && tagName === 'foreignObject') {
-	    return useXMLNS(NS.html, () => fn(NS.html));
+	    return useXMLNS(NS.html, () => fn(nsContext));
 	  }
 	  return fn(nsContext);
-	}
-
-	// PARTIALS
-
-	function createPartial(content, xmlns) {
-	  return createPartialComponent(content, xmlns, false);
-	}
-	function createPartialImportNode(content, xmlns) {
-	  return createPartialComponent(content, xmlns, true);
-	}
-	function createPartialComponent(content, xmlns, isImportNode) {
-	  let clone = () => {
-	    const node = withXMLNS(xmlns, xmlns => cloneNode(content, xmlns));
-	    clone = isImportNode ? importNode.bind(null, node, true) : node.cloneNode.bind(node, true);
-	    return clone();
-	  };
-	  return markComponent(props => {
-	    /** Freeze props so isnt directly writable */
-	    freeze(props);
-	    return markComponent(() => assignPropsPartial(xmlns, () => clone(), props, isImportNode));
-	  });
-	}
-	function assignPropsPartial(xmlns, clone, props, isCustomElement) {
-	  const node = clone();
-	  if (props) {
-	    /**
-	     * First walk then modify it, so the modifications dont make the
-	     * walk worse (example: creating children will increase the number
-	     * of nodes). It also allows to re-use the same walker, as
-	     * creating children right now could cause a new instance of
-	     * template that will use the same walker and mess up our current
-	     * walk. While this is not optimal is fast enough, requires some
-	     * more work on the babel plugin.
-	     */
-	    const nodes = [];
-	    walkElements(node, node => {
-	      if (node.hasAttribute('pota')) {
-	        node.removeAttribute('pota');
-	        nodes.push(node);
-
-	        // done
-	        if (nodes.length === props.length) {
-	          return false;
-	        }
-	      }
-	    });
-	    withXMLNS(xmlns, xmlns => {
-	      for (let i = 0; i < nodes.length; i++) {
-	        assignProps(nodes[i], props[i], i === 0 ? isCustomElement : undefined);
-	      }
-	    });
-	  }
-	  return node instanceof DocumentFragment ? toArray(node.childNodes) : node;
 	}
 
 	/**
@@ -2217,6 +2242,7 @@
 	 * @param {Elements} parent
 	 * @param {Children} child
 	 * @param {boolean} [relative]
+	 * @param {Text | undefined} [prev]
 	 * @returns {Children}
 	 */
 	function createChildren(parent, child, relative, prev = undefined) {
@@ -2244,7 +2270,7 @@
 	        parent = createPlaceholder(parent, undefined /*child.name*/, relative);
 
 	        // For
-	        if ($map in child) {
+	        if ($isMap in child) {
 	          effect(() => {
 	            node = toDiff(node, child(child => {
 	              /**
@@ -2318,8 +2344,8 @@
 	        // async components
 	        if ('then' in child) {
 	          const [value, setValue] = signal(undefined);
-	          const onResult = result => parent.isConnected && setValue(result);
-	          child.then(onResult).catch(onResult);
+	          const onResult = result => isConnected(parent) && setValue(result);
+	          resolved(child, onResult);
 	          return createChildren(parent, value, relative);
 	        }
 
@@ -2330,8 +2356,18 @@
 
 	        // CSSStyleSheet
 	        if (child instanceof CSSStyleSheet) {
-	          adoptedStyleSheets.push(child);
-	          cleanup(() => removeFromArray(adoptedStyleSheets, child));
+	          /**
+	           * Custom elements wont report a document unless is already
+	           * connected. So our stylesheet would end on the main document
+	           * intead of the shadodRoot
+	           */
+	          onFixes(() => {
+	            if (isConnected(parent)) {
+	              const doc = getDocumentForElement(parent);
+	              adoptedStyleSheetsAdd(doc, child);
+	              cleanup(() => adoptedStyleSheetsRemove(doc, child));
+	            }
+	          });
 	          return undefined;
 	        }
 
@@ -2374,8 +2410,7 @@
 	  	relative,
 	  ) */
 	};
-	const head = document.head;
-	const headQuerySelector = head.querySelector.bind(head);
+	const head = document$1.head;
 
 	/**
 	 * Adds the element to the document
@@ -2394,11 +2429,11 @@
 	    // search for tags that should be unique
 	    let prev;
 	    if (name === 'title') {
-	      prev = headQuerySelector('title');
+	      prev = querySelector(head, 'title');
 	    } else if (name === 'meta') {
-	      prev = headQuerySelector('meta[name="' + node.getAttribute('name') + '"]') || headQuerySelector('meta[property="' + node.getAttribute('property') + '"]');
+	      prev = querySelector(head, 'meta[name="' + node.getAttribute('name') + '"]') || querySelector(head, 'meta[property="' + node.getAttribute('property') + '"]');
 	    } else if (name === 'link' && node.rel === 'canonical') {
-	      prev = headQuerySelector('link[rel="canonical"]');
+	      prev = querySelector(head, 'link[rel="canonical"]');
 	    }
 
 	    // replace old node if there's any
@@ -2410,6 +2445,11 @@
 	}
 
 	// RENDERING
+
+	/**
+	 * WARNINGS Removal of the element on where you render/insert into,
+	 * wont cause disposal of what you render/insert.
+	 */
 
 	/**
 	 * Inserts children into a parent
@@ -2440,7 +2480,7 @@
 	 * @param {{ clear?: boolean; relative?: boolean }} [options] -
 	 *   Mounting options
 	 */
-	function insert(children, parent = document.body, options = {}) {
+	function insert(children, parent = document$1.body, options = nothing) {
 	  if (options.clear && parent) parent.textContent = '';
 	  const node = createChildren(parent, isComponentable(children) ? Factory(children) : children, options.relative);
 	  cleanup(() => toDiff([node].flat(Infinity)));
@@ -2478,39 +2518,6 @@
 	}
 
 	/**
-	 * Resolves and returns `children` in a memo
-	 *
-	 * @param {Function | Children} fn
-	 * @returns {Signal} Memo
-	 * @url https://pota.quack.uy/resolve
-	 */
-	function resolve(fn) {
-	  const children = isFunction(fn) ? memo(fn) : () => fn;
-	  return memo(() => unwrap(children()));
-	}
-
-	/**
-	 * Recursively unwrap children functions
-	 *
-	 * @param {Children} children
-	 * @returns {Children}
-	 */
-	function unwrap(children) {
-	  if (isFunction(children)) {
-	    return unwrap(children());
-	  }
-	  if (isArray(children)) {
-	    const childrens = [];
-	    for (let child of children) {
-	      child = unwrap(child);
-	      isArray(child) ? childrens.push(...child) : childrens.push(child);
-	    }
-	    return childrens;
-	  }
-	  return children;
-	}
-
-	/**
 	 * Creates a context and returns a function to get or set the value
 	 *
 	 * @param {any} [defaultValue] - Default value for the context
@@ -2518,9 +2525,10 @@
 	 *   Context
 	 * @url https://pota.quack.uy/Reactivity/Context
 	 */
+	/* #__NO_SIDE_EFFECTS__ */
 	function context(defaultValue = undefined) {
 	  /** @type {Function & { Provider: ({ value }) => Elements }} */
-	  const ctx = Context(defaultValue);
+	  const ctx = Context$1(defaultValue);
 
 	  /**
 	   * Sets the `value` for the context
@@ -2536,169 +2544,22 @@
 	}
 
 	/**
-	 * A Promise loader handler. Allows to display/run something or
-	 * nothing while a promise is resolving. Allows to run a callback when
-	 * the promise resolves. Allows to get notified of errors, and
-	 * display/run something or nothing, if wanted a `retry` function is
-	 * given for retrying the promise. All functions run with the original
-	 * owner, so it's `Context` friendly.
+	 * Removes from the DOM `prev` elements not found on `next`
 	 *
-	 * @param {() => Promise<any>} fn - Function that returns a promise
-	 * @param {{
-	 * 	onLoading?: any
-	 * 	onLoaded?: Function
-	 * 	onError?: ((e: Error, retry: Function) => any) | any
-	 * }} [options]
-	 *
-	 * @returns {Component}
-	 * @url https://pota.quack.uy/lazy
+	 * @param {Elements[]} [prev] - Array with previous elements
+	 * @param {Elements[]} [next] - Array with next elements
+	 * @returns {Elements[]}
 	 */
-	const lazy = (fn, options = nothing) => markComponent(props => {
-	  const {
-	    onLoading,
-	    onLoaded,
-	    onError
-	  } = options;
-	  const [value, setValue] = signal(onLoading);
-	  const _onLoaded = owned(onLoaded);
-	  const retry = () => fn().then(r => {
-	    setValue(markComponent(() => {
-	      r = isObject(r) && r.default ? r.default : r;
-	      return isFunction(r) ? r(props) : r;
-	    }));
-	    microtask(_onLoaded);
-	  }).catch(e => onError ? setValue(markComponent(() => isFunction(onError) ? onError(e, retry) : onError)) : console.error(e));
-	  retry();
-	  return value;
-	});
-	const Lazy = props => lazy(props.children, props);
-
-	/**
-	 * Creates a stylesheet from a css string
-	 *
-	 * @param {string} css
-	 * @returns {CSSStyleSheet}
-	 */
-
-	function sheet(css) {
-	  const sheet = new CSSStyleSheet();
-	  sheet.replace(css);
-	  return sheet;
-	}
-
-	/**
-	 * Creates tagged css and returns a CSSStyleSheet. Mostly for css
-	 * highlighting in js
-	 *
-	 * @param {TemplateStringsArray} template
-	 * @param {...any} values
-	 * @returns {CSSStyleSheet}
-	 */
-	const css = (template, ...values) => sheet(String.raw({
-	  raw: template
-	}, ...values));
-
-	/**
-	 * Makes of `children` a function. Reactive children will run as is,
-	 * non-reactive children will run untracked, regular children will
-	 * just return.
-	 *
-	 * @param {Children} children
-	 * @returns {Function}
-	 */
-	function makeCallback(children) {
-	  /**
-	   * When children is an array, as in >${[0, 1, 2]}< then children
-	   * will end as `[[0, 1, 2]]`, so flat it
-	   */
-
-	  children = isArray(children) ? flat(children) : children;
-	  const callbacks = !isArray(children) ? callback(children) : children.map(callback);
-	  return !isArray(children) ? markComponent((...args) => callbacks(args)) : markComponent((...args) => callbacks.map(callback => callback(args)));
-	}
-	const callback = child => isFunction(child) ? isReactive(child) ? args => {
-	  /**
-	   * The function inside the `for` is saved in a signal. The
-	   * result of the signal is our callback
-	   *
-	   * ```js
-	   * htmlEffect(
-	   * 	html =>
-	   * 		html`<table>
-	   * 			<tr>
-	   * 				<th>name</th>
-	   * 			</tr>
-	   * 			<for each="${tests}">
-	   * 				${item =>
-	   * 					html`<tr>
-	   * 						<td>${item.name}</td>
-	   * 					</tr>`}
-	   * 			</for>
-	   * 		</table>`,
-	   * )
-	   * ```
-	   */
-	  const r = child();
-	  return isFunction(r) ? isReactive(r) ? r() : untrack(() => r(...args)) : r;
-	} : args => untrack(() => child(...args)) : () => child;
-
-	/**
-	 * Extend `Pota` and define a `render(props){}` method to create a
-	 * class component. `ready(cb)` and `cleanup(cb)` methods will be
-	 * registered automatically
-	 *
-	 * @url https://pota.quack.uy/Classes
-	 */
-	class Pota {}
-	Pota[$class] = undefined;
-
-	// const [others, local] = propsSplit(props, ['children'])
-
-
-	/**
-	 * Split an object into multiple sub objects
-	 *
-	 * @param {Props} props
-	 * @param {...string[]} args
-	 * @returns {Props[]} - Array of objects
-	 * @url https://pota.quack.uy/props/propsSplit
-	 */
-	function propsSplit(props, ...args) {
-	  const result = [];
-	  const used = empty();
-	  for (const _props of args) {
-	    const target = empty();
-	    for (const key of _props) {
-	      used[key] = null;
-	      target[key] = props[key];
-	    }
-	    result.push(target);
+	function toDiff(prev = [], next = []) {
+	  next = isArray(next) ? next.flat(Infinity) : [next];
+	  for (let i = 0, item; i < prev.length; i++) {
+	    item = prev[i];
+	    item && (next.length === 0 || !next.includes(item)) && item.remove();
 	  }
-	  const target = empty();
-	  for (const key of keys(props)) {
-	    if (used[key] === undefined) {
-	      target[key] = props[key];
-	    }
-	  }
-	  result.unshift(target);
-	  return result;
+	  return next;
 	}
 
-	// VERSION
-
-	const camelCase = s => s.replace(/-([a-z])/g, g => g[1].toUpperCase());
-
-	/**
-	 * @param {Elements} node
-	 * @param {string} eventName
-	 * @param {any} [data]
-	 */
-
-	const emit = (node, eventName, data = {
-	  bubbles: true,
-	  cancelable: true,
-	  composed: true
-	}) => node.dispatchEvent(new CustomEvent(eventName, data));
+	const dashesToCamelCase = s => s.replace(/-([a-z])/g, g => g[1].toUpperCase());
 
 	/**
 	 * Defines a custom Element (if isnt defined already)
@@ -2714,42 +2575,17 @@
 	    customElements.define(name, constructor, options);
 	  }
 	}
-	const cachedSheets = empty();
 	class CustomElement extends HTMLElement {
 	  constructor() {
 	    super();
-	    this.attachShadow({
+	    const shadowRoot = this.attachShadow({
 	      mode: 'open'
 	    });
-	    this.addStyleSheets(this.constructor.styleSheets);
-	  }
 
-	  /* CSS API */
-
-	  /**
-	   * Adds a style sheet to the custom element
-	   *
-	   * @param {(CSSStyleSheet | string)[]} styleSheets
-	   */
-	  addStyleSheets(styleSheets = []) {
-	    for (const sheet of styleSheets) {
-	      sheet instanceof CSSStyleSheet ? this.shadowRoot.adoptedStyleSheets.push(sheet) : this.addStyleSheetExternal(sheet);
-	    }
-	  }
-
-	  /**
-	   * Adds the stylesheet from urls. It uses a cache, to avoid having
-	   * to fire a request for each external sheet when used in more than
-	   * one custom element. Also, all reference the same object.
-	   *
-	   * @param {string} url
-	   */
-	  addStyleSheetExternal(url) {
-	    const styleSheet = cachedSheets[url];
-	    !styleSheet ? fetch(url).then(r => r.text()).then(css => sheet(css)).then(styleSheet => {
-	      cachedSheets[url] = styleSheet;
-	      this.addStyleSheets([styleSheet]);
-	    }) : this.addStyleSheets([styleSheet]);
+	    // this is needed because `baseStyleSheets/styleSheets` are `static`
+	    const constructor = this.constructor;
+	    addStyleSheets(shadowRoot, constructor.baseStyleSheets);
+	    addStyleSheets(shadowRoot, constructor.styleSheets);
 	  }
 
 	  /* DOM API */
@@ -2760,7 +2596,7 @@
 	   * @param {string} query
 	   */
 	  query(query) {
-	    return this.querySelector(query);
+	    return querySelector(this, query);
 	  }
 	  /**
 	   * Shortcut for this.shadowRoot.innerHTML
@@ -2768,7 +2604,7 @@
 	   * @param {string} value
 	   */
 	  set html(value) {
-	    if (typeof value === 'string') {
+	    if (isString(value)) {
 	      this.shadowRoot.innerHTML = value;
 	    } else {
 	      this.shadowRoot.replaceChildren(toHTMLFragment(Component(value || 'slot')));
@@ -2781,13 +2617,19 @@
 	   * @param {boolean} value
 	   */
 	  set hidden(value) {
-	    withValue$1(value, value => {
-	      value ? this.setAttribute('hidden', '') : this.removeAttribute('hidden');
+	    withValue(value, value => {
+	      value ? setAttribute$1(this, 'hidden', '') : removeAttribute(this, 'hidden');
 	    });
 	  }
 
 	  /* EVENTS API */
 
+	  /**
+	   * Emits an event
+	   *
+	   * @param {string} eventName
+	   * @param {any} [data]
+	   */
 	  emit(eventName, data) {
 	    emit(this, eventName, data);
 	  }
@@ -2795,7 +2637,7 @@
 	  /* SLOTS API */
 
 	  hasSlot(name) {
-	    return this.query(`:scope > [slot="${name}"]`) !== null;
+	    return this.query(`:scope [slot="${name}"]`);
 	  }
 	}
 
@@ -2811,6 +2653,7 @@
 	 * @url https://pota.quack.uy/Components/Collapse
 	 */
 	function Collapse(props) {
+	  // need to include the class here because else its not treeshaked
 	  class CollapseElement extends CustomElement {
 	    static styleSheets = [css`
 				:host {
@@ -2820,11 +2663,12 @@
 
 	    /** @param {When} value - To toggle children */
 	    set when(value) {
-	      withValue$1(value, value => this.html = getValue(value) ? '<slot/>' : '');
+	      withValue(value, value => this.html = value ? '<slot/>' : '');
 	    }
 	  }
-	  customElement('pota-collapse', CollapseElement);
-	  return Component('pota-collapse', {
+	  const name = 'pota-collapse';
+	  customElement(name, CollapseElement);
+	  return Component(name, {
 	    when: props.when,
 	    children: props.children
 	  });
@@ -2853,11 +2697,33 @@
 	 *
 	 * @param {object} props
 	 * @param {Each} props.each
+	 * @param {boolean} [props.restoreFocus] - If the focused element
+	 *   moves it may lose focus
 	 * @param {Children} [props.children]
 	 * @returns {Children}
 	 * @url https://pota.quack.uy/Components/For
 	 */
-	const For = props => map(props.each, makeCallback(props.children), true);
+
+	const For = props => map(() => {
+	  props.restoreFocus && queue();
+	  return props.each;
+	}, makeCallback(props.children), true);
+	let queued;
+
+	// because re-ordering the elements trashes focus
+	function queue() {
+	  if (!queued) {
+	    queued = true;
+	    const active = activeElement();
+	    const scroll = documentElement.scrollTop;
+	    onFixes(() => {
+	      queued = false;
+	      // re-ordering the elements trashes focus
+	      active && active !== activeElement() && isConnected(active) && active.focus();
+	      documentElement.scrollTop = scroll;
+	    });
+	  }
+	}
 
 	/**
 	 * Portals children to a different element while keeping the original
@@ -2883,9 +2749,317 @@
 	 * @url https://pota.quack.uy/Components/Head
 	 */
 	const Head = props => Component(Portal, {
-	  mount: document.head,
+	  mount: document$1.head,
 	  children: props.children
 	});
+
+	/**
+	 * Scrolls to an element
+	 *
+	 * @param {Elements} item - Element to scroll to
+	 */
+	function scrollToElement(item) {
+	  /** Scroll children of element to the top */
+	  item.scrollTop = 0;
+
+	  /** Scroll to element */
+	  item.scrollIntoView(true);
+	}
+
+	/** Scrolls to `window.location.hash` */
+	const scrollToLocationHash = () => scrollToSelector(location$1.hash);
+
+	/**
+	 * Scrolls to element that matches the hash
+	 *
+	 * @param {string} selector - Hash to scroll to
+	 * @returns {boolean} True on success
+	 */
+	function scrollToSelector(selector) {
+	  if (selector) {
+	    try {
+	      // selector could be invalid
+	      const item = querySelector(document$1, selector);
+	      if (item) {
+	        scrollToElement(item);
+	        return true;
+	      }
+	    } catch (e) {}
+	  }
+	  return false;
+	}
+
+	/**
+	 * Scrolls to hash and in case isnt found it scrolls to the top
+	 *
+	 * @param {string} selector - Hash to scroll to
+	 */
+	function scrollToSelectorWithFallback(selector) {
+	  if (!scrollToSelector(selector)) scrollToTop();
+	}
+
+	/** Scrolls to the top of the window */
+	const scrollToTop = () => window.scrollTo({
+	  top: 0,
+	  behavior: 'auto'
+	});
+
+	const encodeURIComponent = global.encodeURIComponent;
+
+	/**
+	 * Safe guard. `decodeURIComponent` will fail with malformed strings:
+	 * links are copied, pasted, manipulated by people, software etc
+	 *
+	 * @param {string} string - String to decode
+	 * @returns {string} Returns decoded string or original string on
+	 *   error
+	 */
+	function _decodeURIComponent(string) {
+	  try {
+	    return decodeURIComponent(string);
+	  } catch (e) {
+	    return string;
+	  }
+	}
+
+	/**
+	 * Returns true if the link is absolute: starts with '/', '#' or
+	 * 'http'
+	 *
+	 * @param {string} href - Url
+	 * @returns {boolean} Returns true if the link is absolute
+	 */
+	const isAbsolute = href => href[0] === '/' || href[0] === '#' || /^http/.test(href);
+
+	/**
+	 * Returns true if the link is external. It does so by checking that
+	 * window.location.origin is present at the beginning of the url
+	 *
+	 * @param {string} url - Url
+	 * @returns {boolean} Returns true if the link is external
+	 */
+	const isExternal = url =>
+	// origin could be http://example.net and link could be http://example.net.ha.com, so add "/"
+	/^http/.test(url) && !(url + '/').startsWith(origin + '/');
+
+	/**
+	 * Returns true if the link is relative
+	 *
+	 * @param {string} url - Url
+	 * @returns {boolean} Returns true if the link relative
+	 */
+	const isRelative = url => !isAbsolute(url);
+
+	/**
+	 * Replace params in an url for the encoded equivalent
+	 *
+	 * @param {string | undefined} url - Url
+	 * @param {object} [params] - Key-value pair to replace
+	 * @returns {string} Url with the params replaced
+	 */
+	const replaceParams = (url, params) => params ? url.replace(/\:([a-z0-9_\-]+)/gi, (a, b) =>
+	// only replace the ones defined on params
+	params[b] !== undefined ? encodeURIComponent(params[b]) : a) : url;
+
+	/* #__NO_SIDE_EFFECTS__ */
+	function create(props = nothing) {
+	  const [children, setChildren, updateChildren] = signal([]);
+	  return {
+	    base: '',
+	    // the composed base route
+	    href: () => '',
+	    // the url of the route
+	    parent: undefined,
+	    // parent context
+	    show: () => false,
+	    // if the route is shown
+	    params: () => () => nothing,
+	    // params of the route
+	    scroll: [],
+	    // elements to scroll
+	    // the children routes
+	    addChildren: child => {
+	      updateChildren(children => {
+	        children.push(child);
+	        return [...children];
+	      });
+	    },
+	    removeChildren: child => {
+	      updateChildren(children => {
+	        removeFromArray(children, child);
+	        return [...children];
+	      });
+	    },
+	    noneMatch: memo(() => {
+	      return (
+	        /**
+	         * If doesnt have siblings then is not a 404
+	         *
+	         * @example
+	         * 	<Route>
+	         * 	<Component/> <Router.Default/> <-- Router.Default should never render
+	         * 	</Route>
+	         */
+	        children().length &&
+	        // when it has sibling, check if at least 1 rendered
+	        children().every(children => !children.show())
+	      );
+	    }),
+	    // override
+	    ...props
+	  };
+	}
+	const Context = context(create());
+
+	// window.location signal
+
+	const [getLocation, setLocation] = signal(location$1, {
+	  equals: false
+	});
+
+	// only trigger on what changed
+
+	const pathname = memo(() => getLocation().pathname);
+	const search = memo(() => getLocation().search);
+	const href = memo(() => getLocation().href);
+
+	// http://location/# reports hash to be empty
+	// http://location/ reports hash to be empty
+	// handle this difference by checking if "#" is at the end of `href`
+	const hash = memo(() => href().endsWith('#') ? '#' : getLocation().hash);
+
+	/**
+	 * @typedef {object} location
+	 * @property {Signal} href - The full url
+	 * @property {Signal} pathname - Mirror of window.location.pathname
+	 * @property {Signal} hash - Everything after #
+	 * @property {Signal} path - Pathname + hash
+	 * @property {Signal} query - Key value pairs with search params
+	 * @property {Function} params - Key value pairs with route params
+	 */
+
+	/** @type location */
+	const location = {
+	  href,
+	  pathname,
+	  hash,
+	  path: memo(() => pathname() + hash()),
+	  query: memo(() => {
+	    const value = search();
+	    const searchParams = empty();
+	    const params = new URL(origin$1 + '/' + value).searchParams;
+	    for (const [key, value] of params.entries()) {
+	      searchParams[key] = value;
+	    }
+	    return searchParams;
+	  }),
+	  params: () => {
+	    const routes = [];
+	    walkParents(Context(), 'parent', context => {
+	      routes.push(context.params);
+	    });
+	    const params = empty();
+	    for (const param of routes) {
+	      // `|| params` because when nothing is found the result is undefined
+	      for (const [key, value] of entries(param()() || nothing)) {
+	        params[key] = value !== undefined ? _decodeURIComponent(value) : value;
+	      }
+	    }
+	    return params;
+	  }
+	};
+	let BeforeLeave = [];
+
+	/**
+	 * Returns a boolean telling if navigation is allowed
+	 *
+	 * @param {string} href
+	 * @returns {Promise<boolean>}
+	 */
+	async function canNavigate(href) {
+	  const newBeforeLeave = [];
+	  for (const beforeLeave of BeforeLeave) {
+	    if (href.indexOf(beforeLeave.href) !== 0) {
+	      if (!(await beforeLeave.callback().catch(() => false))) return false;
+	    } else {
+	      newBeforeLeave.push(beforeLeave);
+	    }
+	  }
+	  BeforeLeave = newBeforeLeave;
+	  return true;
+	}
+
+	/**
+	 * Navigates to a new location
+	 *
+	 * @param {string} href
+	 * @param {{ scroll?: boolean; replace?: boolean }} options
+	 * @url https://pota.quack.uy/Components/Router/Navigate
+	 */
+	async function navigate(href, options = nothing) {
+	  if (location$1.href !== href) {
+	    if (await canNavigate(href)) {
+	      const fn = () => navigateInternal(href, options);
+	      // navigate with transition if available
+	      document$1.startViewTransition && location$1.href.replace(/#.*/, '') !== href.replace(/#.*/, '') ? document$1.startViewTransition(fn) : fn();
+	    }
+	  }
+	}
+	function navigateInternal(href, options) {
+	  if (options.replace) {
+	    history.replaceState(null, '', href);
+	  } else {
+	    history.pushState(null, '', href);
+	  }
+	  setLocation(location$1);
+	  if (optional(options.scroll)) {
+	    scrollToSelectorWithFallback(location$1.hash);
+	  }
+	}
+
+	// listeners
+
+	let addListenersAdded = false;
+	function addListeners() {
+	  if (!addListenersAdded) {
+	    addListenersAdded = true;
+	    document$1.addEventListener('click', onLinkClick);
+	    addEventListener('hashchange', onLocationChange);
+	    addEventListener('popstate', onLocationChange);
+	  }
+	}
+
+	// listen when using browser buttons
+	// safe to use async as its on a listener
+	async function onLocationChange() {
+	  // chrome has a bug on which if you use the back/forward button
+	  // it will change the title of the tab to whatever it was before
+	  // if the navigation is prevented (therefore the title/page wont change)
+	  // it will still use the old title even if the title tag didn't change at all
+	  const title = document$1.title;
+	  document$1.title = title + ' ';
+	  document$1.title = title;
+	  if (await canNavigate(location$1.href)) {
+	    setLocation(location$1);
+	  } else {
+	    history.pushState(null, '', location.href());
+	  }
+	}
+	function onLinkClick(e) {
+	  if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.altKey || e.ctrlKey || e.shiftKey) return;
+
+	  // find link
+	  const node = e.composedPath().find(item => item instanceof HTMLAnchorElement);
+
+	  // validate
+	  if (!node || !node.href || node.download || node.target || !node.href.startsWith('http') ||
+	  // when using other protocol than "http"
+	  isExternal(node.href) || node.rel && node.rel.split(/\s/).includes('external')) return;
+	  preventDefault(e);
+	  navigate(node.href, {
+	    replace: node.replace
+	  });
+	}
 
 	/**
 	 * Renders its children based on a condition
@@ -2907,14 +3081,223 @@
 	  return memo(() => condition() ? callback(value) : fallback);
 	}
 
+	function scroll(context) {
+	  /**
+	   * Scroll to hash first, if doesnt, scroll to positions defined by
+	   * the Routes.
+	   */
+	  if (!scrollToLocationHash()) {
+	    if (!walkParents(context, 'parent', context => {
+	      if (context.scroll) {
+	        for (const item of context.scroll) {
+	          if (scrollToSelector(item)) {
+	            return true;
+	          }
+	        }
+	      }
+	    })) {
+	      scrollToTop();
+	    }
+	  }
+	}
+
 	/**
-	 * Identity function, given `x` returns `x`
+	 * Renders children if the path matches the current location
 	 *
-	 * @template T
-	 * @param {T} x
-	 * @returns {T}
+	 * @param {object} props
+	 * @param {string} [props.path] - Path to match relative to the parent
+	 *   Route. When `path` is missing, it will render only when the
+	 *   parent's route path is matched exactly.
+	 * @param {string[]} [props.scroll] - Elements to scroll when the
+	 *   route matches
+	 * @param {object} [props.params] - Key-value pairs params to encode
+	 *   and replace on the path
+	 * @param {When} [props.collapse] - To hide the route instead of
+	 *   removing it from the document
+	 * @param {When} [props.when] - To stop rendering the route even if
+	 *   the path matches.
+	 * @param {Children} [props.fallback] - Fallback for when a `when`
+	 *   condition is set. If the `when` condition is not set, this wont
+	 *   be used.
+	 * @param {Children} [props.children]
+	 * @returns {Children}
+	 * @url https://pota.quack.uy/Components/Router/Router
 	 */
-	const identity = x => x;
+	function Router(props) {
+	  addListeners();
+	  const parent = Context();
+	  const base = parent.base + replaceParams(
+	  // when <Router lacks a path prop is treated as the final route
+	  props.path === undefined ? '(|#.*)$' // ends with nothing or has a hash followed of stuff
+	  :
+	  // ends with nothing or has a hash followed of stuff
+	  props.path.replace('$', '(|#.*)$')
+	  // pathname always starts with /, make sure the hash is considered
+	  .replace(/^#/, '/#'), props.params);
+	  const route = new RegExp('^' + base.replace(/\:([a-z0-9_\-]+)/gi, '(?<$1>[^/#]+)'));
+	  let href = '';
+	  const [params, setParams] = signal(() => nothing);
+
+	  // derived
+	  const show = memo(() => {
+	    const path = location.path();
+	    if (route.test(path)) {
+	      setParams(() => route.exec(path).groups);
+	      if (href === '') {
+	        href = path.replace(path.replace(route, ''), '');
+	        // create full link
+	        href =
+	        // add origin
+	        origin$1 + (
+	        // add slash after origin if isnt present in the href
+	        href[0] !== '/' ? '/' : '') +
+	        // add the path
+	        href;
+	      }
+	      onDone(() => scroll(context));
+	      return true;
+	    } else {
+	      return false;
+	    }
+	  });
+	  const context = create({
+	    base,
+	    // the prefix for the children path
+	    href: () => href,
+	    // the full url of the route
+	    params,
+	    scroll: props.scroll,
+	    parent,
+	    show
+	  });
+	  parent.addChildren(context);
+	  cleanup(() => parent.removeChildren(context));
+	  return Component(Context.Provider, {
+	    value: context,
+	    children: Component(Dynamic, {
+	      component: props.collapse ? Collapse : Show,
+	      when: () => show() && optional(props.when),
+	      fallback: props.fallback,
+	      children: props.children
+	    })
+	  });
+	}
+
+	/**
+	 * Renders children when no sibling `Router` matches
+	 *
+	 * @param {object} props
+	 * @param {Children} [props.children]
+	 * @returns {Children}
+	 */
+	Router.Default = props => {
+	  const context = Context();
+	  return Component(Show, {
+	    when: context.noneMatch,
+	    children: props.children
+	  });
+	};
+
+	/*
+	 * // props
+	 * // props.href Url relative to the parent <Router/>
+	 * // props.params Key-value pair object params to replace in the url
+	 *   not scroll on location change
+	 * // props.replace Replace the history entry from the browser} props
+	 */
+
+	/**
+	 * Creates a link with Router features
+	 *
+	 * @param {{
+	 * 	href: string
+	 * 	params?: object
+	 * 	replace?: boolean
+	 * } & Props} props
+	 *
+	 * @returns {Children}
+	 * @url https://pota.quack.uy/Components/Router/A
+	 */
+
+	function A(props) {
+	  addListeners();
+	  let href = replaceParams(props.href, props.params);
+
+	  // make it absolute
+	  // link is relative to the <Route
+	  const base = Context().href();
+	  href = !isRelative(href[0]) || !base ? href : base.includes('/#') ?
+	  // making link dos/ relative to http://localhost:11433/#uno/
+	  // becomes http://localhost:11433/#uno/dos/
+	  base + href : new URL(href, base).href;
+	  return Component('a', {
+	    ...{
+	      ...props,
+	      href,
+	      params: undefined
+	    }
+	  });
+	}
+
+	/**
+	 * Creates a `setTimeout` that autodisposes. The `delay` could be
+	 * reactive. The timeout is NOT started automatically.
+	 *
+	 * @param {Function} callback - Callback to run once delay completes
+	 * @param {Signal | number} delay - Delay number or signal
+	 * @param {any[]} args - Arguments to pass to the callback
+	 * @returns {{ start: Function; stop: Function }}
+	 */
+	function useTimeout(callback, delay, ...args) {
+	  let id;
+	  const fn = {
+	    start: () => {
+	      withValue(delay, delay => {
+	        fn.stop();
+	        if (delay < Infinity) id = setTimeout(callback, delay, ...args);
+	      });
+	      return fn;
+	    },
+	    stop: () => clearTimeout(id)
+	  };
+	  cleanup(fn.stop);
+	  return fn;
+	}
+
+	/**
+	 * For dynamic imports. For `lazy` components see `lazy` instead. Used
+	 * as `load(()=>import('file.js'))`. It retries a couple of times on
+	 * network error. Scrolls the document to the hash of the url, or
+	 * fallbacks defined on the `<Route>` components.
+	 *
+	 * @param {() => Promise<any>} component - Import statement
+	 * @param {{
+	 * 	onLoading?: any
+	 * 	onLoaded?: Function
+	 * 	onError?: ((e: Error, retry: Function) => any) | any
+	 * }} [options]
+	 * @returns {Component}
+	 * @url https://pota.quack.uy/load
+	 */
+	function load(component, options = nothing) {
+	  const {
+	    onLoading,
+	    onLoaded,
+	    onError
+	  } = options;
+	  let tries = 0;
+	  return lazy(component, {
+	    onLoading,
+	    onError: (e, retry) => tries++ < 10 ? useTimeout(retry, 5000).start() && undefined : isFunction(onError) ? onError(e, retry) : onError,
+	    onLoaded: () => {
+	      let context = Context();
+	      scroll(context);
+
+	      // user function
+	      onLoaded && onLoaded();
+	    }
+	  });
+	}
 
 	/**
 	 * Renders the first child that matches the given `when` condition, or
@@ -2950,6 +3333,7 @@
 
 	var defaultRegistryTemplate = /*#__PURE__*/Object.freeze({
 		__proto__: null,
+		A: A,
 		Collapse: Collapse,
 		CustomElement: CustomElement,
 		Dynamic: Dynamic,
@@ -2957,12 +3341,35 @@
 		Head: Head,
 		Match: Match,
 		Portal: Portal,
+		Router: Router,
 		Show: Show,
 		Switch: Switch,
-		customElement: customElement
+		customElement: customElement,
+		load: load
 	});
 
 	const defaultRegistry = fromEntries(entries(defaultRegistryTemplate).map(([k, v]) => [k.toLowerCase(), v]));
+
+	// parseHTML
+
+	const id = 'pota';
+	const tag = `<pota></pota>`;
+
+	/**
+	 * Makes Nodes from TemplateStringsArray
+	 *
+	 * @param {TemplateStringsArray} content
+	 * @returns {Element}
+	 */
+	const parseHTML = withState((cache, content) => cache.get(content, content => {
+	  const template = createElement('template');
+	  template.innerHTML = content.join(tag).replaceAll(`"${tag}"`, `"${id}"`)
+	  // avoid double br when self-closing
+	  .replace(/<br\s*\/\s*>/g, '<br>')
+	  // self-close
+	  .replace(/<([a-z-]+)([^/>]*)\/\s*>/gi, '<$1 $2></$1>');
+	  return template.content;
+	}), weakStore);
 
 	/**
 	 * Function to create cached tagged template components
@@ -2994,7 +3401,7 @@
 	   */
 
 	  function html(template, ...values) {
-	    const cached = parse(template);
+	    const cached = parseHTML(template);
 	    let index = 0;
 	    function nodes(node) {
 	      // Node.ELEMENT_NODE
@@ -3014,9 +3421,9 @@
 	            value = values[index++];
 	          }
 	          if (name[0] === '.') {
-	            props['prop:' + camelCase(name.slice(1))] = value;
+	            props['prop:' + dashesToCamelCase(name.slice(1))] = value;
 	          } else if (name[0] === '?') {
-	            props['bool:' + name.slice(1)] = value;
+	            props['bool:' + dashesToCamelCase(name.slice(1))] = value;
 	          } else if (name[0] === '@') {
 	            props['on:' + name.slice(1)] = value;
 	          } else {
@@ -3046,126 +3453,6 @@
 	  return html;
 	}
 	const html = HTML();
-
-	/**
-	 * Runs an `effect` on an `html` template. Reacts to reactive
-	 * interpolated values, or to the reactivity used in the body of the
-	 * function you pass.
-	 *
-	 * @param {(html) => any} fn - Function to run as an effect. It
-	 *   receives `html` argument for template creation.
-	 * @param {object} [options]
-	 * @param {boolean} [options.unwrap] - To return a `Node/Element` or
-	 *   an array of `Node/Elements`. Defaults to `true`
-	 * @param {boolean} [options.updateTrigger] - To return an `update`
-	 *   function in case its desired to trigger updates manually.
-	 *   Defaults to `false`
-	 * @returns {Children}
-	 * @url https://pota.quack.uy/HTML
-	 */
-	const htmlEffect = (fn, options = {
-	  unwrap: true,
-	  updateTrigger: false
-	}) => {
-	  /** Copy the components from the global registry */
-	  const html_ = HTML(options);
-	  html_.components = html.components;
-	  const [get, set] = weakStore();
-	  const disposeHTMLEffect = [];
-	  function _html(template, ...values) {
-	    // when template is cached just update the signals
-	    let cached = get(template);
-	    if (cached) {
-	      /**
-	       * Purpose:
-	       *
-	       * 1. Track the `values` by reading, so we track the interpolated
-	       *    values.
-	       * 2. Aditionally, this will also rerun when reactive values used
-	       *    on the body of the function you pass to the effect
-	       *    update.
-	       * 3. Update the `signals` when `values` change.
-	       *
-	       * It batches changes so it updates the template in one shot
-	       */
-	      batch(() => {
-	        for (let key = 0; key < values.length; key++) {
-	          // getValue(value) causes tracking
-	          cached[0][key].write(values[key]);
-	        }
-	      });
-
-	      /**
-	       * It needs to return the result because when used unwrapped and
-	       * nesting (ex calling html twice inside the htmlEffect), the
-	       * second call will use the value of the first call. The result
-	       * is a reference to the nodes created before, so it always use
-	       * the same nodes, and reactivity on these nodes is live.
-	       *
-	       * ```js
-	       * htmlEffect(html => {
-	       * 	const ELEMENTS = html`<div>
-	       * 		double ${data.test * 2}
-	       * 	</div>`
-	       * 	// ^ these elements are needed in the next line
-	       * 	return html`<div>${data.test} ${ELEMENTS}</div>`
-	       * })
-	       * ```
-	       */
-	      return cached[1];
-	    }
-
-	    /**
-	     * Creates the html with `signals` in place of the interpolated
-	     * `values`. This is to avoid having to create the template more
-	     * than once. Once the template is created, then the only thing
-	     * that will update is the `signals`.
-	     *
-	     * It creates a root because when any of the `values` changes
-	     * inside the body of the function that you pass to `htmlEffect`,
-	     * or when the interpolated `values` change, it causes disposal
-	     * (aka removing the elements), and htmlEffect re-runs. To avoid
-	     * having the elements removed by the disposal of the body of your
-	     * own function we create a root.
-	     */
-	    const signals = [];
-	    let result;
-	    root(dispose => {
-	      disposeHTMLEffect.push(dispose);
-
-	      /**
-	       * HTML is created with the `signals` in place of the `values`.
-	       * Pota will add one effect for each signal. So this wont
-	       * re-run.
-	       */
-	      result = html_(template, ...values.map((value, key) => {
-	        signals[key] = signal(value);
-	        // give accesors to template instead of the `values`
-	        return signals[key].read;
-	      }));
-	    });
-
-	    // save the `signals` in the cached template
-	    set(template, [signals, result]);
-	    return result;
-	  }
-
-	  /**
-	   * This effect will re-run when the `values` interpolated change, or
-	   * when any signal that you use on the `htmlEffect` function body
-	   * change. It cause re-runs of what we are batching above.
-	   */
-
-	  const update = () => fn(_html);
-	  let result;
-	  syncEffect(() => {
-	    result = update();
-	  });
-
-	  /** Dispose the effect when whatever started it is disposed. */
-	  cleanup(() => callAll(disposeHTMLEffect));
-	  return options.updateTrigger ? [result, update] : result;
-	};
 
 	/**
 	 * Returns a `isSelected` function that will return `true` when the
@@ -3222,31 +3509,6 @@
 	    });
 	    return selected.read;
 	  };
-	}
-
-	/**
-	 * Creates a `setTimeout` that autodisposes. The `delay` could be
-	 * reactive. The timeout is NOT started automatically.
-	 *
-	 * @param {Function} callback - Callback to run once delay completes
-	 * @param {Signal | number} delay - Delay number or signal
-	 * @param {any[]} args - Arguments to pass to the callback
-	 * @returns {{ start: Function; stop: Function }}
-	 */
-	function useTimeout(callback, delay, ...args) {
-	  let id;
-	  const fn = {
-	    start: () => {
-	      withValue$1(delay, delay => {
-	        fn.stop();
-	        if (delay < Infinity) id = setTimeout(callback, delay, ...args);
-	      });
-	      return fn;
-	    },
-	    stop: () => clearTimeout(id)
-	  };
-	  cleanup(fn.stop);
-	  return fn;
 	}
 
 	let idCounter = 1;

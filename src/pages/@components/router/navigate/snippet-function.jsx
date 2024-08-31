@@ -1,4 +1,4 @@
-import { navigate } from 'pota/router'
+import { navigate } from 'pota/plugin/useLocation'
 
 function Example() {
 	navigate('/somewhere/:cat/:page', {

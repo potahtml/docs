@@ -94,7 +94,6 @@ export default function () {
 
 						const test = html\`<div><test/> div contents </div>\`
 
- 						console.log(test)
 
 						render(test)
  					`}
@@ -118,7 +117,6 @@ export default function () {
 
 						const test = html\`<div><test/> div contents</div>\`
 
- 						console.log(test)
 
 						render(test)
  					`}
@@ -172,7 +170,6 @@ export default function () {
 
 						setInterval(() => data.test++, 1000)
 
-						console.log(div)
 
 						render(div)
 
@@ -190,14 +187,12 @@ export default function () {
 						const data = signalify({ test: 0 })
 
 						const div = htmlEffect(html => {
-							console.log('re-running')
-							data.test
+ 							data.test
 						  return html\`<div>test</div>\`
 						})
 
 						setInterval(() => data.test++, 1000)
 
-						console.log(div)
 
 						render(div)
 
@@ -282,33 +277,22 @@ render(
 						const [read, write, update] = signal(0)
 
 						setInterval(() => {
-						  console.log('updating the signal')
-						  update(value => value + 1)
+ 						  update(value => value + 1)
 						}, 1000)
 
-						// to check if we are reusing nodes
-						const nodes = new Set()
 
 						function Component() {
 						  return htmlEffect(html => {
-						    console.log('running the effect')
-						    // VALUE
+ 						    // VALUE
 						    const value = html\`<div>value \${read()}</div>\`
-						    // log if we saw this node before
-						    console.log(value, nodes.has(value), value instanceof Node)
-						    nodes.add(value)
+
 
 						    // DOBLE
 						    const double = html\`<div>double \${read() * 2}</div>\`
-						    // log if we saw this node before
-						    console.log(double, nodes.has(double), double instanceof Node)
-						    nodes.add(double)
+
 
 						    // NEST
 						    const result = html\`<div>result  \${value} \${double}</div>\`
-						    // log if we saw this node before
-						    console.log(result, nodes.has(result), result instanceof Node)
-						    nodes.add(result)
 
 						    return result
 						  })
@@ -317,8 +301,7 @@ render(
 						const dispose = render(Component)
 
 						setTimeout(() => {
-						  console.log('disposing')
-						  dispose()
+ 						  dispose()
 						  render('disposed')
 						}, 5000)
 
@@ -344,7 +327,6 @@ render(
 
 						setInterval(() => data.test++, 1000)
 
-						console.log(div)
 
 						render(div)
 
@@ -360,7 +342,7 @@ render(
 				<Code
 					code={`
 						import { render } from 'pota'
-						import { HTML } from 'pota'
+						import { HTML } from 'pota/html'
 
 						const html1 = HTML({unwrap:false})
 
@@ -369,8 +351,6 @@ render(
 						const html2 = HTML({unwrap:true})
 
  						const aRealDiv = html2\`<div>div contents</div>\`
-
-						console.log([component, typeof component, aRealDiv, aRealDiv instanceof Node])
 
 						render([component, typeof component, aRealDiv, aRealDiv instanceof Node])
  					`}

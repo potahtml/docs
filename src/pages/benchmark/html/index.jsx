@@ -1,6 +1,6 @@
-import { render, signal, batch } from 'pota'
+import { batch, render, signal } from 'pota'
 import { html } from 'pota/html'
-import { useSelector } from 'pota/hooks'
+import { useSelector } from 'pota/plugin/useSelector'
 
 let idCounter = 1
 const adjectives = [

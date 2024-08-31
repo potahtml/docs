@@ -1,4 +1,5 @@
-import { render, signal, css } from 'pota'
+import { render, signal } from 'pota'
+import { css } from 'pota/std'
 import { Show } from 'pota/web'
 
 function App() {

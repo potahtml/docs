@@ -5,11 +5,11 @@ import {
   render,
 } from 'pota'
 
-// when `useClickOutside` is found on an element
+// when `clickOutside` is found on an element
 
-propsPlugin('useClickOutside', (node, propName, propValue, props) => {
+propsPlugin('clickOutside', (node, propName, propValue, props) => {
   // node = the element
-  // propName = 'useClickOutside'
+  // propName = 'clickOutside'
   // propValue = fn
   // props = props object
   addEventListener(
@@ -25,14 +25,14 @@ propsPlugin('useClickOutside', (node, propName, propValue, props) => {
 })
 
 propsPluginNS(
-  'useFancy',
+  'myFancy',
   (node, propName, propValue, props, localName, ns) => {
     // node = the element
-    // propName = 'useFancy:click'
+    // propName = 'myFancy:click'
     // propValue = fn
     // props = props object
     // localName = 'click'
-    // ns = 'useFancy'
+    // ns = 'myFancy'
 
     addEventListener(node, localName, propValue, false)
   },
@@ -43,10 +43,8 @@ propsPluginNS(
 function App() {
   return (
     <span
-      useClickOutside={event =>
-        render(<div>you clicked outside!</div>)
-      }
-      useFancy:click={event =>
+      clickOutside={event => render(<div>you clicked outside!</div>)}
+      myFancy:click={event =>
         render(<div>this click is very fancy!</div>)
       }
     >

@@ -1,19 +1,20 @@
 import { Code } from '../../lib/components/code/code.jsx'
-import { version } from 'pota'
 
 export const CompilerLess = (
   <Code
     code={`
 
   // pota - Compiler-less html example
-  // Note: standalone includes everything, you probably would want to import from the depths
 
   import {
     render,
     signal,
-    html,
     memo,
-  } from "https://cdn.jsdelivr.net/npm/pota@${version}/dist/standalone.js";
+  } from "pota";
+
+  import {
+    html,
+  } from "pota/html";
 
   function Counter() {
     const [count, setCount, updateCount] = signal(1);
@@ -25,7 +26,7 @@ export const CompilerLess = (
 
     return html\`<label>
       <button name="button" onClick="\${increment}">
-        <count />
+        <count /> / <double />
       </button>
       double is: <double />
     </label>\`;

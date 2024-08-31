@@ -41,7 +41,12 @@ export default function () {
 						</tr>
 						<tr>
 							<td>handler</td>
-							<td>fn </td>
+							<td>
+								fn |{' '}
+								{
+									'{handleEvent:fn, once?:bool, passive?:bool, etc?:bool}'
+								}
+							</td>
 							<td>handler to run once the event is triggered</td>
 						</tr>
 					</tbody>
@@ -80,7 +85,12 @@ export default function () {
 						</tr>
 						<tr>
 							<td>handler</td>
-							<td>fn</td>
+							<td>
+								fn |{' '}
+								{
+									'{handleEvent:fn, once?:bool, passive?:bool, etc?:bool}'
+								}
+							</td>
 							<td>
 								reference to the handler that has been added using{' '}
 								<mark>addEventListener</mark>

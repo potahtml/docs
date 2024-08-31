@@ -1,4 +1,4 @@
-import { A } from 'pota/router'
+import { A } from 'pota/web'
 
 function Menu() {
 	return (

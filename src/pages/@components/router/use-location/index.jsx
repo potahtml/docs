@@ -54,8 +54,18 @@ export default function () {
 							<td>signal</td>
 							<td>
 								A key-value pairs object with URI decoded values of{' '}
-								<mark>searchParams</mark> that it's only computed when
-								used, such:{' '}
+								<mark>searchParams</mark>, such:{' '}
+								<mark>
+									{'{'}search:'variété'{'}'}
+								</mark>
+							</td>
+						</tr>
+						<tr>
+							<td>params</td>
+							<td>fn</td>
+							<td>
+								A key-value pairs object with URI decoded values of{' '}
+								Router <mark>params</mark>, such:{' '}
 								<mark>
 									{'{'}search:'variété'{'}'}
 								</mark>

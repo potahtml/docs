@@ -254,6 +254,20 @@ export default function () {
 							</td>
 							<td>sets a css var in the element</td>
 						</tr>
+						<tr>
+							<td>
+								<mark>css</mark>
+							</td>
+							<td>
+								<mark>
+									{
+										'<span css="class{color:green} class:hover{color:red}"/>'
+									}
+								</mark>{' '}
+								becomes{' '}
+								<mark>{'<span class="class-styles-applied"/>'}</mark>
+							</td>
+						</tr>
 					</tbody>
 				</table>
 			</Section>

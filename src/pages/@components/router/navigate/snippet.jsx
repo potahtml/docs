@@ -1,4 +1,4 @@
-import { Navigate } from 'pota/router'
+import { Navigate } from 'pota/plugin/useLocation'
 
 function Example() {
 	return (

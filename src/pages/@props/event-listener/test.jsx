@@ -1,8 +1,8 @@
 import {
   addEventListener,
+  ref,
   removeEventListener,
   render,
-  ref,
 } from 'pota'
 
 function Example() {
@@ -23,6 +23,7 @@ function Example() {
       <button
         name="button"
         onClick={add}
+        onMount={add}
       >
         add event
       </button>
@@ -37,6 +38,15 @@ function Example() {
         ref={button}
       >
         click me
+      </button>
+      <button
+        name="button"
+        onClick={{
+          handleEvent: () => render('boo!'),
+          once: true,
+        }}
+      >
+        I work only once
       </button>
     </main>
   )

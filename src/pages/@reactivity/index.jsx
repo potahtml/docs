@@ -15,19 +15,24 @@ export default function () {
 				<Code
 					code={`
 						import {
-							signal,
-							memo,
-							root,
-							effect,
-							syncEffect,
-							syncEffect,
+							asyncEffect,
 							batch,
 							cleanup,
-							writable,
-							withOwner,
-							withValue,
+							effect,
+							isReactive,
+							Lazy,
+							lazy,
 							map,
-							owner,
+							memo,
+							owned,
+							ref,
+							resolve,
+							root,
+							signal,
+							syncEffect,
+							untrack,
+							withValue,
+							writable,
 						} from 'pota'
 					`}
 					render={false}
@@ -174,13 +179,13 @@ export default function () {
 						</tr>
 
 						<tr>
-							<td>withOwner</td>
-							<td>never</td>
-							<td>(fnToRun)=>fnToRun()</td>
+							<td>owned</td>
+							<td>fn</td>
+							<td>owned function</td>
 							<td>
 								returns a function that holds the owner on the scope.
-								If you call it by passing a function it will run the
-								function with that owner
+								If you call it will run the function you passed
+								initialy with that owner
 							</td>
 						</tr>
 						<tr>
@@ -193,12 +198,6 @@ export default function () {
 								effect that unwraps the value and pass it to the
 								function you defined
 							</td>
-						</tr>
-						<tr>
-							<td>owner</td>
-							<td>never</td>
-							<td>unknown</td>
-							<td>gets the owner as the reactive lib reports it</td>
 						</tr>
 						<tr>
 							<td>

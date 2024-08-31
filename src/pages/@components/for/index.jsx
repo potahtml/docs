@@ -25,6 +25,14 @@ export default function () {
 							<td>signal/iterable object </td>
 							<td>an iterable or a signal whose value is iterable</td>
 						</tr>
+						<tr>
+							<td>restoreFocus</td>
+							<td>boolean</td>
+							<td>
+								when moving items on a list that contains inputs may
+								cause focus lost
+							</td>
+						</tr>
 					</tbody>
 				</table>
 			</Section>
