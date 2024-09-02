@@ -1,7 +1,7 @@
 import { render } from 'pota'
+import { Router } from 'pota/web'
 
 import { location, navigate } from 'pota/plugin/useLocation'
-import { Router } from 'pota/web'
 
 function Example() {
 	return (
