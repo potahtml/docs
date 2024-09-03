@@ -2288,6 +2288,40 @@
 	}
 
 	/**
+	 * Renders reactive values from an signal that returns an Iterable
+	 * object
+	 *
+	 * @param {object} props
+	 * @param {Each} props.each
+	 * @param {boolean} [props.restoreFocus] - If the focused element
+	 *   moves it may lose focus
+	 * @param {Children} [props.children]
+	 * @returns {Children}
+	 * @url https://pota.quack.uy/Components/For
+	 */
+
+	const For = props => map(() => {
+	  props.restoreFocus && queue();
+	  return props.each;
+	}, makeCallback(props.children), true);
+	let queued;
+
+	// because re-ordering the elements trashes focus
+	function queue() {
+	  if (!queued) {
+	    queued = true;
+	    const active = activeElement();
+	    const scroll = documentElement.scrollTop;
+	    onFixes(() => {
+	      queued = false;
+	      // re-ordering the elements trashes focus
+	      active && active !== activeElement() && isConnected(active) && active.focus();
+	      documentElement.scrollTop = scroll;
+	    });
+	  }
+	}
+
+	/**
 	 * Returns a `isSelected` function that will return `true` when the
 	 * argument for it matches the original signal `value`.
 	 *
@@ -2344,40 +2378,6 @@
 	  };
 	}
 
-	/**
-	 * Renders reactive values from an signal that returns an Iterable
-	 * object
-	 *
-	 * @param {object} props
-	 * @param {Each} props.each
-	 * @param {boolean} [props.restoreFocus] - If the focused element
-	 *   moves it may lose focus
-	 * @param {Children} [props.children]
-	 * @returns {Children}
-	 * @url https://pota.quack.uy/Components/For
-	 */
-
-	const For = props => map(() => {
-	  props.restoreFocus && queue();
-	  return props.each;
-	}, makeCallback(props.children), true);
-	let queued;
-
-	// because re-ordering the elements trashes focus
-	function queue() {
-	  if (!queued) {
-	    queued = true;
-	    const active = activeElement();
-	    const scroll = documentElement.scrollTop;
-	    onFixes(() => {
-	      queued = false;
-	      // re-ordering the elements trashes focus
-	      active && active !== activeElement() && isConnected(active) && active.focus();
-	      documentElement.scrollTop = scroll;
-	    });
-	  }
-	}
-
 	var _div = createPartial("<div class='col-sm-6 smallpad'><button class='btn btn-primary btn-block' type=button></button></div>", {"0":1}, {"m":2}),
 	  _div2 = createPartial("<div class=container><div class=jumbotron><div class=row><div class=col-md-6><h1>pota Keyed</h1></div><div class=col-md-6><div class=row></div></div></div></div><table class='table table-hover table-striped test-data'><tbody></tbody></table><span class='preloadicon glyphicon glyphicon-remove' aria-hidden=true></span></div>", {"0":6,"1":7,"2":8}, {"m":9}),
 	  _tr = createPartial("<tr><td class=col-md-1></td><td class=col-md-4><a></a></td><td class=col-md-1><a><span class='glyphicon glyphicon-remove' aria-hidden=true></span></a></td><td class=col-md-6></td></tr>", {"2":3,"3":6}, {"m":7});
@@ -2392,11 +2392,11 @@
 	function buildData(count) {
 	  let data = new Array(count);
 	  for (let i = 0; i < count; i++) {
-	    const [label, setLabel] = signal(`${adjectives[_random(adjectives.length)]} ${colours[_random(colours.length)]} ${nouns[_random(nouns.length)]}`);
+	    const [label, setLabel, updateLabel] = signal(`${adjectives[_random(adjectives.length)]} ${colours[_random(colours.length)]} ${nouns[_random(nouns.length)]}`);
 	    data[i] = {
 	      id: idCounter++,
 	      label,
-	      setLabel
+	      updateLabel
 	    };
 	  }
 	  return data;
@@ -2412,15 +2412,15 @@
 	}]);
 	const _Button = createComponent(Button);
 	const App = () => {
-	  const [data, setData] = signal([]),
+	  const [data, setData, updateData] = signal([]),
 	    [selected, setSelected] = signal(null),
 	    run = () => setData(buildData(1000)),
 	    runLots = () => {
 	      setData(buildData(10000));
 	    },
-	    add = () => setData(d => [...d, ...buildData(1000)]),
+	    add = () => updateData(d => [...d, ...buildData(1000)]),
 	    update = () => batch(() => {
-	      for (let i = 0, d = data(), len = d.length; i < len; i += 10) d[i].setLabel(l => l + ' !!!');
+	      for (let i = 0, d = data(), len = d.length; i < len; i += 10) d[i].updateLabel(l => l + ' !!!');
 	    }),
 	    swapRows = () => {
 	      const d = data().slice();
@@ -2432,7 +2432,7 @@
 	      }
 	    },
 	    clear = () => setData([]),
-	    remove = id => setData(d => {
+	    remove = id => updateData(d => {
 	      const idx = d.findIndex(datum => datum.id === id);
 	      d.splice(idx, 1);
 	      return [...d];
@@ -2491,7 +2491,7 @@
 	          textContent: id
 	        }, {
 	          textContent: label,
-	          "prop:setSelected": id
+	          "prop:selectRow": id
 	        }, {
 	          "prop:removeRow": id
 	        }]);

@@ -1,9 +1,9 @@
 
 :: save changes
 
-rem call git add --all
-rem call git commit -m "update docs"
-rem call git push
+call git add --all
+call git commit -m "update docs"
+call git push
 
 call cpx -L ./** S:/www/quack.uy/client/pota.quack.uy/
 
