@@ -1111,7 +1111,8 @@
 	 * given for retrying the promise. All functions run with the original
 	 * owner, so it's `Context` friendly.
 	 *
-	 * @param {() => Promise<any>} fn - Function that returns a promise
+	 * @param {(() => Promise<any>) | Promise<any>} fn - Function that
+	 *   returns a promise
 	 * @param {{
 	 * 	onLoading?: any
 	 * 	onLoaded?: Function
@@ -1129,7 +1130,7 @@
 	  } = options;
 	  const [value, setValue] = signal(onLoading);
 	  const _onLoaded = owned(onLoaded);
-	  const retry = () => fn().then(r => {
+	  const retry = () => Promise.resolve(isFunction(fn) ? fn() : fn).then(r => {
 	    setValue(markComponent(() => {
 	      r = isObject(r) && r.default ? r.default : r;
 	      return isFunction(r) ? r(props) : r;

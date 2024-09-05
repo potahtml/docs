@@ -40,8 +40,8 @@ export default function () {
 					<tbody>
 						<tr>
 							<td>fn</td>
-							<td>fn</td>
-							<td>a function that returns a promise</td>
+							<td>fn/promise</td>
+							<td>a function that returns a promise or a promise</td>
 						</tr>
 						<tr>
 							<td>[options.onLoading]</td>
