@@ -1,4 +1,4 @@
-import { A } from 'pota/router'
+import { A } from 'pota/web'
 
 export default function Menu() {
 	return (
@@ -75,9 +75,9 @@ export default function Menu() {
 			</ul>
 			<h3>Components</h3>
 			<ul>
-				<li>
+				{/*<li>
 					<a href="/Components/Library/">Library</a>
-				</li>
+				</li>*/}
 				<li>
 					<h4>Flow</h4>
 					<ul>
@@ -136,8 +136,8 @@ export default function Menu() {
 						<li>
 							<A
 								href="/Components/Router/:page"
-								params={{ page: 'Route' }}
-								children="<Route/>"
+								params={{ page: 'Router' }}
+								children="<Router/>"
 							/>
 						</li>
 						<li>
@@ -149,35 +149,10 @@ export default function Menu() {
 						</li>
 						<li>
 							<A
-								href="/Components/Router/:page"
-								params={{ page: 'Navigate' }}
-							>
-								navigate
-							</A>
-						</li>
-
-						<li>
-							<A
-								href="/Components/Router/:page"
+								href="/plugin/:page"
 								params={{ page: 'useLocation' }}
 							>
 								useLocation
-							</A>
-						</li>
-						{/*<li>
-							<A
-								href="/Components/Router/:page"
-								params={{ page: 'useParams' }}
-							>
-								<s>useParams</s>
-							</A>
-						</li>*/}
-						<li>
-							<A
-								href="/Components/Router/:page"
-								params={{ page: 'useBeforeLeave' }}
-							>
-								useBeforeLeave
 							</A>
 						</li>
 					</ul>
@@ -211,60 +186,6 @@ export default function Menu() {
 								params={{ page: 'propsPlugin' }}
 							>
 								propsPlugin
-							</A>
-						</li>
-					</ul>
-				</li>
-
-				<li>
-					<h4>Plugins</h4>
-					<ul>
-						<li>
-							<A
-								href="/props/plugins/:page"
-								params={{ page: 'autofocus' }}
-							>
-								autofocus
-							</A>
-						</li>
-						<li>
-							<A
-								href="/props/plugins/:page"
-								params={{ page: 'bind' }}
-							>
-								bind
-							</A>
-						</li>
-						<li>
-							<A
-								href="/props/plugins/:page"
-								params={{ page: 'onClickOutside' }}
-							>
-								onClickOutside
-							</A>
-						</li>
-						<li>
-							<A
-								href="/props/plugins/:page"
-								params={{ page: 'pasteTextPlain' }}
-							>
-								pasteTextPlain
-							</A>
-						</li>
-						<li>
-							<A
-								href="/props/plugins/:page"
-								params={{ page: 'useClipboard' }}
-							>
-								useClipboard
-							</A>
-						</li>
-						<li>
-							<A
-								href="/props/plugins/:page"
-								params={{ page: 'useFullscreen' }}
-							>
-								useFullscreen
 							</A>
 						</li>
 					</ul>
@@ -367,6 +288,14 @@ export default function Menu() {
 						<li>
 							<A
 								href="/props/:page"
+								params={{ page: 'css' }}
+							>
+								css
+							</A>
+						</li>
+						<li>
+							<A
+								href="/props/:page"
 								params={{ page: 'setStyle' }}
 							>
 								setStyle
@@ -402,14 +331,83 @@ export default function Menu() {
 					</ul>
 				</li>
 			</ul>
-
-			<h4>Hooks</h4>
+			<h3>Plugins</h3>
 			<ul>
 				<li>
-					<a href="/hooks/useSelector">useSelector</a>
+					<A
+						href="/props/:page"
+						params={{ page: 'propsPlugin' }}
+					>
+						propsPlugin
+					</A>
 				</li>
 				<li>
-					<a href="/hooks/useTimeout">useTimeout</a>
+					<a href="/plugin/useSelector">useSelector</a>
+				</li>
+				<li>
+					<a href="/plugin/useTimeout">useTimeout</a>
+				</li>
+				<li>
+					<A
+						href="/plugin/:page"
+						params={{ page: 'useLocation' }}
+					>
+						useLocation
+					</A>
+				</li>
+				<li>
+					<h4>Props Plugins</h4>
+
+					<ul>
+						<li>
+							<A
+								href="/plugin/:page"
+								params={{ page: 'autofocus' }}
+							>
+								autofocus
+							</A>
+						</li>
+						<li>
+							<A
+								href="/plugin/:page"
+								params={{ page: 'bind' }}
+							>
+								bind
+							</A>
+						</li>
+						<li>
+							<A
+								href="/plugin/:page"
+								params={{ page: 'clickOutside' }}
+							>
+								clickOutside
+							</A>
+						</li>
+						<li>
+							<A
+								href="/plugin/:page"
+								params={{ page: 'pasteTextPlain' }}
+							>
+								pasteTextPlain
+							</A>
+						</li>
+						<li>
+							<A
+								href="/plugin/:page"
+								params={{ page: 'clipboard' }}
+							>
+								clipboard
+							</A>
+						</li>
+						<li>
+							<A
+								href="/plugin/:page"
+								params={{ page: 'fullscreen' }}
+							>
+								fullscreen
+							</A>
+						</li>
+					</ul>
 				</li>
 			</ul>
 		</>

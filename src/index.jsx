@@ -5,25 +5,17 @@ import './index.module.css'
 import stylesMenu from './menu.module.css'
 
 // components
-import Routes from './@routes.jsx'
 import Menu from './@menu.jsx'
+import Routes from './@routes.jsx'
 
 // misc
 import { Bench } from './lib/components/bench/bench.jsx'
 
 // app
 import { render } from 'pota'
-import { useLocation } from 'pota/router'
 
-const location = useLocation()
-
-window.addEventListener('resize', () => {
-	document.querySelector('#menu').style.display = window.matchMedia(
-		'(max-width: 750px)',
-	).matches
-		? 'none'
-		: 'inherit'
-})
+import { onDocumentSize } from 'pota/plugin/useDocumentSize'
+import { location } from 'pota/plugin/useLocation'
 
 render(
 	() => {
@@ -58,6 +50,11 @@ render(
 					id="menu"
 					flair="grow col"
 					class={'menu ' + stylesMenu.menu}
+					onMount={menu =>
+						onDocumentSize(e => {
+							menu.style.display = e.width < 750 ? 'none' : 'inherit'
+						})
+					}
 				>
 					<nav flair="grow col scroll-y scroll-thin">
 						<Menu />

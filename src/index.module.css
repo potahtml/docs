@@ -209,6 +209,10 @@ article h4 a {
 	color: #e16a6a;
 }
 
+:global .warning {
+	color: #e16a6a;
+}
+
 :global .hidden {
 	display: none;
 }

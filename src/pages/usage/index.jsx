@@ -1,5 +1,3 @@
-import { version } from 'pota'
-
 import { Header } from '../../lib/components/header.jsx'
 import { Section } from '../../lib/components/section.jsx'
 import { CompilerLess } from '../html/compiler-less.jsx'
@@ -52,8 +50,9 @@ export default function () {
 
 			<Section title="Babel Preset">
 				<p>
-					pota provides a customized babel preset for transforming
-					JSX.
+					pota provides an optimized and customized babel preset for
+					transforming JSX in a <em>better</em> way, but you may use{' '}
+					<mark>tsc</mark> <mark>transform-react-jsx</mark>.
 				</p>
 				<code>
 					<pre>{'presets: [["pota/babel-preset"]]'}</pre>
@@ -69,27 +68,6 @@ cd pota-project
 npm install --include=dev
 npm run dev
 npm run serve`}
-					</pre>
-				</code>
-			</Section>
-
-			<Section title="CDN">
-				<p>
-					<a href="https://www.jsdelivr.com/">jsdelivr</a> kindly
-					provides a cdn for standalone files. `standalone` includes
-					everything, you probably want to import from the depths of
-					the lib instead.
-				</p>
-				<code>
-					<pre>
-						{`
-https://cdn.jsdelivr.net/npm/pota@${version}/dist/standalone.js
-https://cdn.jsdelivr.net/npm/pota@${version}/dist/standalone.no-min.js
- `
-							.split('\n')
-							.map(item => item.trim())
-							.join('\n')
-							.trim()}
 					</pre>
 				</code>
 			</Section>

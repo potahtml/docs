@@ -2,6 +2,7 @@ import { CheatSheet } from '../lib/components/cheatsheet.jsx'
 import { Code } from '../lib/components/code/code.jsx'
 import { Header } from '../lib/components/header.jsx'
 import { Section } from '../lib/components/section.jsx'
+import defaultExample from './@playground/default-example.js'
 
 import { CompilerLess } from './html/compiler-less.jsx'
 
@@ -48,30 +49,7 @@ export default function Home() {
 			</p>
 
 			<Section title="The Gist">
-				<Code
-					code={`
-
-import { render, signal } from 'pota'
-
-function Counter() {
-  const [count, setCount, updateCount] = signal(1)
-  const increment = () => updateCount(count => count + 1)
-
-  return (
-    <label>
-      <button
-        name="button"
-        onClick={increment}
-      >
-        {count}
-      </button>
-    </label>
-  )
-}
-
-render(Counter)
-`}
-				>
+				<Code code={defaultExample}>
 					The signal is used as function <mark>{'{count}'}</mark>{' '}
 					rather than as a value <mark>{'{count()}'}</mark>.
 				</Code>
@@ -162,6 +140,7 @@ render(Counter)
 					<a href="https://github.com/boredofnames">@boredofnames</a>
 				</p>
 			</Section>
+
 			<footer>
 				<small>-- Tito</small>
 			</footer>
