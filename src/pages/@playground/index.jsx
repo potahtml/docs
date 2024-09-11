@@ -71,7 +71,10 @@ export default function () {
 			<Header title="Playground"></Header>
 
 			<section flair="row grow full">
-				<section flair="row grow">
+				<section
+					style="width:70%"
+					flair="row grow"
+				>
 					<Collapse when={() => tab() === 'importmap'}>
 						<Monaco
 							code={() => source().importmap}
@@ -91,8 +94,14 @@ export default function () {
 						/>
 					</Collapse>
 				</section>
-				<section flair="col grow">
-					<section class={styles.toolbar}>
+				<section
+					style="width:30%"
+					flair="col grow"
+				>
+					<section
+						class={styles.toolbar}
+						flair="row"
+					>
 						<span>
 							<a
 								href="javascript://"
@@ -109,6 +118,7 @@ export default function () {
 								Import Map
 							</a>
 						</span>
+
 						<span>
 							<label
 								flair="selection-none"
@@ -124,15 +134,14 @@ export default function () {
 							</label>
 						</span>
 					</section>
-					<Code
-						code={() => autorun() && source()}
-						render={true}
-						preview={false}
-					/>
-
-					<br />
-
-					<section flair="scroll-y scroll-thin grow col">
+					<section flair="row">
+						<Code
+							code={() => autorun() && source()}
+							render={true}
+							preview={false}
+						/>
+					</section>
+					<section flair="row grow scroll">
 						<CheatSheet />
 					</section>
 				</section>

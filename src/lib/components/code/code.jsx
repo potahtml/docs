@@ -46,13 +46,17 @@ export function Code(props) {
 	const frame = ref()
 
 	return (
-		<section class={styles.container}>
-			<figure>
+		<section
+			class={styles.container}
+			flair="col grow"
+		>
+			<figure flair="col grow">
 				<Show when={props.preview !== false}>
 					<Preview
-						code={code}
+						code={code()}
 						setCode={setCode}
 						editable={props.render !== false}
+						scroll={props.scroll}
 					/>
 				</Show>
 				<Show when={props.render !== false}>
@@ -63,39 +67,44 @@ export function Code(props) {
 				</Show>
 
 				<Show when={props.children}>
-					<figcaption flair="text-multiline">
+					<figcaption flair="text-multiline width">
 						{props.children}
 					</figcaption>
 				</Show>
 			</figure>
 			<Show when={props.render !== false}>
-				<aside>
-					<a
-						href="javascript://"
-						onClick={() => frame().contentWindow.location.reload()}
-					>
-						re-run
-					</a>
-					{' / '}
-					<span class="no-playground">
+				<aside flair="grow row right">
+					<div>
 						<a
 							href="javascript://"
-							onClick={() => window.open('/playground#' + codeURL())}
+							onClick={() => frame().contentWindow.location.reload()}
 						>
-							open in playground
+							re-run
 						</a>
 						{' / '}
-					</span>
-					<a
-						href="javascript://"
-						onClick={() =>
-							window.open(
-								'/pages/@playground/preview/index.html#' + codeURL(),
-							)
-						}
-					>
-						open in blank
-					</a>
+						<span class="no-playground">
+							<a
+								href="javascript://"
+								onClick={() =>
+									window.open('/playground#' + codeURL())
+								}
+							>
+								open in playground
+							</a>
+							{' / '}
+						</span>
+						<a
+							href="javascript://"
+							onClick={() =>
+								window.open(
+									'/pages/@playground/preview/index.html#' +
+										codeURL(),
+								)
+							}
+						>
+							open in blank
+						</a>
+					</div>
 				</aside>
 			</Show>
 		</section>
@@ -104,21 +113,20 @@ export function Code(props) {
 
 function Preview(props) {
 	return globalThis.prettier
-		.format(props.code(), {
+		.format(props.code, {
 			plugins: [
 				globalThis.prettierPluginBabel,
 				globalThis.prettierPluginEstree,
 			],
 			...prettierConfig,
 		})
-
 		.then(code => (
 			<section
 				class={styles.shikiContainer}
 				bool:editable={props.editable}
 			>
 				<section
-					flair="scroll"
+					attr:flair={props.scroll === false ? 'no-scroll' : 'scroll'}
 					class={styles.shiki}
 				>
 					<shiki-textarea
@@ -126,10 +134,10 @@ function Preview(props) {
 						theme="monokai"
 						value={code}
 						stylesheet={shikiStyleSheet}
-						onInput={e => props.setCode(e.target.value)}
+						onInput={e => {
+							props.setCode(e.target.value)
+						}}
 						editable={props.editable ? true : false}
-						var:width="100%"
-						var:height="100%"
 					/>
 				</section>
 			</section>

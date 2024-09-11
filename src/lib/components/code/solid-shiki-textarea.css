@@ -6,3 +6,7 @@ code * {
 .editor {
 	background: transparent;
 }
+
+.container .textarea::selection {
+	background: #2a374a;
+}

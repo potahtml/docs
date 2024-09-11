@@ -4,6 +4,7 @@ export const CheatSheet = (
 	<Code
 		render={false}
 		preview={true}
+		scroll={false}
 		code={`// CHEATSHEET
 import {
 // rendering

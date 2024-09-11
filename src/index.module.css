@@ -69,6 +69,7 @@ blockquote a {
 table {
 	margin-bottom: 20px;
 	margin-top: 10px;
+	width: 100%;
 }
 thead {
 	position: sticky;
@@ -118,9 +119,7 @@ article {
 
 	font-size: 110%;
 }
-article section {
-	padding-right: 8px;
-}
+
 /* design */
 article::before {
 	content: 'pota';

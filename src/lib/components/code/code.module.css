@@ -9,10 +9,7 @@
 	border: 1px solid rgba(5, 134, 234, 0.2);
 	margin-bottom: 10px;
 	position: relative;
-}
-.container,
-.container section {
-	/*padding-right: 0px;*/
+	width: 100%;
 }
 
 .frame {
@@ -46,12 +43,12 @@ figcaption mark {
 shiki-textarea {
 	font-size: 18px;
 	line-height: 1.25;
+	padding: 20px;
+	background: transparent;
 }
 
 .shikiContainer {
 	position: relative;
-
-	padding: 15px;
 
 	background: #11161d;
 }
@@ -61,11 +58,10 @@ shiki-textarea {
 	content: 'Editable';
 	display: inline-block;
 	font-size: small;
-	padding: 10px;
 	pointer-events: none;
 	position: absolute;
-	right: 30px;
-	bottom: 30px;
+	right: 20px;
+	bottom: 20px;
 	z-index: 2;
 }
 
@@ -75,11 +71,13 @@ shiki-textarea {
 	position: relative;
 
 	resize: both;
-	/*overflow: auto;*/
 
-	min-height: 52px;
-	max-height: 800px;
+	max-height: 810px;
 	min-width: 100%;
+}
+.shiki[flair~='no-scroll'] {
+	max-height: none;
+	overflow-y: auto;
 }
 
 /* links */
