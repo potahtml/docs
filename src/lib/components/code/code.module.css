@@ -1,53 +1,33 @@
-pre {
-	background: #11161d !important;
-	outline: 0;
-	padding: 15px !important;
-}
+/* container */
 
-pre * {
-	text-decoration: initial !important;
-	font-style: normal !important;
-}
-code {
-	resize: both;
-	min-height: 52px;
-	line-height: 1.25;
-}
-.code {
+.container {
 	position: relative;
 	padding-bottom: 1px;
+	padding-right: 0px;
 }
-.code figure {
+.container figure {
 	border: 1px solid rgba(5, 134, 234, 0.2);
 	margin-bottom: 10px;
+	position: relative;
 }
-.code,
-.code section {
-	padding-right: 0px;
+.container,
+.container section {
+	/*padding-right: 0px;*/
 }
 
 .frame {
 	background: #0d1117;
+	padding: 15px;
 }
 
-.code aside {
-	font-size: small;
-	max-width: 100%;
-	opacity: 0.7;
-	padding: 0;
-	text-align: right;
-	margin-top: 5px;
-	display: block;
-	margin-bottom: 10px;
-}
-.code aside a {
-	border: 0;
+.frameContainer {
+	padding: 15px;
 }
 iframe {
 	height: auto;
-	min-height: 57px;
-	max-width: calc(100% - 1px);
+	width: calc(100% - 1px);
 }
+
 figcaption {
 	padding: 15px;
 	background: #171f26;
@@ -57,13 +37,70 @@ figcaption {
 figcaption:empty {
 	display: none;
 }
-
 figcaption mark {
 	background: #0d1117c9;
 }
+
+/* shiki */
+
+shiki-textarea {
+	font-size: 18px;
+	line-height: 1.25;
+}
+
+.shikiContainer {
+	position: relative;
+
+	padding: 15px;
+
+	background: #11161d;
+}
+
+.shikiContainer[editable]::after {
+	color: #ffffff61;
+	content: 'Editable';
+	display: inline-block;
+	font-size: small;
+	padding: 10px;
+	pointer-events: none;
+	position: absolute;
+	right: 30px;
+	bottom: 30px;
+	z-index: 2;
+}
+
+.shiki {
+	background: #11161d;
+
+	position: relative;
+
+	resize: both;
+	/*overflow: auto;*/
+
+	min-height: 52px;
+	max-height: 800px;
+	min-width: 100%;
+}
+
+/* links */
+
+.container aside {
+	font-size: small;
+	max-width: 100%;
+	opacity: 0.7;
+	padding: 0;
+	text-align: right;
+	margin-top: 5px;
+	margin-bottom: 10px;
+}
+.container aside a {
+	border: 0;
+}
+
+/* marks */
 mark {
 	background: rgb(32 41 54);
-	word-break: keep-all;
+	word-break: break-all;
 	white-space: pre-wrap;
 }
 
@@ -72,20 +109,4 @@ mark::after {
 }
 mark::before {
 	content: '`';
-}
-
-.code div[contenteditable='true'] {
-	position: relative;
-	outline: 0;
-	padding-bottom: 2px;
-}
-
-.code div[contenteditable='true']::after {
-	content: 'Editable';
-	font-size: small;
-	opacity: 0.7;
-	position: absolute;
-	bottom: 10px;
-	right: 10px;
-	pointer-events: none;
 }

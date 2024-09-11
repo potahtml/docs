@@ -11,7 +11,7 @@ function Counter() {
 
   // jsx
   const jsx = (
-    <button name="button" onClick={increment}>
+    <button onClick={increment}>
       jsx {count} / {double}
     </button>
   )
@@ -25,7 +25,7 @@ function Counter() {
   vanilla.onclick = increment
 
   // html
-  const htm = html\`<button name="button" onclick="\${increment}">
+  const htm = html\`<button onclick="\${increment}">
      html \${count} / \${double}
     </button>\`
 

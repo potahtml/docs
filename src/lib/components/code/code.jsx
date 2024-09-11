@@ -1,12 +1,20 @@
 import styles from './code.module.css'
 
 import { effect, memo, ref, signal } from 'pota'
-import { getValue } from 'pota/std'
+import { getValue, sheet } from 'pota/std'
 import { Show } from 'pota/web'
 import { compress } from '../../compress.js'
 import { prettierConfig } from '../../prettier-config.js'
 
 import 'pota/plugin/pasteTextPlain'
+
+import { setCDN } from 'solid-shiki-textarea/custom-element'
+
+setCDN('/assets/shiki')
+
+import shikicss from './solid-shiki-textarea.css?raw'
+
+const shikiStyleSheet = sheet(shikicss)
 
 export function Code(props) {
 	if (props.url) {
@@ -38,7 +46,7 @@ export function Code(props) {
 	const frame = ref()
 
 	return (
-		<section class={styles.code}>
+		<section class={styles.container}>
 			<figure>
 				<Show when={props.preview !== false}>
 					<Preview
@@ -53,6 +61,7 @@ export function Code(props) {
 						frame={frame}
 					/>
 				</Show>
+
 				<Show when={props.children}>
 					<figcaption flair="text-multiline">
 						{props.children}
@@ -102,21 +111,28 @@ function Preview(props) {
 			],
 			...prettierConfig,
 		})
-		.then(code =>
-			globalThis.shiki.then(highlighter =>
-				highlighter.codeToHtml(code, {
-					lang: 'js',
-				}),
-			),
-		)
+
 		.then(code => (
-			<div
-				contentEditable={props.editable ? true : false}
-				spellcheck={false}
-				onInput={e => props.setCode(e.target.innerText)}
-				innerHTML={code}
-				pasteTextPlain
-			/>
+			<section
+				class={styles.shikiContainer}
+				bool:editable={props.editable}
+			>
+				<section
+					flair="scroll"
+					class={styles.shiki}
+				>
+					<shiki-textarea
+						lang="jsx"
+						theme="monokai"
+						value={code}
+						stylesheet={shikiStyleSheet}
+						onInput={e => props.setCode(e.target.value)}
+						editable={props.editable ? true : false}
+						var:width="100%"
+						var:height="100%"
+					/>
+				</section>
+			</section>
 		))
 }
 
@@ -143,6 +159,7 @@ function Render(props) {
 				return new Promise(resolve =>
 					resolve(
 						<iframe
+							loading="lazy"
 							title="Live Code Example"
 							name="Live Code Example"
 							ref={props.frame}

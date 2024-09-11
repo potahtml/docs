@@ -1,7 +1,7 @@
 {
 	"name": "pota-docs",
 	"description": "pota docs",
-	"version": "0.1.4",
+	"version": "0.1.5",
 	"author": "Tito Bouzout",
 	"type": "module",
 	"homepage": "https://pota.quack.uy/",
@@ -13,7 +13,8 @@
 		"dom-flair": "^6.0.56",
 		"fflate": "^0.8.2",
 		"kompiler": "^7.0.157",
-		"shiki": "^1.16.3"
+		"pota": "^0.14.133",
+		"solid-shiki-textarea": "^0.1.6"
 	},
 	"kompiler": {
 		"watch": ["../pota/babel-preset"],

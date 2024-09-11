@@ -1,0 +1,8 @@
+code,
+code * {
+	text-decoration: initial !important;
+	font-style: normal !important;
+}
+.editor {
+	background: transparent;
+}

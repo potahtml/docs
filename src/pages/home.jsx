@@ -103,10 +103,7 @@ export default function Home() {
 				</ol>
 			</Section>
 
-			<Section
-				title="All In One"
-				style="height:250px;overflow:scroll"
-			>
+			<Section title="All In One">
 				<CheatSheet />
 			</Section>
 			<Section title="Why">

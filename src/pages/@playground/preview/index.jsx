@@ -5,22 +5,27 @@ import { uncompress } from '../../../lib/compress.js'
 // auto size frame to content
 
 let resizeObserverTimeout
-new ResizeObserver(entries => {
+
+function resize() {
 	if (
-		document.body.scrollHeight > 20 &&
-		document.body.scrollHeight < 600
+		document.documentElement.offsetHeight > 20 &&
+		document.documentElement.offsetHeight < 600
 	) {
 		clearTimeout(resizeObserverTimeout)
 		resizeObserverTimeout = setTimeout(() => {
 			window.parent.postMessage(
 				JSON.stringify({
-					height: document.body.scrollHeight,
+					height: document.documentElement.offsetHeight,
 				}),
 				'*',
 			)
 		}, 80)
 	}
-}).observe(document.body)
+}
+
+new ResizeObserver(resize).observe(document.body)
+new ResizeObserver(resize).observe(document.documentElement)
+setTimeout(resize, 0)
 
 // props
 
