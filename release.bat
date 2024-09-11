@@ -6,7 +6,7 @@ call git commit -m "update docs"
 call git push
 
 call cpx -L -v ./src/** S:/www/quack.uy/client/pota.quack.uy/
-call cpx -L -v ./node_modules/pota/** S:/www/quack.uy/client/pota.quack.uy/node_modules/pota/
+call cpx -L -v ./node_modules/pota/**/!(node_modules) S:/www/quack.uy/client/pota.quack.uy/node_modules/pota/
 
 :: save changes on pota.quack.uy
 
