@@ -130,7 +130,7 @@ function Preview(props) {
 					class={styles.shiki}
 				>
 					<shiki-textarea
-						lang="jsx"
+						language="jsx"
 						theme="monokai"
 						value={code}
 						stylesheet={shikiStyleSheet}
@@ -167,7 +167,7 @@ function Render(props) {
 				return new Promise(resolve =>
 					resolve(
 						<iframe
-							loading="lazy"
+							/*loading="lazy"*/
 							title="Live Code Example"
 							name="Live Code Example"
 							ref={props.frame}

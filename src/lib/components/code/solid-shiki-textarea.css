@@ -3,10 +3,3 @@ code * {
 	text-decoration: initial !important;
 	font-style: normal !important;
 }
-.root {
-	background: transparent;
-}
-
-.container .textarea::selection {
-	background: #2a374a;
-}

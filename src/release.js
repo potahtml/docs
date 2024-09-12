@@ -15,7 +15,7 @@ __PLUGIN__,
 
 __LIB__,
 
-"x/articles/": "/pages/%40articles/"
+"x/articles/": "/pages/@articles/"
 	}
 }\``
 

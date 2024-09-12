@@ -44,6 +44,10 @@ export function H2(props) {
 						content={window.location.href}
 					/>
 					<meta
+						property="og:title"
+						content={props.title + ' pota'}
+					/>
+					<meta
 						name="description"
 						content={description}
 					/>

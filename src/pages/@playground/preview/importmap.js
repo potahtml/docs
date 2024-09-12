@@ -50,7 +50,7 @@ function addImportmap() {
 "pota/std": "/node_modules/pota/src/lib/std.js",
 "pota/store": "/node_modules/pota/src/lib/store.js",
 
-"x/articles/": "/pages/%40articles/"
+"x/articles/": "/pages/@articles/"
 	}
 }`/* IMPORT MAP REPLACER */
 

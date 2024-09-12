@@ -5,8 +5,8 @@ call git add --all
 call git commit -m "update docs"
 call git push
 
-call cpx -L -v ./src/** S:/www/quack.uy/client/pota.quack.uy/
-call cpx -L -v ./node_modules/pota/**/!(node_modules) S:/www/quack.uy/client/pota.quack.uy/node_modules/pota/
+:: call cpx -L -v ./src/** S:/www/quack.uy/client/pota.quack.uy/
+:: call cpx -L -v ./node_modules/pota/**/!(node_modules) S:/www/quack.uy/client/pota.quack.uy/node_modules/pota/
 
 :: save changes on pota.quack.uy
 
@@ -16,4 +16,6 @@ call git commit -m "update pota docs"
 call git push
 
 cd /D S:/www/quack.uy/client/pota.quack.uy/
-tar.exe -c -f ../pota.quack.uy.zip ./*
+del localhost.zip
+mpa http://localhost:11433/
+:: tar.exe -c -f ../pota.quack.uy.zip ./*
