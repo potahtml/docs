@@ -14,7 +14,7 @@ export default function () {
 					github pota templates
 				</a>
 				. Feel free to send improvements!. The recommended way to use
-				this package is with rollup, unless you can handle vite
+				this package is with <b>rollup</b>, unless you can handle vite
 				idiosyncrasies.
 			</Header>
 
@@ -37,9 +37,8 @@ export default function () {
 
 			<Section title="Typescript">
 				<p>
-					Please keep in mind this template may needs a tweak. I
-					personally do not do TypeScript. The typings on the lib are
-					a work in progress
+					Please keep in mind this template may needs a tweak. The
+					typings on the lib are a work in progress
 				</p>
 
 				<shiki-textarea
@@ -61,8 +60,13 @@ export default function () {
 			<Section title="Babel Preset">
 				<p>
 					pota provides an optimized and customized babel preset for
-					transforming JSX in a <em>better</em> way, but you may use{' '}
-					<mark>tsc</mark> <mark>transform-react-jsx</mark>.
+					transforming JSX in a <em>better</em> way, inspired by{' '}
+					<a href="https://github.com/ryansolid/dom-expressions">
+						dom-expressions
+					</a>
+					, but you may use <mark>tsc</mark>,{' '}
+					<mark>transform-react-jsx</mark> or any transform that
+					somewhat follows react way.
 				</p>
 				<shiki-textarea
 					class="nice"
@@ -78,7 +82,7 @@ export default function () {
 			</Section>
 
 			<Section title="Rollup">
-				<p>Very customizable, recommended!</p>
+				<p>Very customizable, you are in control, recommended!</p>
 
 				<shiki-textarea
 					class="nice"
