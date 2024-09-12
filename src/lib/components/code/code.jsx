@@ -6,7 +6,7 @@ import { Show } from 'pota/web'
 import { compress } from '../../compress.js'
 import { prettierConfig } from '../../prettier-config.js'
 
-import 'pota/plugin/pasteTextPlain'
+import './shiki-textarea.css'
 
 import { setCDN } from 'solid-shiki-textarea/custom-element'
 

@@ -1,6 +1,9 @@
 import { Header } from '../../lib/components/header.jsx'
 import { Section } from '../../lib/components/section.jsx'
 import { CompilerLess } from '../html/compiler-less.jsx'
+import { setCDN } from 'solid-shiki-textarea/custom-element'
+
+import '../../lib/components/code/shiki-textarea.css'
 
 export default function () {
 	return (
@@ -17,15 +20,19 @@ export default function () {
 
 			<Section title="JavaScript">
 				<code>
-					<pre>
-						npx degit potahtml/templates/js pota-project
-						<br />
+					<shiki-textarea
+						class="nice"
+						language="shellscript"
+						theme="monokai"
+						value={`npx degit potahtml/templates/js pota-project
 						cd pota-project
-						<br />
 						npm install --include=dev
-						<br />
-						npm run dev
-					</pre>
+						npm run dev`
+							.split('\n')
+							.map(s => s.trim())
+							.join('\n')}
+						editable={false}
+					/>
 				</code>
 			</Section>
 
@@ -36,15 +43,19 @@ export default function () {
 					a work in progress
 				</p>
 				<code>
-					<pre>
-						npx degit potahtml/templates/ts pota-project
-						<br />
+					<shiki-textarea
+						class="nice"
+						language="shellscript"
+						theme="monokai"
+						value={`npx degit potahtml/templates/ts pota-project
 						cd pota-project
-						<br />
 						npm install --include=dev
-						<br />
-						npm run dev
-					</pre>
+						npm run dev`
+							.split('\n')
+							.map(s => s.trim())
+							.join('\n')}
+						editable={false}
+					/>
 				</code>
 			</Section>
 
@@ -54,22 +65,35 @@ export default function () {
 					transforming JSX in a <em>better</em> way, but you may use{' '}
 					<mark>tsc</mark> <mark>transform-react-jsx</mark>.
 				</p>
-				<code>
-					<pre>{'presets: [["pota/babel-preset"]]'}</pre>
-				</code>
+				<shiki-textarea
+					class="nice"
+					language="jsx"
+					theme="monokai"
+					value={`{babel:{presets: [["pota/babel-preset"]]}}`
+						.split('\n')
+						.map(s => s.trim())
+						.join('\n')}
+					editable={false}
+				/>
 			</Section>
 
 			<Section title="Rollup">
 				<p>Very customizable, recommended!</p>
-				<code>
-					<pre>
-						{`npx degit potahtml/templates/rollup pota-project
+
+				<shiki-textarea
+					class="nice"
+					language="shellscript"
+					theme="monokai"
+					value={`npx degit potahtml/templates/rollup pota-project
 cd pota-project
 npm install --include=dev
 npm run dev
-npm run serve`}
-					</pre>
-				</code>
+npm run serve`
+						.split('\n')
+						.map(s => s.trim())
+						.join('\n')}
+					editable={false}
+				/>
 			</Section>
 
 			<Section title="Compiler-less">
