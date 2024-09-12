@@ -12,6 +12,10 @@ shiki-textarea {
 	min-height: 100%;
 	min-width: 100%;
 }
+shiki-textarea.nice {
+	min-height: unset;
+}
+
 shiki-textarea::part(root) {
 	padding: 20px;
 	background: transparent;

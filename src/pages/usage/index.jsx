@@ -19,21 +19,20 @@ export default function () {
 			</Header>
 
 			<Section title="JavaScript">
-				<code>
-					<shiki-textarea
-						class="nice"
-						language="shellscript"
-						theme="monokai"
-						value={`npx degit potahtml/templates/js pota-project
+				<shiki-textarea
+					class="nice"
+					language="shellscript"
+					theme="monokai"
+					value={`npx degit potahtml/templates/js pota-project
 						cd pota-project
 						npm install --include=dev
 						npm run dev`
-							.split('\n')
-							.map(s => s.trim())
-							.join('\n')}
-						editable={false}
-					/>
-				</code>
+						.split('\n')
+						.map(s => s.trim())
+						.join('\n')
+						.trim()}
+					editable={false}
+				/>
 			</Section>
 
 			<Section title="Typescript">
@@ -42,21 +41,21 @@ export default function () {
 					personally do not do TypeScript. The typings on the lib are
 					a work in progress
 				</p>
-				<code>
-					<shiki-textarea
-						class="nice"
-						language="shellscript"
-						theme="monokai"
-						value={`npx degit potahtml/templates/ts pota-project
+
+				<shiki-textarea
+					class="nice"
+					language="shellscript"
+					theme="monokai"
+					value={`npx degit potahtml/templates/ts pota-project
 						cd pota-project
 						npm install --include=dev
 						npm run dev`
-							.split('\n')
-							.map(s => s.trim())
-							.join('\n')}
-						editable={false}
-					/>
-				</code>
+						.split('\n')
+						.map(s => s.trim())
+						.join('\n')
+						.trim()}
+					editable={false}
+				/>
 			</Section>
 
 			<Section title="Babel Preset">
@@ -72,7 +71,8 @@ export default function () {
 					value={`{babel:{presets: [["pota/babel-preset"]]}}`
 						.split('\n')
 						.map(s => s.trim())
-						.join('\n')}
+						.join('\n')
+						.trim()}
 					editable={false}
 				/>
 			</Section>
@@ -91,7 +91,8 @@ npm run dev
 npm run serve`
 						.split('\n')
 						.map(s => s.trim())
-						.join('\n')}
+						.join('\n')
+						.trim()}
 					editable={false}
 				/>
 			</Section>
