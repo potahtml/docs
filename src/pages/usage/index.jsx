@@ -20,7 +20,7 @@ export default function () {
 					class="nice"
 					language="shellscript"
 					theme="monokai"
-					value={`npx degit potahtml/templates/js pota-project
+					code={`npx degit potahtml/templates/js pota-project
 						cd pota-project
 						npm install --include=dev
 						npm run dev`
@@ -42,7 +42,7 @@ export default function () {
 					class="nice"
 					language="shellscript"
 					theme="monokai"
-					value={`npx degit potahtml/templates/ts pota-project
+					code={`npx degit potahtml/templates/ts pota-project
 						cd pota-project
 						npm install --include=dev
 						npm run dev`
@@ -69,7 +69,7 @@ export default function () {
 					class="nice"
 					language="jsx"
 					theme="monokai"
-					value={`{babel:{presets: [["pota/babel-preset"]]}}`
+					code={`{babel:{presets: [["pota/babel-preset"]]}}`
 						.split('\n')
 						.map(s => s.trim())
 						.join('\n')
@@ -85,7 +85,7 @@ export default function () {
 					class="nice"
 					language="shellscript"
 					theme="monokai"
-					value={`npx degit potahtml/templates/rollup pota-project
+					code={`npx degit potahtml/templates/rollup pota-project
 cd pota-project
 npm install --include=dev
 npm run dev
