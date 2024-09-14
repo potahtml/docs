@@ -1,21 +1,20 @@
 
-:: save changes
+:: save source changes
 
 call git add --all
 call git commit -m "update docs"
 call git push
 
+:: publish to pota.quack.uy
+
+cd /D S:/www/npm/pota.docs.cloudflare/
+
+del localhost.zip
+
+mpa http://localhost:11433/
+
+:: tar -c -f ../pota.quack.uy.zip ./*
+:: tar -xf localhost.zip
+
 :: call cpx -L -v ./src/** S:/www/quack.uy/client/pota.quack.uy/
 :: call cpx -L -v ./node_modules/pota/**/!(node_modules) S:/www/quack.uy/client/pota.quack.uy/node_modules/pota/
-
-:: save changes on pota.quack.uy
-
-cd /D S:/www/quack.uy/client/pota.quack.uy/
-call git add --all
-call git commit -m "update pota docs"
-call git push
-
-cd /D S:/www/quack.uy/client/pota.quack.uy/
-del localhost.zip
-mpa http://localhost:11433/
-:: tar.exe -c -f ../pota.quack.uy.zip ./*

@@ -10,6 +10,7 @@
 	margin-bottom: 10px;
 	position: relative;
 	width: 100%;
+	margin-top: 1px;
 }
 
 .frame {
@@ -90,7 +91,6 @@ figcaption mark {
 /* marks */
 mark {
 	background: rgb(32 41 54);
-	word-break: break-all;
 	white-space: pre-wrap;
 }
 

@@ -210,7 +210,7 @@ test(
 			args.push(o.fn)
 		})
 		expect(calls).toBe(1)
-		expect(args).toBeLike([undefined])
+		expect(args).toEqual([undefined])
 
 		Object.defineProperty(o, 'fn', {
 			get: function () {
@@ -218,7 +218,7 @@ test(
 			},
 		})
 		expect(calls).toBe(2)
-		expect(args).toBeLike([undefined, 3])
+		expect(args).toEqual([undefined, 3])
 	},
 )
 
@@ -242,13 +242,13 @@ test(
 			args.push(o.fn)
 		})
 		expect(calls).toBe(1)
-		expect(args).toBeLike([3])
+		expect(args).toEqual([3])
 
 		Object.defineProperty(o, 'fn', {
 			value: 123,
 		})
 		expect(calls).toBe(2)
-		expect(args).toBeLike([3, 123])
+		expect(args).toEqual([3, 123])
 	},
 )
 
@@ -272,7 +272,7 @@ test(
 			args.push(o.fn)
 		})
 		expect(calls).toBe(1)
-		expect(args).toBeLike([3])
+		expect(args).toEqual([3])
 
 		Object.defineProperty(o, 'fn', {
 			get: function () {
@@ -280,7 +280,7 @@ test(
 			},
 		})
 		expect(calls).toBe(2)
-		expect(args).toBeLike([3, 30])
+		expect(args).toEqual([3, 30])
 	},
 )
 
@@ -304,13 +304,13 @@ test(
 			args.push(o.fn)
 		})
 		expect(calls).toBe(1)
-		expect(args).toBeLike([3])
+		expect(args).toEqual([3])
 
 		Object.defineProperty(o, 'fn', {
 			get: Object.getOwnPropertyDescriptor(o, 'fn').get,
 		})
 		expect(calls).toBe(1)
-		expect(args).toBeLike([3])
+		expect(args).toEqual([3])
 	},
 )
 
@@ -335,7 +335,7 @@ test(
 			args.push(o.foo)
 		})
 		expect(calls).toBe(1)
-		expect(args).toBeLike([1])
+		expect(args).toEqual([1])
 
 		Object.defineProperty(
 			o,
@@ -353,7 +353,7 @@ test(
 			Object.getOwnPropertyDescriptor(o, 'baz'),
 		)
 		expect(calls).toBe(1)
-		expect(args).toBeLike([1])
+		expect(args).toEqual([1])
 	},
 )
 
@@ -468,13 +468,13 @@ test(
 			args.push(o.value)
 		})
 		expect(calls).toBe(1)
-		expect(args).toBeLike([1])
+		expect(args).toEqual([1])
 
 		Object.defineProperty(o, 'value', {
 			value: 123,
 		})
 		expect(calls).toBe(2)
-		expect(args).toBeLike([1, 123])
+		expect(args).toEqual([1, 123])
 	},
 )
 
@@ -492,12 +492,12 @@ test(
 			args.push(o.value)
 		})
 		expect(calls).toBe(1)
-		expect(args).toBeLike([123])
+		expect(args).toEqual([123])
 
 		Object.defineProperty(o, 'value', {
 			value: 123,
 		})
 		expect(calls).toBe(1)
-		expect(args).toBeLike([123])
+		expect(args).toEqual([123])
 	},
 )

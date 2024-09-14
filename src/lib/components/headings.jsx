@@ -45,7 +45,7 @@ export function H2(props) {
 					/>
 					<meta
 						property="og:title"
-						content={props.title + ' pota'}
+						content={props.title + ' - pota'}
 					/>
 					<meta
 						name="description"

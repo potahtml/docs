@@ -1764,13 +1764,13 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
       const obj2 = {}
 
       const o = mutable({ value: obj1 })
-      expect(o.value).toBeLike(obj1)
+      expect(o.value).toEqual(obj1)
 
       o.value = obj2
-      expect(o.value).toBeLike(obj2)
+      expect(o.value).toEqual(obj2)
 
       o.value = obj1
-      expect(o.value).toBeLike(obj1)
+      expect(o.value).toEqual(obj1)
 
       testValues(
         expect,
@@ -1807,13 +1807,13 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
       const obj2 = {}
 
       const o = mutable({ deep: { value: obj1 } })
-      expect(o.deep.value).toBeLike(obj1)
+      expect(o.deep.value).toEqual(obj1)
 
       o.deep.value = obj2
-      expect(o.deep.value).toBeLike(obj2)
+      expect(o.deep.value).toEqual(obj2)
 
       o.deep.value = obj1
-      expect(o.deep.value).toBeLike(obj1)
+      expect(o.deep.value).toEqual(obj1)
 
       testValues(
         expect,
@@ -1833,7 +1833,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
       const obj2 = {}
 
       const o = mutable({ deep: { value: obj1 } })
-      expect(o.deep.value).toBeLike(obj1)
+      expect(o.deep.value).toEqual(obj1)
 
       let calls = 0
       const execute = memo(() => {
@@ -1845,12 +1845,12 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 
       o.deep.value = obj2
       execute()
-      expect(o.deep.value).toBeLike(obj2)
+      expect(o.deep.value).toEqual(obj2)
       expect(calls).toBe(2)
 
       o.deep.value = obj1
       execute()
-      expect(o.deep.value).toBeLike(obj1)
+      expect(o.deep.value).toEqual(obj1)
       expect(calls).toBe(3)
 
       testValues(
@@ -2333,16 +2333,16 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
     }
 
     let o = mutable([true])
-    expect(o).toBeLike([true])
+    expect(o).toEqual([true])
 
     o = mutable({ 0: true })
-    expect(o).toBeLike({ 0: true })
+    expect(o).toEqual({ 0: true })
 
     o = mutable([true])
-    expect(o).toBeLike([true])
+    expect(o).toEqual([true])
 
     o = mutable({ 0: true })
-    expect(o).toBeLike({ 0: true })
+    expect(o).toEqual({ 0: true })
   })
 
   test(
@@ -2392,8 +2392,8 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
     expect((o.value = null)).toBe(null)
     expect((o.value = '')).toBe('')
     expect((o.value = 'string')).toBe('string')
-    expect((o.value = [true])).toBeLike([true])
-    expect((o.value = { 0: true })).toBeLike({ 0: true })
+    expect((o.value = [true])).toEqual([true])
+    expect((o.value = { 0: true })).toEqual({ 0: true })
     expect((o.value = true)).toBe(true)
     expect((o.value = false)).toBe(false)
     expect((o.value = Infinity)).toBe(Infinity)
@@ -3405,13 +3405,13 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
     expect(o.foo).toBe('string')
 
     o.foo = [true]
-    expect(o.foo).toBeLike([true])
+    expect(o.foo).toEqual([true])
 
     o.foo = { 0: true }
-    expect(o.foo).toBeLike({ 0: true })
+    expect(o.foo).toEqual({ 0: true })
 
     o.foo = [true]
-    expect(o.foo).toBeLike([true])
+    expect(o.foo).toEqual([true])
 
     o.foo = true
     expect(o.foo).toBe(true)
@@ -3477,7 +3477,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 
     expect('foo' in result).toBe(true)
 
-    expect(Object.keys(result)).toBeLike(['foo'])
+    expect(Object.keys(result)).toEqual(['foo'])
   })
 
   test(
@@ -3616,9 +3616,9 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 
       createObjects()
 
-      expect(mutableObj.foo).toBeLike({ a: 1 })
-      expect(mutableObj.bar).toBeLike({ a: 1 })
-      expect(mutableObj.baz).toBeLike({ a: 1 })
+      expect(mutableObj.foo).toEqual({ a: 1 })
+      expect(mutableObj.bar).toEqual({ a: 1 })
+      expect(mutableObj.baz).toEqual({ a: 1 })
 
       expect(Object.isExtensible(mutableObj.foo.a)).toBe(false)
       expect(Object.isExtensible(mutableObj.bar.a)).toBe(false)
@@ -4503,13 +4503,13 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
   test(lib + 'array: functions', expect => {
     const list = mutable([0, 1, 2])
     const filtered = memo(() => list.filter(i => i % 2))
-    expect(filtered()).toBeLike([1])
+    expect(filtered()).toEqual([1])
   })
 
   test(lib + 'array: functions nested', expect => {
     const list = mutable({ data: [0, 1, 2] })
     const filtered = memo(() => list.data.filter(i => i % 2))
-    expect(filtered()).toBeLike([1])
+    expect(filtered()).toEqual([1])
   })
 
   test(lib + 'array: equality: different array', expect => {
@@ -4580,15 +4580,15 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
       expect(result.length).toBe(2)
       result.splice(0, 0, ...move)
       expect(result.length).toBe(3)
-      expect(result).toBeLike([2, 1, 3])
+      expect(result).toEqual([2, 1, 3])
       result.push(4)
       expect(result.length).toBe(4)
-      expect(result).toBeLike([2, 1, 3, 4])
+      expect(result).toEqual([2, 1, 3, 4])
     })
     expect(result.length).toBe(4)
     expect(result.pop()).toBe(4)
     expect(result.length).toBe(3)
-    expect(result).toBeLike([2, 1, 3])
+    expect(result).toEqual([2, 1, 3])
   })
 
   test(lib + 'array: getters: array', expect => {
@@ -4789,7 +4789,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
     // has
     expect(0 in observed).toBe(true)
     // ownKeys
-    expect(Object.keys(observed)).toBeLike(['0'])
+    expect(Object.keys(observed)).toEqual(['0'])
   })
 
   test(lib + 'array: slice test', expect => {
@@ -4797,17 +4797,17 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
       ['ant', 'bison', 'camel', 'duck', 'elephant'],
       mutable(['ant', 'bison', 'camel', 'duck', 'elephant']),
     ].forEach(array => {
-      expect(array.slice(2)).toBeLike(['camel', 'duck', 'elephant'])
-      expect(array.slice(2, 4)).toBeLike(['camel', 'duck'])
-      expect(array.slice(1, 5)).toBeLike([
+      expect(array.slice(2)).toEqual(['camel', 'duck', 'elephant'])
+      expect(array.slice(2, 4)).toEqual(['camel', 'duck'])
+      expect(array.slice(1, 5)).toEqual([
         'bison',
         'camel',
         'duck',
         'elephant',
       ])
-      expect(array.slice(-2)).toBeLike(['duck', 'elephant'])
-      expect(array.slice(2, -1)).toBeLike(['camel', 'duck'])
-      expect(array.slice()).toBeLike([
+      expect(array.slice(-2)).toEqual(['duck', 'elephant'])
+      expect(array.slice(2, -1)).toEqual(['camel', 'duck'])
+      expect(array.slice()).toEqual([
         'ant',
         'bison',
         'camel',
@@ -4815,7 +4815,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
         'elephant',
       ])
 
-      expect(array.slice(-400, 600)).toBeLike([
+      expect(array.slice(-400, 600)).toEqual([
         'ant',
         'bison',
         'camel',
@@ -4823,10 +4823,10 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
         'elephant',
       ])
 
-      expect(array.slice(-400, -44)).toBeLike([])
-      expect(array.slice(-44, -400)).toBeLike([])
-      expect(array.slice(2, -400)).toBeLike([])
-      expect(array.slice(2, -3)).toBeLike([])
+      expect(array.slice(-400, -44)).toEqual([])
+      expect(array.slice(-44, -400)).toEqual([])
+      expect(array.slice(2, -400)).toEqual([])
+      expect(array.slice(2, -3)).toEqual([])
     })
   })
 
@@ -4970,13 +4970,13 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
       const obj2 = []
 
       const o = mutable({ value: obj1 })
-      expect(o.value).toBeLike(obj1)
+      expect(o.value).toEqual(obj1)
 
       o.value = obj2
-      expect(o.value).toBeLike(obj2)
+      expect(o.value).toEqual(obj2)
 
       o.value = obj1
-      expect(o.value).toBeLike(obj1)
+      expect(o.value).toEqual(obj1)
 
       testValues(
         expect,
@@ -4996,13 +4996,13 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
       const obj2 = []
 
       const o = mutable({ value: { deeper: obj1 } })
-      expect(o.value.deeper).toBeLike(obj1)
+      expect(o.value.deeper).toEqual(obj1)
 
       o.value.deeper = obj2
-      expect(o.value.deeper).toBeLike(obj2)
+      expect(o.value.deeper).toEqual(obj2)
 
       o.value.deeper = obj1
-      expect(o.value.deeper).toBeLike(obj1)
+      expect(o.value.deeper).toEqual(obj1)
 
       testValues(
         expect,
@@ -5022,13 +5022,13 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
       const obj2 = []
 
       const o = mutable({ deep: { value: obj1 } })
-      expect(o.deep.value).toBeLike(obj1)
+      expect(o.deep.value).toEqual(obj1)
 
       o.deep.value = obj2
-      expect(o.deep.value).toBeLike(obj2)
+      expect(o.deep.value).toEqual(obj2)
 
       o.deep.value = obj1
-      expect(o.deep.value).toBeLike(obj1)
+      expect(o.deep.value).toEqual(obj1)
 
       testValues(
         expect,
@@ -5048,7 +5048,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
       const obj2 = []
 
       const o = mutable({ deep: { value: obj1 } })
-      expect(o.deep.value).toBeLike(obj1)
+      expect(o.deep.value).toEqual(obj1)
 
       let calls = 0
       const execute = memo(() => {
@@ -5060,12 +5060,12 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 
       o.deep.value = obj2
       execute()
-      expect(o.deep.value).toBeLike(obj2)
+      expect(o.deep.value).toEqual(obj2)
       expect(calls).toBe(2)
 
       o.deep.value = obj1
       execute()
-      expect(o.deep.value).toBeLike(obj1)
+      expect(o.deep.value).toEqual(obj1)
       expect(calls).toBe(3)
 
       testValues(
@@ -5201,7 +5201,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
       })
       execute1(), execute2()
 
-      expect(result).toBeLike([0, 1, 2])
+      expect(result).toEqual([0, 1, 2])
     },
   )
 
@@ -6273,18 +6273,18 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
         const a3 = [4, 5]
 
         let result = memo(() => a1.concat(a2, a3))
-        expect(result()).toBeLike([1, { val: 2 }, { val: 3 }, 4, 5])
+        expect(result()).toEqual([1, { val: 2 }, { val: 3 }, 4, 5])
         expect(isProxy(result()[1])).toBe(true)
         expect(isProxy(result()[2])).toBe(true)
 
         a1.shift()
-        expect(result()).toBeLike([{ val: 2 }, { val: 3 }, 4, 5])
+        expect(result()).toEqual([{ val: 2 }, { val: 3 }, 4, 5])
 
         a2.pop()
-        expect(result()).toBeLike([{ val: 2 }, 4, 5])
+        expect(result()).toEqual([{ val: 2 }, 4, 5])
 
         a3.pop()
-        expect(result()).toBeLike([{ val: 2 }, 4])
+        expect(result()).toEqual([{ val: 2 }, 4])
       })
     },
   )
@@ -6292,27 +6292,27 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
   test(lib + 'array: vue array instrumentation: entries', expect => {
     const shallow = mutable([0, 1])
     const result1 = memo(() => Array.from(shallow.entries()))
-    expect(result1()).toBeLike([
+    expect(result1()).toEqual([
       [0, 0],
       [1, 1],
     ])
 
     shallow[1] = 10
-    expect(result1()).toBeLike([
+    expect(result1()).toEqual([
       [0, 0],
       [1, 10],
     ])
 
     const deep = mutable([{ val: 0 }, { val: 1 }])
     const result2 = memo(() => Array.from(deep.entries()))
-    expect(result2()).toBeLike([
+    expect(result2()).toEqual([
       [0, { val: 0 }],
       [1, { val: 1 }],
     ])
     expect(isProxy(result2()[0][1])).toBe(true)
 
     deep.pop()
-    expect(Array.from(result2())).toBeLike([[0, { val: 0 }]])
+    expect(Array.from(result2())).toEqual([[0, { val: 0 }]])
   })
 
   test(lib + 'array: vue array instrumentation: every', expect => {
@@ -6334,18 +6334,18 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
   test(lib + 'array: vue array instrumentation: filter', expect => {
     const shallow = mutable([1, 2, 3, 4])
     const result1 = memo(() => shallow.filter(x => x < 3))
-    expect(result1()).toBeLike([1, 2])
+    expect(result1()).toEqual([1, 2])
 
     shallow[2] = 0
-    expect(result1()).toBeLike([1, 2, 0])
+    expect(result1()).toEqual([1, 2, 0])
 
     const deep = mutable([{ val: 1 }, { val: 2 }])
     const result2 = memo(() => deep.filter(x => x.val < 2))
-    expect(result2()).toBeLike([{ val: 1 }])
+    expect(result2()).toEqual([{ val: 1 }])
     expect(isProxy(result2()[0])).toBe(true)
 
     deep[1].val = 0
-    expect(result2()).toBeLike([{ val: 1 }, { val: 0 }])
+    expect(result2()).toEqual([{ val: 1 }, { val: 0 }])
   })
 
   test(
@@ -6467,32 +6467,32 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
     let result = memo(() => {
       return shallow.map(x => x ** 2)
     })
-    expect(result()).toBeLike([1, 4, 9, 16])
+    expect(result()).toEqual([1, 4, 9, 16])
 
     shallow[2] = 0
 
-    expect(result()).toBeLike([1, 4, 0, 16])
+    expect(result()).toEqual([1, 4, 0, 16])
 
     // uno + empty
     const shallow2 = mutable([])
     let result2 = memo(() => {
       return shallow2.map(x => x ** 2)
     })
-    expect(result2()).toBeLike([])
+    expect(result2()).toEqual([])
 
     shallow2[0] = 1
     shallow2[1] = 2
 
-    expect(result2()).toBeLike([1, 4])
+    expect(result2()).toEqual([1, 4])
 
     // dos
 
     const deep = mutable([{ val: 1 }, { val: 2 }])
     result = memo(() => deep.map(x => x.val ** 2))
-    expect(result()).toBeLike([1, 4])
+    expect(result()).toEqual([1, 4])
 
     deep[1].val = 3
-    expect(result()).toBeLike([1, 9])
+    expect(result()).toEqual([1, 9])
   })
 
   test(
@@ -6564,16 +6564,16 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
       const array = mutable([1, { val: 2 }])
       const result = memo(() => array.toReversed())
       expect(array).not.toBe(result())
-      expect(result()).toBeLike([{ val: 2 }, 1])
+      expect(result()).toEqual([{ val: 2 }, 1])
       expect(isProxy(result()[0])).toBe(true)
-      expect(result()[0]).toBeLike({ val: 2 })
+      expect(result()[0]).toEqual({ val: 2 })
 
       // modify original array, doesnt modify copied array
       // but the memo should rerun yielding 2,1
       array.splice(1, 1, 2)
 
-      expect(array).toBeLike([1, 2])
-      expect(result()).toBeLike([2, 1])
+      expect(array).toEqual([1, 2])
+      expect(result()).toEqual([2, 1])
     },
   )
 
@@ -6581,29 +6581,29 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
   test(lib + 'array: vue array instrumentation: toSorted', expect => {
     // No comparer
 
-    expect(mutable([2, 1, 3]).toSorted()).toBeLike([1, 2, 3])
+    expect(mutable([2, 1, 3]).toSorted()).toEqual([1, 2, 3])
 
     const r = mutable([{ val: 2 }, { val: 1 }, { val: 3 }])
     let result
 
     result = memo(() => r.toSorted((a, b) => a.val - b.val))
-    expect(result().map(x => x.val)).toBeLike([1, 2, 3])
+    expect(result().map(x => x.val)).toEqual([1, 2, 3])
     expect(isProxy(result()[0])).toBe(true)
 
     r[0].val = 4
-    expect(result().map(x => x.val)).toBeLike([1, 3, 4])
+    expect(result().map(x => x.val)).toEqual([1, 3, 4])
 
     r.pop()
-    expect(result().map(x => x.val)).toBeLike([1, 4])
+    expect(result().map(x => x.val)).toEqual([1, 4])
 
     const deep = mutable([{ val: 2 }, { val: 1 }, { val: 3 }])
 
     result = memo(() => deep.toSorted((a, b) => a.val - b.val))
-    expect(result().map(x => x.val)).toBeLike([1, 2, 3])
+    expect(result().map(x => x.val)).toEqual([1, 2, 3])
     expect(isProxy(result()[0])).toBe(true)
 
     deep[0].val = 4
-    expect(result().map(x => x.val)).toBeLike([1, 3, 4])
+    expect(result().map(x => x.val)).toEqual([1, 3, 4])
   })
 
   // Node 20+
@@ -6612,30 +6612,30 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
     lib + 'array: vue array instrumentation: toSpliced',
     expect => {
       const array = mutable([1, 2, 3])
-      expect(array).toBeLike([1, 2, 3])
+      expect(array).toEqual([1, 2, 3])
 
       const result = memo(() => array.toSpliced(1, 1, -2))
-      expect(result()).toBeLike([1, -2, 3])
+      expect(result()).toEqual([1, -2, 3])
 
-      expect(array).toBeLike([1, 2, 3])
+      expect(array).toEqual([1, 2, 3])
 
       array[0] = 0
-      expect(array).toBeLike([0, 2, 3])
+      expect(array).toEqual([0, 2, 3])
 
-      expect(result()).toBeLike([0, -2, 3])
+      expect(result()).toEqual([0, -2, 3])
 
-      expect(array).toBeLike([0, 2, 3])
+      expect(array).toEqual([0, 2, 3])
     },
   )
 
   test(lib + 'array: vue array instrumentation: values', expect => {
     const reactive = mutable([{ val: 1 }, { val: 2 }])
     const result = memo(() => Array.from(reactive.values()))
-    expect(result()).toBeLike([{ val: 1 }, { val: 2 }])
+    expect(result()).toEqual([{ val: 1 }, { val: 2 }])
     expect(isProxy(result()[0])).toBe(true)
 
     reactive.pop()
-    expect(result()).toBeLike([{ val: 1 }])
+    expect(result()).toEqual([{ val: 1 }])
 
     const deep = mutable([{ val: 1 }, { val: 2 }])
     const firstItem = Array.from(deep.values())[0]
@@ -7358,22 +7358,22 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
       })
       execute()
 
-      expect(captured).toBeLike([true])
+      expect(captured).toEqual([true])
 
       map.set(4, {})
-      expect(captured).toBeLike([true])
+      expect(captured).toEqual([true])
 
       map.delete(4)
-      expect(captured).toBeLike([true])
+      expect(captured).toEqual([true])
 
       map.delete(2)
-      expect(captured).toBeLike([true, false])
+      expect(captured).toEqual([true, false])
 
       map.set(2, {})
-      expect(captured).toBeLike([true, false, true])
+      expect(captured).toEqual([true, false, true])
 
       map.clear()
-      expect(captured).toBeLike([true, false, true, false])
+      expect(captured).toEqual([true, false, true, false])
     })
 
     test(lib + 'Map: get() is reactive', expect => {
@@ -7436,37 +7436,37 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
       execute()
 
       expect(captured.length).toBe(1)
-      expect(captured[0]).toBeLike(['b', 'c', 'd'])
+      expect(captured[0]).toEqual(['b', 'c', 'd'])
 
       map.set(4, 'e')
       expect(captured.length).toBe(2)
-      expect(captured[1]).toBeLike(['b', 'c', 'd', 'e'])
+      expect(captured[1]).toEqual(['b', 'c', 'd', 'e'])
 
       map.set(4, 'e')
       expect(captured.length).toBe(2)
 
       map.delete(4)
       expect(captured.length).toBe(3)
-      expect(captured[2]).toBeLike(['b', 'c', 'd'])
+      expect(captured[2]).toEqual(['b', 'c', 'd'])
 
       map.delete(2)
       expect(captured.length).toBe(4)
-      expect(captured[3]).toBeLike(['b', 'd'])
+      expect(captured[3]).toEqual(['b', 'd'])
 
       map.delete(2)
       expect(captured.length).toBe(4)
 
       map.set(2, 'a')
       expect(captured.length).toBe(5)
-      expect(captured[4]).toBeLike(['b', 'd', 'a'])
+      expect(captured[4]).toEqual(['b', 'd', 'a'])
 
       map.set(2, 'b')
       expect(captured.length).toBe(6)
-      expect(captured[5]).toBeLike(['b', 'd', 'b'])
+      expect(captured[5]).toEqual(['b', 'd', 'b'])
 
       map.clear()
       expect(captured.length).toBe(7)
-      expect(captured[6]).toBeLike([])
+      expect(captured[6]).toEqual([])
     })
 
     test(lib + 'Map: .size is reactive', expect => {
@@ -7538,7 +7538,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
       execute()
 
       expect(captured.length).toBe(1)
-      expect(captured[0]).toBeLike([1, 2, 3])
+      expect(captured[0]).toEqual([1, 2, 3])
 
       map.set(1)
       expect(captured.length).toBe(1)
@@ -7548,7 +7548,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 
       map.delete(1)
       expect(captured.length).toBe(2)
-      expect(captured[1]).toBeLike([2, 3])
+      expect(captured[1]).toEqual([2, 3])
     })
 
     test(lib + 'Map: .values() is reactive', expect => {
@@ -7576,11 +7576,11 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
       execute()
 
       expect(captured.length).toBe(1)
-      expect(captured[0]).toBeLike(['a', 'b', 'c'])
+      expect(captured[0]).toEqual(['a', 'b', 'c'])
 
       map.set(1, 'e')
       expect(captured.length).toBe(2)
-      expect(captured[1]).toBeLike(['e', 'b', 'c'])
+      expect(captured[1]).toEqual(['e', 'b', 'c'])
 
       map.set(4, 'f')
       expect(captured.length).toBe(2)
@@ -7590,7 +7590,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 
       map.delete(1)
       expect(captured.length).toBe(3)
-      expect(captured[2]).toBeLike(['b', 'c'])
+      expect(captured[2]).toEqual(['b', 'c'])
     })
 
     test(lib + 'Map: .entries() is reactive', expect => {
@@ -7618,7 +7618,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
       execute()
 
       expect(captured.length).toBe(1)
-      expect(captured[0]).toBeLike([
+      expect(captured[0]).toEqual([
         [1, 'a'],
         [2, 'b'],
         [3, 'c'],
@@ -7626,7 +7626,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 
       map.set(1, 'e')
       expect(captured.length).toBe(2)
-      expect(captured[1]).toBeLike([
+      expect(captured[1]).toEqual([
         [1, 'e'],
         [2, 'b'],
         [3, 'c'],
@@ -7640,7 +7640,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 
       map.delete(1)
       expect(captured.length).toBe(3)
-      expect(captured[2]).toBeLike([
+      expect(captured[2]).toEqual([
         [2, 'b'],
         [3, 'c'],
       ])
@@ -7668,7 +7668,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
       execute()
 
       expect(captured.length).toBe(1)
-      expect(captured[0]).toBeLike([
+      expect(captured[0]).toEqual([
         [1, 'a'],
         [2, 'b'],
         [3, 'c'],
@@ -7677,7 +7677,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 
       map.set(1, 'e')
       expect(captured.length).toBe(2)
-      expect(captured[1]).toBeLike([
+      expect(captured[1]).toEqual([
         [1, 'e'],
         [2, 'b'],
         [3, 'c'],
@@ -7686,7 +7686,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 
       map.delete(4)
       expect(captured.length).toBe(3)
-      expect(captured[2]).toBeLike([
+      expect(captured[2]).toEqual([
         [1, 'e'],
         [2, 'b'],
         [3, 'c'],
@@ -8022,7 +8022,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
         replace(state, { data: 5 })
         expect(state.data).toBe(5)
         expect(state.missing).toBe(undefined)
-        expect(state).toBeLike({ data: 5 })
+        expect(state).toEqual({ data: 5 })
       })
 
       test(
@@ -8035,7 +8035,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
           expect(state.missing).toBe('soon')
           replace(state, { missing: 5 })
           expect(state.missing).toBe(5)
-          expect(state).toBeLike({
+          expect(state).toEqual({
             missing: 5,
           })
         },
@@ -8101,31 +8101,31 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
             }),
           )
 
-          expect(state.users[0]).toBeLike(JOHN)
-          expect(state.users[1]).toBeLike(NED)
-          expect(state.users[2]).toBeLike(BRANDON)
+          expect(state.users[0]).toEqual(JOHN)
+          expect(state.users[1]).toEqual(NED)
+          expect(state.users[2]).toEqual(BRANDON)
 
           replace(state.users, [NED, JOHN, BRANDON])
 
-          expect(state.users[0]).toBeLike(NED)
-          expect(state.users[1]).toBeLike(JOHN)
-          expect(state.users[2]).toBeLike(BRANDON)
+          expect(state.users[0]).toEqual(NED)
+          expect(state.users[1]).toEqual(JOHN)
+          expect(state.users[2]).toEqual(BRANDON)
 
           replace(state.users, [NED, BRANDON, JOHN])
-          expect(state.users[0]).toBeLike(NED)
-          expect(state.users[1]).toBeLike(BRANDON)
-          expect(state.users[2]).toBeLike(JOHN)
+          expect(state.users[0]).toEqual(NED)
+          expect(state.users[1]).toEqual(BRANDON)
+          expect(state.users[2]).toEqual(JOHN)
 
           replace(state.users, [NED, BRANDON, JOHN, ARYA])
-          expect(state.users[0]).toBeLike(NED)
-          expect(state.users[1]).toBeLike(BRANDON)
-          expect(state.users[2]).toBeLike(JOHN)
-          expect(state.users[3]).toBeLike(ARYA)
+          expect(state.users[0]).toEqual(NED)
+          expect(state.users[1]).toEqual(BRANDON)
+          expect(state.users[2]).toEqual(JOHN)
+          expect(state.users[3]).toEqual(ARYA)
 
           replace(state.users, [BRANDON, JOHN, ARYA])
-          expect(state.users[0]).toBeLike(BRANDON)
-          expect(state.users[1]).toBeLike(JOHN)
-          expect(state.users[2]).toBeLike(ARYA)
+          expect(state.users[0]).toEqual(BRANDON)
+          expect(state.users[1]).toEqual(JOHN)
+          expect(state.users[2]).toEqual(ARYA)
         },
       )
 
@@ -8215,7 +8215,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
           })
 
           replace(store, { value: { c: [1, 2, 3] } })
-          expect(store.value).toBeLike({ c: [1, 2, 3] })
+          expect(store.value).toEqual({ c: [1, 2, 3] })
         },
       )
 
@@ -8230,15 +8230,15 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
           replace(store, { value: { name: 'John' } })
 
           expect(Array.isArray(store.value)).toBe(false)
-          expect(store.value).toBeLike({ name: 'John' })
+          expect(store.value).toEqual({ name: 'John' })
 
           replace(store, { value: [1, 2, 3] })
           expect(Array.isArray(store.value)).toBe(true)
-          expect(store.value).toBeLike([1, 2, 3])
+          expect(store.value).toEqual([1, 2, 3])
 
           replace(store, { value: { q: 'aa' } })
           expect(Array.isArray(store.value)).toBe(false)
-          expect(store.value).toBeLike({ q: 'aa' })
+          expect(store.value).toEqual({ q: 'aa' })
         },
       )
 
@@ -8252,15 +8252,15 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 
           replace(store, { value: [1, 2, 3] })
           expect(Array.isArray(store.value)).toBe(true)
-          expect(store.value).toBeLike([1, 2, 3])
+          expect(store.value).toEqual([1, 2, 3])
 
           replace(store, { value: { name: 'John' } })
           expect(Array.isArray(store.value)).toBe(false)
-          expect(store.value).toBeLike({ name: 'John' })
+          expect(store.value).toEqual({ name: 'John' })
 
           replace(store, { value: { q: 'aa' } })
           expect(Array.isArray(store.value)).toBe(false)
-          expect(store.value).toBeLike({ q: 'aa' })
+          expect(store.value).toEqual({ q: 'aa' })
         },
       )
 
@@ -8269,13 +8269,13 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
         expect => {
           const target = mutable({ a: true, q: [1, 2, 3, 4] })
 
-          expect(target).toBeLike({ a: true, q: [1, 2, 3, 4] })
+          expect(target).toEqual({ a: true, q: [1, 2, 3, 4] })
 
           const source = { b: true, q: [3] }
 
           merge(target, source)
 
-          expect(target).toBeLike({
+          expect(target).toEqual({
             a: true,
             q: [3, 2, 3, 4],
             b: true,
@@ -8288,13 +8288,13 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
         expect => {
           const target = mutable({ a: true, q: [1, 2, 3, 4] })
 
-          expect(target).toBeLike({ a: true, q: [1, 2, 3, 4] })
+          expect(target).toEqual({ a: true, q: [1, 2, 3, 4] })
 
           const source = { b: true, q: { test: 'hola' } }
 
           merge(target, source)
 
-          expect(target).toBeLike({
+          expect(target).toEqual({
             a: true,
             q: { test: 'hola' },
             b: true,
@@ -8307,13 +8307,13 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
         expect => {
           const target = mutable({ a: true, q: { test: 'hola' } })
 
-          expect(target).toBeLike({ a: true, q: { test: 'hola' } })
+          expect(target).toEqual({ a: true, q: { test: 'hola' } })
 
           const source = { b: true, q: [1, 2, 3, 4] }
 
           merge(target, source)
 
-          expect(target).toBeLike({
+          expect(target).toEqual({
             a: true,
             q: [1, 2, 3, 4],
             b: true,
@@ -8324,13 +8324,13 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
       test(lib + 'reconcile merge - overwrite', expect => {
         const target = mutable({ a: true, q: [1, 2, 3, 4] })
 
-        expect(target).toBeLike({ a: true, q: [1, 2, 3, 4] })
+        expect(target).toEqual({ a: true, q: [1, 2, 3, 4] })
 
         const source = { a: false, q: [2, 4, 6, 8] }
 
         merge(target, source)
 
-        expect(target).toBeLike({
+        expect(target).toEqual({
           a: false,
           q: [2, 4, 6, 8],
         })
@@ -8343,7 +8343,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
         expect => {
           const target = mutable({ c: [{ id: 1 }] })
 
-          expect(target).toBeLike({
+          expect(target).toEqual({
             c: [{ id: 1 }],
           })
 
@@ -8353,7 +8353,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 
           merge(target, source, { c: { key: 'id' } })
 
-          expect(target).toBeLike({
+          expect(target).toEqual({
             c: [{ id: 1 }, { id: 2 }],
           })
         },
@@ -8366,7 +8366,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
             q: { u: { a: { c: { k: [{ d: [{ id: 1 }] }] } } } },
           })
 
-          expect(target).toBeLike({
+          expect(target).toEqual({
             q: { u: { a: { c: { k: [{ d: [{ id: 1 }] }] } } } },
           })
 
@@ -8378,7 +8378,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
             q: { u: { a: { c: { k: { d: { key: 'id' } } } } } },
           })
 
-          expect(target).toBeLike({
+          expect(target).toEqual({
             q: {
               u: { a: { c: { k: [{ d: [{ id: 1 }, { id: 2 }] }] } } },
             },
@@ -8396,7 +8396,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
             },
           })
 
-          expect(target).toBeLike({
+          expect(target).toEqual({
             q: {
               u: { a: { c: { k: [{ d: [{ id: 1, name: 'a' }] }] } } },
             },
@@ -8418,7 +8418,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
             q: { u: { a: { c: { k: { d: { key: 'id' } } } } } },
           })
 
-          expect(target).toBeLike({
+          expect(target).toEqual({
             q: {
               u: {
                 a: {
@@ -8437,7 +8437,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
         expect => {
           const target = mutable({ c: [{ id: 1 }], d: [{ idx: 2 }] })
 
-          expect(target).toBeLike({
+          expect(target).toEqual({
             c: [{ id: 1 }],
             d: [{ idx: 2 }],
           })
@@ -8452,7 +8452,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
             d: { key: 'idx' },
           })
 
-          expect(target).toBeLike({
+          expect(target).toEqual({
             c: [{ id: 1 }, { id: 3 }],
             d: [{ idx: 2 }, { idx: 4 }],
           })
@@ -8468,7 +8468,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
             c: [{ id: 1 }],
           })
 
-          expect(target).toBeLike({
+          expect(target).toEqual({
             a: true,
             q: [1, 2],
             c: [{ id: 1 }],
@@ -8485,7 +8485,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 
           merge(target, source, { c: { key: 'id' } })
 
-          expect(target).toBeLike({
+          expect(target).toEqual({
             a: true,
             q: [6, 8],
             c: [
@@ -8505,7 +8505,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
           keepThis: true,
         })
 
-        expect(target).toBeLike({
+        expect(target).toEqual({
           a: true,
           q: [1, 2],
           c: [{ id: 1, keepThis: true, d: [1] }],
@@ -8526,7 +8526,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 
         merge(target, source, { c: { key: 'id' } })
 
-        expect(target).toBeLike({
+        expect(target).toEqual({
           a: true,
           b: false,
           q: [6, 8],
@@ -8553,7 +8553,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
         expect => {
           const target = mutable({ c: [{ id: 1 }] })
 
-          expect(target).toBeLike({
+          expect(target).toEqual({
             c: [{ id: 1 }],
           })
 
@@ -8563,7 +8563,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 
           replace(target, source, { c: { key: 'id' } })
 
-          expect(target).toBeLike({
+          expect(target).toEqual({
             c: [{ id: 2 }],
           })
         },
@@ -8576,7 +8576,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
             q: { u: { a: { c: { k: [{ d: [{ id: 1 }] }] } } } },
           })
 
-          expect(target).toBeLike({
+          expect(target).toEqual({
             q: { u: { a: { c: { k: [{ d: [{ id: 1 }] }] } } } },
           })
 
@@ -8588,7 +8588,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
             q: { u: { a: { c: { k: { d: { key: 'id' } } } } } },
           })
 
-          expect(target).toBeLike({
+          expect(target).toEqual({
             q: { u: { a: { c: { k: [{ d: [{ id: 2 }] }] } } } },
           })
         },
@@ -8604,7 +8604,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
             },
           })
 
-          expect(target).toBeLike({
+          expect(target).toEqual({
             q: {
               u: { a: { c: { k: [{ d: [{ id: 1, name: 'a' }] }] } } },
             },
@@ -8628,7 +8628,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
             q: { u: { a: { c: { k: { d: { key: 'id' } } } } } },
           })
 
-          expect(target).toBeLike({
+          expect(target).toEqual({
             q: {
               u: {
                 a: {
@@ -8642,7 +8642,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 
           expect(ref).toBe(target.q.u.a.c.k[0].d[0])
           expect(ref).not.toBe({ id: 1, name: 'b' })
-          expect(ref).toBeLike({ id: 1, name: 'b' })
+          expect(ref).toEqual({ id: 1, name: 'b' })
         },
       )
 
@@ -8651,7 +8651,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
         expect => {
           const target = mutable({ c: [{ id: 1 }], d: [{ idx: 2 }] })
 
-          expect(target).toBeLike({
+          expect(target).toEqual({
             c: [{ id: 1 }],
             d: [{ idx: 2 }],
           })
@@ -8666,7 +8666,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
             d: { key: 'idx' },
           })
 
-          expect(target).toBeLike({
+          expect(target).toEqual({
             c: [{ id: 3 }],
             d: [{ idx: 4 }],
           })
@@ -8677,7 +8677,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
         expect => {
           const target = mutable({ c: [{ id: 1 }], d: [{ idx: 2 }] })
 
-          expect(target).toBeLike({
+          expect(target).toEqual({
             c: [{ id: 1 }],
             d: [{ idx: 2 }],
           })
@@ -8692,7 +8692,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
             d: { key: 'idx' },
           })
 
-          expect(target).toBeLike({
+          expect(target).toEqual({
             c: [],
             d: [],
           })
@@ -8709,7 +8709,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
             c: [{ id: 1 }],
           })
 
-          expect(target).toBeLike({
+          expect(target).toEqual({
             a: true,
             q: [1, 2],
             c: [{ id: 1 }],
@@ -8726,7 +8726,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 
           replace(target, source, { c: { key: 'id' } })
 
-          expect(target).toBeLike({
+          expect(target).toEqual({
             q: [6, 8],
             c: [
               { id: 1, name: '1' },
@@ -8748,7 +8748,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
             shouldDeleteThis: true,
           })
 
-          expect(target).toBeLike({
+          expect(target).toEqual({
             a: true,
             q: [1, 2],
             c: [{ id: 1, shouldDeleteThis: true, d: [1] }],
@@ -8769,7 +8769,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 
           replace(target, source, { c: { key: 'id' } })
 
-          expect(target).toBeLike({
+          expect(target).toEqual({
             q: [6, 8],
             c: [
               { id: 3, name: '3', d: [3] },
@@ -9185,26 +9185,26 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
     expect(callsMemo).toBe(7)
 
     set([true])
-    expect(get()).toBeLike([true])
-    expect(value()).toBeLike([true])
+    expect(get()).toEqual([true])
+    expect(value()).toEqual([true])
     expect(Array.isArray(get())).toBe(true)
     expect(callsMemo).toBe(8)
 
     set({ 0: true })
-    expect(get()).toBeLike({ 0: true })
-    expect(value()).toBeLike({ 0: true })
+    expect(get()).toEqual({ 0: true })
+    expect(value()).toEqual({ 0: true })
     expect(Array.isArray(get())).toBe(false)
     expect(callsMemo).toBe(9)
 
     set([true])
-    expect(get()).toBeLike([true])
-    expect(value()).toBeLike([true])
+    expect(get()).toEqual([true])
+    expect(value()).toEqual([true])
     expect(Array.isArray(get())).toBe(true)
     expect(callsMemo).toBe(10)
 
     set({ 0: true })
-    expect(get()).toBeLike({ 0: true })
-    expect(value()).toBeLike({ 0: true })
+    expect(get()).toEqual({ 0: true })
+    expect(value()).toEqual({ 0: true })
     expect(Array.isArray(get())).toBe(false)
     expect(callsMemo).toBe(11)
 

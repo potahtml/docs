@@ -6,14 +6,7 @@ import { Show } from 'pota/web'
 import { compress } from '../../compress.js'
 import { prettierConfig } from '../../prettier-config.js'
 
-import './shiki-textarea.css'
-
-import { setCDN } from 'solid-shiki-textarea/custom-element'
-
-setCDN('/assets/shiki')
-
 import shikicss from './solid-shiki-textarea.css?raw'
-
 const shikiStyleSheet = sheet(shikicss)
 
 export function Code(props) {
@@ -132,11 +125,9 @@ function Preview(props) {
 					<shiki-textarea
 						language="jsx"
 						theme="monokai"
-						value={code}
+						code={code}
 						stylesheet={shikiStyleSheet}
-						onInput={e => {
-							props.setCode(e.target.value)
-						}}
+						onInput={e => props.setCode(e.target.value)}
 						editable={props.editable ? true : false}
 					/>
 				</section>

@@ -3,3 +3,6 @@ code * {
 	text-decoration: initial !important;
 	font-style: normal !important;
 }
+br {
+	display: none;
+}
