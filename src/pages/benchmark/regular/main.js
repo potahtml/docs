@@ -1991,11 +1991,11 @@
 	        if (isComponent(child)) {
 	          return createChildren(parent, untrack(child), relative);
 	        }
-	        let node = [];
 
 	        // signal/memo/external/user provided function
 	        // needs placeholder to stay in position
 	        parent = createPlaceholder(parent, undefined /*child.name*/, relative);
+	        let node = [];
 
 	        // For
 	        if ($isMap in child) {

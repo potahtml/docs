@@ -15,7 +15,10 @@ export default function () {
 				idiosyncrasies.
 			</Header>
 
-			<Section title="JavaScript">
+			<Section
+				title="JavaScript"
+				flair="scroll-x"
+			>
 				<shiki-textarea
 					class="nice"
 					language="shellscript"
@@ -32,7 +35,10 @@ export default function () {
 				/>
 			</Section>
 
-			<Section title="Typescript">
+			<Section
+				title="Typescript"
+				flair="scroll-x"
+			>
 				<p>
 					Please keep in mind this template may needs a tweak. The
 					typings on the lib are a work in progress
@@ -54,7 +60,10 @@ export default function () {
 				/>
 			</Section>
 
-			<Section title="Babel Preset">
+			<Section
+				title="Babel Preset"
+				flair="scroll-x"
+			>
 				<p>
 					pota provides an optimized and customized babel preset for
 					transforming JSX in a <em>better</em> way, inspired by{' '}
@@ -78,7 +87,10 @@ export default function () {
 				/>
 			</Section>
 
-			<Section title="Rollup">
+			<Section
+				title="Rollup"
+				flair="scroll-x"
+			>
 				<p>Very customizable, you are in control, recommended!</p>
 
 				<shiki-textarea

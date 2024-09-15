@@ -1,7 +1,5 @@
 import { render } from 'pota'
-import { HTML } from 'pota/html'
-
-const html = HTML()
+import { html } from 'pota/html'
 
 const FancyCustomBold = props => {
   return html`<b>

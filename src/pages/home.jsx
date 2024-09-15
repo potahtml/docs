@@ -92,13 +92,14 @@ export default function Home() {
 						<mark>div</mark>
 					</li>
 					<li>
-						Includes a simple but full featured <mark>Route</mark>{' '}
+						Includes a simple but full featured <mark>Router</mark>{' '}
 						component
 					</li>
 					<li>Does not include server side rendering (SSR)</li>
 					<li>
-						<s>Does not include stores (possibly in the future)</s>.
-						See <a href="/Reactivity/">Reactivity</a>
+						Utilities to track objects, as <mark>mutable</mark>,{' '}
+						<mark>signalify</mark> with reconcile-like apis. See{' '}
+						<a href="/Reactivity/">Reactivity</a>
 					</li>
 				</ol>
 			</Section>

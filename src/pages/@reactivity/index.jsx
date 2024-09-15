@@ -42,6 +42,8 @@ export default function () {
 						import {
 							mutable,
 							signalify,
+							merge,
+							replace
 						} from 'pota/store'
 					`}
 					render={false}
@@ -101,6 +103,21 @@ export default function () {
 								it replaces all object properties with
 								setters/getters. New properties are tracked/mutable.
 								This is done recursively.
+							</td>
+						</tr>
+						<tr>
+							<td>merge</td>
+							<td>(target, source, keys?)</td>
+							<td>target</td>
+							<td>Merge `source` into `target`</td>
+						</tr>
+						<tr>
+							<td>replace</td>
+							<td>(target, source, keys?)</td>
+							<td>target</td>
+							<td>
+								Merge `source` into `target` and removes from `target`
+								keys not present in `source`
 							</td>
 						</tr>
 						<tr>

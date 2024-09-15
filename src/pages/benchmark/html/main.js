@@ -2264,11 +2264,11 @@
 	        if (isComponent(child)) {
 	          return createChildren(parent, untrack(child), relative);
 	        }
-	        let node = [];
 
 	        // signal/memo/external/user provided function
 	        // needs placeholder to stay in position
 	        parent = createPlaceholder(parent, undefined /*child.name*/, relative);
+	        let node = [];
 
 	        // For
 	        if ($isMap in child) {
@@ -2560,7 +2560,7 @@
 	  return next;
 	}
 
-	const dashesToCamelCase = s => s.replace(/-([a-z])/g, g => g[1].toUpperCase());
+	const dashesToCamelCase = s => s.replace(/-([a-z0-9])/g, g => g[1].toUpperCase());
 
 	/**
 	 * Defines a custom Element (if isnt defined already)
@@ -3375,9 +3375,6 @@
 	/**
 	 * Function to create cached tagged template components
 	 *
-	 * @param {object} [options]
-	 * @param {boolean} [options.unwrap] - To return a `Node/Element` or
-	 *   an array of `Node/Elements`. Defaults to `true`
 	 * @returns {Function & {
 	 * 	define: ({ components }) => void
 	 * 	components: {}
@@ -3385,9 +3382,7 @@
 	 * @url https://pota.quack.uy/HTML
 	 */
 
-	function HTML(options = {
-	  unwrap: true
-	}) {
+	function HTML() {
 	  const components = {
 	    ...defaultRegistry
 	  };
@@ -3423,8 +3418,10 @@
 	          }
 	          if (name[0] === '.') {
 	            props['prop:' + dashesToCamelCase(name.slice(1))] = value;
+	          } else if (name.slice(0, 5) === 'prop:') {
+	            props['prop:' + dashesToCamelCase(name.slice(5))] = value;
 	          } else if (name[0] === '?') {
-	            props['bool:' + dashesToCamelCase(name.slice(1))] = value;
+	            props['bool:' + name.slice(1)] = value;
 	          } else if (name[0] === '@') {
 	            props['on:' + name.slice(1)] = value;
 	          } else {
@@ -3441,8 +3438,7 @@
 	        return node.cloneNode();
 	      }
 	    }
-	    const result = flat(toArray(cached.childNodes).map(nodes));
-	    return options.unwrap ? toHTML(result) : result;
+	    return flat(toArray(cached.childNodes).map(nodes));
 	  }
 	  html.components = components;
 	  html.define = userComponents => {

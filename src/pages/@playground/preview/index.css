@@ -1,7 +1,6 @@
 html,
 body {
-  height: auto;
-  min-height: 27px;
+  height: fit-content;
 }
 
 html {

@@ -1,9 +1,7 @@
 import { render, signal } from 'pota'
-import { HTML } from 'pota/html'
+import { html } from 'pota/html'
 
 const [read, write] = signal(true)
-
-const html = HTML()
 
 function recurse(name) {
   render(<div>{name}</div>)

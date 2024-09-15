@@ -84,9 +84,9 @@ CustomElement, // class Fancy extends CustomElement{}
 
 // html
 import {
-htmlEffect, // htmlEffect((html)=> html\`<div>\${some.non.reactive.object}</div>\`, {unwrap:true, updateTrigger:false})
-HTML, // const html = HTML({unwrap:true}); (props)=> html\`<div>\${props.children}</div>\`
-html, // (props)=> html\`<div>\${props.children}</div>\` // <div/>
+htmlEffect, // htmlEffect((html)=> html\`<div>\${obj.value}</div>\`)
+HTML, // const html = HTML(); (props) => html\`<div>\${props.children}</div>\`
+html, // (props)=> html\`<div>\${props.children}</div>\` // () => <div/>
 } from 'pota/html'
 
 // css

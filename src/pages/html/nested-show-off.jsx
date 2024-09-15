@@ -1,7 +1,5 @@
 import { render, signal } from 'pota'
-import { HTML } from 'pota/html'
-
-const html = HTML()
+import { html } from 'pota/html'
 
 function Counter() {
   const [show, setShow, updateShow] = signal(false)

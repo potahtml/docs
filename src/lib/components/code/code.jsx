@@ -113,26 +113,30 @@ function Preview(props) {
 			],
 			...prettierConfig,
 		})
-		.then(code => (
-			<section
-				class={styles.shikiContainer}
-				bool:editable={props.editable}
-			>
+		.then(code => {
+			return (
 				<section
-					attr:flair={props.scroll === false ? 'no-scroll' : 'scroll'}
-					class={styles.shiki}
+					class={styles.shikiContainer}
+					bool:editable={props.editable}
 				>
-					<shiki-textarea
-						language="jsx"
-						theme="monokai"
-						code={code}
-						stylesheet={shikiStyleSheet}
-						onInput={e => props.setCode(e.target.value)}
-						editable={props.editable ? true : false}
-					/>
+					<section
+						attr:flair={
+							props.scroll === false ? 'no-scroll' : 'scroll'
+						}
+						class={styles.shiki}
+					>
+						<shiki-textarea
+							language="jsx"
+							theme="monokai"
+							code={code}
+							stylesheet={shikiStyleSheet}
+							onInput={e => props.setCode(e.target.value)}
+							editable={props.editable ? true : false}
+						/>
+					</section>
 				</section>
-			</section>
-		))
+			)
+		})
 }
 
 // RENDER
@@ -142,38 +146,42 @@ window.addEventListener('message', function (e) {
 	for (const frame of document.querySelectorAll('iframe')) {
 		if (e.source === frame.contentWindow) {
 			const size = JSON.parse(e.data).height
-			if (size < 600) {
-				frame.style.height = size + 'px'
-			}
+			frame.style.height = size + 'px'
 			break
 		}
 	}
 })
 
 function Render(props) {
+	let timeout = -1
 	return (
 		<section class={styles.frame}>
-			{() => {
-				props.codeURL() // tracks to force reruns
-				return new Promise(resolve =>
-					resolve(
-						<iframe
-							/*loading="lazy"*/
-							title="Live Code Example"
-							name="Live Code Example"
-							ref={props.frame}
-							src={() =>
-								'/pages/@playground/preview/index.html' +
-								(window.location.href.includes('playground')
-									? '?playground'
-									: '') +
-								'#' +
-								props.codeURL()
-							}
-						/>,
-					),
-				)
-			}}
+			<iframe
+				/*loading="lazy"*/
+				title="Live Code Example"
+				name="Live Code Example"
+				ref={props.frame}
+				src={() => {
+					clearTimeout(timeout)
+					if (timeout) {
+						timeout = setTimeout(
+							() =>
+								props.frame()?.contentWindow.location.reload(true),
+							120,
+						)
+					} else {
+						timeout = 1
+					}
+					return (
+						'/pages/@playground/preview/index.html' +
+						(window.location.href.includes('playground')
+							? '?playground'
+							: '') +
+						'#' +
+						props.codeURL()
+					)
+				}}
+			/>
 		</section>
 	)
 }

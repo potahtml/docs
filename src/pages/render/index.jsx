@@ -8,18 +8,21 @@ export default function () {
 	return (
 		<>
 			<Header title="render">
-				It renders anything into Element. It creates a tracking scope
+				Renders anything into Element. It creates a tracking scope
 				using a root and returns a dispose function that when called
-				will unmount the component.
+				will unmount the contents.
 			</Header>
 
 			<p>
-				What has been rendered will be disposed if the container cease
-				to exist, but only if the container has been created by this
-				lib, as it registers on <mark>onUnmount</mark>
+				When calling render in a tracked scope, it will be disposed
+				automatically if the scope gets disposed.
 			</p>
 
-			<p>Rendering in a container won't clear the container</p>
+			<p>
+				Rendering in a container won't clear the container. Disposing
+				what has been rendered won't remove unrelated elements from
+				the container.
+			</p>
 
 			<Section title="Arguments">
 				<table>

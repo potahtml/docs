@@ -22,8 +22,10 @@
 	padding: 15px;
 }
 iframe {
-	height: auto;
+	height: 27.31px;
+	min-height: 27.31px;
 	width: calc(100% - 1px);
+	max-height: 600px;
 }
 
 figcaption {
@@ -67,6 +69,7 @@ figcaption mark {
 
 	max-height: 810px;
 	min-width: 100%;
+	min-height: 64px;
 }
 .shiki[flair~='no-scroll'] {
 	max-height: none;

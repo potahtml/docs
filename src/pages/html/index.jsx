@@ -11,76 +11,28 @@ export default function () {
 					templates. Inspired and influenced by{' '}
 					<a href="https://github.com/trusktr">@trusktr</a>
 				</p>
-				It comes in two flavors that you can choose
-				<ol>
-					<li>
-						1. Returns a <mark>Node/Element</mark> or an{' '}
-						<mark>Array</mark> of <mark>Node/Element</mark>.{' '}
-						<ol>
-							<li>
-								<b>PROS</b>: very easy to use the Element when is a
-								single children or if you dont mind the array.{' '}
-							</li>
-							<li>
-								<b>CONS</b>: doesn't play nicely with nested
-								reactivity and context as elements have to be created
-								before returning, which means that if you nest the
-								result in a context then it wont be using the context
-								value as the element is already created.
-							</li>
-						</ol>
-					</li>
-					<li>
-						2. Behaves as any other component, it could return{' '}
-						<mark>Node/Element/Function/Array</mark>.{' '}
-						<ol>
-							<li>
-								<b>PROS</b>: plays nicely with nested reactivity and
-								reactive context.{' '}
-							</li>
-							<li>
-								<b>CONS</b>: you dont get an Element.
-							</li>
-						</ol>
-					</li>
-				</ol>
 			</Header>
 
-			<Section title="As HTMLElement">
+			<Section title="Snippet">
+				<Code
+					url="/pages/html/snippet.jsx"
+					render={false}
+				></Code>
+			</Section>
+
+			<Section title="Value">
 				<Code
 					code={`
 						import { render } from 'pota'
 						import { html } from 'pota/html'
 
-						// this returns a real div
-						const div = html\`<div>div contents</div>\`
+ 						const test = html\`<div>div contents</div>\`
 
-						render(div instanceof Node)
-						render(div)
+						render(typeof test === 'function')
+ 						render(test)
 					`}
 				>
-					By default, export <mark>html</mark> (in lowercase) will
-					return <b>Element/Node</b> or <b>(Element/Node)[]</b>
-				</Code>
-			</Section>
-
-			<Section title="As Component">
-				<Code
-					code={`
-						import { render } from 'pota'
-						import { HTML } from 'pota/html'
-
-						// create new \`html\` instance
-						const html = HTML({ unwrap: false })
-
-						// this returns a function
-						const component = html\`<div>div contents</div>\`
-
-						render(typeof component === 'function')
-						render(component)
-					`}
-				>
-					Notice the argument <mark>{'{ unwrap: false }'}</mark>
+					Used to return a real element, but not anymore.
 				</Code>
 			</Section>
 
@@ -98,8 +50,8 @@ export default function () {
 						render(test)
  					`}
 				>
-					Global User defined component. By defining it on the
-					exported <mark>html</mark> it will make the component global
+					By defining a user component on the exported{' '}
+					<mark>html</mark> it will make the component global
 					(accessible when importing <mark>html</mark> from other
 					files)
 				</Code>
@@ -150,11 +102,8 @@ export default function () {
 					An <mark>htmlEffect</mark> is similar to a regular{' '}
 					<mark>effect</mark>. It creates and cache the html for the
 					output updating anything that has changed using signals for
-					the interpolated values. Updates can be triggered
-					automatically by using reactive values, or manually (example
-					in a <mark>requestAnimationFrame</mark>) by passing the
-					option `updateTrigger` on which case it will return a tuple{' '}
-					<mark>[result, updateFunction]</mark>
+					the interpolated values. Updates trigger automatically when
+					using reactive values.
 				</p>
 				<Code
 					code={`
@@ -164,18 +113,19 @@ export default function () {
 
 						const data = signalify({ test: 0 })
 
-						const div = htmlEffect(html => {
+						const test = htmlEffect(html => {
 						  return html\`<div>value is \${data.test}</div>\`
 						})
 
 						setInterval(() => data.test++, 1000)
 
 
-						render(div)
+						render(test)
 
  					`}
 				>
-					The function reruns whenever <mark>data.test</mark> changes.
+					The function re-runs whenever <mark>data.test</mark>{' '}
+					changes.
 				</Code>
 
 				<Code
@@ -186,7 +136,7 @@ export default function () {
 
 						const data = signalify({ test: 0 })
 
-						const div = htmlEffect(html => {
+						const test = htmlEffect(html => {
  							data.test
 						  return html\`<div>test</div>\`
 						})
@@ -194,7 +144,7 @@ export default function () {
 						setInterval(() => data.test++, 1000)
 
 
-						render(div)
+						render(test)
 
  					`}
 				>
@@ -210,7 +160,7 @@ export default function () {
 
 						const data = signalify({ test: 0 })
 
-						const div = htmlEffect(
+						const test = htmlEffect(
 						  html => {
 						    const double = html\`<div>double is \${data.test*2}</div>\`
 
@@ -220,12 +170,12 @@ export default function () {
 
 						setInterval(() => data.test++, 1000)
 
-						render(div)
+						render(test)
 
 
  					`}
 				>
-					Nested <mark>html</mark>. Templates are re-used. If you
+					Nested <mark>html</mark>. Templates render once. If you
 					inspect the source, only the numbers change.
 				</Code>
 
@@ -286,10 +236,8 @@ render(
  						    // VALUE
 						    const value = html\`<div>value \${read()}</div>\`
 
-
 						    // DOBLE
 						    const double = html\`<div>double \${read() * 2}</div>\`
-
 
 						    // NEST
 						    const result = html\`<div>result  \${value} \${double}</div>\`
@@ -338,28 +286,6 @@ render(
 				</Code>
 			</Section>
 
-			<Section title="Component vs Element">
-				<Code
-					code={`
-						import { render } from 'pota'
-						import { HTML } from 'pota/html'
-
-						const html1 = HTML({unwrap:false})
-
- 						const component = html1\`<div>div contents</div>\`
-
-						const html2 = HTML({unwrap:true})
-
- 						const aRealDiv = html2\`<div>div contents</div>\`
-
-						render([component, typeof component, aRealDiv, aRealDiv instanceof Node])
- 					`}
-				>
-					Choose what to receive from <mark>html</mark> by defining
-					the option <mark>unwrap</mark>. Defaults to `true`
-				</Code>
-			</Section>
-
 			<Section title="Notes">
 				<ol>
 					<li>
@@ -377,16 +303,9 @@ render(
 					<li>
 						on <mark>html.define</mark> it is possible to define a
 						component named <mark>div</mark>, and make all divs behave
-						differently. This is a warning, NOT a recommendation.
+						differently. This is a warning, not a recommendation.
 					</li>
 				</ol>
-			</Section>
-
-			<Section title="Snippet">
-				<Code
-					url="/pages/html/snippet.jsx"
-					render={false}
-				></Code>
 			</Section>
 
 			<Section title="No JSX">

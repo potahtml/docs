@@ -1,7 +1,5 @@
 import { render, signal } from 'pota'
-import { HTML } from 'pota/html'
-
-const html = HTML()
+import { html } from 'pota/html'
 
 function Example() {
   const [count, setCount, updateCount] = signal(0)
@@ -14,8 +12,6 @@ function Example() {
   >
     add 10
   </button>`
-
-  add10.onmousedown = () => render(<div>onmousedown!</div>)
 
   function thisworks() {
     render('you clicked!')

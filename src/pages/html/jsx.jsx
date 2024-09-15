@@ -1,7 +1,5 @@
 import { render, signal } from 'pota'
-import { HTML } from 'pota/html'
-
-const html = HTML()
+import { html } from 'pota/html'
 
 function Example(props) {
   const [count, setCount, updateCount] = signal(0)
