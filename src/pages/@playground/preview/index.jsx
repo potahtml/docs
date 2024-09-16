@@ -1,5 +1,7 @@
 import './index.css'
 
+addEventListener('hashchange', e => window.location.reload())
+
 import { uncompress } from '../../../lib/compress.js'
 
 // auto size frame to content

@@ -162,8 +162,8 @@ function Render(props) {
 				src={() =>
 					'/pages/@playground/preview/index.html' +
 					(window.location.href.includes('playground')
-						? '?playground&t=' + now()
-						: '?t=' + now()) +
+						? '?playground'
+						: '') +
 					'#' +
 					props.codeURL()
 				}
