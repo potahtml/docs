@@ -92,7 +92,7 @@
 	/**
 	 * Returns `document` for element. That could be a `shadowRoot`
 	 *
-	 * @param {Elements} node
+	 * @param {Element} node
 	 * @returns {Document | ShadowRoot}
 	 */
 
@@ -171,16 +171,21 @@
 	const isBoolean = value => typeof value === 'boolean';
 	const noop = () => {};
 
-	/** An empty frozen object */
+	/**
+	 * An empty frozen object
+	 *
+	 * @type object
+	 */
 	const nothing = freeze(empty());
 	const querySelector = (node, query) => node.querySelector(query);
 
 	/**
 	 * Removes a value from an array
 	 *
-	 * @param {any[]} array
-	 * @param {any} value To remove from the array
-	 * @returns {any[]}
+	 * @template T
+	 * @param {T[]} array
+	 * @param {T} value To remove from the array
+	 * @returns {T[]}
 	 */
 	function removeFromArray(array, value) {
 	  const index = array.indexOf(value);
@@ -553,7 +558,7 @@
 	 * Creates a new root
 	 *
 	 * @param {(dispose: Function) => any} fn
-	 * @param {OwnerOptions} options
+	 * @param {object} [options]
 	 * @returns {any}
 	 */
 	function root(fn, options = undefined) {
@@ -587,7 +592,7 @@
 	 * Creates an effect
 	 *
 	 * @param {Function} fn
-	 * @param {OwnerOptions} options
+	 * @param {object} [options]
 	 */
 	function effect(fn, options = undefined) {
 	  new Effect(Owner, fn, options);
@@ -597,7 +602,7 @@
 	 * Creates a syncEffect
 	 *
 	 * @param {Function} fn
-	 * @param {OwnerOptions} options
+	 * @param {object} [options]
 	 */
 	function syncEffect(fn, options = undefined) {
 	  return new SyncEffect(Owner, fn, options);
@@ -899,7 +904,8 @@
 	/**
 	 * Reactive Map
 	 *
-	 * @param {Each} list
+	 * @template T
+	 * @param {Each<T>} list
 	 * @param {Function} callback
 	 * @param {boolean} sort
 	 */
@@ -1158,7 +1164,7 @@
 	/**
 	 * Adds an event listener to a node
 	 *
-	 * @param {Elements} node - Element to add the event listener
+	 * @param {Element} node - Element to add the event listener
 	 * @param {(keyof WindowEventMap & keyof GlobalEventHandlersEventMap)
 	 * 	| string} type
 	 *   - The name of the event listener
@@ -1190,7 +1196,7 @@
 	/**
 	 * Removes an event listener from a node
 	 *
-	 * @param {Elements} node - Element to add the event listener
+	 * @param {Element} node - Element to add the event listener
 	 * @param {(keyof WindowEventMap & keyof GlobalEventHandlersEventMap)
 	 * 	| string} type
 	 *   - The name of the event listener
@@ -1291,7 +1297,7 @@
 	const ready = fn => add(4, fn);
 
 	/**
-	 * @param {Elements} node
+	 * @param {Element} node
 	 * @param {string} name
 	 * @param {EventListenerOrEventListenerObject} value
 	 * @param {object} props
@@ -1379,7 +1385,7 @@
 	};
 
 	/**
-	 * @param {Elements} node
+	 * @param {Element} node
 	 * @param {string} name
 	 * @param {unknown} value
 	 * @param {object} props
@@ -1389,7 +1395,7 @@
 	const setPropertyNS = (node, name, value, props, localName, ns) => setProperty(node, localName, value);
 
 	/**
-	 * @param {Elements} node
+	 * @param {Element} node
 	 * @param {string} name
 	 * @param {unknown} value
 	 * @url https://pota.quack.uy/props/setProperty
@@ -1397,7 +1403,7 @@
 	const setProperty = (node, name, value) => withValue(value, value => _setProperty(node, name, value));
 
 	/**
-	 * @param {Elements} node
+	 * @param {Element} node
 	 * @param {string} name
 	 * @param {unknown} value
 	 */
@@ -1414,7 +1420,7 @@
 	// NODE ATTRIBUTES
 
 	/**
-	 * @param {Elements} node
+	 * @param {Element} node
 	 * @param {string} name
 	 * @param {unknown} value
 	 * @param {object} props
@@ -1424,7 +1430,7 @@
 	const setAttributeNS = (node, name, value, props, localName, ns) => setAttribute(node, localName, value);
 
 	/**
-	 * @param {Elements} node
+	 * @param {Element} node
 	 * @param {string} name
 	 * @param {unknown} value
 	 * @param {string} [ns]
@@ -1433,9 +1439,9 @@
 	const setAttribute = (node, name, value, ns) => withValue(value, value => _setAttribute(node, name, value, ns));
 
 	/**
-	 * @param {Elements} node
+	 * @param {Element} node
 	 * @param {string} name
-	 * @param {unknown} value
+	 * @param {string} value
 	 * @param {string} [ns]
 	 */
 	function _setAttribute(node, name, value, ns) {
@@ -1451,7 +1457,7 @@
 
 
 	/**
-	 * @param {Elements} node
+	 * @param {Element} node
 	 * @param {string} name
 	 * @param {unknown} value
 	 * @param {string} [ns]
@@ -1459,7 +1465,7 @@
 	const setUnknownProp = (node, name, value, ns) => withValue(value, value => _setUnknownProp(node, name, value, ns));
 
 	/**
-	 * @param {Elements} node
+	 * @param {Element} node
 	 * @param {string} name
 	 * @param {unknown} value
 	 * @param {string} [ns]
@@ -1484,7 +1490,7 @@
 
 
 	/**
-	 * @param {Elements} node
+	 * @param {Element} node
 	 * @param {string} name
 	 * @param {unknown} value
 	 * @param {object} props
@@ -1494,7 +1500,7 @@
 	const setBoolNS = (node, name, value, props, localName, ns) => setBool(node, localName, value);
 
 	/**
-	 * @param {Elements} node
+	 * @param {Element} node
 	 * @param {string} name
 	 * @param {unknown} value
 	 * @url https://pota.quack.uy/props/setBool
@@ -1502,7 +1508,7 @@
 	const setBool = (node, name, value) => withValue(value, value => _setBool(node, name, value));
 
 	/**
-	 * @param {Elements} node
+	 * @param {Element} node
 	 * @param {string} name
 	 * @param {unknown} value
 	 */
@@ -1514,7 +1520,7 @@
 
 
 	/**
-	 * @param {Elements} node
+	 * @param {Element} node
 	 * @param {string} name
 	 * @param {unknown} value
 	 * @param {object} props
@@ -1523,7 +1529,7 @@
 	const setStyle = (node, name, value, props) => setNodeStyle(node.style, value);
 
 	/**
-	 * @param {Elements} node
+	 * @param {Element} node
 	 * @param {string} name
 	 * @param {unknown} value
 	 * @param {object} props
@@ -1535,7 +1541,7 @@
 	});
 
 	/**
-	 * @param {Elements} node
+	 * @param {Element} node
 	 * @param {string} name
 	 * @param {unknown} value
 	 * @param {object} props
@@ -1589,7 +1595,7 @@
 	const randomId = () => crypto.getRandomValues(new BigUint64Array(1))[0].toString(36);
 
 	/**
-	 * @param {Elements} node
+	 * @param {Element} node
 	 * @param {string} name
 	 * @param {string} value
 	 * @param {object} props
@@ -1597,7 +1603,7 @@
 	const setCSS = (node, name, value, props) => setNodeCSS(node, value);
 
 	/**
-	 * @param {Elements} node
+	 * @param {Element} node
 	 * @param {string} value
 	 */
 	const setNodeCSS = withState((state, node, value) => {
@@ -1609,7 +1615,7 @@
 	});
 
 	/**
-	 * @param {Elements} node
+	 * @param {Element} node
 	 * @param {string} name
 	 * @param {Function} value
 	 * @param {object} props
@@ -1617,7 +1623,7 @@
 	const setRef = (node, name, value, props) => onRef(() => value(node));
 
 	/**
-	 * @param {Elements} node
+	 * @param {Element} node
 	 * @param {string} name
 	 * @param {Function} value
 	 * @param {object} props
@@ -1625,7 +1631,7 @@
 	const setOnMount = (node, name, value, props) => onMount(() => value(node));
 
 	/**
-	 * @param {Elements} node
+	 * @param {Element} node
 	 * @param {string} name
 	 * @param {Function} value
 	 * @param {object} props
@@ -1636,7 +1642,7 @@
 
 
 	/**
-	 * @param {Elements} node
+	 * @param {Element} node
 	 * @param {string} name
 	 * @param {object | string | ArrayLike<any>} value
 	 * @param {object} props
@@ -1644,7 +1650,7 @@
 	const setClass = (node, name, value, props) => isString(value) ? node.setAttribute('class', value) : setClassList(node, value);
 
 	/**
-	 * @param {Elements} node
+	 * @param {Element} node
 	 * @param {string} name
 	 * @param {object | string | ArrayLike<any>} value
 	 * @param {object} props
@@ -1654,7 +1660,7 @@
 	const setClassNS = (node, name, value, props, localName, ns) => isFunction(value) ? setClassListValue(node, localName, value) : setClassList(node, value);
 
 	/**
-	 * @param {Elements} node
+	 * @param {Element} node
 	 * @param {object | string | ArrayLike<any>} value
 	 */
 	function setClassList(node, value) {
@@ -1680,7 +1686,7 @@
 	  }
 	}
 	/**
-	 * @param {Elements} node
+	 * @param {Element} node
 	 * @param {string} name
 	 * @param {unknown} value
 	 */
@@ -1692,7 +1698,7 @@
 	});
 
 	/**
-	 * @param {Elements} node
+	 * @param {Element} node
 	 * @param {string} name
 	 * @param {unknown} value
 	 */
@@ -1725,7 +1731,7 @@
 	/**
 	 * Assigns props to an Element
 	 *
-	 * @param {Elements} node - Element to which assign props
+	 * @param {Element} node - Element to which assign props
 	 * @param {object} props - Props to assign
 	 * @param {number} [isCustomElement] - Is custom element
 	 */
@@ -1740,7 +1746,7 @@
 	/**
 	 * Assigns a prop to an Element
 	 *
-	 * @param {Elements} node
+	 * @param {Element} node
 	 * @param {string} name
 	 * @param {any} value
 	 * @param {object} props
@@ -1803,7 +1809,8 @@
 	/**
 	 * Creates a component that could be called with a props object
 	 *
-	 * @param {Componenteable} value
+	 * @template T
+	 * @param {any} value
 	 * @returns {Component}
 	 */
 
@@ -1875,9 +1882,10 @@
 	/**
 	 * Creates a x/html element from a tagName
 	 *
-	 * @param {string} tagName
-	 * @param {Props} props
-	 * @returns {Elements} Element
+	 * @template P
+	 * @param {TagNames} tagName
+	 * @param {P} props
+	 * @returns {Element} Element
 	 */
 	function createTag(tagName, props) {
 	  /**
@@ -1953,9 +1961,10 @@
 	/**
 	 * Assigns props to an element and creates its children
 	 *
-	 * @param {Elements} node
-	 * @param {Props} props
-	 * @returns {Elements} Element
+	 * @template P
+	 * @param {Element} node
+	 * @param {P} props
+	 * @returns {Element} Element
 	 */
 	function createNode(node, props) {
 	  if (props) {
@@ -1967,7 +1976,7 @@
 	/**
 	 * Creates the children for a parent
 	 *
-	 * @param {Elements} parent
+	 * @param {Element} parent
 	 * @param {Children} child
 	 * @param {boolean} [relative]
 	 * @param {Text | undefined} [prev]
@@ -1991,11 +2000,11 @@
 	        if (isComponent(child)) {
 	          return createChildren(parent, untrack(child), relative);
 	        }
+	        let node = [];
 
 	        // signal/memo/external/user provided function
 	        // needs placeholder to stay in position
 	        parent = createPlaceholder(parent, undefined /*child.name*/, relative);
-	        let node = [];
 
 	        // For
 	        if ($isMap in child) {
@@ -2023,7 +2032,7 @@
 	        // maybe a signal so needs an effect
 
 	        effect(() => {
-	          node = toDiff(node, createChildren(parent, child(), true, node[0]));
+	          node = toDiff(node, [createChildren(parent, child(), true, node[0])]);
 	        });
 	        cleanup(() => {
 	          toDiff(node);
@@ -2121,10 +2130,10 @@
 	/**
 	 * Creates placeholder to keep nodes in position
 	 *
-	 * @param {Elements} parent
+	 * @param {Element} parent
 	 * @param {unknown} text
 	 * @param {boolean} [relative]
-	 * @returns {Elements}
+	 * @returns {Element}
 	 */
 	const createPlaceholder = (parent, text, relative) => {
 	  return insertNode(parent, createTextNode(''), relative);
@@ -2143,10 +2152,13 @@
 	/**
 	 * Adds the element to the document
 	 *
-	 * @param {Elements} parent
-	 * @param {Elements} node
+	 * @param {Element} parent
+	 * @param {Element &
+	 * 	HTMLTitleElement &
+	 * 	HTMLMetaElement &
+	 * 	HTMLLinkElement} node
 	 * @param {boolean} [relative]
-	 * @returns {Elements}
+	 * @returns {Element}
 	 */
 
 	function insertNode(parent, node, relative) {
@@ -2183,7 +2195,7 @@
 	 * Inserts children into a parent
 	 *
 	 * @param {any} children - Thing to render
-	 * @param {Elements | undefined} [parent] - Mount point, defaults to
+	 * @param {Element | null} [parent] - Mount point, defaults to
 	 *   document.body
 	 * @param {{ clear?: boolean; relative?: boolean }} [options] -
 	 *   Mounting options
@@ -2203,7 +2215,7 @@
 
 	/**
 	 * @param {any} children - Thing to render
-	 * @param {Elements} [parent] - Mount point, defaults to
+	 * @param {Element | null} [parent] - Mount point, defaults to
 	 *   `document.body`
 	 * @param {{ clear?: boolean; relative?: boolean }} [options] -
 	 *   Mounting options
@@ -2249,13 +2261,13 @@
 	 * Creates a context and returns a function to get or set the value
 	 *
 	 * @param {any} [defaultValue] - Default value for the context
-	 * @returns {Function & { Provider: ({ value }) => Elements }}
+	 * @returns {Function & { Provider: ({ value }) => Children }}
 	 *   Context
 	 * @url https://pota.quack.uy/Reactivity/Context
 	 */
 	/* #__NO_SIDE_EFFECTS__ */
 	function context(defaultValue = undefined) {
-	  /** @type {Function & { Provider: ({ value }) => Elements }} */
+	  /** @type {Function & { Provider: ({ value }) => Children }} */
 	  const ctx = Context(defaultValue);
 
 	  /**
@@ -2274,12 +2286,12 @@
 	/**
 	 * Removes from the DOM `prev` elements not found on `next`
 	 *
-	 * @param {Elements[]} [prev] - Array with previous elements
-	 * @param {Elements[]} [next] - Array with next elements
-	 * @returns {Elements[]}
+	 * @param {Element[]} prev - Array with previous elements
+	 * @param {Element[]} next - Array with next elements
+	 * @returns {Element[]}
 	 */
 	function toDiff(prev = [], next = []) {
-	  next = isArray(next) ? next.flat(Infinity) : [next];
+	  next = next.flat(Infinity);
 	  for (let i = 0, item; i < prev.length; i++) {
 	    item = prev[i];
 	    item && (next.length === 0 || !next.includes(item)) && item.remove();
@@ -2354,8 +2366,9 @@
 	 * Renders reactive values from an signal that returns an Iterable
 	 * object
 	 *
+	 * @template T
 	 * @param {object} props
-	 * @param {Each} props.each
+	 * @param {Each<T>} props.each
 	 * @param {boolean} [props.restoreFocus] - If the focused element
 	 *   moves it may lose focus
 	 * @param {Children} [props.children]

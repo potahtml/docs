@@ -10,7 +10,7 @@
 		"update": "npm update --include=dev --save && npm run dev"
 	},
 	"dependencies": {
-		"dom-flair": "^6.0.56",
+		"dom-flair": "^7.0.56",
 		"fflate": "^0.8.2",
 		"kompiler": "^7.0.157",
 		"pota": "^0.14.133",

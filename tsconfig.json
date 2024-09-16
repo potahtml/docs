@@ -13,12 +13,12 @@
     "moduleResolution": "NodeNext",
     "allowSyntheticDefaultImports": true,
 
-    "jsx": "react-jsx",
+    "jsx": "preserve",
     "jsxImportSource": "pota",
 
     "sourceMap": true,
 
-    "types": ["pota"]
+    "types": ["pota", "dom-flair", "solid-shiki-textarea"]
   },
   "exclude": ["./src/dist/*", "node_modules"]
 }

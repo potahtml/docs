@@ -1,22 +1,13 @@
-import { ref, render } from 'pota'
 import { For } from 'pota/web'
+import { JSX } from 'pota/jsx-runtime'
 
-/** this is wrong, I am just testing
- *
- *
- */
-
-function typescript(): Component<HTMLDivElement> {
+function typescript(): JSX.DOM<HTMLDivElement> {
 	return (
 		<div
-			onclick={e => {
+			onClick={e => {
 				console.log(e.currentTarget)
 			}}
-			onClick={}
-			ondblclick={eeeeeeee => {}}
 			aria-busy={''}
-			flair="row grow"
-			offsetHeight={}
 			aria-readonly={true}
 			class:lalala={true}
 			data-pathname={location.pathname}
@@ -25,17 +16,16 @@ function typescript(): Component<HTMLDivElement> {
 			}}
 			onMount={eeeeee => {}}
 		>
+			<meta content="404 Not Found" />
 			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				viewBox=""
 				onclick={e => {
 					console.log(e.currentTarget)
 					console.log(e.target)
 				}}
 			>
-				<path d="" />
+				<path />
 			</svg>
-			<my-component />
+			<my-component lala="true" />
 			<my-component />
 			<For
 				each={() => {
@@ -43,7 +33,7 @@ function typescript(): Component<HTMLDivElement> {
 				}}
 			></For>
 			<span
-				lala=""
+				flair=""
 				onMount={e => {
 					console.log(e)
 				}}
@@ -51,6 +41,3 @@ function typescript(): Component<HTMLDivElement> {
 		</div>
 	)
 }
-
-const div = typescript()
-div.render(typescript)

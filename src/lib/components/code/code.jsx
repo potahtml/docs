@@ -7,6 +7,7 @@ import { compress } from '../../compress.js'
 import { prettierConfig } from '../../prettier-config.js'
 
 import shikicss from './solid-shiki-textarea.css?raw'
+import { now } from 'pota/plugin/useTime'
 const shikiStyleSheet = sheet(shikicss)
 
 export function Code(props) {
@@ -120,9 +121,7 @@ function Preview(props) {
 					bool:editable={props.editable}
 				>
 					<section
-						attr:flair={
-							props.scroll === false ? 'no-scroll' : 'scroll'
-						}
+						flair={props.scroll === false ? 'no-scroll' : 'scroll'}
 						class={styles.shiki}
 					>
 						<shiki-textarea
@@ -153,7 +152,6 @@ window.addEventListener('message', function (e) {
 })
 
 function Render(props) {
-	let timeout = -1
 	return (
 		<section class={styles.frame}>
 			<iframe
@@ -161,26 +159,14 @@ function Render(props) {
 				title="Live Code Example"
 				name="Live Code Example"
 				ref={props.frame}
-				src={() => {
-					clearTimeout(timeout)
-					if (timeout) {
-						timeout = setTimeout(
-							() =>
-								props.frame()?.contentWindow.location.reload(true),
-							120,
-						)
-					} else {
-						timeout = 1
-					}
-					return (
-						'/pages/@playground/preview/index.html' +
-						(window.location.href.includes('playground')
-							? '?playground'
-							: '') +
-						'#' +
-						props.codeURL()
-					)
-				}}
+				src={() =>
+					'/pages/@playground/preview/index.html' +
+					(window.location.href.includes('playground')
+						? '?playground&t=' + now()
+						: '?t=' + now()) +
+					'#' +
+					props.codeURL()
+				}
 			/>
 		</section>
 	)

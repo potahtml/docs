@@ -5,11 +5,16 @@ function encode(text) {
 	return encodeURIComponent(
 		text
 			.trim()
+			.replace(/\s+/g, ' ')
 			.replace(/^#\s+/, '')
 			.replace(/\s/g, '-')
 			.replace(/\//g, '-')
 			.replace(/-+/g, '-'),
 	)
+}
+
+function whitespace(text) {
+	return text.trim().replace(/\s+/g, ' ')
 }
 
 export function H2(props) {
@@ -21,13 +26,17 @@ export function H2(props) {
 			<h2 id={URL}>
 				<a
 					href={() => '#' + URL()}
-					onMount={element => setURL(encode(element.textContent))}
+					onMount={element => setURL(encode(element.innerText))}
 				>
 					{props.title}
 				</a>
 			</h2>
 			<Show when={props.children}>
-				<p onMount={element => setDescription(element.textContent)}>
+				<p
+					onMount={element =>
+						setDescription(whitespace(element.innerText))
+					}
+				>
 					{props.children}
 				</p>
 			</Show>
@@ -69,7 +78,7 @@ export function H3(props) {
 			<a
 				href={() => '#' + URL()}
 				onMount={element => {
-					setURL(encode(element.textContent))
+					setURL(encode(element.innerText))
 				}}
 			>
 				<span style="color:#58a6ff">#</span> {props.children}
