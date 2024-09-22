@@ -1,0 +1,26 @@
+code,
+code * {
+	text-decoration: initial !important;
+	font-style: normal !important;
+}
+
+br {
+	display: none;
+}
+
+/* line numbers */
+
+.root[data-editable='true'] pre code > span {
+	counter-increment: line-counter;
+}
+.root[data-editable='true'] pre code > span:before {
+	content: counter(line-counter, decimal-leading-zero);
+	padding-right: 15px;
+	color: #7777ce5e;
+}
+.root[data-editable='true'] textarea {
+	padding-left: calc(20px + 15px) !important;
+}
+.root[data-editable='true'] pre code > span:last-child:empty {
+	display: none;
+}

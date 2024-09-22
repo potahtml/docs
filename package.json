@@ -14,7 +14,8 @@
 		"fflate": "^0.8.2",
 		"kompiler": "^7.0.157",
 		"pota": "^0.14.133",
-		"solid-shiki-textarea": "^0.1.6"
+		"solid-shiki-textarea": "^0.1.6",
+		"tm-textarea": "^0.1.6"
 	},
 	"kompiler": {
 		"watch": ["../pota/babel-preset"],

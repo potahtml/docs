@@ -578,7 +578,7 @@
 	/**
 	 * Creates a signal
 	 *
-	 * @template T
+	 * @template const T
 	 * @param {T} [initialValue] - Initial value of the signal
 	 * @param {SignalOptions} [options] - Signal options
 	 * @returns {SignalObject<T>}
