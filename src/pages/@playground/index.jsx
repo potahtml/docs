@@ -1,4 +1,5 @@
 import styles from './playground.module.css'
+import stylecode from '../../lib/components/code/code.module.css'
 
 import { CheatSheet } from '../../lib/components/cheatsheet.jsx'
 import { Code } from '../../lib/components/code/code.jsx'
@@ -141,7 +142,7 @@ export default function () {
 							preview={false}
 						/>
 					</section>
-					<section flair="row grow scroll">
+					<section style="display:grid">
 						<CheatSheet />
 					</section>
 				</section>

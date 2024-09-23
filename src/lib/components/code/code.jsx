@@ -6,9 +6,8 @@ import { Show } from 'pota/web'
 import { compress } from '../../compress.js'
 import { prettierConfig } from '../../prettier-config.js'
 
-import shikicss from './solid-shiki-textarea.css?raw'
-import { now } from 'pota/plugin/useTime'
-const shikiStyleSheet = sheet(shikicss)
+import snippetcss from './tm-textarea-stylesheet.css?raw'
+const snippetStyleSheet = sheet(snippetcss)
 
 export function Code(props) {
 	if (props.url) {
@@ -50,7 +49,6 @@ export function Code(props) {
 						code={code()}
 						setCode={setCode}
 						editable={props.render !== false}
-						scroll={props.scroll}
 					/>
 				</Show>
 				<Show when={props.render !== false}>
@@ -117,22 +115,18 @@ function Preview(props) {
 		.then(code => {
 			return (
 				<section
-					class={styles.shikiContainer}
+					class={styles.snippetContainer}
 					bool:editable={props.editable}
 				>
-					<section
-						flair={props.scroll === false ? 'no-scroll' : 'scroll'}
-						class={styles.shiki}
-					>
-						<shiki-textarea
-							language="jsx"
-							theme="monokai"
-							code={code}
-							stylesheet={shikiStyleSheet}
-							onInput={e => props.setCode(e.target.value)}
-							editable={props.editable ? true : false}
-						/>
-					</section>
+					<tm-textarea
+						class="snippet"
+						grammar="jsx"
+						theme="monokai"
+						value={code.trim()}
+						stylesheet={snippetStyleSheet}
+						onInput={e => props.setCode(e.target.value)}
+						editable={props.editable ? true : false}
+					/>
 				</section>
 			)
 		})

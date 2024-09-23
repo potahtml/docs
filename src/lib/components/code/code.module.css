@@ -41,41 +41,6 @@ figcaption mark {
 	background: #0d1117c9;
 }
 
-.shikiContainer {
-	position: relative;
-
-	background: #11161d;
-	display: grid;
-}
-
-.shikiContainer[editable]::after {
-	color: #ffffff61;
-	content: 'Editable';
-	display: inline-block;
-	font-size: small;
-	pointer-events: none;
-	position: absolute;
-	right: 20px;
-	bottom: 20px;
-	z-index: 2;
-}
-
-.shiki {
-	background: #11161d;
-
-	position: relative;
-
-	resize: both;
-
-	max-height: 810px;
-	min-width: 100%;
-	min-height: 64px;
-}
-.shiki[flair~='no-scroll'] {
-	max-height: none;
-	overflow-y: auto;
-}
-
 /* links */
 
 .container aside {
@@ -102,4 +67,21 @@ mark::after {
 }
 mark::before {
 	content: '`';
+}
+
+.snippetContainer {
+	position: relative;
+	display: grid;
+}
+
+.snippetContainer[editable]::after {
+	color: #ffffff61;
+	content: 'Editable';
+	display: inline-block;
+	font-size: small;
+	pointer-events: none;
+	position: absolute;
+	right: 20px;
+	bottom: 20px;
+	z-index: 2;
 }

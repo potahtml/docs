@@ -17,12 +17,12 @@ import { render } from 'pota'
 import { onDocumentSize } from 'pota/plugin/useDocumentSize'
 import { location } from 'pota/plugin/useLocation'
 
-// shiki
-import 'solid-shiki-textarea/custom-element'
-import './lib/components/code/shiki-textarea.css'
+// tm
+import 'tm-textarea'
+import './lib/components/code/tm-textarea.css'
 
-import { setCDN } from 'solid-shiki-textarea'
-setCDN('/assets/shiki')
+import { setCDN } from 'tm-textarea/cdn'
+setCDN('/assets/tm')
 
 render(
 	() => {

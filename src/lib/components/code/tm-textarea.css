@@ -1,27 +1,48 @@
-/* shiki */
+tm-textarea {
+	min-width: 100%;
+	min-height: 100%;
 
-tm-textarea.nice::part(root) {
 	padding: 20px;
-	background: #11161d;
+
 	font-size: 18px;
 	line-height: 1.25;
+}
+
+/* change background */
+
+tm-textarea::part(root) {
+	background: #11161d;
+}
+
+/* selection color */
+
+tm-textarea::part(textarea)::selection {
+	background: #2a374a;
+}
+
+/* add line-numbers  to kind snippet only */
+
+tm-textarea.snippet::part(line)::before {
+	display: inline-block;
+	counter-reset: line-count calc(var(--line-number) + 1);
+	min-width: 3ch;
+	content: counter(line-count, decimal-leading-zero);
+	color: #7777ce5e;
+}
+tm-textarea.snippet::part(textarea) {
+	margin-left: 3ch;
+}
+
+/* special for shell snippets  */
+
+tm-textarea.shell {
 	border: 1px solid rgba(5, 134, 234, 0.2);
 }
 
-tm-textarea {
-	min-height: 100%;
-	min-width: 100%;
-}
-tm-textarea.nice {
-	min-height: unset;
-}
+/* special for js snippets  */
 
-tm-textarea::part(root) {
-	padding: 20px;
-	background: transparent;
-	font-size: 18px;
-	line-height: 1.25;
-}
-tm-textarea::part(textarea)::selection {
-	background: #2a374a;
+tm-textarea.snippet {
+	max-height: 810px;
+	min-height: 64px;
+	resize: both;
 }

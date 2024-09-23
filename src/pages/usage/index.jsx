@@ -15,15 +15,12 @@ export default function () {
 				idiosyncrasies.
 			</Header>
 
-			<Section
-				title="JavaScript"
-				flair="scroll-x"
-			>
-				<shiki-textarea
-					class="nice"
-					language="shellscript"
+			<Section title="JavaScript">
+				<tm-textarea
+					class="shell"
+					grammar="shellscript"
 					theme="monokai"
-					code={`npx degit potahtml/templates/js pota-project
+					value={`npx degit potahtml/templates/js pota-project
 						cd pota-project
 						npm install --include=dev
 						npm run dev`
@@ -35,20 +32,17 @@ export default function () {
 				/>
 			</Section>
 
-			<Section
-				title="Typescript"
-				flair="scroll-x"
-			>
+			<Section title="Typescript">
 				<p>
 					Please keep in mind this template may needs a tweak. The
 					typings on the lib are a work in progress
 				</p>
 
-				<shiki-textarea
-					class="nice"
-					language="shellscript"
+				<tm-textarea
+					class="shell"
+					grammar="shellscript"
 					theme="monokai"
-					code={`npx degit potahtml/templates/ts pota-project
+					value={`npx degit potahtml/templates/ts pota-project
 						cd pota-project
 						npm install --include=dev
 						npm run dev`
@@ -60,10 +54,7 @@ export default function () {
 				/>
 			</Section>
 
-			<Section
-				title="Babel Preset"
-				flair="scroll-x"
-			>
+			<Section title="Babel Preset">
 				<p>
 					pota provides an optimized and customized babel preset for
 					transforming JSX in a <em>better</em> way, inspired by{' '}
@@ -74,11 +65,11 @@ export default function () {
 					<mark>transform-react-jsx</mark> or any transform that
 					somewhat follows react way.
 				</p>
-				<shiki-textarea
-					class="nice"
-					language="jsx"
+				<tm-textarea
+					class="shell"
+					grammar="jsx"
 					theme="monokai"
-					code={`{babel:{presets: [["pota/babel-preset"]]}}`
+					value={`{babel:{presets: [["pota/babel-preset"]]}}`
 						.split('\n')
 						.map(s => s.trim())
 						.join('\n')
@@ -87,17 +78,14 @@ export default function () {
 				/>
 			</Section>
 
-			<Section
-				title="Rollup"
-				flair="scroll-x"
-			>
+			<Section title="Rollup">
 				<p>Very customizable, you are in control, recommended!</p>
 
-				<shiki-textarea
-					class="nice"
-					language="shellscript"
+				<tm-textarea
+					class="shell"
+					grammar="shellscript"
 					theme="monokai"
-					code={`npx degit potahtml/templates/rollup pota-project
+					value={`npx degit potahtml/templates/rollup pota-project
 cd pota-project
 npm install --include=dev
 npm run dev
