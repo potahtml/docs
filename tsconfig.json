@@ -18,7 +18,7 @@
 
     "sourceMap": true,
 
-    "types": ["pota", "dom-flair", "solid-shiki-textarea"]
+    "types": ["pota", "dom-flair", "tm-textarea"]
   },
   "exclude": ["./src/dist/*", "node_modules"]
 }
