@@ -25,7 +25,7 @@ tm-textarea::part(textarea)::selection {
 
 tm-textarea.snippet::part(line)::before {
 	display: inline-block;
-	counter-reset: line-count calc(var(--line-number) + 1);
+	counter-reset: line-count calc(var(--tm-line-number) + 1);
 	min-width: 3ch;
 	content: counter(line-count, decimal-leading-zero);
 	color: #7777ce5e;
@@ -64,7 +64,7 @@ tm-textarea.playground::part(root) {
 
 tm-textarea.playground::part(line)::before {
 	display: inline-block;
-	counter-reset: line-count calc(var(--line-number) + 1);
+	counter-reset: line-count calc(var(--tm-line-number) + 1);
 	min-width: 3ch;
 	content: counter(line-count, decimal-leading-zero);
 	color: #7777ce5e;
