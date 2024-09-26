@@ -84,6 +84,7 @@
 
 :global .menu li.selected a {
 	color: #a0c6ff;
+	border-left: 1px solid white;
 }
 
 .montevideo {

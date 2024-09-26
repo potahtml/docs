@@ -4,7 +4,6 @@ import { CompilerLess } from '../html/compiler-less.jsx'
 import { effect } from 'pota'
 import { css } from 'pota/std'
 
-/*
 import { Runtime } from '@bigmistqke/repl'
 import { babelTransform } from '@bigmistqke/repl/transform/babel'
 import { typescriptTransform } from '@bigmistqke/repl/transform/typescript'
@@ -15,23 +14,7 @@ const [transformModulePaths, transform] = await Promise.all([
 		await import('https://esm.sh/typescript'),
 	),
 	Promise.all([
-		typescriptTransform({
-			tsconfig: {
-				target: 2,
-				module: 5,
-				jsx: 1,
-				jsxImportSource: 'pota',
-				esModuleInterop: true,
-				allowSyntheticDefaultImports: true,
-				forceConsistentCasingInFileNames: true,
-				isolatedModules: true,
-				resolveJsonModule: true,
-				skipLibCheck: true,
-				strict: true,
-				noEmit: false,
-				outDir: './dist',
-			},
-		}),
+		typescriptTransform({}),
 		babelTransform({
 			babel: import('https://esm.sh/@babel/standalone'),
 			plugins: [['proposal-decorators', { version: '2023-11' }]],
@@ -41,8 +24,12 @@ const [transformModulePaths, transform] = await Promise.all([
 ])
 
 const runtime = new Runtime({
-	importExternalTypes: true,
-	transformModulePaths,
+	// importExternalTypes: true,
+	transformModulePaths: (source, callback) => {
+		console.log(source)
+		console.log(callback)
+		callback(source)
+	}, //transformModulePaths,
 	transform,
 	files: {
 		'index.css': `body { background: white; }`,
@@ -53,7 +40,7 @@ const runtime = new Runtime({
 			render(html\`<b>hello</b>\`)
 		`,
 	},
-}).initialize()*/
+}).initialize()
 
 export default function () {
 	return (
@@ -75,7 +62,7 @@ export default function () {
 				}
 			`}
 
-			{/*<repl-frame
+			<repl-frame
 				bodyStyle={{
 					padding: '0px',
 					margin: '0px',
@@ -94,7 +81,7 @@ export default function () {
 					file.addEventListener('url', injectUrl)
 					//injectUrl(file)
 				}}
-			/>*/}
+			/>
 
 			<Section title="JavaScript">
 				<tm-textarea

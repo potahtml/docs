@@ -63,10 +63,6 @@ render(
 						})
 					}}
 					onMount={menu => {
-						if (location.pathname() === '/playground') {
-							menu.style.display = 'none'
-						}
-
 						effect(() => {
 							const url = window.location.origin + location.pathname()
 
