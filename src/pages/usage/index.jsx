@@ -14,26 +14,38 @@ const [transformModulePaths, transform] = await Promise.all([
 		await import('https://esm.sh/typescript'),
 	),
 	Promise.all([
-		typescriptTransform({}),
+		typescriptTransform({
+			/*	tsconfig: {
+				target: 2,
+				module: 5,
+				jsx: 1,
+				jsxImportSource: 'pota',
+				esModuleInterop: true,
+				allowSyntheticDefaultImports: true,
+				forceConsistentCasingInFileNames: true,
+				isolatedModules: true,
+				resolveJsonModule: true,
+				skipLibCheck: true,
+				strict: true,
+				noEmit: false,
+				outDir: './dist',
+			},*/
+		}),
 		babelTransform({
-			babel: import('https://esm.sh/@babel/standalone'),
-			plugins: [['proposal-decorators', { version: '2023-11' }]],
+			babel: await import('https://esm.sh/@babel/standalone'),
+			// plugins: [['proposal-decorators', { version: '2023-11' }]],
 			presets: ['pota/babel-preset'],
 		}),
 	]),
 ])
 
 const runtime = new Runtime({
-	// importExternalTypes: true,
-	transformModulePaths: (source, callback) => {
-		console.log(source)
-		console.log(callback)
-		callback(source)
-	}, //transformModulePaths,
+	importExternalTypes: true,
+	transformModulePaths,
 	transform,
 	files: {
 		'index.css': `body { background: white; }`,
-		'index.jsx': `
+		'index.js': `
 			import { render } from 'pota'
 			import { html } from 'pota/html'
 
