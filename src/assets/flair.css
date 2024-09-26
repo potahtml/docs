@@ -83,13 +83,6 @@
 [flair~='scroll-thin'] {
 	scrollbar-width: thin;
 }
-[flair~='full'] {
-	width: 100%;
-	height: 100%;
-	max-width: 100%;
-	max-height: 100%;
-	overflow: hidden;
-}
 
 [flair~='scroll-y'] {
 	will-change: scroll-position;
@@ -124,6 +117,9 @@
 	display: flex;
 	right: 0;
 }
+[flair~='vertical'] {
+	display: flex;
+}
 [flair~='center'] {
 	display: flex;
 }
@@ -138,6 +134,19 @@
 [flair~='column'][flair~='right'] {
 	align-content: flex-end;
 	align-items: flex-end;
+}
+
+/* vertical */
+[flair~='vertical'],
+[flair~='row'][flair~='vertical'] {
+	align-content: center;
+	align-items: center;
+}
+
+[flair~='col'][flair~='vertical'],
+[flair~='column'][flair~='vertical'] {
+	justify-content: center;
+	justify-items: center;
 }
 
 /* center */

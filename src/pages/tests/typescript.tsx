@@ -31,7 +31,84 @@ function test() {
 	return 'left' as const
 }
 
-const [read, write] = signal('lefta')
+const [read, write] = signal('lefta' as const)
+
+// default props test
+type LoginMsgProps = {
+	name?: string
+}
+
+function LoginMsg({ name = 'Guest' }: LoginMsgProps) {
+	return <p>Logged in as {name}</p>
+}
+
+// with children
+
+type WithChildren<T = {}> = T & { children?: JSX.Element }
+
+type CardProps = {
+	title: string
+} & WithChildren
+
+function Card({ title, children }: CardProps) {
+	return (
+		<section class="cards">
+			<h2>{title}</h2>
+			{children}
+		</section>
+	)
+}
+
+// spread
+
+type ButtonProps = JSX.IntrinsicElements['button']
+
+function Button({ ...allProps }: ButtonProps) {
+	return <button {...allProps} />
+}
+
+// disallowing a type
+
+type ButtonProps2 = Omit<JSX.IntrinsicElements['button'], 'type'>
+
+function Button2({ ...allProps }: ButtonProps2) {
+	return (
+		<button
+			type="button"
+			{...allProps}
+		/>
+	)
+}
+
+// 💥 This breaks, as we omitted type
+  const z = <Button2 type="button">Hi</Button>
+
+
+// required
+
+type MakeRequired<T, K extends keyof T> = Omit<T, K> &
+  Required<{ [P in K]: T[P] }>;
+
+
+type ImgProps
+  = MakeRequired<
+    JSX.IntrinsicElements["img"],
+    "alt" | "src"
+  >;
+
+export function Img({ alt, ...allProps }: ImgProps) {
+  return <img alt={alt} {...allProps} />;
+}
+
+const zz = <Img alt="..." src="..." />;
+
+// re-writes a prop
+
+type ControlledProps =
+  Omit<JSX.IntrinsicElements["input"], "value"> & {
+    value?: string;
+  };
+
 
 function typescript(props) {
 	return (
@@ -47,6 +124,9 @@ function typescript(props) {
 			}}
 			onMount={eeeeee => {}}
 		>
+			<Button style:stroke="antiquewhite" />
+			<Card title="lala">lala</Card>
+			<LoginMsg name="name" />
 			<span
 				ref={element => {
 					console.log(element)

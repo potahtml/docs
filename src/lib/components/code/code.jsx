@@ -120,9 +120,10 @@ function Preview(props) {
 				>
 					<tm-textarea
 						class="snippet"
-						grammar="jsx"
+						grammar="tsx"
 						theme="monokai"
 						value={code.trim()}
+						bool:editable={props.editable}
 						stylesheet={snippetStyleSheet}
 						onInput={e => props.setCode(e.target.value)}
 						editable={props.editable ? true : false}

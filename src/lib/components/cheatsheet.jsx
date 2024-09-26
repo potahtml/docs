@@ -1,11 +1,6 @@
 import { Code } from './code/code.jsx'
 
-export const CheatSheet = (
-	<Code
-		render={false}
-		preview={true}
-		scroll={false}
-		code={`// CHEATSHEET
+export const CheatSheetText = `// CHEATSHEET
 import {
 // rendering
 render, // render(thing, targetEl=document.body, {clear:false, relative:false})
@@ -94,6 +89,11 @@ import {
 css, // css\`button { padding: \${props.padding} }\` // CSSStyleSheet
 } from 'pota/std'
 
-`}
+`
+export const CheatSheet = (
+	<Code
+		render={false}
+		preview={true}
+		code={CheatSheetText}
 	/>
 )

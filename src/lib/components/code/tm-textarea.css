@@ -12,6 +12,7 @@ tm-textarea {
 
 tm-textarea::part(root) {
 	background: #11161d;
+	color: hsl(215, 22%, 55%);
 }
 
 /* selection color */
@@ -45,4 +46,43 @@ tm-textarea.snippet {
 	max-height: 810px;
 	min-height: 64px;
 	resize: both;
+}
+
+tm-textarea.playground {
+	padding: 10px;
+	min-width: 100%;
+	min-height: 100%;
+	max-width: 100%;
+	max-height: 100%;
+	overflow: scroll;
+}
+tm-textarea.playground::part(root) {
+	background: #11161d42;
+}
+
+/* add line-numbers  to kind snippet only */
+
+tm-textarea.playground::part(line)::before {
+	display: inline-block;
+	counter-reset: line-count calc(var(--line-number) + 1);
+	min-width: 3ch;
+	content: counter(line-count, decimal-leading-zero);
+	color: #7777ce5e;
+}
+tm-textarea.playground::part(textarea) {
+	margin-left: 3ch;
+}
+
+/* doesnt work with custom elements x.X  */
+
+tm-textarea::-webkit-resizer {
+	background: rgb(0 0 0 / 15%);
+	border-top-left-radius: 15px;
+	border: 1px solid rgb(0 0 0 / 30%);
+}
+
+tm-textarea::resizer {
+	background: rgb(0 0 0 / 15%);
+	border-top-left-radius: 15px;
+	border: 1px solid rgb(0 0 0 / 30%);
 }

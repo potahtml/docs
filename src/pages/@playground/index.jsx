@@ -1,7 +1,6 @@
 import styles from './playground.module.css'
-import stylecode from '../../lib/components/code/code.module.css'
 
-import { CheatSheet } from '../../lib/components/cheatsheet.jsx'
+import { CheatSheetText } from '../../lib/components/cheatsheet.jsx'
 import { Code } from '../../lib/components/code/code.jsx'
 import { Header } from '../../lib/components/header.jsx'
 
@@ -11,7 +10,6 @@ import { Collapse } from 'pota/web'
 import { compress, uncompress } from '../../lib/compress.js'
 import example from './default-example.js'
 import importmap from './default-importmap.js'
-import { Monaco } from '../../lib/components/monaco/monaco.jsx'
 import { prettier } from '../../lib/prettier.js'
 
 function getCodeFromURL() {
@@ -59,6 +57,7 @@ export default function () {
 
 	// prettify initial value
 	prettier(source().code).then(updateCode)
+	// prettier(source().importmap).then(updateImportmap)
 
 	// update hash
 	effect(() => {
@@ -69,81 +68,146 @@ export default function () {
 
 	return (
 		<>
-			<Header title="Playground"></Header>
+			<Header title="Pota's Playground"></Header>
 
-			<section flair="row grow full">
+			<section
+				id="container"
+				flair="col grow"
+				style="padding-top:0px;"
+			>
 				<section
-					style="width:70%"
-					flair="row grow"
+					flair="vertical"
+					class={styles.toolbar}
 				>
-					<Collapse when={() => tab() === 'importmap'}>
-						<Monaco
-							code={() => source().importmap}
-							onChange={updateImportmap}
-							onFormat={prettier}
-							delay={200}
-							language="json"
-						/>
-					</Collapse>
-					<Collapse when={() => tab() === 'code'}>
-						<Monaco
-							code={() => source().code}
-							onChange={updateCode}
-							onFormat={prettier}
-							delay={200}
-							language="javascript"
-						/>
-					</Collapse>
+					<span>
+						<a
+							href="javascript://"
+							onClick={() => setTab('code')}
+						>
+							Code
+						</a>
+					</span>
+					<span>
+						<a
+							href="javascript://"
+							onClick={() => setTab('importmap')}
+						>
+							Import Map
+						</a>
+					</span>
+					<span>
+						<a
+							href="javascript://"
+							onClick={() => setTab('cheatsheet')}
+						>
+							Cheat Sheet
+						</a>
+					</span>
+					<span>
+						<a
+							href="javascript://"
+							download="pota.tsx"
+							onClick={e => {
+								e.target.href = URL.createObjectURL(
+									new Blob([source().code], {
+										type: 'application/tsx',
+									}),
+								)
+							}}
+						>
+							Download Code
+						</a>
+					</span>
+					<span>
+						<label
+							flair="selection-none"
+							style="vertical-align: middle;"
+						>
+							Autorun{' '}
+							<input
+								name="button"
+								type="checkbox"
+								checked={autorun()}
+								onClick={() => updateAutorun(checked => !checked)}
+							/>
+						</label>
+					</span>
 				</section>
 				<section
-					style="width:30%"
-					flair="col grow"
+					id="container"
+					flair="row grow"
+					style="padding-top:0px;"
 				>
 					<section
-						class={styles.toolbar}
-						flair="row"
+						id="left"
+						flair="col grow"
 					>
-						<span>
-							<a
-								href="javascript://"
-								onClick={() => setTab('code')}
-							>
-								Code
-							</a>
-						</span>
-						<span>
-							<a
-								href="javascript://"
-								onClick={() => setTab('importmap')}
-							>
-								Import Map
-							</a>
-						</span>
-
-						<span>
-							<label
-								flair="selection-none"
-								style="vertical-align: middle;"
-							>
-								Autorun{' '}
-								<input
-									name="button"
-									type="checkbox"
-									checked={autorun()}
-									onClick={() => updateAutorun(checked => !checked)}
+						<form id="form-playground">
+							<Collapse when={() => tab() === 'importmap'}>
+								<tm-textarea
+									class="playground"
+									value={() => source().importmap}
+									onInput={e => updateImportmap(e.target.value)}
+									grammar="json"
+									theme="monokai"
 								/>
-							</label>
-						</span>
+							</Collapse>
+							<Collapse when={() => tab() === 'code'}>
+								<tm-textarea
+									class="playground"
+									value={() => source().code}
+									onInput={e => updateCode(e.target.value)}
+									grammar="tsx"
+									theme="monokai"
+									onKeyDown={e => {
+										if (e.ctrlKey && e.keyCode === 83) {
+											// CTRL + S
+
+											const textarea = e.target
+
+											const selection = {
+												start: textarea.selectionStart,
+												end: textarea.selectionEnd,
+											}
+
+											e.preventDefault()
+
+											prettier(textarea.value).then(code => {
+												textarea.focus()
+												updateCode(code)
+												if (selection.start) {
+													textarea.setSelectionRange(
+														selection.start,
+														selection.end,
+													)
+												}
+											})
+										}
+									}}
+								/>
+							</Collapse>
+							<Collapse when={() => tab() === 'cheatsheet'}>
+								<tm-textarea
+									class="playground"
+									value={() => CheatSheetText}
+									grammar="tsx"
+									theme="monokai"
+									editable={false}
+								/>
+							</Collapse>
+						</form>
 					</section>
-					<section flair="row">
-						<Code
-							code={() => autorun() && source()}
-							render={true}
-							preview={false}
-						/>
-					</section>
-					<section style="display:grid">
-						<CheatSheet />
+					<section
+						id="right"
+						flair="col grow"
+					>
+						<section flair="row grow">
+							<Code
+								code={() => autorun() && source()}
+								render={true}
+								preview={false}
+							/>
+						</section>
 					</section>
 				</section>
 			</section>

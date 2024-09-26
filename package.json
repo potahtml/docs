@@ -10,7 +10,7 @@
 		"update": "npm update --include=dev --save && npm run dev"
 	},
 	"dependencies": {
-		"@bigmistqke/repl": "^0.1.7",
+		"@bigmistqke/repl": "^0.1.8",
 		"dom-flair": "^7.0.56",
 		"fflate": "^0.8.2",
 		"kompiler": "^7.0.157",

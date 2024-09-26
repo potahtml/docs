@@ -12,7 +12,7 @@ import Routes from './@routes.jsx'
 import { Bench } from './lib/components/bench/bench.jsx'
 
 // app
-import { render } from 'pota'
+import { effect, render } from 'pota'
 
 import { onDocumentSize } from 'pota/plugin/useDocumentSize'
 import { location } from 'pota/plugin/useLocation'
@@ -39,7 +39,7 @@ render(
 					viewBox="0 -960 960 960"
 					width="24"
 					class={stylesMenu.montevideo}
-					on:click={e => {
+					onClick={e => {
 						const menu = document.querySelector('#menu')
 						if (
 							menu.style.display === '' ||
@@ -57,11 +57,34 @@ render(
 					id="menu"
 					flair="grow col"
 					class={'menu ' + stylesMenu.menu}
-					onMount={menu =>
+					ref={menu => {
 						onDocumentSize(e => {
 							menu.style.display = e.width < 750 ? 'none' : 'inherit'
 						})
-					}
+					}}
+					onMount={menu => {
+						if (location.pathname() === '/playground') {
+							menu.style.display = 'none'
+						}
+
+						effect(() => {
+							const url = window.location.origin + location.pathname()
+
+							const selected = menu.querySelectorAll('li.selected')
+							for (const li of selected) {
+								li.classList.remove('selected')
+							}
+							if (location.pathname() !== '/') {
+								/** @type HTMLAnchorElement[] */
+								const links = menu.querySelectorAll('li a')
+								for (const link of links) {
+									if (link.href.startsWith(url)) {
+										link.parentNode.classList.add('selected')
+									}
+								}
+							}
+						})
+					}}
 				>
 					<nav flair="grow col scroll-y scroll-thin">
 						<Menu />

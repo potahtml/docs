@@ -102,16 +102,6 @@ ol,
 li {
 	line-height: 1.6;
 }
-/* sidebar */
-
-aside {
-	max-width: 225px;
-	padding-right: 15px;
-}
-
-aside footer {
-	padding-top: 15px;
-}
 
 /* content */
 
@@ -135,6 +125,7 @@ article::before {
 	opacity: 0.2;
 	overflow: hidden;
 	white-space: nowrap;
+	pointer-events: none;
 }
 
 /* text */

@@ -1,5 +1,5 @@
 .toolbar {
-	padding-bottom: 20px;
+	padding: 10px;
 }
 
 .toolbar input[type='checkbox'] {
@@ -23,7 +23,29 @@
 main[data-pathname^='/playground'] article {
 	max-width: 100%;
 	overflow: hidden;
+	min-height: 0;
 }
+
+main[data-pathname^='/playground'] article,
+main[data-pathname^='/playground'] article section {
+	max-width: none !important;
+	min-height: 0;
+}
+:global main[data-pathname^='/playground'] #content {
+	overflow: hidden;
+	height: 100% !important;
+}
+
+:global main[data-pathname^='/playground'] #left {
+	width: 60%;
+	max-width: 60% !important;
+}
+:global main[data-pathname^='/playground'] #right {
+	width: 40%;
+	max-width: 40% !important;
+	padding-left: 10px;
+}
+
 main[data-pathname^='/playground'] article:before {
 	content: 'pota';
 	font-size: 21em;
@@ -34,10 +56,7 @@ main[data-pathname^='/playground'] article:before {
 	top: 34px;
 	white-space: nowrap;
 	writing-mode: vertical-rl;
-}
-
-main[data-pathname^='/playground'] article section {
-	max-width: none !important;
+	pointer-events: none;
 }
 
 :global main[data-pathname^='/playground'] .no-playground {
@@ -57,6 +76,6 @@ pota-collapse {
 	height: 100%;
 }
 
-pota-collapse:empty {
-	background: red;
+main[data-pathname^='/playground'] form {
+	display: contents;
 }
