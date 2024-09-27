@@ -2,4 +2,4 @@
 /importmap/importmap.json
 /importmap/importmap.quack.js
 /importmap/importmap.quack.json
-_redirects
+/_redirects
