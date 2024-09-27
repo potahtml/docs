@@ -11,18 +11,18 @@ import Routes from './@routes.jsx'
 // misc
 import { Bench } from './lib/components/bench/bench.jsx'
 
-// app
-import { effect, render } from 'pota'
-
-import { onDocumentSize } from 'pota/plugin/useDocumentSize'
-import { location } from 'pota/plugin/useLocation'
-
 // tm
 import 'tm-textarea'
 import './lib/components/code/tm-textarea.css'
 
 import { setCDN } from 'tm-textarea/cdn'
 setCDN('/assets/tm')
+
+// app
+import { render, setClass } from 'pota'
+
+import { onDocumentSize } from 'pota/plugin/useDocumentSize'
+import { location } from 'pota/plugin/useLocation'
 
 render(
 	() => {
@@ -63,23 +63,18 @@ render(
 						})
 					}}
 					onMount={menu => {
-						effect(() => {
-							const url = window.location.origin + location.pathname()
-
-							const selected = menu.querySelectorAll('li.selected')
-							for (const li of selected) {
-								li.classList.remove('selected')
-							}
-							if (location.pathname() !== '/') {
-								/** @type HTMLAnchorElement[] */
-								const links = menu.querySelectorAll('li a')
-								for (const link of links) {
-									if (link.href.startsWith(url)) {
-										link.parentNode.classList.add('selected')
-									}
-								}
-							}
-						})
+						const links = menu.querySelectorAll('li a')
+						for (const link of links) {
+							setClass(
+								link.parentNode,
+								'selected',
+								() =>
+									location.pathname() !== '/' &&
+									link.href.startsWith(
+										window.location.origin + location.pathname(),
+									),
+							)
+						}
 					}}
 				>
 					<nav flair="grow col scroll-y scroll-thin">

@@ -145,7 +145,7 @@ article h4,
 article h5 {
 	position: sticky;
 	top: -1px;
-	z-index: 1;
+	z-index: 2;
 	background: #0d1117;
 	padding-bottom: 10px;
 }

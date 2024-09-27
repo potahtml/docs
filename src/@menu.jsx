@@ -21,9 +21,7 @@ export default function Menu() {
 				<li>
 					<a href="/render">render</a>
 				</li>
-				<li>
-					<a href="/Component">Component</a>
-				</li>
+
 				<li>
 					<a href="/HTML">HTML</a>
 				</li>
@@ -53,31 +51,38 @@ export default function Menu() {
 				</li>
 			</ul>
 
-			<h3>Components API</h3>
-			<ul>
-				<li>
-					<a href="/Classes">Classes</a>
-				</li>
-				<li>
-					<a href="/lazy">lazy</a>
-				</li>
-				<li>
-					<h4>Lifecycles</h4>
-					<ul>
-						<li>
-							<a href="/ready">ready</a>
-						</li>
-						<li>
-							<a href="/cleanup">cleanup</a>
-						</li>
-					</ul>
-				</li>
-			</ul>
 			<h3>Components</h3>
 			<ul>
 				{/*<li>
 					<a href="/Components/Library/">Library</a>
 				</li>*/}
+				<li>
+					<h4>API</h4>
+					<ul>
+						<li>
+							<a href="/Component">Component</a>
+						</li>
+						<li>
+							<a href="/Classes">Classes</a>
+						</li>
+						<li>
+							<a href="/lazy">lazy</a>
+						</li>
+					</ul>
+				</li>
+				<ul>
+					<li>
+						<h4>Lifecycles</h4>
+						<ul>
+							<li>
+								<a href="/ready">ready</a>
+							</li>
+							<li>
+								<a href="/cleanup">cleanup</a>
+							</li>
+						</ul>
+					</li>
+				</ul>
 				<li>
 					<h4>Flow</h4>
 					<ul>
@@ -299,6 +304,14 @@ export default function Menu() {
 								params={{ page: 'setStyle' }}
 							>
 								setStyle
+							</A>
+						</li>
+						<li>
+							<A
+								href="/props/:page"
+								params={{ page: 'setClass' }}
+							>
+								setClass
 							</A>
 						</li>
 					</ul>

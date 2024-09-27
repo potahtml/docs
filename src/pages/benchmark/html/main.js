@@ -1880,6 +1880,75 @@
 	// if the value is null or undefined it will be removed
 	isNullUndefined(value) ? style.removeProperty(name) : style.setProperty(name, value);
 
+	// node class / classList
+
+
+	/**
+	 * @param {Element} node
+	 * @param {string} name
+	 * @param {object | string | ArrayLike<any>} value
+	 * @param {object} props
+	 */
+	const setClass = (node, name, value, props) => isString(value) ? node.setAttribute('class', value) : setClassList(node, value);
+
+	/**
+	 * @param {Element} node
+	 * @param {string} name
+	 * @param {object | string | ArrayLike<any>} value
+	 * @param {object} props
+	 * @param {string} localName
+	 * @param {string} ns
+	 */
+	const setClassNS = (node, name, value, props, localName, ns) => isFunction(value) ? setElementClass(node, localName, value) : setClassList(node, value);
+
+	/**
+	 * @param {Element} node
+	 * @param {object | string | ArrayLike<any>} value
+	 */
+	function setClassList(node, value) {
+	  switch (typeof value) {
+	    case 'string':
+	      {
+	        _setClassListValue(node, value, true);
+	        break;
+	      }
+	    case 'object':
+	      {
+	        let name;
+	        for (name in value) {
+	          setElementClass(node, name, value[name]);
+	        }
+	        break;
+	      }
+	    case 'function':
+	      {
+	        withValue(value, value => setClassList(node, value));
+	        break;
+	      }
+	  }
+	}
+	/**
+	 * @param {Element} node
+	 * @param {string} name
+	 * @param {unknown} value
+	 */
+	const setElementClass = (node, name, value) => withPrevValue(value, (value, prev) => {
+	  // on initialization do not remove whats not there
+	  if (!value && !prev) ; else {
+	    _setClassListValue(node, name, value);
+	  }
+	});
+
+	/**
+	 * @param {Element} node
+	 * @param {string} name
+	 * @param {unknown} value
+	 */
+
+	const _setClassListValue = (node, name, value) =>
+	// null, undefined or false, the class is removed
+	!value ? classListRemove(node, name) : classListAdd(node, ...name.trim().split(/\s+/));
+
 	/** Returns true or false with a `chance` of getting `true` */
 	const randomId = () => crypto.getRandomValues(new BigUint64Array(1))[0].toString(36);
 
@@ -1926,75 +1995,6 @@
 	 * @param {object} props
 	 */
 	const setUnmount = (node, name, value, props) => cleanup(() => value(node));
-
-	// node class / classList
-
-
-	/**
-	 * @param {Element} node
-	 * @param {string} name
-	 * @param {object | string | ArrayLike<any>} value
-	 * @param {object} props
-	 */
-	const setClass = (node, name, value, props) => isString(value) ? node.setAttribute('class', value) : setClassList(node, value);
-
-	/**
-	 * @param {Element} node
-	 * @param {string} name
-	 * @param {object | string | ArrayLike<any>} value
-	 * @param {object} props
-	 * @param {string} localName
-	 * @param {string} ns
-	 */
-	const setClassNS = (node, name, value, props, localName, ns) => isFunction(value) ? setClassListValue(node, localName, value) : setClassList(node, value);
-
-	/**
-	 * @param {Element} node
-	 * @param {object | string | ArrayLike<any>} value
-	 */
-	function setClassList(node, value) {
-	  switch (typeof value) {
-	    case 'string':
-	      {
-	        _setClassListValue(node, value, true);
-	        break;
-	      }
-	    case 'object':
-	      {
-	        let name;
-	        for (name in value) {
-	          setClassListValue(node, name, value[name]);
-	        }
-	        break;
-	      }
-	    case 'function':
-	      {
-	        withValue(value, value => setClassList(node, value));
-	        break;
-	      }
-	  }
-	}
-	/**
-	 * @param {Element} node
-	 * @param {string} name
-	 * @param {unknown} value
-	 */
-	const setClassListValue = (node, name, value) => withPrevValue(value, (value, prev) => {
-	  // on initialization do not remove whats not there
-	  if (!value && !prev) ; else {
-	    _setClassListValue(node, name, value);
-	  }
-	});
-
-	/**
-	 * @param {Element} node
-	 * @param {string} name
-	 * @param {unknown} value
-	 */
-
-	const _setClassListValue = (node, name, value) =>
-	// null, undefined or false, the class is removed
-	!value ? classListRemove(node, name) : classListAdd(node, ...name.trim().split(/\s+/));
 
 	propsPluginNS('prop', setPropertyNS, false);
 	propsPluginNS('attr', setAttributeNS, false);

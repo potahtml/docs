@@ -1,11 +1,7 @@
-/**
- * ./preview/importmap.js also has the default importmap when not
- * specified.
- */
+{
 
-export default /* IMPORT MAP REPLACER */`{
+"imports": {
 
-	"imports": {
 "pota": "/node_modules/pota/src/@main.js",
 
 "pota/babel-preset": "/node_modules/pota/babel-preset/index.js",
@@ -47,5 +43,6 @@ export default /* IMPORT MAP REPLACER */`{
 "pota/store": "/node_modules/pota/src/lib/store.js",
 
 "x/articles/": "/pages/@articles/"
-	}
-}`/* IMPORT MAP REPLACER */
+
+}
+}

@@ -4,13 +4,15 @@ import { CheatSheetText } from '../../lib/components/cheatsheet.jsx'
 import { Code } from '../../lib/components/code/code.jsx'
 import { Header } from '../../lib/components/header.jsx'
 
-import { effect, memo, signal } from 'pota'
+import { signal } from 'pota'
 import { Collapse } from 'pota/web'
 
 import { compress, uncompress } from '../../lib/compress.js'
 import example from './default-example.js'
-import importmap from './default-importmap.js'
+import importmap from '../../importmap/importmap.json?raw'
 import { prettier } from '../../lib/prettier.js'
+
+import 'pota/plugin/clipboard'
 
 function getCodeFromURL() {
 	return window.location.hash !== ''
@@ -54,15 +56,6 @@ export default function () {
 			return source
 		})
 	}
-
-	// prettify initial value
-	prettier(source().code).then(updateCode)
-	// prettier(source().importmap).then(updateImportmap)
-
-	// update hash
-	effect(() => {
-		window.location.hash = '#' + compress(source())
-	})
 
 	const [tab, setTab] = signal('code')
 
@@ -119,6 +112,23 @@ export default function () {
 						</a>
 					</span>
 					<span>
+						<a
+							target="_blank"
+							href={() => '#' + compress(source())}
+							clipboard={e => {
+								e.preventDefault()
+								const node = e.target
+								node.textContent = 'Link Copied!'
+								setTimeout(() => {
+									node.textContent = 'Link'
+								}, 2000)
+								return node.href
+							}}
+						>
+							Link
+						</a>
+					</span>
+					<span>
 						<label
 							flair="selection-none"
 							style="vertical-align: middle;"
@@ -155,7 +165,7 @@ export default function () {
 							<Collapse when={() => tab() === 'code'}>
 								<tm-textarea
 									class="playground"
-									value={() => source().code}
+									value={prettier(source().code)}
 									onInput={e => updateCode(e.target.value)}
 									grammar="tsx"
 									theme="monokai"
@@ -165,22 +175,11 @@ export default function () {
 
 											const textarea = e.target
 
-											const selection = {
-												start: textarea.selectionStart,
-												end: textarea.selectionEnd,
-											}
-
 											e.preventDefault()
 
 											prettier(textarea.value).then(code => {
 												textarea.focus()
-												updateCode(code)
-												if (selection.start) {
-													textarea.setSelectionRange(
-														selection.start,
-														selection.end,
-													)
-												}
+												textarea.value = code
 											})
 										}
 									}}
@@ -189,7 +188,7 @@ export default function () {
 							<Collapse when={() => tab() === 'cheatsheet'}>
 								<tm-textarea
 									class="playground"
-									value={() => CheatSheetText}
+									value={prettier(CheatSheetText)}
 									grammar="tsx"
 									theme="monokai"
 									editable={false}

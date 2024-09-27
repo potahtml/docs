@@ -45,8 +45,12 @@ ref, // const button = ref(); <div ref={button}.. /> effect(()=>button())
 
 setAttribute, // setAttribute(node, 'data-active', signal, ns)
 setProperty, // setProperty(node, 'hidden', signal)
-setStyle, // setStyle(node, 'color', signal)
 setBool, // setBool(node, 'disabled', signal)
+
+// css
+setStyle, // setStyle(node, 'color', signal)
+setClass, // setClass(node, 'selected', signal)
+css, // css\`button { padding: \${props.padding} }\` // CSSStyleSheet
 
 propsPlugin, // propsPlugin('red', function(node, propName, propValue, props){node.style.color = 'red'}) <div red/>
 propsPluginNS, // propsPluginNS('red', function(node, propName, propValue, props){node.style.color = 'red'}) <div red:moo/>
@@ -61,7 +65,6 @@ signalify, // const state = signalify({some:true, thing:'bla'}) // only tracks w
 mutable, // const state = mutable({some:{thing:{deep:true}}}) // tracks all levels
 } from 'pota/store'
 
-
 // JSX Components
 import {
 Show, // <Show when={true} fallback="ouch"/>
@@ -71,7 +74,9 @@ For, // <For each={[1, 2, 3]} children={[item => item * 1, item => item * 2]} />
 Head, // <Head><title>Hello World</title></Head>
 Switch, Match,// <Switch fallback="ouch"><Match when={true}/></Switch>
 Portal, // <Portal mount={document.body}>Hola</Portal>
-Router, // <Router path="/">Hola home</Router>
+Router,// <Router path="/">Hola home</Router>
+A,// <A href="/">home</A>
+
 // custom element utils
 customElement, // customElement("fancy-element", class Fancy extends HTMLElement{})
 CustomElement, // class Fancy extends CustomElement{}
@@ -84,10 +89,6 @@ HTML, // const html = HTML(); (props) => html\`<div>\${props.children}</div>\`
 html, // (props)=> html\`<div>\${props.children}</div>\` // () => <div/>
 } from 'pota/html'
 
-// css
-import {
-css, // css\`button { padding: \${props.padding} }\` // CSSStyleSheet
-} from 'pota/std'
 
 `
 export const CheatSheet = (

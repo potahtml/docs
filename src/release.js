@@ -1,8 +1,42 @@
 import fs from 'fs'
 
+const read = name => fs.readFileSync(name, { encoding: 'utf8' })
+
+const write = (name, content) =>
+	fs.writeFileSync(mkdir(name), content)
+
+const append = (name, content) =>
+	fs.appendFileSync(mkdir(name), content)
+
+const remove = name => {
+	try {
+		fs.rmSync(name, { recursive: true })
+		if (/[^\/]+\.[^\/]+$/.test(name)) {
+			fs.rmdirSync(path.dirname(name))
+		}
+	} catch (e) {}
+}
+
+const move = (source, destination) =>
+	fs.renameSync(source, mkdir(destination))
+
+const copy = (source, destination) =>
+	fs.copyFileSync(source, mkdir(destination))
+
+const mkdir = dir => {
+	fs.mkdirSync(
+		/[^\/]+\.[^\/]+$/.test(dir) ? path.dirname(dir) : dir,
+		{
+			recursive: true,
+		},
+	)
+	return dir
+}
+
 const template = `\`{
 
-	"imports": {
+"imports": {
+
 "pota": "/node_modules/pota/src/@main.js",
 
 "pota/babel-preset": "/node_modules/pota/babel-preset/index.js",
@@ -16,7 +50,8 @@ __PLUGIN__,
 __LIB__,
 
 "x/articles/": "/pages/@articles/"
-	}
+
+}
 }\``
 
 export function pre() {
@@ -41,73 +76,17 @@ export function pre() {
 	const importmap = template
 		.replace('__PLUGIN__', plugin.join(',\n'))
 		.replace('__LIB__', lib.join(',\n'))
+		.slice(1, -1)
 
-	// pota.docs
-	const files = [
-		'./src/pages/@playground/preview/importmap.js',
-		'./src/pages/@playground/default-importmap.js',
-	]
-	for (const file of files) {
-		const original = fs
-			.readFileSync(file, 'utf8')
-			.split('/* IMPORT MAP REPLACER */')
-
-		if (original[1] !== importmap) {
-			original[1] = importmap
-
-			fs.writeFileSync(
-				file,
-				original.join('/* IMPORT MAP REPLACER */'),
-				'utf8',
-			)
-		}
-	}
-
-	// pota.templates
-	const r = fs.readFileSync(
-		'../pota.templates/html/index.html',
-		'utf8',
+	const importmapQuack = importmap.replaceAll(
+		'"/node_modules/',
+		'"https://pota.quack.uy/node_modules/',
 	)
 
-	fs.writeFileSync(
-		'../pota.templates/html/index.html',
-		r.replace(
-			/<script type="importmap">([^<]+)<\/script>/gi,
-			'<script type="importmap">' +
-				importmap
-					.replaceAll(
-						'"/node_modules/',
-						'"https://pota.quack.uy/node_modules/',
-					)
-					.slice(1, -1) +
-				'</script>',
-		),
-		'utf8',
-	)
+	if (read('./src/importmap/importmap.json') !== importmap)
+		write('./src/importmap/importmap.json', importmap)
+	if (read('./src/importmap/importmap.quack.json') !== importmapQuack)
+		write('./src/importmap/importmap.quack.json', importmapQuack)
 }
 
 export function post() {}
-
-/*// bump version number
-$('npm version patch --git-tag-version false')
-
-// read version number
-import('./package.json', {
-	assert: { type: 'json' },
-}).then(json => {
-	// write version number to ./src/version.js
-	const version = json.default.version
-	fs.writeFileSync(
-		'./src/version.js',
-		"export const version = '" + version + "'",
-	)
-
-	// git add, commit with version number
-	$('git add --all')
-	$('git commit -m "v' + version + '"')
-
-	// git push / npm publish
-	$('git push --all --prune')
-	$('npm publish')
-})
-*/

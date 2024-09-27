@@ -6,11 +6,11 @@ import { uncompress } from '../../../lib/compress.js'
 
 // auto size frame to content
 
+const element = document.documentElement
 new ResizeObserver(() => {
-	const element = document.documentElement
 	const height = element.getBoundingClientRect().height
 	window.parent.postMessage(JSON.stringify({ height }), '*')
-}).observe(document.documentElement)
+}).observe(element)
 
 // props
 
@@ -36,6 +36,13 @@ function displayError(content, type = 'error') {
 // transform jsx ignore parse errors
 
 try {
+	/*
+		const preset = await import('https://esm.sh/pota/babel-preset')
+		console.log(preset.default)
+		const transform = globalThis.Babel.transform(props.code, {
+			presets: ['@babel/preset-env', [preset.default]],
+		})
+	*/
 	const transform = globalThis.Babel.transform(props.code, {
 		plugins: [
 			[

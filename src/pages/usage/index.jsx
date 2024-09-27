@@ -3,57 +3,38 @@ import { Section } from '../../lib/components/section.jsx'
 import { CompilerLess } from '../html/compiler-less.jsx'
 import { effect } from 'pota'
 import { css } from 'pota/std'
-
+/*
 import { Runtime } from '@bigmistqke/repl'
 import { babelTransform } from '@bigmistqke/repl/transform/babel'
 import { typescriptTransform } from '@bigmistqke/repl/transform/typescript'
 import { typescriptTransformModulePaths } from '@bigmistqke/repl/transform-module-paths/typescript'
 import '@bigmistqke/repl/element'
 const [transformModulePaths, transform] = await Promise.all([
-	typescriptTransformModulePaths(
-		await import('https://esm.sh/typescript'),
-	),
+	typescriptTransformModulePaths(),
+	 await import('https://esm.sh/typescript'),
 	Promise.all([
-		typescriptTransform({
-			/*	tsconfig: {
-				target: 2,
-				module: 5,
-				jsx: 1,
-				jsxImportSource: 'pota',
-				esModuleInterop: true,
-				allowSyntheticDefaultImports: true,
-				forceConsistentCasingInFileNames: true,
-				isolatedModules: true,
-				resolveJsonModule: true,
-				skipLibCheck: true,
-				strict: true,
-				noEmit: false,
-				outDir: './dist',
-			},*/
-		}),
+		typescriptTransform(),
 		babelTransform({
-			babel: await import('https://esm.sh/@babel/standalone'),
-			// plugins: [['proposal-decorators', { version: '2023-11' }]],
 			presets: ['pota/babel-preset'],
 		}),
 	]),
 ])
 
-const runtime = new Runtime({
+const runtime = await new Runtime({
 	importExternalTypes: true,
 	transformModulePaths,
 	transform,
 	files: {
-		'index.css': `body { background: white; }`,
-		'index.js': `
-			import { render } from 'pota'
-			import { html } from 'pota/html'
+		'src/index.css': `body { background: white; }`,
+		'src/index.js': `
+			import { render } from 'https://cdn.jsdelivr.net/npm/pota/+esm'
+			import { html } from 'https://cdn.jsdelivr.net/npm/pota/html/+esm'
 
 			render(html\`<b>hello</b>\`)
 		`,
 	},
 }).initialize()
-
+*/
 export default function () {
 	return (
 		<>
@@ -74,7 +55,8 @@ export default function () {
 				}
 			`}
 
-			<repl-frame
+			{/*<repl-frame
+				runtime={runtime}
 				bodyStyle={{
 					padding: '0px',
 					margin: '0px',
@@ -93,7 +75,7 @@ export default function () {
 					file.addEventListener('url', injectUrl)
 					//injectUrl(file)
 				}}
-			/>
+			/>*/}
 
 			<Section title="JavaScript">
 				<tm-textarea

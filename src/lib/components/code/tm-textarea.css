@@ -21,19 +21,6 @@ tm-textarea::part(textarea)::selection {
 	background: #2a374a;
 }
 
-/* add line-numbers  to kind snippet only */
-
-tm-textarea.snippet::part(line)::before {
-	display: inline-block;
-	counter-reset: line-count calc(var(--tm-line-number) + 1);
-	min-width: 3ch;
-	content: counter(line-count, decimal-leading-zero);
-	color: #7777ce5e;
-}
-tm-textarea.snippet::part(textarea) {
-	margin-left: 3ch;
-}
-
 /* special for shell snippets  */
 
 tm-textarea.shell {
@@ -65,12 +52,12 @@ tm-textarea.playground::part(root) {
 tm-textarea.playground::part(line)::before {
 	display: inline-block;
 	counter-reset: line-count calc(var(--tm-line-number) + 1);
-	min-width: 3ch;
+	min-width: 5ch;
 	content: counter(line-count, decimal-leading-zero);
 	color: #7777ce5e;
 }
 tm-textarea.playground::part(textarea) {
-	margin-left: 3ch;
+	margin-left: 5ch;
 }
 
 /* doesnt work with custom elements x.X  */

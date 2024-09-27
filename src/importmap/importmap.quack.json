@@ -1,0 +1,48 @@
+{
+
+"imports": {
+
+"pota": "https://pota.quack.uy/node_modules/pota/src/@main.js",
+
+"pota/babel-preset": "https://pota.quack.uy/node_modules/pota/babel-preset/index.js",
+"pota/jsx-runtime": "https://pota.quack.uy/node_modules/pota/src/jsx-runtime.js",
+
+"pota/html": "https://pota.quack.uy/node_modules/pota/src/html.js",
+"pota/web": "https://pota.quack.uy/node_modules/pota/src/web/@main.js",
+
+"pota/plugin/autofocus": "https://pota.quack.uy/node_modules/pota/src/plugin/autofocus.js",
+"pota/plugin/bind": "https://pota.quack.uy/node_modules/pota/src/plugin/bind.js",
+"pota/plugin/clickOutside": "https://pota.quack.uy/node_modules/pota/src/plugin/clickOutside.js",
+"pota/plugin/clipboard": "https://pota.quack.uy/node_modules/pota/src/plugin/clipboard.js",
+"pota/plugin/fullscreen": "https://pota.quack.uy/node_modules/pota/src/plugin/fullscreen.js",
+"pota/plugin/pasteTextPlain": "https://pota.quack.uy/node_modules/pota/src/plugin/pasteTextPlain.js",
+"pota/plugin/useBrowser": "https://pota.quack.uy/node_modules/pota/src/plugin/useBrowser.js",
+"pota/plugin/useColor": "https://pota.quack.uy/node_modules/pota/src/plugin/useColor.js",
+"pota/plugin/useDocumentFocus": "https://pota.quack.uy/node_modules/pota/src/plugin/useDocumentFocus.js",
+"pota/plugin/useDocumentSize": "https://pota.quack.uy/node_modules/pota/src/plugin/useDocumentSize.js",
+"pota/plugin/useDocumentVisible": "https://pota.quack.uy/node_modules/pota/src/plugin/useDocumentVisible.js",
+"pota/plugin/useFocus": "https://pota.quack.uy/node_modules/pota/src/plugin/useFocus.js",
+"pota/plugin/useFullscreen": "https://pota.quack.uy/node_modules/pota/src/plugin/useFullscreen.js",
+"pota/plugin/useLocation": "https://pota.quack.uy/node_modules/pota/src/plugin/useLocation.js",
+"pota/plugin/useOrientation": "https://pota.quack.uy/node_modules/pota/src/plugin/useOrientation.js",
+"pota/plugin/usePaginate": "https://pota.quack.uy/node_modules/pota/src/plugin/usePaginate.js",
+"pota/plugin/usePolyfills": "https://pota.quack.uy/node_modules/pota/src/plugin/usePolyfills.js",
+"pota/plugin/useRandom": "https://pota.quack.uy/node_modules/pota/src/plugin/useRandom.js",
+"pota/plugin/useScroll": "https://pota.quack.uy/node_modules/pota/src/plugin/useScroll.js",
+"pota/plugin/useSelector": "https://pota.quack.uy/node_modules/pota/src/plugin/useSelector.js",
+"pota/plugin/useStream": "https://pota.quack.uy/node_modules/pota/src/plugin/useStream.js",
+"pota/plugin/useString": "https://pota.quack.uy/node_modules/pota/src/plugin/useString.js",
+"pota/plugin/useTest": "https://pota.quack.uy/node_modules/pota/src/plugin/useTest.js",
+"pota/plugin/useTime": "https://pota.quack.uy/node_modules/pota/src/plugin/useTime.js",
+"pota/plugin/useTimeout": "https://pota.quack.uy/node_modules/pota/src/plugin/useTimeout.js",
+"pota/plugin/useURL": "https://pota.quack.uy/node_modules/pota/src/plugin/useURL.js",
+
+"pota/experiments": "https://pota.quack.uy/node_modules/pota/src/lib/experiments.js",
+"pota/reactive": "https://pota.quack.uy/node_modules/pota/src/lib/reactive.js",
+"pota/std": "https://pota.quack.uy/node_modules/pota/src/lib/std.js",
+"pota/store": "https://pota.quack.uy/node_modules/pota/src/lib/store.js",
+
+"x/articles/": "/pages/@articles/"
+
+}
+}

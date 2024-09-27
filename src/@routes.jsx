@@ -381,6 +381,13 @@ export default function Routes() {
 				/>
 				<Router
 					path=":path$"
+					params={{ path: 'setClass' }}
+					children={load(
+						() => import('./pages/@props/set-class/index.jsx'),
+					)}
+				/>
+				<Router
+					path=":path$"
 					params={{ path: 'style:__' }}
 					children={load(
 						() => import('./pages/@props/style/index.jsx'),
