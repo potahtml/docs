@@ -13,6 +13,9 @@ del localhost.zip
 
 mpa http://localhost:11433/
 
+cd /D S:/www/npm/pota.docs/
+
+
 :: tar -c -f ../pota.quack.uy.zip ./*
 :: tar -xf localhost.zip
 
