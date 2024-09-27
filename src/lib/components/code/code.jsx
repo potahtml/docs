@@ -118,16 +118,18 @@ function Preview(props) {
 					class={styles.snippetContainer}
 					bool:editable={props.editable}
 				>
-					<tm-textarea
-						class="snippet"
-						grammar="tsx"
-						theme="monokai"
-						value={code.trim()}
-						bool:editable={props.editable}
-						stylesheet={snippetStyleSheet}
-						onInput={e => props.setCode(e.target.value)}
-						editable={props.editable ? true : false}
-					/>
+					<form>
+						<tm-textarea
+							class="snippet"
+							grammar="tsx"
+							theme="monokai"
+							value={code.trim()}
+							bool:editable={props.editable}
+							stylesheet={snippetStyleSheet}
+							onInput={e => props.setCode(e.target.value)}
+							editable={props.editable ? true : false}
+						/>
+					</form>
 				</section>
 			)
 		})

@@ -227,3 +227,11 @@ svg {
 	width: 1em;
 	height: 1em;
 }
+
+template {
+	display: none;
+}
+
+form {
+	display: contents;
+}

@@ -37,7 +37,7 @@ const runtime = await new Runtime({
 */
 export default function () {
 	return (
-		<>
+		<form>
 			<Header title="Usage">
 				The templates are located in{' '}
 				<a href="https://github.com/potahtml/templates">
@@ -163,6 +163,6 @@ npm run serve`
 			<Section title="Compiler-less">
 				<CompilerLess />
 			</Section>
-		</>
+		</form>
 	)
 }
