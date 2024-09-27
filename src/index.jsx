@@ -12,11 +12,11 @@ import Routes from './@routes.jsx'
 import { Bench } from './lib/components/bench/bench.jsx'
 
 // tm
-import 'tm-textarea'
-import './lib/components/code/tm-textarea.css'
-
 import { setCDN } from 'tm-textarea/cdn'
 setCDN('/assets/tm')
+
+import 'tm-textarea'
+import './lib/components/code/tm-textarea.css'
 
 // app
 import { render, setClass } from 'pota'
