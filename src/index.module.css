@@ -229,7 +229,7 @@ svg {
 }
 
 template {
-	display: none;
+	display: none !important;
 }
 
 form {

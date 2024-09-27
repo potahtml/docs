@@ -1,6 +1,3 @@
-const map = document.createElement('script')
-map.setAttribute('type', 'importmap')
-
 const request = new XMLHttpRequest()
 request.open(
 	'GET',
@@ -9,5 +6,7 @@ request.open(
 )
 request.send(null)
 
+const map = document.createElement('script')
+map.setAttribute('type', 'importmap')
 map.textContent = request.responseText
 document.head.append(map)
