@@ -78,20 +78,24 @@ export default function () {
 			/>*/}
 
 			<Section title="JavaScript">
-				<tm-textarea
-					class="shell"
-					grammar="shellscript"
-					theme="monokai"
-					value={`npx degit potahtml/templates/js pota-project
-						cd pota-project
-						npm install --include=dev
-						npm run dev`
-						.split('\n')
-						.map(s => s.trim())
-						.join('\n')
-						.trim()}
-					editable={false}
-				/>
+				<p>
+					<tm-textarea
+						class="shell"
+						grammar="shellscript"
+						theme="monokai"
+						value={`
+							npx degit potahtml/templates/js pota-project
+							cd pota-project
+							npm install --include=dev
+							npm run dev
+						`
+							.split('\n')
+							.map(s => s.trim())
+							.join('\n')
+							.trim()}
+						editable={false}
+					/>
+				</p>
 			</Section>
 
 			<Section title="Typescript">
@@ -100,20 +104,24 @@ export default function () {
 					typings on the lib are a work in progress
 				</p>
 
-				<tm-textarea
-					class="shell"
-					grammar="shellscript"
-					theme="monokai"
-					value={`npx degit potahtml/templates/ts pota-project
-						cd pota-project
-						npm install --include=dev
-						npm run dev`
-						.split('\n')
-						.map(s => s.trim())
-						.join('\n')
-						.trim()}
-					editable={false}
-				/>
+				<p>
+					<tm-textarea
+						class="shell"
+						grammar="shellscript"
+						theme="monokai"
+						value={`
+							npx degit potahtml/templates/ts pota-project
+							cd pota-project
+							npm install --include=dev
+							npm run dev
+						`
+							.split('\n')
+							.map(s => s.trim())
+							.join('\n')
+							.trim()}
+						editable={false}
+					/>
+				</p>
 			</Section>
 
 			<Section title="Babel Preset">
@@ -127,37 +135,43 @@ export default function () {
 					<mark>transform-react-jsx</mark> or any transform that
 					somewhat follows react way.
 				</p>
-				<tm-textarea
-					class="shell"
-					grammar="json"
-					theme="monokai"
-					value={`{babel:{presets: [["pota/babel-preset"]]}}`
-						.split('\n')
-						.map(s => s.trim())
-						.join('\n')
-						.trim()}
-					editable={false}
-				/>
+				<p>
+					<tm-textarea
+						class="shell"
+						grammar="tsx"
+						theme="monokai"
+						value={`{babel:{presets: [["pota/babel-preset"]]}}`
+							.split('\n')
+							.map(s => s.trim())
+							.join('\n')
+							.trim()}
+						editable={false}
+					/>
+				</p>
 			</Section>
 
 			<Section title="Rollup">
 				<p>Very customizable, you are in control, recommended!</p>
 
-				<tm-textarea
-					class="shell"
-					grammar="shellscript"
-					theme="monokai"
-					value={`npx degit potahtml/templates/rollup pota-project
-cd pota-project
-npm install --include=dev
-npm run dev
-npm run serve`
-						.split('\n')
-						.map(s => s.trim())
-						.join('\n')
-						.trim()}
-					editable={false}
-				/>
+				<p>
+					<tm-textarea
+						class="shell"
+						grammar="shellscript"
+						theme="monokai"
+						value={`
+							npx degit potahtml/templates/rollup pota-project
+							cd pota-project
+							npm install --include=dev
+							npm run dev
+							npm run serve
+						`
+							.split('\n')
+							.map(s => s.trim())
+							.join('\n')
+							.trim()}
+						editable={false}
+					/>
+				</p>
 			</Section>
 
 			<Section title="Compiler-less">
