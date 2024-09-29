@@ -102,7 +102,7 @@ export default function () {
 								href="javascript://"
 								onClick={() => setTab('importmap')}
 							>
-								Import Map
+								Importmap
 							</a>
 						</span>
 						<span>

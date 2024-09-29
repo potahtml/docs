@@ -2042,12 +2042,13 @@
 	 * @param {number} [isCE]
 	 */
 	function assignProp(node, name, value, props, isCE) {
+	  // unwrap promises
 	  if (isObject(value) && 'then' in value) {
-	    value.then(owned(value => assignProp(node, name, value, props, isCE)));
+	    value.then(owned(value => assignProp(node, name, getValue(value), props, isCE)));
 	    return;
 	  }
-	  // run plugins
 
+	  // run plugins
 	  let plugin = plugins.get(name);
 	  if (plugin) {
 	    plugin(node, name, value, props);
