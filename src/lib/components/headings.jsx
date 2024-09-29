@@ -18,7 +18,8 @@ function whitespace(text) {
 }
 
 export function H2(props) {
-	const [URL, setURL] = signal('')
+	const [URL, setURL] = signal(props.title)
+	const [title, setTitle] = signal('')
 	const [description, setDescription] = signal('')
 
 	return (
@@ -26,7 +27,10 @@ export function H2(props) {
 			<h2 id={URL}>
 				<a
 					href={() => '#' + URL()}
-					onMount={element => setURL(encode(element.innerText))}
+					onMount={element => {
+						setTitle(element.innerText)
+						setURL(encode(element.innerText))
+					}}
 				>
 					{props.title}
 				</a>
@@ -54,7 +58,7 @@ export function H2(props) {
 					/>
 					<meta
 						property="og:title"
-						content={props.title + ' - pota'}
+						content={title}
 					/>
 					<meta
 						name="description"
