@@ -35,6 +35,8 @@ tm-textarea.snippet {
 	resize: both;
 }
 
+/* special for playground  */
+
 tm-textarea.playground {
 	padding: 10px;
 	min-width: 100%;

@@ -20,6 +20,10 @@
 	margin-left: 5px;
 }
 
+main[data-pathname^='/playground'] figure {
+	border: 0;
+}
+
 main[data-pathname^='/playground'] article {
 	max-width: 100%;
 	overflow: hidden;
@@ -30,6 +34,7 @@ main[data-pathname^='/playground'] article,
 main[data-pathname^='/playground'] article section {
 	max-width: none !important;
 	min-height: 0;
+	background: transparent;
 }
 :global main[data-pathname^='/playground'] #content {
 	overflow: hidden;
@@ -44,6 +49,7 @@ main[data-pathname^='/playground'] article section {
 	width: 40%;
 	max-width: 40% !important;
 	padding-left: 10px;
+	overflow: auto;
 }
 
 main[data-pathname^='/playground'] article:before {
@@ -65,10 +71,6 @@ main[data-pathname^='/playground'] article:before {
 
 :global main[data-pathname^='/playground'] article aside {
 	font-size: 18px;
-}
-
-main[data-pathname^='/playground'] iframe {
-	min-height: 150px;
 }
 
 pota-collapse {

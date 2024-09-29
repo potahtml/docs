@@ -5,7 +5,7 @@ import { Code } from '../../lib/components/code/code.jsx'
 import { Header } from '../../lib/components/header.jsx'
 
 import { signal } from 'pota'
-import { Collapse } from 'pota/web'
+import { Collapse, Show } from 'pota/web'
 
 import { compress, uncompress } from '../../lib/compress.js'
 import example from './default-example.js'
@@ -72,76 +72,94 @@ export default function () {
 					flair="vertical"
 					class={styles.toolbar}
 				>
-					<span>
-						<a
-							href="javascript://"
-							onClick={() => setTab('code')}
-						>
-							Code
-						</a>
-					</span>
-					<span>
-						<a
-							href="javascript://"
-							onClick={() => setTab('importmap')}
-						>
-							Import Map
-						</a>
-					</span>
-					<span>
-						<a
-							href="javascript://"
-							onClick={() => setTab('cheatsheet')}
-						>
-							Cheat Sheet
-						</a>
-					</span>
-					<span>
-						<a
-							href="javascript://"
-							download="pota.tsx"
-							onClick={e => {
-								e.target.href = URL.createObjectURL(
-									new Blob([source().code], {
-										type: 'application/tsx',
-									}),
-								)
-							}}
-						>
-							Download Code
-						</a>
-					</span>
-					<span>
-						<a
-							target="_blank"
-							href={() => '#' + compress(source())}
-							clipboard={e => {
-								e.preventDefault()
-								const node = e.target
-								node.textContent = 'Link Copied!'
-								setTimeout(() => {
-									node.textContent = 'Link'
-								}, 2000)
-								return node.href
-							}}
-						>
-							Link
-						</a>
-					</span>
-					<span>
-						<label
-							flair="selection-none"
-							style="vertical-align: middle;"
-						>
-							Autorun{' '}
-							<input
-								name="button"
-								type="checkbox"
-								checked={autorun()}
-								onClick={() => updateAutorun(checked => !checked)}
-							/>
-						</label>
-					</span>
+					<div>
+						<span>
+							<a
+								href="javascript://"
+								onClick={() => setTab('code')}
+							>
+								Code
+							</a>
+						</span>
+						<span>
+							<a
+								href="javascript://"
+								onClick={() => setTab('pota-jsx')}
+							>
+								pota-jsx
+							</a>
+						</span>
+						<span>
+							<a
+								href="javascript://"
+								onClick={() => setTab('react-jsx')}
+							>
+								react-jsx
+							</a>
+						</span>
+						<span>
+							<a
+								href="javascript://"
+								onClick={() => setTab('importmap')}
+							>
+								Import Map
+							</a>
+						</span>
+						<span>
+							<a
+								href="javascript://"
+								onClick={() => setTab('cheatsheet')}
+							>
+								Cheat Sheet
+							</a>
+						</span>
+						<span>
+							<a
+								href="javascript://"
+								download="pota.tsx"
+								onClick={e => {
+									e.target.href = URL.createObjectURL(
+										new Blob([source().code], {
+											type: 'application/tsx',
+										}),
+									)
+								}}
+							>
+								Download
+							</a>
+						</span>
+						<span>
+							<a
+								target="_blank"
+								href={() => '#' + compress(source())}
+								clipboard={e => {
+									e.preventDefault()
+									const node = e.target
+									node.textContent = 'Link Copied!'
+									setTimeout(() => {
+										node.textContent = 'Link'
+									}, 2000)
+									return node.href
+								}}
+							>
+								Link
+							</a>
+						</span>
+						<span>
+							<label
+								flair="selection-none"
+								style="vertical-align: middle;"
+							>
+								Autorun{' '}
+								<input
+									name="autorun"
+									type="checkbox"
+									checked={autorun()}
+									onClick={() => updateAutorun(checked => !checked)}
+								/>
+							</label>
+						</span>
+					</div>
 				</section>
 				<section
 					id="container"
@@ -185,6 +203,32 @@ export default function () {
 									}}
 								/>
 							</Collapse>
+							<Show
+								when={() => tab() === 'pota-jsx' && source().code}
+							>
+								{code => (
+									<tm-textarea
+										class="playground"
+										grammar="tsx"
+										theme="monokai"
+										value={potaJSX(code())}
+										editable={false}
+									/>
+								)}
+							</Show>
+							<Show
+								when={() => tab() === 'react-jsx' && source().code}
+							>
+								{code => (
+									<tm-textarea
+										class="playground"
+										grammar="tsx"
+										theme="monokai"
+										value={reactJSX(code())}
+										editable={false}
+									/>
+								)}
+							</Show>
 							<Collapse when={() => tab() === 'cheatsheet'}>
 								<tm-textarea
 									class="playground"
@@ -211,5 +255,38 @@ export default function () {
 				</section>
 			</section>
 		</>
+	)
+}
+
+async function potaJSX(code) {
+	return import('https://esm.sh/pota/babel-preset?bundle=all').then(
+		async module => {
+			return prettier(
+				globalThis.Babel.transform(code, {
+					presets: [[module.default]],
+
+					plugins: [],
+				}).code,
+			)
+		},
+	)
+}
+
+async function reactJSX(code) {
+	return prettier(
+		globalThis.Babel.transform(code, {
+			plugins: [
+				[
+					'transform-react-jsx',
+					{
+						runtime: 'automatic',
+						importSource: 'pota',
+						throwIfNamespace: false,
+						useSpread: true,
+						useBuiltIns: false,
+					},
+				],
+			],
+		}).code,
 	)
 }

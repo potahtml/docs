@@ -36,24 +36,11 @@ function displayError(content, type = 'error') {
 // transform jsx ignore parse errors
 
 try {
-	/*
-		const preset = await import('https://esm.sh/pota/babel-preset')
-		console.log(preset.default)
-		const transform = globalThis.Babel.transform(props.code, {
-			presets: ['@babel/preset-env', [preset.default]],
-		})
-	*/
 	const transform = globalThis.Babel.transform(props.code, {
-		plugins: [
+		presets: [
 			[
-				'transform-react-jsx',
-				{
-					runtime: 'automatic',
-					importSource: 'pota',
-					throwIfNamespace: false,
-					useSpread: true,
-					useBuiltIns: false,
-				},
+				(await import('https://esm.sh/pota/babel-preset?bundle=all'))
+					.default,
 			],
 		],
 	})
