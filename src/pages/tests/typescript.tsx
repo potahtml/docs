@@ -110,6 +110,8 @@ type ControlledProps =
   };
 
 
+const Div = <div/>
+
 function typescript(props) {
 	return (
 		<span
@@ -127,6 +129,7 @@ function typescript(props) {
 			<Button style:stroke="antiquewhite" />
 			<Card title="lala">lala</Card>
 			<LoginMsg name="name" />
+			<Div/>
 			<span
 				ref={element => {
 					console.log(element)
