@@ -109,7 +109,7 @@ function App() {
         <polygon points="5,5 195,10 185,185 10,195" />
 
         <Show when={showing}>
-          <foreignObject
+          <foreignobject
             x="20"
             y="20"
             width="160"
@@ -122,7 +122,7 @@ function App() {
               <title>Test</title>
               erat volutpat.
             </div>
-          </foreignObject>
+          </foreignobject>
         </Show>
       </svg>
     </main>

@@ -57,15 +57,26 @@ tm-textarea.line-numbers::part(line)::before {
 	display: inline-block;
 	text-align: right;
 	counter-reset: line-count calc(var(--tm-line-number) + 1);
-	min-width: 5ch;
+	min-width: 3ch;
 	padding-right: 2ch;
 	content: counter(line-count);
 	color: #7777ce5e;
 }
 tm-textarea.line-numbers::part(textarea) {
-	margin-left: 7ch;
+	margin-left: 5ch;
 }
 
+@media all and (width < 750px) {
+	tm-textarea {
+		padding: 10px;
+	}
+	tm-textarea.line-numbers::part(line)::before {
+		display: none;
+	}
+	tm-textarea.line-numbers::part(textarea) {
+		margin-left: 0;
+	}
+}
 /*
 tm-textarea.line-numbers::part(line)::before {
 	color: #7777ce5e;

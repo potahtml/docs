@@ -55,7 +55,10 @@ export function Code(props) {
 	const [transformedURL, setTransformedURL] = signal('')
 
 	effect(() => {
-		transform(code()).then(code => setTransformedURL(compress(code)))
+		props.render !== false &&
+			transform(code()).then(code =>
+				setTransformedURL(compress(code)),
+			)
 	})
 
 	return (

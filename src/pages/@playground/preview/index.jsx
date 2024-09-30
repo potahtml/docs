@@ -37,7 +37,11 @@ window.onerror = function (event, source, line, col, error) {
 
 // create script
 
-const script = document.createElement('script')
-script.type = 'module'
-script.textContent = code
-document.head.append(script)
+if (code.startsWith('Error:')) {
+	displayError(code, 'error')
+} else {
+	const script = document.createElement('script')
+	script.type = 'module'
+	script.textContent = code
+	document.head.append(script)
+}
