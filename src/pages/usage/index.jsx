@@ -1,7 +1,6 @@
 import { Header } from '../../lib/components/header.jsx'
 import { Section } from '../../lib/components/section.jsx'
 import { CompilerLess } from '../html/compiler-less.jsx'
-import { effect } from 'pota'
 import { css } from 'pota/std'
 /*
 import { Runtime } from '@bigmistqke/repl'
@@ -84,8 +83,8 @@ export default function () {
 						grammar="shellscript"
 						theme="monokai"
 						value={`
-							npx degit potahtml/templates/js pota-project
-							cd pota-project
+							npx degit potahtml/templates/js my-js-pota-project
+							cd my-js-pota-project
 							npm install --include=dev
 							npm run dev
 						`
@@ -110,8 +109,8 @@ export default function () {
 						grammar="shellscript"
 						theme="monokai"
 						value={`
-							npx degit potahtml/templates/ts pota-project
-							cd pota-project
+							npx degit potahtml/templates/ts my-ts-pota-project
+							cd my-ts-pota-project
 							npm install --include=dev
 							npm run dev
 						`
@@ -159,8 +158,8 @@ export default function () {
 						grammar="shellscript"
 						theme="monokai"
 						value={`
-							npx degit potahtml/templates/rollup pota-project
-							cd pota-project
+							npx degit potahtml/templates/rollup my-rollup-pota-project
+							cd my-rollup-pota-project
 							npm install --include=dev
 							npm run dev
 							npm run serve

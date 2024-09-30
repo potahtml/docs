@@ -1,8 +1,10 @@
 import './index.css'
 
-addEventListener('hashchange', e => window.location.reload())
-
 import { uncompress } from '../../../lib/compress.js'
+
+// reload on hash change gets rid of accidental loops
+
+addEventListener('hashchange', e => window.location.reload())
 
 // auto size frame to content
 
@@ -12,17 +14,10 @@ new ResizeObserver(() => {
 	window.parent.postMessage(JSON.stringify({ height }), '*')
 }).observe(element)
 
-// props
+// code from hash
 
-let props = uncompress(
-	decodeURIComponent(window.location.hash.substring(1)),
-)
-
-if (typeof props === 'string') {
-	props = {
-		code: props,
-	}
-}
+const hashed = window.location.hash.substring(1)
+const code = hashed ? uncompress(decodeURIComponent(hashed)) : ''
 
 // display error
 
@@ -33,34 +28,16 @@ function displayError(content, type = 'error') {
 	document.body.append(errors)
 }
 
-// transform jsx ignore parse errors
+// listen for errors
 
-try {
-	const transform = globalThis.Babel.transform(props.code, {
-		presets: [
-			[
-				(await import('https://esm.sh/pota/babel-preset?bundle=all'))
-					.default,
-			],
-		],
-	})
-
-	// create script
-
-	const script = document.createElement('script')
-	script.type = 'module'
-	script.textContent = transform.code
-
-	// listen for errors
-
-	window.onerror = function (event, source, line, col, error) {
-		document.body.textContent = ''
-		displayError(error?.message, 'error')
-	}
-
-	// append script
-
-	document.head.append(script)
-} catch (e) {
-	displayError(String(e))
+window.onerror = function (event, source, line, col, error) {
+	document.body.textContent = ''
+	displayError(error?.message, 'error')
 }
+
+// create script
+
+const script = document.createElement('script')
+script.type = 'module'
+script.textContent = code
+document.head.append(script)

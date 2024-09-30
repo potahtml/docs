@@ -52,6 +52,13 @@ main[data-pathname^='/playground'] article section {
 	overflow: auto;
 }
 
+:global main[data-pathname^='/playground'] figure {
+	will-change: scroll-position;
+	transform: translatez(0);
+	overflow-y: auto;
+	min-height: 0;
+}
+
 main[data-pathname^='/playground'] article:before {
 	content: 'pota';
 	font-size: 21em;

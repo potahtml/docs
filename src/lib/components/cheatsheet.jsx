@@ -1,5 +1,3 @@
-import { Code } from './code/code.jsx'
-
 export const CheatSheetText = `// CHEATSHEET
 import {
 // rendering
@@ -91,10 +89,3 @@ html, // (props)=> html\`<div>\${props.children}</div>\` // () => <div/>
 
 
 `
-export const CheatSheet = (
-	<Code
-		render={false}
-		preview={true}
-		code={CheatSheetText}
-	/>
-)

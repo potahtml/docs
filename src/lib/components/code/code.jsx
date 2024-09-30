@@ -9,6 +9,9 @@ import snippetcss from './tm-textarea-stylesheet.css?raw'
 import { prettier } from '../../prettier.js'
 const snippetStyleSheet = sheet(snippetcss)
 
+import { TabIndentation } from 'tm-textarea/bindings/tab-indentation'
+import { transform } from '../../transform.js'
+
 // auto size frames when frame loads
 window.addEventListener('message', function (e) {
 	for (const frame of document.querySelectorAll('iframe')) {
@@ -27,19 +30,17 @@ export function Code(props) {
 			.then(code => {
 				return (
 					<Code
-						{...{
-							...props,
-							code: code,
-							url: null,
-						}}
+						children={props.children}
+						preview={props.preview}
+						render={props.render}
+						code={code}
 					/>
 				)
 			})
 	}
 
-	const [code, setCode] = signal(getValue(props.code), {
-		equals: false,
-	})
+	// TODO change this for writable
+	const [code, setCode] = signal(getValue(props.code))
 
 	effect(() => {
 		setCode(getValue(props.code))
@@ -49,35 +50,45 @@ export function Code(props) {
 
 	const frame = ref()
 
+	// transformed code
+
+	const [transformedURL, setTransformedURL] = signal('')
+
+	effect(() => {
+		transform(code()).then(code => setTransformedURL(compress(code)))
+	})
+
 	return (
 		<section
 			class={styles.container}
 			flair="col grow"
 		>
 			<form>
-				<figure flair="col grow scroll-y">
+				<figure flair="col grow">
 					<Show when={props.preview !== false}>
 						<section
 							class={styles.snippetContainer}
 							bool:editable={props.render !== false}
 						>
 							<tm-textarea
+								ref={TabIndentation.binding}
 								class="snippet"
 								grammar="tsx"
 								theme="monokai"
-								value={prettier(code().code ? code().code : code())}
-								bool:editable={props.editable}
+								value={prettier(code())}
+								bool:editable={props.render !== false}
 								stylesheet={snippetStyleSheet}
 								onInput={e => setCode(e.target.value)}
 								editable={props.render !== false}
 							/>
 						</section>
 					</Show>
-					<Show when={props.render !== false}>
+					<Show
+						when={() => props.render !== false && transformedURL()}
+					>
 						<section class={styles.frame}>
 							<iframe
-								allowTransparency={true}
-								/*loading="lazy"*/
+								loading="lazy"
 								title="Live Code Example"
 								name="Live Code Example"
 								ref={frame}
@@ -87,7 +98,7 @@ export function Code(props) {
 										? '?playground'
 										: '') +
 									'#' +
-									codeURL()
+									transformedURL()
 								}
 							/>
 						</section>
@@ -99,7 +110,7 @@ export function Code(props) {
 						</figcaption>
 					</Show>
 				</figure>
-				<Show when={props.render !== false}>
+				<Show when={() => props.render !== false && frame()}>
 					<aside flair="row width right">
 						<div style="text-align:right">
 							<a
@@ -127,7 +138,7 @@ export function Code(props) {
 								onClick={() =>
 									window.open(
 										'/pages/@playground/preview/index.html#' +
-											codeURL(),
+											transformedURL(),
 									)
 								}
 							>

@@ -2022,12 +2022,11 @@
 	 *
 	 * @param {Element} node - Element to which assign props
 	 * @param {object} props - Props to assign
-	 * @param {number} [isCustomElement] - Is custom element
+	 * @param {number} [isCE] - Is custom element
 	 */
-	function assignProps(node, props, isCustomElement) {
-	  let name;
-	  for (name in props) {
-	    assignProp(node, name, props[name], props, isCustomElement);
+	function assignProps(node, props, isCE) {
+	  for (const name in props) {
+	    assignProp(node, name, props[name], props, isCE);
 	  }
 	  return node;
 	}
@@ -2063,7 +2062,7 @@
 	  }
 	  if (name.includes(':')) {
 	    // with ns
-	    let [ns, localName] = name.split(':');
+	    const [ns, localName] = name.split(':');
 
 	    // run plugins NS
 	    plugin = pluginsNS.get(ns);

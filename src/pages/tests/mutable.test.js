@@ -1,6 +1,6 @@
 /**
  * References:
- * https://github.com/potahtml/pota/tree/master/src/lib/reactivity/store
+ * https://github.com/potahtml/pota/tree/master/src/lib/store
  *
  * https://github.com/solidjs/solid/blob/main/packages/solid/store/test/
  * https://github.com/solidjs-community/solid-primitives/tree/main/packages/mutable/test

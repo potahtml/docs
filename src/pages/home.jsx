@@ -1,4 +1,4 @@
-import { CheatSheet } from '../lib/components/cheatsheet.jsx'
+import { CheatSheetText } from '../lib/components/cheatsheet.jsx'
 import { Code } from '../lib/components/code/code.jsx'
 import { Header } from '../lib/components/header.jsx'
 import { Section } from '../lib/components/section.jsx'
@@ -105,7 +105,11 @@ export default function Home() {
 			</Section>
 
 			<Section title="All In One">
-				<CheatSheet />
+				<Code
+					render={false}
+					preview={true}
+					code={CheatSheetText}
+				/>
 			</Section>
 			<Section title="Why">
 				<p>

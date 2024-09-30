@@ -5,7 +5,7 @@
 >
 	<head>
 		<meta charset="UTF-8" />
-		<title>pota preview</title>
+		<title>pota code preview</title>
 		<meta
 			name="robots"
 			content="noindex, nofollow"
@@ -19,12 +19,10 @@
 			rel="stylesheet"
 			href="/reset.css"
 		/>
-
 		<link
 			rel="stylesheet"
 			href="/assets/flair.css"
 		/>
-
 		<link
 			rel="stylesheet"
 			href="/dist/preview/multi-entry.css"
@@ -34,19 +32,11 @@
 			if (
 				!location.href.includes('localhost') &&
 				location.href.includes('?playground')
-			) {
+			)
 				console.clear()
-			}
 		</script>
-		<script
-			crossorigin="anonymous"
-			src="./importmap.js"
-		></script>
 
-		<script
-			crossorigin="anonymous"
-			src="https://unpkg.com/@babel/standalone@7.23.2/babel.min.js"
-		></script>
+		<script src="/importmap/importmap.js"></script>
 
 		<script
 			type="module"

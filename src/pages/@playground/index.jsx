@@ -4,58 +4,52 @@ import { CheatSheetText } from '../../lib/components/cheatsheet.jsx'
 import { Code } from '../../lib/components/code/code.jsx'
 import { Header } from '../../lib/components/header.jsx'
 
-import { signal } from 'pota'
+import { effect, memo, signal } from 'pota'
 import { Collapse, Show } from 'pota/web'
 
 import { compress, uncompress } from '../../lib/compress.js'
 import example from './default-example.js'
-import importmap from '../../importmap/importmap.json?raw'
 import { prettier } from '../../lib/prettier.js'
+import { transform } from '../../lib/transform.js'
 
 import 'pota/plugin/clipboard'
 
-function getCodeFromURL() {
-	return window.location.hash !== ''
-		? uncompress(
-				decodeURIComponent(window.location.hash.substring(1)),
-			)
-		: undefined
-}
+import { TabIndentation } from 'tm-textarea/bindings/tab-indentation'
 
 export default function () {
 	const [autorun, setAutorun, updateAutorun] = signal(true)
 
-	let fetched = getCodeFromURL()
-	if (typeof fetched === 'string') {
-		fetched = {
-			code: fetched,
-			importmap: importmap,
-		}
-	}
+	const initialValue =
+		window.location.hash !== ''
+			? uncompress(
+					decodeURIComponent(window.location.hash.substring(1)),
+				)
+			: example
 
-	// initial value for code
-	const [source, setSource, updateSource] = signal(
-		fetched || {
-			code: example,
-			importmap: importmap,
-		},
-		{ equals: false },
+	// somehow backwards compatible
+	const [code, setCode] = signal(
+		initialValue.code ? initialValue.code : initialValue,
 	)
 
-	// to update only the code
-	function updateCode(code) {
-		updateSource(source => {
-			source.code = code
-			return source
-		})
-	}
-	// to update only the importmap
-	function updateImportmap(importmap) {
-		updateSource(source => {
-			source.importmap = importmap
-			return source
-		})
-	}
+	const codeDownload = memo(() =>
+		URL.createObjectURL(
+			new Blob([code()], {
+				type: 'application/tsx',
+			}),
+		),
+	)
+
+	const codeURL = memo(() => compress(code()))
+
+	// transformed code
+
+	const [transformed, setTransformed] = signal('')
+
+	effect(() => {
+		transform(code()).then(setTransformed)
+	})
+
+	// ui
 
 	const [tab, setTab] = signal('code')
 
@@ -86,23 +80,7 @@ export default function () {
 								href="javascript://"
 								onClick={() => setTab('pota-jsx')}
 							>
-								pota-jsx
-							</a>
-						</span>
-						<span>
-							<a
-								href="javascript://"
-								onClick={() => setTab('react-jsx')}
-							>
-								react-jsx
-							</a>
-						</span>
-						<span>
-							<a
-								href="javascript://"
-								onClick={() => setTab('importmap')}
-							>
-								Importmap
+								Transformed
 							</a>
 						</span>
 						<span>
@@ -117,13 +95,7 @@ export default function () {
 							<a
 								href="javascript://"
 								download="pota.tsx"
-								onClick={e => {
-									e.target.href = URL.createObjectURL(
-										new Blob([source().code], {
-											type: 'application/tsx',
-										}),
-									)
-								}}
+								onClick={e => (e.target.href = codeDownload())}
 							>
 								Download
 							</a>
@@ -131,10 +103,12 @@ export default function () {
 						<span>
 							<a
 								target="_blank"
-								href={() => '#' + compress(source())}
+								href="#"
 								clipboard={e => {
 									e.preventDefault()
 									const node = e.target
+									node.href = '#' + codeURL()
+
 									node.textContent = 'Link Copied!'
 									setTimeout(() => {
 										node.textContent = 'Link'
@@ -171,20 +145,12 @@ export default function () {
 						flair="col grow"
 					>
 						<form id="form-playground">
-							<Collapse when={() => tab() === 'importmap'}>
-								<tm-textarea
-									class="playground"
-									value={() => source().importmap}
-									onInput={e => updateImportmap(e.target.value)}
-									grammar="json"
-									theme="monokai"
-								/>
-							</Collapse>
 							<Collapse when={() => tab() === 'code'}>
 								<tm-textarea
-									class="playground"
-									value={prettier(source().code)}
-									onInput={e => updateCode(e.target.value)}
+									ref={TabIndentation.binding}
+									class="playground line-numbers"
+									value={prettier(code(), true)}
+									onInput={e => setCode(e.target.value)}
 									grammar="tsx"
 									theme="monokai"
 									onKeyDown={e => {
@@ -195,7 +161,7 @@ export default function () {
 
 											e.preventDefault()
 
-											prettier(textarea.value).then(code => {
+											prettier(textarea.value, true).then(code => {
 												textarea.focus()
 												textarea.value = code
 											})
@@ -203,28 +169,13 @@ export default function () {
 									}}
 								/>
 							</Collapse>
-							<Show
-								when={() => tab() === 'pota-jsx' && source().code}
-							>
+							<Show when={() => tab() === 'pota-jsx'}>
 								{code => (
 									<tm-textarea
-										class="playground"
+										class="playground line-numbers"
 										grammar="tsx"
 										theme="monokai"
-										value={potaJSX(code())}
-										editable={false}
-									/>
-								)}
-							</Show>
-							<Show
-								when={() => tab() === 'react-jsx' && source().code}
-							>
-								{code => (
-									<tm-textarea
-										class="playground"
-										grammar="tsx"
-										theme="monokai"
-										value={reactJSX(code())}
+										value={transformed}
 										editable={false}
 									/>
 								)}
@@ -246,7 +197,7 @@ export default function () {
 					>
 						<section flair="row grow">
 							<Code
-								code={() => autorun() && source()}
+								code={() => autorun() && code()}
 								render={true}
 								preview={false}
 							/>
@@ -255,38 +206,5 @@ export default function () {
 				</section>
 			</section>
 		</>
-	)
-}
-
-async function potaJSX(code) {
-	return import('https://esm.sh/pota/babel-preset?bundle=all').then(
-		async module => {
-			return prettier(
-				globalThis.Babel.transform(code, {
-					presets: [[module.default]],
-
-					plugins: [],
-				}).code,
-			)
-		},
-	)
-}
-
-async function reactJSX(code) {
-	return prettier(
-		globalThis.Babel.transform(code, {
-			plugins: [
-				[
-					'transform-react-jsx',
-					{
-						runtime: 'automatic',
-						importSource: 'pota',
-						throwIfNamespace: false,
-						useSpread: true,
-						useBuiltIns: false,
-					},
-				],
-			],
-		}).code,
 	)
 }

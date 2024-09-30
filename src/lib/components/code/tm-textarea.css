@@ -6,6 +6,8 @@ tm-textarea {
 
 	font-size: 18px;
 	line-height: 1.25;
+
+	tab-size: 2;
 }
 
 /* change background */
@@ -49,18 +51,40 @@ tm-textarea.playground::part(root) {
 	background: #11161d42;
 }
 
-/* add line-numbers  to kind snippet only */
+/* add line-numbers  */
 
-tm-textarea.playground::part(line)::before {
+tm-textarea.line-numbers::part(line)::before {
 	display: inline-block;
+	text-align: right;
 	counter-reset: line-count calc(var(--tm-line-number) + 1);
 	min-width: 5ch;
-	content: counter(line-count, decimal-leading-zero);
+	padding-right: 2ch;
+	content: counter(line-count);
 	color: #7777ce5e;
 }
-tm-textarea.playground::part(textarea) {
-	margin-left: 5ch;
+tm-textarea.line-numbers::part(textarea) {
+	margin-left: 7ch;
 }
+
+/*
+tm-textarea.line-numbers::part(line)::before {
+	color: #7777ce5e;
+}
+tm-textarea.line-numbers::part(root) {
+	--offset: calc(var(--tm-line-digits) * 1ch + 1ch);
+}
+tm-textarea.line-numbers::part(line)::before {
+	position: absolute;
+	transform: translateX(calc(var(--offset) * -1));
+	counter-reset: line-number calc(var(--tm-line-number) + 1);
+	content: counter(line-number);
+}
+
+tm-textarea.line-numbers::part(line),
+tm-textarea.line-numbers::part(textarea) {
+	transform: translateX(var(--offset));
+}
+*/
 
 /* doesnt work with custom elements x.X  */
 
