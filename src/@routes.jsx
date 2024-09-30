@@ -496,6 +496,11 @@ export default function Routes() {
 				params={{ path: 'usage' }}
 				children={load(() => import('./pages/usage/index.jsx'))}
 			/>
+			<Router
+				path=":path$"
+				params={{ path: 'test' }}
+				children={load(() => import('./pages/tests/index.jsx'))}
+			/>
 		</Router>
 	)
 }
