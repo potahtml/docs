@@ -95,14 +95,15 @@ export default function () {
 				<Code url="/pages/store/replace-keys.jsx"></Code>
 			</Section>
 			<Section title="reset">
-				<p>
-					Resets from `target` whats defined in `source`. See this{' '}
-					<a href="/playground#H4sIAE1T/GYAA4VTwW7bMAz9Fa6X2IOhdDsasYdi2GXDNqDZbdlBseREqCwZEl2sM/zvo6Q4aZIWBXyQyMdH8j35RnW9dQgjOGmEdDBB62wHi94iX2zMMd0NyLdaFoTzEs9gS4/WSQJvTGONRxCy5YPGNXKUUMG4MQB767EMBwBtG47KGhZihneEqSpYhLAOIWIKMIBPLwVLWHDDVM+4EDSLZ3rQ/xZFSKuO76Qv4fefeH2QT60j+lME7b3s7KM8BlrrGim+XQGJmBYooeXayxjxSsgtd1/+9px0EiWgG1IGVSe1MkQ6ThtD3yyDP+x/kC57LksR6/MTGO1up+U6daGiLIeqDvRZpGEX/Qnx7sVEpGwH0wSFk1mxIfFFH1K3MfoRzaSJisvtCmCMeTK5OvPyoIzENBOVUbe48LEhmTKrOXdMYx7NYP3g99l3jnvWSKXTyVFb21HFe/hwe5sT7VUdzXLJ5OlpZlcj3PX93NpJHJyBLL2dlVCPUdJ42Q6IhLbms1bNQzWeGTDVv+J1tUyw18tOCk/1fTi/XfJMo6m+E+K6oneyHuMLgK/rnz+YR6fMTrVPs/Bm0LqAj/m0WgbsYb/lvOCsSfqnM1Ikv/kPQwS+GuoDAAA=">
-						example
-					</a>{' '}
-					for when this is useful
-				</p>
+				<p>Resets from `target` whats defined in `source`.</p>
 				<Code url="/pages/store/reset.jsx"></Code>
+				<Code url="/pages/store/reset-use-case.jsx">
+					Creating a mutable from a <mark>defaultState</mark> and then
+					reseting a portion of the <mark>mutable</mark> with data
+					coming from <mark>defaultState</mark>. Note the use of{' '}
+					<mark>true</mark> on the mutable call to not modify the
+					original object when making it mutable.
+				</Code>
 			</Section>
 		</>
 	)
