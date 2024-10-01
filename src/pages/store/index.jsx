@@ -30,9 +30,11 @@ export default function () {
 				</p>
 				<Code url="/pages/store/mutable.jsx"></Code>
 				<Code url="/pages/store/mutable-copy.jsx">
-					<mark>mutable</mark> will mutate the object passed to it to
-					keep references and make identity methods work. To disable
-					mutating the original object you can pass <mark>true</mark>
+					<mark>mutable</mark> modifies the object passed to it,
+					preserving references and ensuring identity methods function
+					as expected. To prevent changes to the original object, you
+					can pass <mark>true</mark> to make a copy before making it
+					mutable
 				</Code>
 			</Section>
 
@@ -45,7 +47,12 @@ export default function () {
 					doesn't happen recursively.
 				</p>
 
-				<Code url="/pages/store/signalify.jsx"></Code>
+				<Code url="/pages/store/signalify.jsx">
+					All already defined properties become reactive
+				</Code>
+				<Code url="/pages/store/signalify-keys.jsx">
+					Only `lala` property becomes reactive
+				</Code>
 			</Section>
 
 			<Section title="Reconcile">
@@ -88,7 +95,13 @@ export default function () {
 				<Code url="/pages/store/replace-keys.jsx"></Code>
 			</Section>
 			<Section title="reset">
-				<p>Resets from `target` whats defined in `source`</p>
+				<p>
+					Resets from `target` whats defined in `source`. See this{' '}
+					<a href="/playground#H4sIAE1T/GYAA4VTwW7bMAz9Fa6X2IOhdDsasYdi2GXDNqDZbdlBseREqCwZEl2sM/zvo6Q4aZIWBXyQyMdH8j35RnW9dQgjOGmEdDBB62wHi94iX2zMMd0NyLdaFoTzEs9gS4/WSQJvTGONRxCy5YPGNXKUUMG4MQB767EMBwBtG47KGhZihneEqSpYhLAOIWIKMIBPLwVLWHDDVM+4EDSLZ3rQ/xZFSKuO76Qv4fefeH2QT60j+lME7b3s7KM8BlrrGim+XQGJmBYooeXayxjxSsgtd1/+9px0EiWgG1IGVSe1MkQ6ThtD3yyDP+x/kC57LksR6/MTGO1up+U6daGiLIeqDvRZpGEX/Qnx7sVEpGwH0wSFk1mxIfFFH1K3MfoRzaSJisvtCmCMeTK5OvPyoIzENBOVUbe48LEhmTKrOXdMYx7NYP3g99l3jnvWSKXTyVFb21HFe/hwe5sT7VUdzXLJ5OlpZlcj3PX93NpJHJyBLL2dlVCPUdJ42Q6IhLbms1bNQzWeGTDVv+J1tUyw18tOCk/1fTi/XfJMo6m+E+K6oneyHuMLgK/rnz+YR6fMTrVPs/Bm0LqAj/m0WgbsYb/lvOCsSfqnM1Ikv/kPQwS+GuoDAAA=">
+						example
+					</a>{' '}
+					for when this is useful
+				</p>
 				<Code url="/pages/store/reset.jsx"></Code>
 			</Section>
 		</>
