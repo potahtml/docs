@@ -6,12 +6,10 @@ export default function () {
 	return (
 		<>
 			<Header title="Component">
-				<mark>Component</mark> assist the creation of dynamic
-				untracked components. Takes a component and props, returns a
-				function. For JSX space see <mark>Dynamic</mark>. When{' '}
-				<mark>props</mark> argument is defined it returns a function
-				with fixed props. When the <mark>props</mark> argument is
-				omitted it returns a function that you can pass props to it.
+				<mark>Component</mark> assist the creation of dynamic,
+				untracked components. It takes a component and its props, then
+				returns a function where you can pass additional props to
+				override the initially defined ones.
 			</Header>
 
 			<Section title="Component">
@@ -36,34 +34,24 @@ export default function () {
 						</tr>
 					</tbody>
 				</table>
-
-				<Code url="/pages/component/element.jsx">
-					Component with fixed props
-				</Code>
 			</Section>
 
 			<Section title="Component as a Factory">
-				<p>
-					In a similar way, when <mark>props</mark> argument is
-					omitted it allows you to use props on the returned function.
-				</p>
-				<table>
-					<thead>
-						<tr>
-							<th>name</th>
-							<th>type</th>
-							<th>description</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr>
-							<td>component</td>
-							<td>fn/Element/tagName/object with toString method</td>
-							<td>component to create</td>
-						</tr>
-					</tbody>
-				</table>
-				<Code url="/pages/component/factory.jsx"></Code>
+				<Code url="/pages/component/element.jsx">
+					Component with default props
+				</Code>
+			</Section>
+
+			<Section title="Component With Props Override">
+				<Code url="/pages/component/element-override.jsx">
+					Component with default props that change
+				</Code>
+			</Section>
+
+			<Section title="Component With Empty Props">
+				<Code url="/pages/component/factory.jsx">
+					<mark>props</mark> argument may be omitted
+				</Code>
 			</Section>
 		</>
 	)

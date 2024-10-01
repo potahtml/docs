@@ -5,7 +5,7 @@ import { Code } from '../../lib/components/code/code.jsx'
 import { Header } from '../../lib/components/header.jsx'
 
 import { effect, memo, signal } from 'pota'
-import { Collapse, Show } from 'pota/web'
+import { Collapse, For, Head, Show } from 'pota/web'
 
 import { compress, uncompress } from '../../lib/compress.js'
 import example from './default-example.js'
@@ -16,6 +16,59 @@ import 'pota/plugin/clipboard'
 
 import { TabIndentation } from 'tm-textarea/bindings/tab-indentation'
 
+const themes = [
+	'andromeeda',
+	'aurora-x',
+	'ayu-dark',
+	'catppuccin-frappe',
+	'catppuccin-latte',
+	'catppuccin-macchiato',
+	'catppuccin-mocha',
+	'dark-plus',
+	'dracula-soft',
+	'dracula',
+	'everforest-dark',
+	'everforest-light',
+	'github-dark-default',
+	'github-dark-dimmed',
+	'github-dark-high-contrast',
+	'github-dark',
+	'github-light-default',
+	'github-light-high-contrast',
+	'github-light',
+	'houston',
+	'laserwave',
+	'light-plus',
+	'material-theme-darker',
+	'material-theme-lighter',
+	'material-theme-ocean',
+	'material-theme-palenight',
+	'material-theme',
+	'min-dark',
+	'min-light',
+	'monokai',
+	'night-owl',
+	'nord',
+	'one-dark-pro',
+	'one-light',
+	'plastic',
+	'poimandres',
+	'red',
+	'rose-pine-dawn',
+	'rose-pine-moon',
+	'rose-pine',
+	'slack-dark',
+	'slack-ochin',
+	'snazzy-light',
+	'solarized-dark',
+	'solarized-light',
+	'synthwave-84',
+	'tokyo-night',
+	'vesper',
+	'vitesse-black',
+	'vitesse-dark',
+	'vitesse-light',
+]
 export default function () {
 	const [autorun, setAutorun, updateAutorun] = signal(true)
 
@@ -49,9 +102,17 @@ export default function () {
 		transform(code()).then(setTransformed)
 	})
 
+	effect(() => {
+		window.location.hash = '#' + codeURL()
+	})
+
 	// ui
 
 	const [tab, setTab] = signal('code')
+
+	const [theme, setTheme] = signal(
+		localStorage.playgroundTheme || 'monokai',
+	)
 
 	return (
 		<>
@@ -133,6 +194,27 @@ export default function () {
 								/>
 							</label>
 						</span>
+						<span>
+							<select
+								class={styles.themeSelector}
+								onChange={e => {
+									const value = e.currentTarget.value
+									setTheme(value)
+									localStorage.playgroundTheme = value
+								}}
+							>
+								<For each={themes}>
+									{item => (
+										<option
+											selected={theme() === item}
+											value={item}
+										>
+											{item.replace(/-/g, ' ')}
+										</option>
+									)}
+								</For>
+							</select>
+						</span>
 					</div>
 				</section>
 				<section
@@ -152,7 +234,12 @@ export default function () {
 									value={prettier(code(), true)}
 									onInput={e => setCode(e.target.value)}
 									grammar="tsx"
-									theme="monokai"
+									theme={theme()}
+									onMount={element => {
+										effect(() => {
+											element.theme = theme()
+										})
+									}}
 									onKeyDown={e => {
 										if (e.ctrlKey && e.keyCode === 83) {
 											// CTRL + S
@@ -174,7 +261,12 @@ export default function () {
 									<tm-textarea
 										class="playground line-numbers"
 										grammar="tsx"
-										theme="monokai"
+										theme={theme()}
+										onMount={element => {
+											effect(() => {
+												element.theme = theme()
+											})
+										}}
 										value={transformed}
 										editable={false}
 									/>
@@ -185,7 +277,12 @@ export default function () {
 									class="playground"
 									value={prettier(CheatSheetText)}
 									grammar="tsx"
-									theme="monokai"
+									theme={theme()}
+									onMount={element => {
+										effect(() => {
+											element.theme = theme()
+										})
+									}}
 									editable={false}
 								/>
 							</Collapse>

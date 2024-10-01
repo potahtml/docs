@@ -73,3 +73,7 @@ a:visited {
 .error:empty {
   display: none;
 }
+
+pre {
+  font-size: 1.4em;
+}

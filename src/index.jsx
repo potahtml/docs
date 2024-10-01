@@ -1,7 +1,7 @@
 globalThis.start = performance.now()
 
 // css
-import './index.module.css'
+import styles from './index.module.css'
 import stylesMenu from './menu.module.css'
 
 // components
@@ -13,7 +13,7 @@ import { Bench } from './lib/components/bench/bench.jsx'
 
 // tm
 import { setCDN } from 'tm-textarea/cdn'
-setCDN('/assets/tm')
+// setCDN('/assets/tm')
 
 import 'tm-textarea'
 import './lib/components/code/tm-textarea.css'
@@ -82,16 +82,21 @@ render(
 					</nav>
 					<footer flair="row width">
 						<span>
-							<a href="/">home</a>
+							<a href="/Articles/">articles</a>
 						</span>
 						<span flair="grow" />
 						<span>
-							<a href="/articles/">articles</a>
-							{' / '}
-							<a href="https://github.com/potahtml/pota">
-								<b>github</b>
+							<a
+								href="https://github.com/potahtml/pota"
+								title="🌟"
+							>
+								<img
+									class={styles.github}
+									src="/assets/github-mark-white.png"
+								/>
 							</a>
 						</span>
+
 						{/*<a
 						href=""
 						onClick={() =>

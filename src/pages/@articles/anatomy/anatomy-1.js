@@ -1,4 +1,4 @@
-// https://pota.quack.uy/articles/anatomy-of-a-signals-based-reactive-renderer
+// https://pota.quack.uy/Articles/anatomy-of-a-signals-based-reactive-renderer
 
 export { createSignal as signal } from './flimsy.js'
 

@@ -9,7 +9,8 @@ function App() {
   return (
     <main>
       <Element />
-      <Element />
+      <Element>bye world</Element>
+      <Element style:color="lime" />
     </main>
   )
 }

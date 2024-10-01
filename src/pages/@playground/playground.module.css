@@ -84,3 +84,8 @@ pota-collapse {
 	width: 100%;
 	height: 100%;
 }
+
+.themeSelector {
+	margin-left: 5px;
+	text-transform: capitalize;
+}

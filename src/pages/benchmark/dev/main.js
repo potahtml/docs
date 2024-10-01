@@ -907,7 +907,7 @@
 	 * @template T
 	 * @param {Each<T>} list
 	 * @param {Function} callback
-	 * @param {boolean} sort
+	 * @param {boolean} [sort]
 	 */
 	function map(list, callback, sort) {
 	  const cache = new Map();
@@ -1822,15 +1822,13 @@
 	    case 'string':
 	      {
 	        // string component, 'div' becomes <div>
-	        value = createTag.bind(null, value);
-	        break;
+	        return markComponent(props => createTag(value, props));
 	      }
 	    case 'function':
 	      {
 	        if ($isClass in value) {
 	          // class component <MyComponent../>
-	          value = createClass.bind(null, value);
-	          break;
+	          return markComponent(props => createClass(value, props));
 	        }
 
 	        /**
@@ -1840,26 +1838,22 @@
 	         * ```
 	         */
 	        if (isReactive(value)) {
-	          value = createAnything.bind(null, value);
-	          break;
+	          return markComponent(() => createAnything(value));
 	        }
 
 	        // function component <MyComponent../>
 	        // value = value
-	        break;
+	        return markComponent(value);
 	      }
 	    default:
 	      {
 	        if (value instanceof Node) {
 	          // node component <div>
-	          value = createNode.bind(null, value);
-	          break;
+	          return markComponent(props => createNode(value, props));
 	        }
-	        value = createAnything.bind(null, value);
-	        break;
+	        return markComponent(() => createAnything(value));
 	      }
 	  }
-	  return markComponent(value);
 	}
 	function createComponent(value) {
 	  const component = Factory(value);
@@ -1871,11 +1865,11 @@
 	}
 	function createClass(value, props) {
 	  const i = new value();
-	  i.ready && ready(i.ready.bind(i));
-	  i.cleanup && cleanup(i.cleanup.bind(i));
+	  i.ready && ready(() => i.ready());
+	  i.cleanup && cleanup(() => i.cleanup());
 	  return i.render(props);
 	}
-	function createAnything(value, props) {
+	function createAnything(value) {
 	  return value;
 	}
 

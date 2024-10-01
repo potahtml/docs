@@ -8,19 +8,17 @@ export function Bench() {
 	ready(() => {
 		const stop = performance.now()
 
-		const key = window.location.href
-		if (!localStorage.v2) {
+		const key = 'bench-' + window.location.pathname
+		if (!localStorage.v3) {
 			localStorage.clear()
-			localStorage.v2 = true
+			localStorage.v3 = true
 		}
 		renderTime.best = +localStorage[key] || 0
 
 		renderTime.time = +(stop - globalThis.start).toFixed(2)
 
 		if (renderTime.best === 0 || renderTime.time < renderTime.best) {
-			if (!key.includes('/playground')) {
-				localStorage[key] = renderTime.time
-			}
+			localStorage[key] = renderTime.time
 		}
 	})
 	return (

@@ -10,7 +10,7 @@ export default function () {
 			<Section title="Entries">
 				<ol>
 					<li>
-						<a href="/articles/anatomy-of-a-signals-based-reactive-renderer">
+						<a href="/Articles/anatomy-of-a-signals-based-reactive-renderer">
 							Anatomy Of A Signals Based Reactive Renderer
 						</a>{' '}
 						- Implementing from scratch the core parts of a signals

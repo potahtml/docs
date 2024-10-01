@@ -1,13 +1,13 @@
 import { render, signal, map, cleanup } from 'pota'
 
-const [array, setArray] = signal([1, 2, 3, 4, 5])
+const [array, setArray, updateArray] = signal([1, 2, 3, 4, 5])
 
 let id = 6
 
 setInterval(() => {
   if (array().length > 6) return
 
-  setArray(array => {
+  updateArray(array => {
     array.push(id++)
     return [...array]
   })
@@ -16,7 +16,7 @@ setInterval(() => {
 setInterval(() => {
   if (array().length > 6 || array().length < 2) return
 
-  setArray(array => {
+  updateArray(array => {
     array.shift()
     return [...array]
   })

@@ -93,13 +93,13 @@ const bbutton = ({ id, text, fn }) =>
   </div>`
 
 const App = () => {
-  const [data, setData] = signal([])
+  const [data, setData, updateData] = signal([])
   const [selected, setSelected] = signal([])
   const run = () => setData(buildData(1000))
   const runLots = () => {
     setData(buildData(10000))
   }
-  const add = () => setData(d => [...d, ...buildData(1000)])
+  const add = () => updateData(d => [...d, ...buildData(1000)])
   const update = () =>
     batch(() => {
       for (let i = 0, d = data(), len = d.length; i < len; i += 10)
@@ -116,7 +116,7 @@ const App = () => {
   }
   const clear = () => setData([])
   const remove = id =>
-    setData(d => {
+    updateData(d => {
       const idx = d.findIndex(datum => datum.id === id)
       d.splice(idx, 1)
       return [...d]

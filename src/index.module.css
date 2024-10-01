@@ -8,6 +8,8 @@ body {
 	left: 0;
 	overflow: auto;
 	max-height: 100%;
+
+	color-scheme: dark;
 }
 
 main {
@@ -234,4 +236,11 @@ template {
 
 form {
 	display: contents;
+}
+
+.github {
+	width: 1.1em;
+	height: 1.1em;
+	display: inline-block;
+	margin-left: 5px;
 }

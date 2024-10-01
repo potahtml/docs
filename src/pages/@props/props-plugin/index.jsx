@@ -9,7 +9,8 @@ export default function () {
 				<mark>propsPlugin</mark> and <mark>propsPluginNS</mark>{' '}
 				register a custom prop that can be used on any element
 				globally. This empowers JSX/HTML by allowing you to add custom
-				behaviour via props.
+				behaviour via props. The <a href="/Directory">Directory</a>{' '}
+				has a growing list of plugins to use.
 			</Header>
 
 			<Section title="Snippet">

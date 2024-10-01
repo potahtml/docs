@@ -1109,45 +1109,6 @@
 	  }
 	}
 
-	/**
-	 * A Promise loader handler. Allows to display/run something or
-	 * nothing while a promise is resolving. Allows to run a callback when
-	 * the promise resolves. Allows to get notified of errors, and
-	 * display/run something or nothing, if wanted a `retry` function is
-	 * given for retrying the promise. All functions run with the original
-	 * owner, so it's `Context` friendly.
-	 *
-	 * @param {(() => Promise<any>) | Promise<any>} fn - Function that
-	 *   returns a promise
-	 * @param {{
-	 * 	onLoading?: any
-	 * 	onLoaded?: Function
-	 * 	onError?: ((e: Error, retry: Function) => any) | any
-	 * }} [options]
-	 *
-	 * @returns {Component}
-	 * @url https://pota.quack.uy/lazy
-	 */
-	const lazy = (fn, options = nothing) => markComponent(props => {
-	  const {
-	    onLoading,
-	    onLoaded,
-	    onError
-	  } = options;
-	  const [value, setValue] = signal(onLoading);
-	  const _onLoaded = owned(onLoaded);
-	  const retry = () => Promise.resolve(isFunction(fn) ? fn() : fn).then(r => {
-	    setValue(markComponent(() => {
-	      r = isObject(r) && r.default ? r.default : r;
-	      return isFunction(r) ? r(props) : r;
-	    }));
-	    microtask(_onLoaded);
-	  }).catch(e => onError ? setValue(markComponent(() => isFunction(onError) ? onError(e, retry) : onError)) : console.error(e));
-	  retry();
-	  return value;
-	});
-	const microtask = fn => queueMicrotask(owned(fn));
-
 	// MAP
 
 	/**
@@ -1156,7 +1117,7 @@
 	 * @template T
 	 * @param {Each<T>} list
 	 * @param {Function} callback
-	 * @param {boolean} sort
+	 * @param {boolean} [sort]
 	 */
 	function map(list, callback, sort) {
 	  const cache = new Map();
@@ -2126,12 +2087,12 @@
 	  /** Freeze props so isnt directly writable */
 	  freeze(props);
 
-	  /**
-	   * Create a callable function to pass `props`. When `props` its not
-	   * defined it allows the user to make a `Factory` of components,
-	   * when `props` its defined the `props` are fixed.
-	   */
-	  return props === undefined ? Factory(value) : markComponent(Factory(value).bind(null, props));
+	  /** Create a callable function to pass `props` */
+	  const component = Factory(value);
+	  return props === undefined ? component : markComponent(propsOverride => component(propsOverride ? freeze({
+	    ...props,
+	    ...propsOverride
+	  }) : props));
 	}
 
 	/**
@@ -2150,15 +2111,13 @@
 	    case 'string':
 	      {
 	        // string component, 'div' becomes <div>
-	        value = createTag.bind(null, value);
-	        break;
+	        return markComponent(props => createTag(value, props));
 	      }
 	    case 'function':
 	      {
 	        if ($isClass in value) {
 	          // class component <MyComponent../>
-	          value = createClass.bind(null, value);
-	          break;
+	          return markComponent(props => createClass(value, props));
 	        }
 
 	        /**
@@ -2168,34 +2127,30 @@
 	         * ```
 	         */
 	        if (isReactive(value)) {
-	          value = createAnything.bind(null, value);
-	          break;
+	          return markComponent(() => createAnything(value));
 	        }
 
 	        // function component <MyComponent../>
 	        // value = value
-	        break;
+	        return markComponent(value);
 	      }
 	    default:
 	      {
 	        if (value instanceof Node) {
 	          // node component <div>
-	          value = createNode.bind(null, value);
-	          break;
+	          return markComponent(props => createNode(value, props));
 	        }
-	        value = createAnything.bind(null, value);
-	        break;
+	        return markComponent(() => createAnything(value));
 	      }
 	  }
-	  return markComponent(value);
 	}
 	function createClass(value, props) {
 	  const i = new value();
-	  i.ready && ready(i.ready.bind(i));
-	  i.cleanup && cleanup(i.cleanup.bind(i));
+	  i.ready && ready(() => i.ready());
+	  i.cleanup && cleanup(() => i.cleanup());
 	  return i.render(props);
 	}
-	function createAnything(value, props) {
+	function createAnything(value) {
 	  return value;
 	}
 
@@ -3261,66 +3216,6 @@
 	}
 
 	/**
-	 * Creates a `setTimeout` that autodisposes. The `delay` could be
-	 * reactive. The timeout is NOT started automatically.
-	 *
-	 * @param {Function} callback - Callback to run once delay completes
-	 * @param {Signal | number} delay - Delay number or signal
-	 * @param {any[]} args - Arguments to pass to the callback
-	 * @returns {{ start: Function; stop: Function }}
-	 */
-	function useTimeout(callback, delay, ...args) {
-	  let id;
-	  const fn = {
-	    start: () => {
-	      withValue(delay, delay => {
-	        fn.stop();
-	        if (delay < Infinity) id = setTimeout(callback, delay, ...args);
-	      });
-	      return fn;
-	    },
-	    stop: () => clearTimeout(id)
-	  };
-	  cleanup(fn.stop);
-	  return fn;
-	}
-
-	/**
-	 * For dynamic imports. For `lazy` components see `lazy` instead. Used
-	 * as `load(()=>import('file.js'))`. It retries a couple of times on
-	 * network error. Scrolls the document to the hash of the url, or
-	 * fallbacks defined on the `<Route>` components.
-	 *
-	 * @param {() => Promise<any>} component - Import statement
-	 * @param {{
-	 * 	onLoading?: any
-	 * 	onLoaded?: Function
-	 * 	onError?: ((e: Error, retry: Function) => any) | any
-	 * }} [options]
-	 * @returns {Component}
-	 * @url https://pota.quack.uy/load
-	 */
-	function load(component, options = nothing) {
-	  const {
-	    onLoading,
-	    onLoaded,
-	    onError
-	  } = options;
-	  let tries = 0;
-	  return lazy(component, {
-	    onLoading,
-	    onError: (e, retry) => tries++ < 10 ? useTimeout(retry, 5000).start() && undefined : isFunction(onError) ? onError(e, retry) : onError,
-	    onLoaded: () => {
-	      let context = Context();
-	      scroll(context);
-
-	      // user function
-	      onLoaded && onLoaded();
-	    }
-	  });
-	}
-
-	/**
 	 * Renders the first child that matches the given `when` condition, or
 	 * a fallback in case of no match
 	 *
@@ -3353,24 +3248,18 @@
 	 */
 	const Match = identity;
 
-	var defaultRegistryTemplate = /*#__PURE__*/Object.freeze({
-		__proto__: null,
-		A: A,
-		Collapse: Collapse,
-		CustomElement: CustomElement,
-		Dynamic: Dynamic,
-		For: For,
-		Head: Head,
-		Match: Match,
-		Portal: Portal,
-		Router: Router,
-		Show: Show,
-		Switch: Switch,
-		customElement: customElement,
-		load: load
-	});
-
-	const defaultRegistry = fromEntries(entries(defaultRegistryTemplate).map(([k, v]) => [k.toLowerCase(), v]));
+	const defaultRegistry = fromEntries(entries({
+	  RouterA: A,
+	  Collapse,
+	  Dynamic,
+	  For,
+	  Head,
+	  Match,
+	  Portal,
+	  Router,
+	  Show,
+	  Switch
+	}).map(([k, v]) => [k.toLowerCase(), v]));
 
 	// parseHTML
 
@@ -3387,7 +3276,7 @@
 	  const template = createElement('template');
 	  template.innerHTML = content.join(tag).replaceAll(`"${tag}"`, `"${id}"`)
 	  // avoid double br when self-closing
-	  .replace(/<br\s*\/\s*>/g, '<br>')
+	  .replace(/<(br|hr)\s*\/\s*>/g, '<$1>')
 	  // self-close
 	  .replace(/<([a-z-]+)([^/>]*)\/\s*>/gi, '<$1 $2></$1>');
 	  return template.content;
@@ -3435,8 +3324,6 @@
 	          }
 	          if (name[0] === '.') {
 	            props['prop:' + dashesToCamelCase(name.slice(1))] = value;
-	          } else if (name.startsWith('prop:')) {
-	            props['prop:' + dashesToCamelCase(name.slice(5))] = value;
 	          } else if (name[0] === '?') {
 	            props['bool:' + name.slice(1)] = value;
 	          } else if (name[0] === '@') {
@@ -3561,13 +3448,13 @@
     </button>
   </div>`;
 	const App = () => {
-	  const [data, setData] = signal([]);
+	  const [data, setData, updateData] = signal([]);
 	  const [selected, setSelected] = signal([]);
 	  const run = () => setData(buildData(1000));
 	  const runLots = () => {
 	    setData(buildData(10000));
 	  };
-	  const add = () => setData(d => [...d, ...buildData(1000)]);
+	  const add = () => updateData(d => [...d, ...buildData(1000)]);
 	  const update = () => batch(() => {
 	    for (let i = 0, d = data(), len = d.length; i < len; i += 10) d[i].setLabel(l => l + ' !!!');
 	  });
@@ -3581,7 +3468,7 @@
 	    }
 	  };
 	  const clear = () => setData([]);
-	  const remove = id => setData(d => {
+	  const remove = id => updateData(d => {
 	    const idx = d.findIndex(datum => datum.id === id);
 	    d.splice(idx, 1);
 	    return [...d];

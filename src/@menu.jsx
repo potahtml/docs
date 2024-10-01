@@ -8,7 +8,7 @@ export default function Menu() {
 			</a>
 			<ul>
 				<li>
-					<a href="/usage">Usage</a>
+					<a href="/Usage">Usage</a>
 				</li>
 
 				<li>
@@ -44,10 +44,10 @@ export default function Menu() {
 					<a href="/Reactivity/">Reactivity</a>
 				</li>
 				<li>
-					<a href="/Reactivity/Context">Context</a>
+					<a href="/Store">Store</a>
 				</li>
 				<li>
-					<a href="/Directory/">Directory</a>
+					<a href="/Context">Context</a>
 				</li>
 			</ul>
 
@@ -355,72 +355,7 @@ export default function Menu() {
 					</A>
 				</li>
 				<li>
-					<a href="/plugin/useSelector">useSelector</a>
-				</li>
-				<li>
-					<a href="/plugin/useTimeout">useTimeout</a>
-				</li>
-				<li>
-					<A
-						href="/plugin/:page"
-						params={{ page: 'useLocation' }}
-					>
-						useLocation
-					</A>
-				</li>
-				<li>
-					<h4>Props Plugins</h4>
-
-					<ul>
-						<li>
-							<A
-								href="/plugin/:page"
-								params={{ page: 'autofocus' }}
-							>
-								autofocus
-							</A>
-						</li>
-						<li>
-							<A
-								href="/plugin/:page"
-								params={{ page: 'bind' }}
-							>
-								bind
-							</A>
-						</li>
-						<li>
-							<A
-								href="/plugin/:page"
-								params={{ page: 'clickOutside' }}
-							>
-								clickOutside
-							</A>
-						</li>
-						<li>
-							<A
-								href="/plugin/:page"
-								params={{ page: 'pasteTextPlain' }}
-							>
-								pasteTextPlain
-							</A>
-						</li>
-						<li>
-							<A
-								href="/plugin/:page"
-								params={{ page: 'clipboard' }}
-							>
-								clipboard
-							</A>
-						</li>
-						<li>
-							<A
-								href="/plugin/:page"
-								params={{ page: 'fullscreen' }}
-							>
-								fullscreen
-							</A>
-						</li>
-					</ul>
+					<a href="/Directory">Directory</a>
 				</li>
 			</ul>
 		</>

@@ -6,9 +6,9 @@ export default function () {
 	return (
 		<>
 			<Header title="Reactivity">
-				Reactive Primitives are added out of necessity in a sensible
-				and abstracted API. Currently it uses a customized port to
-				Classes of the Solid Core Reactivity.
+				Reactive primitives are introduced as needed through a clean
+				and abstracted API. It currently leverages a customized
+				version of the SolidJS Core, refactored to classes.
 			</Header>
 
 			<Section title="Snippet">
@@ -34,17 +34,6 @@ export default function () {
 							withValue,
 							writable,
 						} from 'pota'
-					`}
-					render={false}
-				></Code>
-				<Code
-					code={`
-						import {
-							mutable,
-							signalify,
-							merge,
-							replace
-						} from 'pota/store'
 					`}
 					render={false}
 				></Code>
@@ -80,44 +69,6 @@ export default function () {
 								receives the previous value and return to set a new
 								value. When using <mark>update</mark> the signal
 								doesnt track.
-							</td>
-						</tr>
-						<tr>
-							<td>signalify</td>
-							<td>(object, [prop1, props2]?)</td>
-							<td>object</td>
-							<td>
-								it replaces already exsisting object properties with
-								setters/getters. It can be used in a class with
-								getters/setters. Aditionally you may pass an array of
-								prop names to choose what to signalify. NOTE: new
-								properties wont be tracked/mutable. This is NOT
-								recursive.
-							</td>
-						</tr>
-						<tr>
-							<td>mutable</td>
-							<td>object</td>
-							<td>object</td>
-							<td>
-								it replaces all object properties with
-								setters/getters. New properties are tracked/mutable.
-								This is done recursively.
-							</td>
-						</tr>
-						<tr>
-							<td>merge</td>
-							<td>(target, source, keys?)</td>
-							<td>target</td>
-							<td>Merge `source` into `target`</td>
-						</tr>
-						<tr>
-							<td>replace</td>
-							<td>(target, source, keys?)</td>
-							<td>target</td>
-							<td>
-								Merge `source` into `target` and removes from `target`
-								keys not present in `source`
 							</td>
 						</tr>
 						<tr>

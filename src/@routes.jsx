@@ -22,7 +22,26 @@ export default function Routes() {
 				<Home />
 			</Router>
 
+			{/* todo remove me*/}
 			<Router path="articles/">
+				<Router
+					children={load(() => import('./pages/@articles/index.jsx'))}
+				/>
+				<Router
+					path=":path$"
+					params={{
+						path: 'anatomy-of-a-signals-based-reactive-renderer',
+					}}
+					children={load(
+						() =>
+							import(
+								'./pages/@articles/anatomy/anatomy-of-a-signals-based-reactive-renderer.jsx'
+							),
+					)}
+				/>
+			</Router>
+
+			<Router path="Articles/">
 				<Router
 					children={load(() => import('./pages/@articles/index.jsx'))}
 				/>
@@ -151,16 +170,13 @@ export default function Routes() {
 				</Router>*/}
 			</Router>
 
-			<Router path="Directory/">
-				<NotFound />
+			<Router
+				path=":path$"
+				params={{ path: 'Directory' }}
+				children={load(() => import('./pages/@directory/index.jsx'))}
+			/>
 
-				<Router
-					children={load(
-						() => import('./pages/@directory/index.jsx'),
-					)}
-				/>
-			</Router>
-
+			{/* todo remove me*/}
 			<Router
 				path=":path$"
 				params={{ path: 'playground' }}
@@ -424,13 +440,7 @@ export default function Routes() {
 						() => import('./pages/@reactivity/map/index.jsx'),
 					)}
 				/>
-				<Router
-					path=":path$"
-					params={{ path: 'Context' }}
-					children={load(
-						() => import('./pages/@reactivity/context/index.jsx'),
-					)}
-				/>
+
 				<Router
 					path=":path$"
 					params={{ path: 'mutable-tests' }}
@@ -445,6 +455,17 @@ export default function Routes() {
 					}}
 				/>
 			</Router>
+
+			<Router
+				path=":path$"
+				params={{ path: 'Store' }}
+				children={load(() => import('./pages/store/index.jsx'))}
+			/>
+			<Router
+				path=":path$"
+				params={{ path: 'Context' }}
+				children={load(() => import('./pages/context/index.jsx'))}
+			/>
 
 			<Router
 				path=":path$"
@@ -493,12 +514,12 @@ export default function Routes() {
 			/>
 			<Router
 				path=":path$"
-				params={{ path: 'usage' }}
+				params={{ path: 'Usage' }}
 				children={load(() => import('./pages/usage/index.jsx'))}
 			/>
 			<Router
 				path=":path$"
-				params={{ path: 'test' }}
+				params={{ path: 'Test' }}
 				children={load(() => import('./pages/tests/index.jsx'))}
 			/>
 		</Router>
