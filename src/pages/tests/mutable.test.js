@@ -11,6 +11,8 @@
  * ^ https://discord.com/invite/solidjs
  */
 
+console.clear()
+
 // test stuff
 
 import { test, isProxy } from 'pota/plugin/useTest'
@@ -70,7 +72,7 @@ import {
   merge,
   replace,
 } from 'pota/store'
-import { identity } from 'pota/std'
+import { copy, identity } from 'pota/std'
 
 // bench stuff
 
@@ -6264,30 +6266,28 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
     expect(result()).toBe(10)
   })
 
-  test(
-    lib + 'array: vue array instrumentation: concat [oby]',
-    expect => {
-      batch(() => {
-        const a1 = mutable([1, { val: 2 }])
-        const a2 = mutable([{ val: 3 }])
-        const a3 = [4, 5]
+  test(lib + 'array: vue array instrumentation: concat', expect => {
+    batch(() => {
+      const a1 = mutable([1, { val: 2 }])
+      const a2 = mutable([{ val: 3 }])
+      const a3 = [4, 5]
 
-        let result = memo(() => a1.concat(a2, a3))
-        expect(result()).toEqual([1, { val: 2 }, { val: 3 }, 4, 5])
-        expect(isProxy(result()[1])).toBe(true)
-        expect(isProxy(result()[2])).toBe(true)
+      let result = memo(() => a1.concat(a2, a3))
+      expect(result()).toEqual([1, { val: 2 }, { val: 3 }, 4, 5])
+      expect(isProxy(result()[1])).toBe(true)
+      expect(isProxy(result()[2])).toBe(true)
 
-        a1.shift()
-        expect(result()).toEqual([{ val: 2 }, { val: 3 }, 4, 5])
+      a1.shift()
+      expect(result()).toEqual([{ val: 2 }, { val: 3 }, 4, 5])
 
-        a2.pop()
-        expect(result()).toEqual([{ val: 2 }, 4, 5])
+      a2.pop()
+      expect(result()).toEqual([{ val: 2 }, 4, 5])
 
-        a3.pop()
-        expect(result()).toEqual([{ val: 2 }, 4])
-      })
-    },
-  )
+      // a3 is not reactive, so this wont trigger a memo refresh
+      a3.pop()
+      expect(result()).toEqual([{ val: 2 }, 4, 5])
+    })
+  })
 
   test(lib + 'array: vue array instrumentation: entries', expect => {
     const shallow = mutable([0, 1])
@@ -8096,7 +8096,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
           const BRANDON = { id: 3, firstName: 'Brandon' }
           const ARYA = { id: 4, firstName: 'Arya' }
           const state = mutable(
-            structuredClone({
+            copy({
               users: [JOHN, NED, BRANDON],
             }),
           )
@@ -8140,7 +8140,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
             lastName: 'Start',
           }
           const state = mutable(
-            structuredClone({
+            copy({
               users: [{ ...JOHN }, { ...NED }, { ...BRANDON }],
             }),
           )
@@ -8178,7 +8178,6 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
           expect(user.firstName).toBe('Ned')
         },
       )
-
       test(
         lib + 'reconcile replace - nested top level key mismatch',
         expect => {
@@ -8206,7 +8205,6 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
           expect(store.value).toBe(undefined)
         },
       )
-
       test(
         lib + 'reconcile replace - overwrite an object with an array',
         expect => {

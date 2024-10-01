@@ -29,6 +29,11 @@ export default function () {
 					occurs recursively.
 				</p>
 				<Code url="/pages/store/mutable.jsx"></Code>
+				<Code url="/pages/store/mutable-copy.jsx">
+					<mark>mutable</mark> will mutate the object passed to it to
+					keep references and make identity methods work. To disable
+					mutating the original object you can pass <mark>true</mark>
+				</Code>
 			</Section>
 
 			<Section title="signalify">
