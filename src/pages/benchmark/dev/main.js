@@ -243,6 +243,23 @@
 	}
 
 	/**
+	 * Creates a WeakMap to store data
+	 *
+	 * @returns {[
+	 * 	DataStoreGet,
+	 * 	DataStoreSet,
+	 * 	DataStoreHas,
+	 * 	DataStoreDelete,
+	 * ] & {
+	 * 	get: DataStoreGet
+	 * 	set: DataStoreSet
+	 * 	has: DataStoreHas
+	 * 	delete: DataStoreDelete
+	 * }}
+	 */
+	const weakStore = () => new DataStore(WeakMap);
+
+	/**
 	 * Creates a Map to store data
 	 *
 	 * @returns {[
@@ -1216,6 +1233,15 @@
 	}
 
 	/**
+	 * It gives a handler an owner, so stuff runs batched on it, and
+	 * things like context and cleanup work
+	 */
+	const ownedEvent = withState((cache, handler) => cache.get(handler, handler => 'handleEvent' in handler ? {
+	  ...handler,
+	  handleEvent: owned(handler.handleEvent.bind(handler))
+	} : owned(handler)), weakStore);
+
+	/**
 	 * The purpose of this file is to guarantee the timing of some
 	 * callbacks. It queues a microtask, then the callbacks are added to a
 	 * position in the array. These are run with a priority.
@@ -1768,7 +1794,7 @@
 	  // onClick={handler}
 	  let event = eventName(name);
 	  if (event) {
-	    addEventListener(node, event, value);
+	    addEventListener(node, event, ownedEvent(value));
 	    return;
 	  }
 	  if (name.includes(':')) {
@@ -1785,7 +1811,7 @@
 	    // onClick:my-ns={handler}
 	    event = eventName(ns);
 	    if (event) {
-	      addEventListener(node, event, value);
+	      addEventListener(node, event, ownedEvent(value));
 	      return;
 	    }
 	    isCustomElement(node, props, isCE) ? _setProperty(node, name, value) : setUnknownProp(node, name, value, ns);
