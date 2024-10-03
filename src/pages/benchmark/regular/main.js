@@ -73,6 +73,9 @@
 	 * @returns {T} A copy of the function with the state
 	 */
 	const withState = /* #__NO_SIDE_EFFECTS__ */(fn, state = cacheStore) => fn.bind(null, state());
+
+	/** Memoize functions with a map cache */
+	const withCache = fn => withState((cache, thing) => cache.get(thing, thing => fn(thing)), cacheStore);
 	const walkElements = withState((walk, node, fn) => {
 	  walk.currentNode = node;
 
@@ -243,23 +246,6 @@
 	}
 
 	/**
-	 * Creates a WeakMap to store data
-	 *
-	 * @returns {[
-	 * 	DataStoreGet,
-	 * 	DataStoreSet,
-	 * 	DataStoreHas,
-	 * 	DataStoreDelete,
-	 * ] & {
-	 * 	get: DataStoreGet
-	 * 	set: DataStoreSet
-	 * 	has: DataStoreHas
-	 * 	delete: DataStoreDelete
-	 * }}
-	 */
-	const weakStore = () => new DataStore(WeakMap);
-
-	/**
 	 * Creates a Map to store data
 	 *
 	 * @returns {[
@@ -307,7 +293,7 @@
 	 * @param {string} css
 	 * @returns {CSSStyleSheet}
 	 */
-	const sheet = withState((cache, css) => cache.get(css, css => {
+	const sheet = withCache(css => {
 	  const sheet = new CSSStyleSheet();
 	  /**
 	   * Replace is asynchronous and can accept @import statements
@@ -315,7 +301,7 @@
 	   */
 	  sheet.replace(css);
 	  return sheet;
-	}));
+	});
 
 	// symbols
 
@@ -1233,15 +1219,6 @@
 	}
 
 	/**
-	 * It gives a handler an owner, so stuff runs batched on it, and
-	 * things like context and cleanup work
-	 */
-	const ownedEvent = withState((cache, handler) => cache.get(handler, handler => 'handleEvent' in handler ? {
-	  ...handler,
-	  handleEvent: owned(handler.handleEvent.bind(handler))
-	} : owned(handler)), weakStore);
-
-	/**
 	 * The purpose of this file is to guarantee the timing of some
 	 * callbacks. It queues a microtask, then the callbacks are added to a
 	 * position in the array. These are run with a priority.
@@ -1339,7 +1316,7 @@
 	 * @returns {string | undefined} Returns the event name or null in
 	 *   case isnt found
 	 */
-	const eventName = withState((state, name) => state.get(name, name => name.startsWith('on') && name.toLowerCase() in window ? name.slice(2).toLowerCase() : null));
+	const eventName = withCache(name => name.startsWith('on') && name.toLowerCase() in window ? name.slice(2).toLowerCase() : null);
 	/*
 	const eventNames = new Set(
 		keys(global).filter(prop => prop.startsWith('on')),
@@ -1794,7 +1771,7 @@
 	  // onClick={handler}
 	  let event = eventName(name);
 	  if (event) {
-	    addEventListener(node, event, ownedEvent(value));
+	    addEventListener(node, event, value);
 	    return;
 	  }
 	  if (name.includes(':')) {
@@ -1811,7 +1788,7 @@
 	    // onClick:my-ns={handler}
 	    event = eventName(ns);
 	    if (event) {
-	      addEventListener(node, event, ownedEvent(value));
+	      addEventListener(node, event, value);
 	      return;
 	    }
 	    isCustomElement(node, props, isCE) ? _setProperty(node, name, value) : setUnknownProp(node, name, value, ns);

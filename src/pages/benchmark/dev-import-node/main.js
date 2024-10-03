@@ -7,22 +7,16 @@
 	const document$1 = global.document;
 	const DocumentFragment = global.DocumentFragment;
 	const Object$1 = global.Object;
-	const Promise$1 = global.Promise;
 	const Symbol = global.Symbol;
 	const queueMicrotask = global.queueMicrotask;
 	const assign = Object$1.assign;
 	const entries = Object$1.entries;
 	const freeze = Object$1.freeze;
-	const fromEntries = Object$1.fromEntries;
 	const groupBy = Object$1.groupBy;
 	const isArray = Array.isArray;
 	const toArray = Array.from;
 	const iterator = Symbol.iterator;
 	const stringify = JSON.stringify;
-	const history = global.history;
-	const location$1 = global.location;
-	const origin$1 = location$1.origin;
-	const promise = fn => new Promise$1(fn);
 
 	/**
 	 * Given a promise it adds `onDone` to `then` and `catch`
@@ -34,8 +28,6 @@
 	 * ```
 	 */
 	const resolved = (promise, onDone) => promise.then(onDone).catch(onDone);
-	const setAttribute$1 = (node, name, value) => node.setAttribute(name, value);
-	const removeAttribute = (node, name) => node.removeAttribute(name);
 	const isConnected = node => node.isConnected;
 	const activeElement = () => document$1.activeElement;
 	const documentElement = document$1.documentElement;
@@ -52,8 +44,8 @@
 	const createElement = bind('createElement');
 	const createElementNS = bind('createElementNS');
 	const createTextNode = bind('createTextNode');
-	bind('importNode');
-	bind('createTreeWalker');
+	const importNode = bind('importNode');
+	const createTreeWalker = bind('createTreeWalker');
 
 	/**
 	 * Returns an object without a prototype
@@ -84,6 +76,21 @@
 
 	/** Memoize functions with a map cache */
 	const withCache = fn => withState((cache, thing) => cache.get(thing, thing => fn(thing)), cacheStore);
+	const walkElements = withState((walk, node, fn) => {
+	  walk.currentNode = node;
+
+	  /**
+	   * The first node is not walked by the walker.
+	   *
+	   * Also the first node could be a DocumentFragment
+	   */
+	  if (node.nodeType === 1) {
+	    if (fn(node)) return;
+	  }
+	  while (node = walk.nextNode()) {
+	    if (fn(node)) break;
+	  }
+	}, () => createTreeWalker(document$1, 1 /*NodeFilter.SHOW_ELEMENT*/));
 
 	/**
 	 * Returns `document` for element. That could be a `shadowRoot`
@@ -117,15 +124,6 @@
 	  while (typeof value === 'function') value = value();
 	  return value;
 	}
-
-	/**
-	 * Identity function, given `x` returns `x`
-	 *
-	 * @template T
-	 * @param {T} x
-	 * @returns {T}
-	 */
-	const identity = x => x;
 
 	/**
 	 * Returns `true` when `typeof` of `value` is `function`
@@ -182,19 +180,6 @@
 	 * @type object
 	 */
 	const nothing = freeze(empty());
-
-	// an optional value is `true` by default, so most of the time is undefined which means is `true`
-	// to avoid having conditions like `if(something.bla === undefined || something.bla)`
-	// this function will short it to `if(optional(something.bla))`
-	// additionally the value is resolved, for cases like `when={() => show() && optional(props.when)}`
-
-	/**
-	 * Returns `true` when value is true or undefined
-	 *
-	 * @param {Function | boolean | undefined} value
-	 * @returns {boolean} True when value is true or undefined
-	 */
-	const optional = value => value === undefined || getValue(value);
 	const querySelector = (node, query) => node.querySelector(query);
 
 	/**
@@ -209,12 +194,6 @@
 	  const index = array.indexOf(value);
 	  if (index !== -1) array.splice(index, 1);
 	  return array;
-	}
-	function walkParents(context, propertyName, cb) {
-	  while (context) {
-	    if (cb(context)) return true;
-	    context = context[propertyName];
-	  }
 	}
 
 	/**
@@ -309,44 +288,6 @@
 	const adoptedStyleSheetsRemove = (document, styleSheet) => removeFromArray(adoptedStyleSheetsGet(document), styleSheet);
 
 	/**
-	 * Adds a style sheet to the custom element
-	 *
-	 * @param {Document | ShadowRoot} document
-	 * @param {(CSSStyleSheet | string)[]} styleSheets
-	 */
-	function addStyleSheets(document, styleSheets = []) {
-	  for (const sheet of styleSheets) {
-	    if (sheet) {
-	      sheet instanceof CSSStyleSheet ? adoptedStyleSheetsAdd(document, sheet) : addStyleSheetExternal(document, sheet);
-	    }
-	  }
-	}
-
-	/**
-	 * Adds the stylesheet from urls. It uses a cache, to avoid having to
-	 * fire a request for each external sheet when used in more than one
-	 * custom element. Also, all reference the same object.
-	 *
-	 * @param {Document | ShadowRoot} document
-	 * @param {string} text
-	 */
-	const addStyleSheetExternal = withState((state, document, text) => {
-	  state.get(text, text => text.startsWith('http') ? fetch(text).then(r => r.text()).then(css => sheet(css)) : promise(resolve => resolve(sheet(text)))).then(styleSheet => adoptedStyleSheetsAdd(document, styleSheet));
-	});
-
-	/**
-	 * Creates tagged css and returns a CSSStyleSheet. Mostly for css
-	 * highlighting in js
-	 *
-	 * @param {TemplateStringsArray} template
-	 * @param {...any} values
-	 * @returns {CSSStyleSheet}
-	 */
-	const css = (template, ...values) => sheet(String.raw({
-	  raw: template
-	}, ...values));
-
-	/**
 	 * Creates a stylesheet from a css string
 	 *
 	 * @param {string} css
@@ -361,19 +302,6 @@
 	  sheet.replace(css);
 	  return sheet;
 	});
-
-	/**
-	 * @param {Element} node
-	 * @param {string} eventName
-	 * @param {any} [data]
-	 */
-
-	const emit = (node, eventName, data = {
-	  bubbles: true,
-	  cancelable: true,
-	  composed: true
-	}) => node.dispatchEvent(new CustomEvent(eventName, data));
-	const preventDefault = e => e.preventDefault();
 
 	// symbols
 
@@ -536,112 +464,6 @@
 	  }
 	}
 
-	// SIGNALS
-
-	class Memo extends Computation {
-	  state = STALE;
-	  pure = true;
-	  value;
-	  observers;
-	  observerSlots;
-
-	  // options:
-	  // equals
-
-	  constructor(owner, fn, options) {
-	    super(owner, fn, options);
-	    return markReactive(this.read.bind(this));
-	  }
-	  read() {
-	    // checkReadForbidden()
-
-	    if (this.state) {
-	      if (this.state === STALE) {
-	        this.update();
-	      } else {
-	        const updates = Updates;
-	        Updates = null;
-	        runUpdates(() => upstream(this));
-	        Updates = updates;
-	      }
-	    }
-	    if (Listener) {
-	      const sourceSlot = this.observers ? this.observers.length : 0;
-	      if (Listener.sources) {
-	        Listener.sources.push(this);
-	        Listener.sourceSlots.push(sourceSlot);
-	      } else {
-	        Listener.sources = [this];
-	        Listener.sourceSlots = [sourceSlot];
-	      }
-	      if (this.observers) {
-	        this.observers.push(Listener);
-	        this.observerSlots.push(Listener.sources.length - 1);
-	      } else {
-	        this.observers = [Listener];
-	        this.observerSlots = [Listener.sources.length - 1];
-	      }
-	    }
-	    return this.value;
-	  }
-	  write(value) {
-	    if (this.equals === false || !this.equals(this.value, value)) {
-	      this.value = value;
-	      if (this.observers && this.observers.length) {
-	        runUpdates(() => {
-	          for (let i = 0, observer; i < this.observers.length; i++) {
-	            observer = this.observers[i];
-	            if (observer.state === CLEAN) {
-	              if (observer.pure) {
-	                Updates.push(observer);
-	              } else {
-	                Effects.push(observer);
-	              }
-	              if (observer.observers) {
-	                downstream(observer);
-	              }
-	            }
-	            observer.state = STALE;
-	          }
-	        });
-	      }
-	    }
-	  }
-	  equals(a, b) {
-	    return a === b;
-	  }
-	  update() {
-	    this.dispose();
-	    let nextValue;
-	    const time = Time;
-	    const prevOwner = Owner;
-	    const prevListener = Listener;
-	    Listener = Owner = this;
-	    try {
-	      nextValue = this.fn();
-	    } catch (err) {
-	      this.state = STALE;
-	      if (this.owned) {
-	        this.owned.forEach(node => node.dispose());
-	        this.owned.length = 0;
-	      }
-	      this.updatedAt = time + 1;
-	      throw err;
-	    } finally {
-	      Owner = prevOwner;
-	      Listener = prevListener;
-	    }
-	    if (this.updatedAt <= time) {
-	      if (this.updatedAt !== 0) {
-	        this.write(nextValue);
-	      } else {
-	        this.value = nextValue;
-	      }
-	      this.updatedAt = time;
-	    }
-	  }
-	}
-
 	// SIGNAL
 
 	class Signal {
@@ -787,21 +609,6 @@
 	 */
 	function syncEffect(fn, options = undefined) {
 	  return new SyncEffect(Owner, fn, options);
-	}
-
-	/**
-	 * Creates a read-only signal from the return value of a function that
-	 * automatically updates
-	 *
-	 * @template T
-	 * @param {() => T} fn - Function to re-run when dependencies change
-	 * @param {SignalOptions} [options]
-	 * @returns {SignalAccessor<T>} - Read only signal
-	 */
-
-	/* #__NO_SIDE_EFFECTS__ */
-	function memo(fn, options = undefined) {
-	  return new Memo(Owner, fn, options);
 	}
 
 	/**
@@ -1002,7 +809,7 @@
 	 * @param {any} [defaultValue] - Default value for the context
 	 * @returns {typeof Context} Context
 	 */
-	function Context$1(defaultValue = undefined) {
+	function Context(defaultValue = undefined) {
 	  const id = Symbol();
 	  return useContext.bind(null, id, defaultValue);
 	}
@@ -1281,39 +1088,6 @@
 	}
 
 	/**
-	 * Resolves and returns `children` in a memo
-	 *
-	 * @param {Function | Children} fn
-	 * @returns {Function} Memo
-	 * @url https://pota.quack.uy/resolve
-	 */
-	function resolve(fn) {
-	  const children = isFunction(fn) ? memo(fn) : () => fn;
-	  return memo(() => unwrap(children()));
-	}
-
-	/**
-	 * Recursively unwrap children functions
-	 *
-	 * @param {Children} children
-	 * @returns {Children}
-	 */
-	function unwrap(children) {
-	  if (isFunction(children)) {
-	    return unwrap(children());
-	  }
-	  if (isArray(children)) {
-	    const childrens = [];
-	    for (let child of children) {
-	      child = unwrap(child);
-	      isArray(child) ? childrens.push(...child) : childrens.push(child);
-	    }
-	    return childrens;
-	  }
-	  return children;
-	}
-
-	/**
 	 * Returns true if the `value` is a `Component`
 	 *
 	 * @param {any} value
@@ -1407,7 +1181,7 @@
 	 *   listener
 	 * @url https://pota.quack.uy/props/EventListener
 	 */
-	function addEventListener$1(node, type, handler) {
+	function addEventListener(node, type, handler) {
 	  node.addEventListener(type, handler, !isFunction(handler) && handler);
 
 	  /**
@@ -1441,7 +1215,7 @@
 	 */
 	function removeEventListener(node, type, handler) {
 	  node.removeEventListener(type, handler, !isFunction(handler) && handler);
-	  return () => addEventListener$1(node, type, handler);
+	  return () => addEventListener(node, type, handler);
 	}
 
 	/**
@@ -1526,13 +1300,6 @@
 	const ready = fn => add(4, fn);
 
 	/**
-	 * Queue a function to run after all user defined processes
-	 *
-	 * @param {Function} fn
-	 */
-	const onDone = fn => add(5, fn);
-
-	/**
 	 * @param {Element} node
 	 * @param {string} name
 	 * @param {EventListenerOrEventListenerObject} value
@@ -1540,7 +1307,7 @@
 	 * @param {string} localName
 	 * @param {string} ns
 	 */
-	const setEventNS = (node, name, value, props, localName, ns) => addEventListener$1(node, localName, value);
+	const setEventNS = (node, name, value, props, localName, ns) => addEventListener(node, localName, value);
 
 	/**
 	 * Returns an event name when the string could be mapped to an event
@@ -2004,7 +1771,7 @@
 	  // onClick={handler}
 	  let event = eventName(name);
 	  if (event) {
-	    addEventListener$1(node, event, value);
+	    addEventListener(node, event, value);
 	    return;
 	  }
 	  if (name.includes(':')) {
@@ -2021,7 +1788,7 @@
 	    // onClick:my-ns={handler}
 	    event = eventName(ns);
 	    if (event) {
-	      addEventListener$1(node, event, value);
+	      addEventListener(node, event, value);
 	      return;
 	    }
 	    isCustomElement(node, props, isCE) ? _setProperty(node, name, value) : setUnknownProp(node, name, value, ns);
@@ -2041,45 +1808,6 @@
 	// STATE
 
 	const useXMLNS = context();
-
-	// COMPONENTS
-
-	/**
-	 * Used by the regular JSX transform, as `<>...</>` or
-	 * `<Fragment>...</Fragment>`.
-	 */
-	const Fragment = props => props.children;
-
-	/**
-	 * Creates components for things. When props argument is given, the
-	 * props become fixed. When props argument is ommited, it allows you
-	 * to keep calling the returned function with new props. Returns a
-	 * function because we need to render from parent to children instead
-	 * of from children to parent. This allows to properly set the
-	 * reactivity tree (think of nested effects that clear inner effects,
-	 * context, etc).
-	 *
-	 * @param {string | Function | Element | object | symbol} value -
-	 *   Component
-	 * @param {any} [props] Object
-	 * @url https://pota.quack.uy/Component
-	 */
-
-	function Component(value, props) {
-	  if (value === Fragment) {
-	    return props.children;
-	  }
-
-	  /** Freeze props so isnt directly writable */
-	  freeze(props);
-
-	  /** Create a callable function to pass `props` */
-	  const component = Factory(value);
-	  return props === undefined ? component : markComponent(propsOverride => component(propsOverride ? freeze({
-	    ...props,
-	    ...propsOverride
-	  }) : props));
-	}
 
 	/**
 	 * Creates a component that could be called with a props object
@@ -2130,6 +1858,14 @@
 	      }
 	  }
 	}
+	function createComponent(value) {
+	  const component = Factory(value);
+	  return props => {
+	    /** Freeze props so isnt directly writable */
+	    freeze(props);
+	    return markComponent(() => component(props));
+	  };
+	}
 	function createClass(value, props) {
 	  const i = new value();
 	  i.ready && ready(() => i.ready());
@@ -2171,6 +1907,52 @@
 	    return useXMLNS(NS.html, () => fn(nsContext));
 	  }
 	  return fn(nsContext);
+	}
+
+	// PARTIALS
+
+	function cloneNode(content, xmlns) {
+	  const template = xmlns ? createElementNS(xmlns, 'template') : createElement('template');
+	  template.innerHTML = content;
+
+	  // xml
+	  if (!template.content) {
+	    if (template.childNodes.length === 1) {
+	      return template.firstChild;
+	    }
+	    template.content = new DocumentFragment();
+	    template.content.append(...template.childNodes);
+	  }
+	  return template.content.childNodes.length === 1 ? template.content.firstChild : template.content;
+	}
+	function createPartial(content, propsAt = nothing, elementData = nothing) {
+	  let clone = () => {
+	    const node = withXMLNS(elementData.x, xmlns => cloneNode(content, xmlns));
+	    clone = importNode.bind(null, node, true);
+	    return clone();
+	  };
+	  return props => {
+	    /** Freeze props so isnt directly writable */
+	    freeze(props);
+	    return markComponent(() => assignPartialProps(clone(), props, propsAt, elementData));
+	  };
+	}
+	function assignPartialProps(node, props, propsAt, elementData) {
+	  if (props) {
+	    const nodes = [];
+	    walkElements(node, node => {
+	      nodes.push(node);
+	      if (nodes.length === elementData.m) return true;
+	    });
+	    withXMLNS(elementData.x, xmlns => {
+	      for (let i = 0; i < props.length; i++) {
+	        assignProps(nodes[propsAt[i] || i], props[i],
+	        // only the container may be a custom element
+	        i === 0 ? elementData.c : 0);
+	      }
+	    });
+	  }
+	  return node instanceof DocumentFragment ? toArray(node.childNodes) : node;
 	}
 
 	/**
@@ -2483,7 +2265,7 @@
 	/* #__NO_SIDE_EFFECTS__ */
 	function context(defaultValue = undefined) {
 	  /** @type {Function & { Provider: ({ value }) => Children }} */
-	  const ctx = Context$1(defaultValue);
+	  const ctx = Context(defaultValue);
 
 	  /**
 	   * Sets the `value` for the context
@@ -2513,835 +2295,6 @@
 	  }
 	  return next;
 	}
-
-	const dashesToCamelCase = s => s.replace(/-([a-z0-9])/g, g => g[1].toUpperCase());
-
-	/**
-	 * Defines a custom Element (if isnt defined already)
-	 *
-	 * @param {string} name - Name for the custom element
-	 * @param {CustomElementConstructor} constructor - Class for the
-	 *   custom element
-	 * @param {ElementDefinitionOptions} [options] - Options passed to
-	 *   `customElements.define`
-	 */
-	function customElement(name, constructor, options) {
-	  if (customElements.get(name) === undefined) {
-	    customElements.define(name, constructor, options);
-	  }
-	}
-	class CustomElement extends HTMLElement {
-	  constructor() {
-	    super();
-	    const shadowRoot = this.attachShadow({
-	      mode: 'open'
-	    });
-
-	    // this is needed because `baseStyleSheets/styleSheets` are `static`
-	    const constructor = this.constructor;
-	    addStyleSheets(shadowRoot, constructor.baseStyleSheets);
-	    addStyleSheets(shadowRoot, constructor.styleSheets);
-	  }
-
-	  /* DOM API */
-
-	  /**
-	   * Shortcut for querySelector
-	   *
-	   * @param {string} query
-	   */
-	  query(query) {
-	    return querySelector(this, query);
-	  }
-	  /**
-	   * Shortcut for this.shadowRoot.innerHTML
-	   *
-	   * @param {string} value
-	   */
-	  set html(value) {
-	    if (isString(value)) {
-	      this.shadowRoot.innerHTML = value;
-	    } else {
-	      this.shadowRoot.replaceChildren(toHTMLFragment(Component(value || 'slot')));
-	    }
-	  }
-
-	  /**
-	   * Toggles attribute `hidden`
-	   *
-	   * @param {boolean} value
-	   */
-	  set hidden(value) {
-	    withValue(value, value => {
-	      value ? setAttribute$1(this, 'hidden', '') : removeAttribute(this, 'hidden');
-	    });
-	  }
-
-	  /* EVENTS API */
-
-	  /**
-	   * Emits an event
-	   *
-	   * @param {string} eventName
-	   * @param {any} [data]
-	   */
-	  emit(eventName, data) {
-	    emit(this, eventName, data);
-	  }
-
-	  /* SLOTS API */
-
-	  hasSlot(name) {
-	    return this.query(`:scope [slot="${name}"]`);
-	  }
-	}
-
-	/**
-	 * Similar to `Show`, but doesn't remove its children from the
-	 * document
-	 *
-	 * @template T
-	 * @param {{
-	 * 	when: When<T>
-	 * 	children?: Children
-	 * }} props
-	 * @returns {Children}
-	 * @url https://pota.quack.uy/Components/Collapse
-	 */
-	function Collapse(props) {
-	  // need to include the class here because else its not treeshaked
-	  class CollapseElement extends CustomElement {
-	    static styleSheets = [css`
-				:host {
-					display: contents;
-				}
-			`];
-
-	    /**
-	     * @template T
-	     * @param {When<T>} value - To toggle children
-	     */
-	    set when(value) {
-	      withValue(value, value => this.html = value ? '<slot/>' : '');
-	    }
-	  }
-	  const name = 'pota-collapse';
-	  customElement(name, CollapseElement);
-	  return Component(name, {
-	    when: props.when,
-	    children: props.children
-	  });
-	}
-
-	/**
-	 * Creates components dynamically
-	 *
-	 * @template props
-	 * @param {{
-	 * 	component: Component
-	 * } & props} props
-	 * @returns {Component}
-	 * @url https://pota.quack.uy/Components/Dynamic
-	 */
-
-	const Dynamic = props =>
-	// `component` needs to be deleted else it will end in the tag as an attribute
-	Component(props.component, {
-	  ...props,
-	  component: undefined
-	});
-
-	/**
-	 * Renders reactive values from an signal that returns an Iterable
-	 * object
-	 *
-	 * @template T
-	 * @param {object} props
-	 * @param {Each<T>} props.each
-	 * @param {boolean} [props.restoreFocus] - If the focused element
-	 *   moves it may lose focus
-	 * @param {Children} [props.children]
-	 * @returns {Children}
-	 * @url https://pota.quack.uy/Components/For
-	 */
-
-	const For = props => map(() => {
-	  props.restoreFocus && queue();
-	  return props.each;
-	}, makeCallback(props.children), true);
-	let queued;
-
-	// because re-ordering the elements trashes focus
-	function queue() {
-	  if (!queued) {
-	    queued = true;
-	    const active = activeElement();
-	    const scroll = documentElement.scrollTop;
-	    onFixes(() => {
-	      queued = false;
-	      // re-ordering the elements trashes focus
-	      active && active !== activeElement() && isConnected(active) && active.focus();
-	      documentElement.scrollTop = scroll;
-	    });
-	  }
-	}
-
-	/**
-	 * Portals children to a different element while keeping the original
-	 * scope
-	 *
-	 * @param {object} props
-	 * @param {Element} props.mount
-	 * @param {Children} [props.children]
-	 * @url https://pota.quack.uy/Components/Portal
-	 */
-	function Portal(props) {
-	  insert(props.children, props.mount);
-	}
-
-	/**
-	 * Mounts children on `document.head`
-	 *
-	 * @param {{
-	 * 	children?: Children
-	 * }} props
-	 * @returns {Children}
-	 * @url https://pota.quack.uy/Components/Head
-	 */
-	const Head = props => Component(Portal, {
-	  mount: document$1.head,
-	  children: props.children
-	});
-
-	/**
-	 * Scrolls to an element
-	 *
-	 * @param {Element} item - Element to scroll to
-	 */
-	function scrollToElement(item) {
-	  /** Scroll children of element to the top */
-	  item.scrollTop = 0;
-
-	  /** Scroll to element */
-	  item.scrollIntoView(true);
-	}
-
-	/** Scrolls to `window.location.hash` */
-	const scrollToLocationHash = () => scrollToSelector(location$1.hash);
-
-	/**
-	 * Scrolls to element that matches the hash
-	 *
-	 * @param {string} selector - Hash to scroll to
-	 * @returns {boolean} True on success
-	 */
-	function scrollToSelector(selector) {
-	  if (selector) {
-	    try {
-	      // selector could be invalid
-	      const item = querySelector(document$1, selector);
-	      if (item) {
-	        scrollToElement(item);
-	        return true;
-	      }
-	    } catch (e) {}
-	  }
-	  return false;
-	}
-
-	/**
-	 * Scrolls to hash and in case isnt found it scrolls to the top
-	 *
-	 * @param {string} selector - Hash to scroll to
-	 */
-	function scrollToSelectorWithFallback(selector) {
-	  if (!scrollToSelector(selector)) scrollToTop();
-	}
-
-	/** Scrolls to the top of the window */
-	const scrollToTop = () => window.scrollTo({
-	  top: 0,
-	  behavior: 'auto'
-	});
-
-	const encodeURIComponent = global.encodeURIComponent;
-
-	/**
-	 * Safe guard. `decodeURIComponent` will fail with malformed strings:
-	 * links are copied, pasted, manipulated by people, software etc
-	 *
-	 * @param {string} string - String to decode
-	 * @returns {string} Returns decoded string or original string on
-	 *   error
-	 */
-	function _decodeURIComponent(string) {
-	  try {
-	    return decodeURIComponent(string);
-	  } catch (e) {
-	    return string;
-	  }
-	}
-
-	/**
-	 * Returns true if the link is absolute: starts with '/', '#' or
-	 * 'http'
-	 *
-	 * @param {string} href - Url
-	 * @returns {boolean} Returns true if the link is absolute
-	 */
-	const isAbsolute = href => href[0] === '/' || href[0] === '#' || /^http/.test(href);
-
-	/**
-	 * Returns true if the link is external. It does so by checking that
-	 * window.location.origin is present at the beginning of the url
-	 *
-	 * @param {string} url - Url
-	 * @returns {boolean} Returns true if the link is external
-	 */
-	const isExternal = url =>
-	// origin could be http://example.net and link could be http://example.net.ha.com, so add "/"
-	/^http/.test(url) && !(url + '/').startsWith(origin + '/');
-
-	/**
-	 * Returns true if the link is relative
-	 *
-	 * @param {string} url - Url
-	 * @returns {boolean} Returns true if the link relative
-	 */
-	const isRelative = url => !isAbsolute(url);
-
-	/**
-	 * Replace params in an url for the encoded equivalent
-	 *
-	 * @param {string | undefined} url - Url
-	 * @param {object} [params] - Key-value pair to replace
-	 * @returns {string} Url with the params replaced
-	 */
-	const replaceParams = (url, params) => params ? url.replace(/\:([a-z0-9_\-]+)/gi, (a, b) =>
-	// only replace the ones defined on params
-	params[b] !== undefined ? encodeURIComponent(params[b]) : a) : url;
-
-	/* #__NO_SIDE_EFFECTS__ */
-	function create(props = nothing) {
-	  const [children, setChildren, updateChildren] = signal([]);
-	  return {
-	    base: '',
-	    // the composed base route
-	    href: () => '',
-	    // the url of the route
-	    parent: undefined,
-	    // parent context
-	    show: () => false,
-	    // if the route is shown
-	    params: () => () => nothing,
-	    // params of the route
-	    scroll: [],
-	    // elements to scroll
-	    // the children routes
-	    addChildren: child => {
-	      updateChildren(children => {
-	        children.push(child);
-	        return [...children];
-	      });
-	    },
-	    removeChildren: child => {
-	      updateChildren(children => {
-	        removeFromArray(children, child);
-	        return [...children];
-	      });
-	    },
-	    noneMatch: memo(() => {
-	      return (
-	        /**
-	         * If doesnt have siblings then is not a 404
-	         *
-	         * @example
-	         * 	<Route>
-	         * 	<Component/> <Router.Default/> <-- Router.Default should never render
-	         * 	</Route>
-	         */
-	        children().length &&
-	        // when it has sibling, check if at least 1 rendered
-	        children().every(children => !children.show())
-	      );
-	    }),
-	    // override
-	    ...props
-	  };
-	}
-	const Context = context(create());
-
-	// window.location signal
-
-	const [getLocation, setLocation] = signal(location$1, {
-	  equals: false
-	});
-
-	// only trigger on what changed
-
-	const pathname = memo(() => getLocation().pathname);
-	const search = memo(() => getLocation().search);
-	const href = memo(() => getLocation().href);
-
-	// http://location/# reports hash to be empty
-	// http://location/ reports hash to be empty
-	// handle this difference by checking if "#" is at the end of `href`
-	const hash = memo(() => href().endsWith('#') ? '#' : getLocation().hash);
-
-	/**
-	 * @typedef {object} location
-	 * @property {Signal} href - The full url
-	 * @property {Signal} pathname - Mirror of window.location.pathname
-	 * @property {Signal} hash - Everything after #
-	 * @property {Signal} path - Pathname + hash
-	 * @property {Signal} query - Key value pairs with search params
-	 * @property {Function} params - Key value pairs with route params
-	 */
-
-	/** @type location */
-	const location = {
-	  href,
-	  pathname,
-	  hash,
-	  path: memo(() => pathname() + hash()),
-	  query: memo(() => {
-	    const value = search();
-	    const searchParams = empty();
-	    const params = new URL(origin$1 + '/' + value).searchParams;
-	    for (const [key, value] of params.entries()) {
-	      searchParams[key] = value;
-	    }
-	    return searchParams;
-	  }),
-	  params: () => {
-	    const routes = [];
-	    walkParents(Context(), 'parent', context => {
-	      routes.push(context.params);
-	    });
-	    const params = empty();
-	    for (const param of routes) {
-	      // `|| params` because when nothing is found the result is undefined
-	      for (const [key, value] of entries(param()() || nothing)) {
-	        params[key] = value !== undefined ? _decodeURIComponent(value) : value;
-	      }
-	    }
-	    return params;
-	  }
-	};
-	let BeforeLeave = [];
-
-	/**
-	 * Returns a boolean telling if navigation is allowed
-	 *
-	 * @param {string} href
-	 * @returns {Promise<boolean>}
-	 */
-	async function canNavigate(href) {
-	  const newBeforeLeave = [];
-	  for (const beforeLeave of BeforeLeave) {
-	    if (href.indexOf(beforeLeave.href) !== 0) {
-	      if (!(await beforeLeave.callback().catch(() => false))) return false;
-	    } else {
-	      newBeforeLeave.push(beforeLeave);
-	    }
-	  }
-	  BeforeLeave = newBeforeLeave;
-	  return true;
-	}
-
-	/**
-	 * Navigates to a new location
-	 *
-	 * @param {string} href
-	 * @param {{ scroll?: boolean; replace?: boolean }} options
-	 * @url https://pota.quack.uy/Components/Router/Navigate
-	 */
-	async function navigate(href, options = nothing) {
-	  if (location$1.href !== href) {
-	    if (await canNavigate(href)) {
-	      const fn = () => navigateInternal(href, options);
-	      // navigate with transition if available
-	      document$1.startViewTransition && location$1.href.replace(/#.*/, '') !== href.replace(/#.*/, '') ? document$1.startViewTransition(fn) : fn();
-	    }
-	  }
-	}
-	function navigateInternal(href, options) {
-	  if (options.replace) {
-	    history.replaceState(null, '', href);
-	  } else {
-	    history.pushState(null, '', href);
-	  }
-	  setLocation(location$1);
-	  if (optional(options.scroll)) {
-	    scrollToSelectorWithFallback(location$1.hash);
-	  }
-	}
-
-	// listeners
-
-	let addListenersAdded = false;
-	function addListeners() {
-	  if (!addListenersAdded) {
-	    addListenersAdded = true;
-	    document$1.addEventListener('click', onLinkClick);
-	    addEventListener('hashchange', onLocationChange);
-	    addEventListener('popstate', onLocationChange);
-	  }
-	}
-
-	// listen when using browser buttons
-	// safe to use async as its on a listener
-	async function onLocationChange() {
-	  // chrome has a bug on which if you use the back/forward button
-	  // it will change the title of the tab to whatever it was before
-	  // if the navigation is prevented (therefore the title/page wont change)
-	  // it will still use the old title even if the title tag didn't change at all
-	  const title = document$1.title;
-	  document$1.title = title + ' ';
-	  document$1.title = title;
-	  if (await canNavigate(location$1.href)) {
-	    setLocation(location$1);
-	  } else {
-	    history.pushState(null, '', location.href());
-	  }
-	}
-	function onLinkClick(e) {
-	  if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.altKey || e.ctrlKey || e.shiftKey) return;
-
-	  // find link
-	  const node = e.composedPath().find(item => item instanceof HTMLAnchorElement);
-
-	  // validate
-	  if (!node || !node.href || node.download || node.target || !node.href.startsWith('http') ||
-	  // when using other protocol than "http"
-	  isExternal(node.href) || node.rel && node.rel.split(/\s/).includes('external')) return;
-	  preventDefault(e);
-	  navigate(node.href, {
-	    replace: node.replace
-	  });
-	}
-
-	/**
-	 * Renders its children based on a condition
-	 *
-	 * @template T
-	 * @param {object} props
-	 * @param {When<T>} props.when
-	 * @param {Children} [props.fallback]
-	 * @param {Children} [props.children]
-	 * @returns {Children}
-	 * @url https://pota.quack.uy/Components/Show
-	 */
-	function Show(props) {
-	  const callback = makeCallback(props.children);
-	  const value = memo(() => getValue(props.when));
-	  const condition = memo(() => !!value());
-
-	  // needs resolve to avoid re-rendering
-	  const fallback = isNullUndefined(props.fallback) ? undefined : memo(() => resolve(props.fallback));
-	  return memo(() => condition() ? callback(value) : fallback);
-	}
-
-	function scroll(context) {
-	  /**
-	   * Scroll to hash first, if doesnt, scroll to positions defined by
-	   * the Routes.
-	   */
-	  if (!scrollToLocationHash()) {
-	    if (!walkParents(context, 'parent', context => {
-	      if (context.scroll) {
-	        for (const item of context.scroll) {
-	          if (scrollToSelector(item)) {
-	            return true;
-	          }
-	        }
-	      }
-	    })) {
-	      scrollToTop();
-	    }
-	  }
-	}
-
-	/**
-	 * Renders children if the path matches the current location
-	 *
-	 * @template T
-	 * @param {object} props
-	 * @param {string} [props.path] - Path to match relative to the parent
-	 *   Route. When `path` is missing, it will render only when the
-	 *   parent's route path is matched exactly.
-	 * @param {string[]} [props.scroll] - Elements to scroll when the
-	 *   route matches
-	 * @param {object} [props.params] - Key-value pairs params to encode
-	 *   and replace on the path
-	 * @param {When<T>} [props.collapse] - To hide the route instead of
-	 *   removing it from the document
-	 * @param {When<T>} [props.when] - To stop rendering the route even if
-	 *   the path matches.
-	 * @param {Children} [props.fallback] - Fallback for when a `when`
-	 *   condition is set. If the `when` condition is not set, this wont
-	 *   be used.
-	 * @param {Children} [props.children]
-	 * @returns {Children}
-	 * @url https://pota.quack.uy/Components/Router/Router
-	 */
-	function Router(props) {
-	  addListeners();
-	  const parent = Context();
-	  const base = parent.base + replaceParams(
-	  // when <Router lacks a path prop is treated as the final route
-	  props.path === undefined ? '(|#.*)$' // ends with nothing or has a hash followed of stuff
-	  :
-	  // ends with nothing or has a hash followed of stuff
-	  props.path.replace('$', '(|#.*)$')
-	  // pathname always starts with /, make sure the hash is considered
-	  .replace(/^#/, '/#'), props.params);
-	  const route = new RegExp('^' + base.replace(/\:([a-z0-9_\-]+)/gi, '(?<$1>[^/#]+)'));
-	  let href = '';
-	  const [params, setParams] = signal(() => nothing);
-
-	  // derived
-	  const show = memo(() => {
-	    const path = location.path();
-	    if (route.test(path)) {
-	      setParams(() => route.exec(path).groups);
-	      if (href === '') {
-	        href = path.replace(path.replace(route, ''), '');
-	        // create full link
-	        href =
-	        // add origin
-	        origin$1 + (
-	        // add slash after origin if isnt present in the href
-	        href[0] !== '/' ? '/' : '') +
-	        // add the path
-	        href;
-	      }
-	      onDone(() => scroll(context));
-	      return true;
-	    } else {
-	      return false;
-	    }
-	  });
-	  const context = create({
-	    base,
-	    // the prefix for the children path
-	    href: () => href,
-	    // the full url of the route
-	    params,
-	    scroll: props.scroll,
-	    parent,
-	    show
-	  });
-	  parent.addChildren(context);
-	  cleanup(() => parent.removeChildren(context));
-	  return Component(Context.Provider, {
-	    value: context,
-	    children: Component(Dynamic, {
-	      component: props.collapse ? Collapse : Show,
-	      when: () => show() && optional(props.when),
-	      fallback: props.fallback,
-	      children: props.children
-	    })
-	  });
-	}
-
-	/**
-	 * Renders children when no sibling `Router` matches
-	 *
-	 * @param {object} props
-	 * @param {Children} [props.children]
-	 * @returns {Children}
-	 */
-	Router.Default = props => {
-	  const context = Context();
-	  return Component(Show, {
-	    when: context.noneMatch,
-	    children: props.children
-	  });
-	};
-
-	/*
-	 * // props
-	 * // props.href Url relative to the parent <Router/>
-	 * // props.params Key-value pair object params to replace in the url
-	 *   not scroll on location change
-	 * // props.replace Replace the history entry from the browser} props
-	 */
-
-	/**
-	 * Creates a link with Router features
-	 *
-	 * @param {{
-	 * 	href: string
-	 * 	params?: object
-	 * 	replace?: boolean
-	 * } & Props} props
-	 *
-	 * @returns {Children}
-	 * @url https://pota.quack.uy/Components/Router/A
-	 */
-
-	function A(props) {
-	  addListeners();
-	  let href = replaceParams(props.href, props.params);
-
-	  // make it absolute
-	  // link is relative to the <Route
-	  const base = Context().href();
-	  href = !isRelative(href[0]) || !base ? href : base.includes('/#') ?
-	  // making link dos/ relative to http://localhost:11433/#uno/
-	  // becomes http://localhost:11433/#uno/dos/
-	  base + href : new URL(href, base).href;
-	  return Component('a', {
-	    ...{
-	      ...props,
-	      href,
-	      params: undefined
-	    }
-	  });
-	}
-
-	/**
-	 * Renders the first child that matches the given `when` condition, or
-	 * a fallback in case of no match
-	 *
-	 * @param {object} props
-	 * @param {Children} [props.children]
-	 * @param {Children} [props.fallback]
-	 * @returns {Children}
-	 * @url https://pota.quack.uy/Components/Switch
-	 */
-	function Switch(props) {
-	  const matches = resolve(() => props.children);
-	  const fallback = isNullUndefined(props.fallback) ? memo(() => {
-	    const r = matches().find(match => !('when' in match));
-	    return r && r.children;
-	  }) : memo(() => resolve(props.fallback));
-	  const match = memo(() => matches().find(match => !!getValue(match.when)));
-	  const value = memo(() => match() && getValue(match().when));
-	  const callback = memo(() => match() && makeCallback(match().children));
-	  return memo(() => match() ? callback()(value) : fallback);
-	}
-
-	/**
-	 * Renders the content if the `when` condition is true
-	 *
-	 * @template T
-	 * @param {object} props
-	 * @param {When<T>} props.when
-	 * @param {Children} [props.children]
-	 * @returns {Children}
-	 */
-	const Match = identity;
-
-	const defaultRegistry = fromEntries(entries({
-	  RouterA: A,
-	  Collapse,
-	  Dynamic,
-	  For,
-	  Head,
-	  Match,
-	  Portal,
-	  Router,
-	  Show,
-	  Switch
-	}).map(([k, v]) => [k.toLowerCase(), v]));
-
-	// parseHTML
-
-	const id = 'pota';
-	const tag = `<pota></pota>`;
-
-	/**
-	 * Makes Nodes from TemplateStringsArray
-	 *
-	 * @param {TemplateStringsArray} content
-	 * @returns {Element}
-	 */
-	const parseHTML = withCache(content => {
-	  const template = createElement('template');
-	  template.innerHTML = content.join(tag).replaceAll(`"${tag}"`, `"${id}"`)
-	  // avoid double br when self-closing
-	  .replace(/<(br|hr)\s*\/\s*>/g, '<$1>')
-	  // self-close
-	  .replace(/<([a-z-]+)([^/>]*)\/\s*>/gi, '<$1 $2></$1>');
-	  return template.content;
-	});
-
-	/**
-	 * Function to create cached tagged template components
-	 *
-	 * @returns {Function & {
-	 * 	define: ({ components }) => void
-	 * 	components: {}
-	 * }}
-	 * @url https://pota.quack.uy/HTML
-	 */
-
-	function HTML() {
-	  /**
-	   * Creates tagged template components
-	   *
-	   * @param {TemplateStringsArray} template
-	   * @param {...any} values
-	   * @returns {Children}
-	   * @url https://pota.quack.uy/HTML
-	   */
-
-	  function html(template, ...values) {
-	    const cached = parseHTML(template);
-	    let index = 0;
-	    function nodes(node) {
-	      // Node.ELEMENT_NODE
-	      if (node.nodeType === 1) {
-	        const localName = node.localName;
-	        if (localName === id) {
-	          return values[index++];
-	        }
-
-	        // gather props
-	        const props = empty();
-	        for (let {
-	          name,
-	          value
-	        } of node.attributes) {
-	          if (value === id) {
-	            value = values[index++];
-	          }
-	          if (name[0] === '.') {
-	            props['prop:' + dashesToCamelCase(name.slice(1))] = value;
-	          } else if (name[0] === '?') {
-	            props['bool:' + name.slice(1)] = value;
-	          } else if (name[0] === '@') {
-	            props['on:' + name.slice(1)] = value;
-	          } else {
-	            props[name] = value;
-	          }
-	        }
-
-	        // gather children
-	        if (node.childNodes.length) {
-	          props.children = flat(toArray(node.childNodes).map(nodes));
-	        }
-	        return Component(html.components[localName] || localName, props);
-	      } else {
-	        return node.cloneNode();
-	      }
-	    }
-	    return flat(toArray(cached.childNodes).map(nodes));
-	  }
-	  html.components = {
-	    ...defaultRegistry
-	  };
-	  html.define = userComponents => {
-	    let name;
-	    for (name in userComponents) {
-	      html.components[name.toLowerCase()] = userComponents[name];
-	    }
-	  };
-	  return html;
-	}
-	const html = HTML();
 
 	/**
 	 * Returns a `isSelected` function that will return `true` when the
@@ -3400,154 +2353,191 @@
 	  };
 	}
 
-	let idCounter = 1;
-	const adjectives = ['pretty', 'large', 'big', 'small', 'tall', 'short', 'long', 'handsome', 'plain', 'quaint', 'clean', 'elegant', 'easy', 'angry', 'crazy', 'helpful', 'mushy', 'odd', 'unsightly', 'adorable', 'important', 'inexpensive', 'cheap', 'expensive', 'fancy'],
-	  colours = ['red', 'yellow', 'blue', 'green', 'pink', 'brown', 'purple', 'brown', 'white', 'black', 'orange'],
-	  nouns = ['table', 'chair', 'house', 'bbq', 'desk', 'car', 'pony', 'cookie', 'sandwich', 'burger', 'pizza', 'mouse', 'keyboard'];
-	function _random(max) {
-	  return Math.round(Math.random() * 1000) % max;
+	function timing(fn) {
+	  const start = performance.now();
+	  fn();
+	  return performance.now() - start;
 	}
+
+	/**
+	 * Renders reactive values from an signal that returns an Iterable
+	 * object
+	 *
+	 * @template T
+	 * @param {object} props
+	 * @param {Each<T>} props.each
+	 * @param {boolean} [props.restoreFocus] - If the focused element
+	 *   moves it may lose focus
+	 * @param {Children} [props.children]
+	 * @returns {Children}
+	 * @url https://pota.quack.uy/Components/For
+	 */
+
+	const For = props => map(() => {
+	  props.restoreFocus && queue();
+	  return props.each;
+	}, makeCallback(props.children), true);
+	let queued;
+
+	// because re-ordering the elements trashes focus
+	function queue() {
+	  if (!queued) {
+	    queued = true;
+	    const active = activeElement();
+	    const scroll = documentElement.scrollTop;
+	    onFixes(() => {
+	      queued = false;
+	      // re-ordering the elements trashes focus
+	      active && active !== activeElement() && isConnected(active) && active.focus();
+	      documentElement.scrollTop = scroll;
+	    });
+	  }
+	}
+
+	var _div = createPartial("<div class='col-sm-6 smallpad'><button class='btn btn-primary btn-block' type=button></button></div>", {"0":1}, {"m":2}),
+	  _div2 = createPartial("<div class=container><div class=jumbotron><div class=row><div class=col-md-6><h1>pota Keyed</h1></div><div class=col-md-6><div class=row></div></div></div></div><table class='table table-hover table-striped test-data'><tbody></tbody></table><span class='preloadicon glyphicon glyphicon-remove' aria-hidden=true></span></div>", {"0":6,"1":7,"2":8}, {"m":9}),
+	  _tr = createPartial("<tr><td class=col-md-1></td><td class=col-md-4><a></a></td><td class=col-md-1><a><span class='glyphicon glyphicon-remove' aria-hidden=true></span></a></td><td class=col-md-6></td></tr>", {"2":3,"3":6}, {"m":7});
+	const _For = createComponent(For);
+	let idCounter = 1;
 	function buildData(count) {
 	  let data = new Array(count);
 	  for (let i = 0; i < count; i++) {
-	    const [label, setLabel] = signal(`${adjectives[_random(adjectives.length)]} ${colours[_random(colours.length)]} ${nouns[_random(nouns.length)]}`);
+	    const [label, setLabel, updateLabel] = signal(`elegant green keyboard ${idCounter++}`
+	    /*  `${adjectives[_random(adjectives.length)]} ${
+	      colours[_random(colours.length)]
+	    } ${nouns[_random(nouns.length)]} ${idCounter++}`,*/);
 	    data[i] = {
-	      id: idCounter++,
+	      id: idCounter,
 	      label,
-	      setLabel
+	      updateLabel
 	    };
 	  }
 	  return data;
 	}
-	const bbutton = ({
+	const Button = ({
 	  id,
 	  text,
 	  fn
-	}) => html`<div class="col-sm-6 smallpad">
-    <button
-      id="${id}"
-      class="btn btn-primary btn-block"
-      type="button"
-      onClick="${fn}"
-    >
-      ${text}
-    </button>
-  </div>`;
+	}) => _div([{
+	  id: id,
+	  onClick: fn,
+	  children: text
+	}]);
+	const _Button = createComponent(Button);
 	const App = () => {
-	  const [data, setData, updateData] = signal([]);
-	  const [selected, setSelected] = signal([]);
-	  const run = () => setData(buildData(1000));
-	  const runLots = () => {
-	    setData(buildData(10000));
-	  };
-	  const add = () => updateData(d => [...d, ...buildData(1000)]);
-	  const update = () => batch(() => {
-	    for (let i = 0, d = data(), len = d.length; i < len; i += 10) d[i].setLabel(l => l + ' !!!');
-	  });
-	  const swapRows = () => {
-	    const d = data().slice();
-	    if (d.length > 998) {
-	      let tmp = d[1];
-	      d[1] = d[998];
-	      d[998] = tmp;
-	      setData(d);
+	  const [data, setData, updateData] = signal([]),
+	    [selected, setSelected] = signal(null),
+	    run = () => setData(buildData(10)),
+	    runLots = () => {
+	      setData(buildData(10000));
+	    },
+	    bench = () => {
+	      //  console.clear()
+	      // warm
+	      for (let k = 0; k < 5; k++) {
+	        setData(buildData(10000));
+	        setData([]);
+	      }
+	      let createLarge = 0;
+	      let clearLarge = 0;
+	      let createSmall = 0;
+	      let clearSmall = 0;
+	      for (let k = 0; k < 10; k++) {
+	        createLarge += timing(() => setData(buildData(10000)));
+	        clearLarge += timing(() => setData([]));
+	        console.log(k + ' createLarge', createLarge / (k + 1), k + ' clearLarge', clearLarge / (k + 1));
+	      }
+	      console.log('------------');
+	      for (let k = 0; k < 10; k++) {
+	        createSmall += timing(() => setData(buildData(1000)));
+	        clearSmall += timing(() => setData([]));
+	        console.log(k + ' createSmall', createSmall / (k + 1), k + ' clearSmall', clearSmall / (k + 1));
+	      }
+	    },
+	    add = () => updateData(d => [...d, ...buildData(1000)]),
+	    update = () => batch(() => {
+	      for (let i = 0, d = data(), len = d.length; i < len; i += 10) d[i].updateLabel(l => l + ' !!!');
+	    }),
+	    swapRows = () => {
+	      const d = data().slice();
+	      if (d.length > 998) {
+	        let tmp = d[1];
+	        d[1] = d[998];
+	        d[998] = tmp;
+	        setData(d);
+	      }
+	    },
+	    clear = () => setData([]),
+	    remove = id => updateData(d => {
+	      const idx = d.findIndex(datum => datum.id === id);
+	      d.splice(idx, 1);
+	      return [...d];
+	    }),
+	    isSelected = useSelector(selected);
+	  return _div2([{
+	    children: [_Button({
+	      fn: run,
+	      id: "run",
+	      text: "Create 1,000 rows"
+	    }), _Button({
+	      fn: runLots,
+	      id: "runlots",
+	      text: "Create 10,000 rows"
+	    }), _Button({
+	      fn: add,
+	      id: "add",
+	      text: "Append 1,000 rows"
+	    }), _Button({
+	      fn: update,
+	      id: "update",
+	      text: "Update every 10th row"
+	    }), _Button({
+	      fn: clear,
+	      id: "clear",
+	      text: "Clear"
+	    }), _Button({
+	      fn: swapRows,
+	      id: "swaprows",
+	      text: "Swap Rows"
+	    }), _Button({
+	      fn: bench,
+	      id: "bench",
+	      text: "bench"
+	    })]
+	  }, {
+	    onClick: e => {
+	      const element = e.target;
+	      const {
+	        selectRow,
+	        removeRow
+	      } = element;
+	      if (selectRow !== undefined) {
+	        setSelected(selectRow);
+	      } else if (removeRow !== undefined) {
+	        remove(removeRow);
+	      }
 	    }
-	  };
-	  const clear = () => setData([]);
-	  const remove = id => updateData(d => {
-	    const idx = d.findIndex(datum => datum.id === id);
-	    d.splice(idx, 1);
-	    return [...d];
-	  });
-	  const isSelected = useSelector(selected);
-	  html.define({
-	    bbutton
-	  });
-	  return html`<div class="container">
-    <div class="jumbotron">
-      <div class="row">
-        <div class="col-md-6">
-          <h1>pota Keyed</h1>
-        </div>
-        <div class="col-md-6">
-          <div class="row">
-            <bbutton
-              id="run"
-              text="Create 1,000 rows"
-              fn="${run}"
-            />
-            <bbutton
-              id="runlots"
-              text="Create 10,000 rows"
-              fn="${runLots}"
-            />
-            <bbutton
-              id="add"
-              text="Append 1,000 rows"
-              fn="${add}"
-            />
-            <bbutton
-              id="update"
-              text="Update every 10th row"
-              fn="${update}"
-            />
-            <bbutton
-              id="clear"
-              text="Clear"
-              fn="${clear}"
-            />
-            <bbutton
-              id="swaprows"
-              text="Swap Rows"
-              fn="${swapRows}"
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-    <div
-      class="table table-hover table-striped test-data"
-      onClick="${e => {
-    const element = e.target;
-    if (element.setSelected !== undefined) {
-      setSelected(element.setSelected);
-    } else if (element.removeRow !== undefined) {
-      remove(element.removeRow);
-    }
-  }}"
-    >
-      <div>
-        <For each="${data}">
-          ${row => {
-    const {
-      id,
-      label
-    } = row;
-    return html`<tr class:danger="${isSelected(id)}">
-              <td class="col-md-1">${id}</td>
-              <td class="col-md-4">
-                <a .set-selected="${id}">${label}</a>
-              </td>
-              <td class="col-md-1">
-                <a>
-                  <span
-                    class="glyphicon glyphicon-remove"
-                    aria-hidden="true"
-                    .remove-row="${id}"
-                  />
-                </a>
-              </td>
-              <td class="col-md-6" />
-            </tr>`;
-  }}
-        </For>
-      </div>
-    </div>
-    <span
-      class="preloadicon glyphicon glyphicon-remove"
-      aria-hidden="true"
-    />
-  </div>`;
+	  }, {
+	    children: _For({
+	      each: data,
+	      children: row => {
+	        const {
+	          id,
+	          label
+	        } = row;
+	        return _tr([{
+	          "class:danger": isSelected(id)
+	        }, {
+	          textContent: id
+	        }, {
+	          textContent: label,
+	          "prop:selectRow": id
+	        }, {
+	          "prop:removeRow": id
+	        }]);
+	      }
+	    })
+	  }]);
 	};
 	render(App, document.getElementById('main'));
 
