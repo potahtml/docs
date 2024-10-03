@@ -2,8 +2,17 @@
 /importmap/importmap.json
 /importmap/importmap.quack.js
 /importmap/importmap.quack.json
+
 /_redirects
 /sitemap.txt
+
+/pages/benchmark/dev/index.html
+/pages/benchmark/solid/index.html
+/pages/benchmark/dev-import-node/index.html
+/pages/benchmark/dev-clone-node/index.html
+/pages/benchmark/solid-import-node/index.html
+/pages/benchmark/solid-clone-node/index.html
+
 /node_modules/pota/src/@main.js
 /node_modules/pota/babel-preset/index.js
 /node_modules/pota/src/jsx-runtime.js
