@@ -9,7 +9,7 @@ function recurse(name) {
 }
 
 class CustomElement extends HTMLElement {
-  static observedAttributes = ['string-attribute']
+  static observedAttributes = ['string-attribute', 'stringattribute']
 
   constructor() {
     super()
@@ -28,10 +28,19 @@ class CustomElement extends HTMLElement {
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
-    recurse(`Attribute ${name} has changed.`)
+    recurse(
+      `Attribute ${name} has changed. oldValue: ${newValue}, newValue: ${newValue}, `,
+    )
   }
   set boolean(value) {
-    recurse(`boolean has changed.`, value)
+    recurse(`boolean has changed. ${value}`)
+  }
+
+  set propcasetest(value) {
+    recurse(`propcasetest has changed. ${value}`)
+  }
+  set propCASEtest(value) {
+    recurse(`propCASEtest has changed. ${value}`)
   }
 }
 
@@ -41,7 +50,10 @@ render(
   () =>
     html` <custom-element
       attr:string-attribute="lala"
+      attr:stringattribute="lala"
       boolean="${true}"
+      propcasetest="lala1"
+      propCASEtest="lala2"
     >
       Test
     </custom-element>`,

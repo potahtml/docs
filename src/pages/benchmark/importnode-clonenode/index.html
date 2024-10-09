@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>importNode vs cloneNode - solidjs team</title>
+  </head>
+  <body>
+    <button
+      onclick="run('importNodeConnected', window.importNodeConnected)"
+    >
+      measure connected importNode</button
+    ><br />
+    <button
+      onclick="run('cloneNodeConnected', window.cloneNodeConnected)"
+    >
+      measure connected cloneNode</button
+    ><br />
+    <button
+      onclick="run('importNodeDisconnected', window.importNodeDisconnected)"
+    >
+      measure disconnected importNode</button
+    ><br />
+    <button
+      onclick="run('cloneNodeDisconnected', window.cloneNodeDisconnected)"
+    >
+      measure disconnected cloneNode
+    </button>
+
+    <table>
+      <tbody></tbody>
+    </table>
+
+    <script>
+      const tbody = document.querySelector('tbody')
+      const html =
+        '<tr><td class="col-md-1"></td><td class="col-md-4"><a> </a></td><td class="col-md-1"><a><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></a></td><td class="col-md-6">'
+
+      // this template is appended to the body
+      let templateConnected = document.createElement('template')
+      templateConnected.innerHTML = html
+      templateConnected = templateConnected.content.firstChild
+      document.body.append(templateConnected) // <- difference
+
+      // this template is NOT appended to the body
+      let templateDisconnected = document.createElement('template')
+      templateDisconnected.innerHTML = html
+      templateDisconnected = templateDisconnected.content.firstChild
+
+      // these will clone/import a template that lays on the body
+      function cloneNodeConnected() {
+        return templateConnected.cloneNode(true)
+      }
+      function importNodeConnected() {
+        return document.importNode(templateConnected, true)
+      }
+
+      // these will clone/import a template that is not connected
+      function cloneNodeDisconnected() {
+        return templateDisconnected.cloneNode(true)
+      }
+      function importNodeDisconnected() {
+        return document.importNode(templateDisconnected, true)
+      }
+
+      function run(name, fn) {
+        const runs = 10
+        let time = 0
+
+        for (let a = 0; a < runs; a++) {
+          const nodes = []
+          const start = performance.now()
+          for (let i = 0; i < 10000; i++) {
+            const node = fn()
+            node.firstChild.textContent =
+              'elegant green keyboard ' + i
+            nodes.push(node)
+          }
+          tbody.replaceChildren(...nodes)
+          const count = tbody.childNodes.length
+          const stop = performance.now() - start
+          time += stop
+          console.log(name, stop, count)
+        }
+        console.log(name, 'avg', time / runs)
+        tbody.replaceChildren()
+      }
+    </script>
+  </body>
+</html>

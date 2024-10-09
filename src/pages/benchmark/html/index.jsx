@@ -1,6 +1,7 @@
 import { batch, render, signal } from 'pota'
 import { html } from 'pota/html'
 import { useSelector } from 'pota/plugin/useSelector'
+import { timing } from 'pota/plugin/useTime'
 
 let idCounter = 1
 const adjectives = [
@@ -99,6 +100,40 @@ const App = () => {
   const runLots = () => {
     setData(buildData(10000))
   }
+  const bench = () => {
+    //  console.clear()
+    // warm
+    for (let k = 0; k < 5; k++) {
+      setData(buildData(10000))
+      setData([])
+    }
+
+    let createLarge = 0
+    let clearLarge = 0
+    let createSmall = 0
+    let clearSmall = 0
+    for (let k = 0; k < 10; k++) {
+      createLarge += timing(() => setData(buildData(10000)))
+      clearLarge += timing(() => setData([]))
+      console.log(
+        k + ' createLarge',
+        createLarge / (k + 1),
+        k + ' clearLarge',
+        clearLarge / (k + 1),
+      )
+    }
+    console.log('------------')
+    for (let k = 0; k < 10; k++) {
+      createSmall += timing(() => setData(buildData(1000)))
+      clearSmall += timing(() => setData([]))
+      console.log(
+        k + ' createSmall',
+        createSmall / (k + 1),
+        k + ' clearSmall',
+        clearSmall / (k + 1),
+      )
+    }
+  }
   const add = () => updateData(d => [...d, ...buildData(1000)])
   const update = () =>
     batch(() => {
@@ -163,11 +198,16 @@ const App = () => {
               text="Swap Rows"
               fn="${swapRows}"
             />
+            <bbutton
+              id="bench"
+              text="bench"
+              fn="${bench}"
+            />
           </div>
         </div>
       </div>
     </div>
-    <div
+    <table
       class="table table-hover table-striped test-data"
       onClick="${e => {
         const element = e.target
@@ -178,7 +218,7 @@ const App = () => {
         }
       }}"
     >
-      <div>
+      <tbody>
         <For each="${data}">
           ${row => {
             const { id, label } = row
@@ -186,14 +226,14 @@ const App = () => {
             return html`<tr class:danger="${isSelected(id)}">
               <td class="col-md-1">${id}</td>
               <td class="col-md-4">
-                <a .set-selected="${id}">${label}</a>
+                <a prop:setSelected="${id}">${label}</a>
               </td>
               <td class="col-md-1">
                 <a>
                   <span
                     class="glyphicon glyphicon-remove"
                     aria-hidden="true"
-                    .remove-row="${id}"
+                    prop:removeRow="${id}"
                   />
                 </a>
               </td>
@@ -201,8 +241,8 @@ const App = () => {
             </tr>`
           }}
         </For>
-      </div>
-    </div>
+      </tbody>
+    </table>
     <span
       class="preloadicon glyphicon glyphicon-remove"
       aria-hidden="true"

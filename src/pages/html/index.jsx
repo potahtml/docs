@@ -11,6 +11,11 @@ export default function () {
 					templates. Inspired and influenced by{' '}
 					<a href="https://github.com/trusktr">@trusktr</a>
 				</p>
+				<p>
+					Unlike <mark>HTML</mark>, attributes, tags and components{' '}
+					<u>are case sensitive</u>. The <mark>html</mark> function
+					matches the use of <mark>JSX</mark>.
+				</p>
 			</Header>
 
 			<Section title="Snippet">
@@ -86,14 +91,14 @@ export default function () {
 						import { html } from 'pota/html'
 
 
- 						const test = html\`<for each="\${[1, 2, 3]}">\${val => val*2}</for>\`
+ 						const test = html\`<For each="\${[1, 2, 3]}">\${val => val*2}</For>\`
 
 						render(test)
  					`}
 				>
-					Predefined components are: <mark>collapse</mark>,{' '}
-					<mark>dynamic</mark>, <mark>for</mark>, <mark>head</mark>,{' '}
-					<mark>portal</mark>, <mark>show</mark>, <mark>switch</mark>
+					Predefined components are: <mark>Collapse</mark>,{' '}
+					<mark>Dynamic</mark>, <mark>For</mark>, <mark>Head</mark>,{' '}
+					<mark>Portal</mark>, <mark>Show</mark>, <mark>Switch</mark>
 				</Code>
 			</Section>
 
@@ -149,7 +154,8 @@ export default function () {
  					`}
 				>
 					The effect re-runs because reading <mark>data.test</mark>{' '}
-					causes tracking even if unused in the template.
+					causes tracking even if unused in the template. Even tho the
+					template doesnt re-render as it didn't change.
 				</Code>
 
 				<Code
@@ -297,7 +303,7 @@ render(
 					<li>
 						on <mark>html.define</mark> the registry{' '}
 						<u>
-							is case <b>insensitive</b>
+							is case <b>sensitive</b>
 						</u>
 					</li>
 					<li>

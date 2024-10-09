@@ -90,65 +90,6 @@ export default function () {
 						</tr>
 					</tbody>
 				</table>
-
-				<Section title="lit-style attributes/properties">
-					<p>
-						<mark>
-							<a href="/HTML">html</a>
-						</mark>{' '}
-						may use lit-style attributes/properties
-					</p>
-
-					<table>
-						<thead>
-							<tr>
-								<th>Name</th>
-								<th>Kind</th>
-								<th>Description</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr>
-								<td>
-									<mark>.someProp="true"</mark>
-								</td>
-								<td>
-									<mark>setProperty</mark>
-								</td>
-								<td>will always set it as a property</td>
-							</tr>
-							<tr>
-								<td>
-									<mark>?bool="value"</mark>
-								</td>
-								<td>
-									<mark>setBool</mark>
-								</td>
-								<td>adds/remove based on truthy/falsy</td>
-							</tr>
-							<tr>
-								<td>
-									<mark>
-										{'@click="{handleEvent(e){...}, once:true}"'}
-									</mark>
-								</td>
-								<td>
-									<mark>EventListener</mark>
-								</td>
-								<td>adds/remove based on truthy/falsy</td>
-							</tr>
-						</tbody>
-					</table>
-
-					<p>
-						<b>See Also</b>: <a href="/props/attr%3A__">attr:__</a>,{' '}
-						<a href="/props/prop%3A__">prop:__</a>,{' '}
-						<a href="/props/bool%3A__">bool:__</a> and{' '}
-						<a href="/props/setAttribute">setAttribute</a>,{' '}
-						<a href="/props/setProperty">setProperty</a>,{' '}
-						<a href="/props/setBool">setBool</a>
-					</p>
-				</Section>
 			</Section>
 
 			<Section title="Deleting">

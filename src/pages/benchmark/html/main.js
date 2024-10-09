@@ -13,7 +13,6 @@
 	const assign = Object$1.assign;
 	const entries = Object$1.entries;
 	const freeze = Object$1.freeze;
-	const fromEntries = Object$1.fromEntries;
 	const groupBy = Object$1.groupBy;
 	const isArray = Array.isArray;
 	const toArray = Array.from;
@@ -84,6 +83,8 @@
 
 	/** Memoize functions with a map cache */
 	const withCache = fn => withState((cache, thing) => cache.get(thing, thing => fn(thing)), cacheStore);
+	/** Memoize functions with a weak cache */
+	const withWeakCache = fn => withState((cache, thing) => cache.get(thing, thing => fn(thing)), weakStore);
 
 	/**
 	 * Returns `document` for element. That could be a `shadowRoot`
@@ -166,14 +167,6 @@
 	 * @returns {boolean}
 	 */
 	const isString = value => typeof value === 'string';
-
-	/**
-	 * Returns `true` when `typeof` of `value` is `boolean`
-	 *
-	 * @param {any} value
-	 * @returns {boolean}
-	 */
-	const isBoolean = value => typeof value === 'boolean';
 	const noop = () => {};
 
 	/**
@@ -265,6 +258,23 @@
 	    yield this.delete;
 	  }
 	}
+
+	/**
+	 * Creates a WeakMap to store data
+	 *
+	 * @returns {[
+	 * 	DataStoreGet,
+	 * 	DataStoreSet,
+	 * 	DataStoreHas,
+	 * 	DataStoreDelete,
+	 * ] & {
+	 * 	get: DataStoreGet
+	 * 	set: DataStoreSet
+	 * 	has: DataStoreHas
+	 * 	delete: DataStoreDelete
+	 * }}
+	 */
+	const weakStore = () => new DataStore(WeakMap);
 
 	/**
 	 * Creates a Map to store data
@@ -1445,6 +1455,15 @@
 	}
 
 	/**
+	 * It gives a handler an owner, so stuff runs batched on it, and
+	 * things like context and cleanup work
+	 */
+	const ownedEvent = handler => 'handleEvent' in handler ? {
+	  ...handler,
+	  handleEvent: owned(e => handler.handleEvent(e))
+	} : owned(handler);
+
+	/**
 	 * The purpose of this file is to guarantee the timing of some
 	 * callbacks. It queues a microtask, then the callbacks are added to a
 	 * position in the array. These are run with a priority.
@@ -1620,39 +1639,6 @@
 	  plugins.set(name, !onMicrotask ? fn : (...args) => onProps(() => fn(...args)));
 	};
 
-	/**
-	 * @param {Element} node
-	 * @param {string} name
-	 * @param {unknown} value
-	 * @param {object} props
-	 * @param {string} localName
-	 * @param {string} ns
-	 */
-	const setPropertyNS = (node, name, value, props, localName, ns) => setProperty(node, localName, value);
-
-	/**
-	 * @param {Element} node
-	 * @param {string} name
-	 * @param {unknown} value
-	 * @url https://pota.quack.uy/props/setProperty
-	 */
-	const setProperty = (node, name, value) => withValue(value, value => _setProperty(node, name, value));
-
-	/**
-	 * @param {Element} node
-	 * @param {string} name
-	 * @param {unknown} value
-	 */
-	function _setProperty(node, name, value) {
-	  // if the value is null or undefined it will be set to null
-	  if (isNullUndefined(value)) {
-	    // defaulting to undefined breaks `progress` tag and the whole page
-	    node[name] = null;
-	  } else {
-	    node[name] = value;
-	  }
-	}
-
 	// NODE ATTRIBUTES
 
 	/**
@@ -1689,6 +1675,39 @@
 	  }
 	}
 
+	/**
+	 * @param {Element} node
+	 * @param {string} name
+	 * @param {unknown} value
+	 * @param {object} props
+	 * @param {string} localName
+	 * @param {string} ns
+	 */
+	const setPropertyNS = (node, name, value, props, localName, ns) => setProperty(node, localName, value);
+
+	/**
+	 * @param {Element} node
+	 * @param {string} name
+	 * @param {unknown} value
+	 * @url https://pota.quack.uy/props/setProperty
+	 */
+	const setProperty = (node, name, value) => withValue(value, value => _setProperty(node, name, value));
+
+	/**
+	 * @param {Element} node
+	 * @param {string} name
+	 * @param {unknown} value
+	 */
+	function _setProperty(node, name, value) {
+	  // if the value is null or undefined it will be set to null
+	  if (isNullUndefined(value)) {
+	    // defaulting to undefined breaks `progress` tag and the whole page
+	    node[name] = null;
+	  } else {
+	    node[name] = value;
+	  }
+	}
+
 	// NODE UNKNOWN PROPERTIES / ATTRIBUTES
 
 
@@ -1698,28 +1717,8 @@
 	 * @param {unknown} value
 	 * @param {string} [ns]
 	 */
-	const setUnknownProp = (node, name, value, ns) => withValue(value, value => _setUnknownProp(node, name, value, ns));
-
-	/**
-	 * @param {Element} node
-	 * @param {string} name
-	 * @param {unknown} value
-	 * @param {string} [ns]
-	 */
-	const _setUnknownProp = (node, name, value, ns) => {
-	  if (isObject(value)) {
-	    // when not null object
-	    _setProperty(node, name, value);
-	  } else if (isBoolean(value) && !name.includes('-')) {
-	    // when boolean and name doesnt have a hyphen
-	    _setProperty(node, name, value);
-	  } else {
-	    // fallback to attribute
-	    _setAttribute(node, name, value, ns);
-
-	    // to be able to delete properties
-	    isNullUndefined(value) && _setProperty(node, name, value);
-	  }
+	const setUnknown = (node, name, value, ns) => {
+	  name in node ? setProperty(node, name, value) : setAttribute(node, name, value, ns);
 	};
 
 	// BOOL ATTRIBUTES
@@ -1969,13 +1968,11 @@
 	 *
 	 * @param {Element} node - Element to which assign props
 	 * @param {object} props - Props to assign
-	 * @param {number} [isCE] - Is custom element
 	 */
-	function assignProps(node, props, isCE) {
+	function assignProps(node, props) {
 	  for (const name in props) {
-	    assignProp(node, name, props[name], props, isCE);
+	    assignProp(node, name, props[name], props);
 	  }
-	  return node;
 	}
 
 	/**
@@ -1985,12 +1982,11 @@
 	 * @param {string} name
 	 * @param {any} value
 	 * @param {object} props
-	 * @param {number} [isCE]
 	 */
-	function assignProp(node, name, value, props, isCE) {
+	function assignProp(node, name, value, props) {
 	  // unwrap promises
 	  if (isObject(value) && 'then' in value) {
-	    value.then(owned(value => assignProp(node, name, getValue(value), props, isCE)));
+	    value.then(owned(value => assignProp(node, name, getValue(value), props)));
 	    return;
 	  }
 
@@ -2004,7 +2000,7 @@
 	  // onClick={handler}
 	  let event = eventName(name);
 	  if (event) {
-	    addEventListener$1(node, event, value);
+	    addEventListener$1(node, event, ownedEvent(value));
 	    return;
 	  }
 	  if (name.includes(':')) {
@@ -2021,19 +2017,16 @@
 	    // onClick:my-ns={handler}
 	    event = eventName(ns);
 	    if (event) {
-	      addEventListener$1(node, event, value);
+	      addEventListener$1(node, event, ownedEvent(value));
 	      return;
 	    }
-	    isCustomElement(node, props, isCE) ? _setProperty(node, name, value) : setUnknownProp(node, name, value, ns);
+	    setUnknown(node, name, value, ns);
 	    return;
 	  }
 
 	  // catch all
-	  isCustomElement(node, props, isCE) ? _setProperty(node, name, value) : setUnknownProp(node, name, value);
+	  setUnknown(node, name, value);
 	}
-	const isCustomElement = (node, props, isCustomElement) =>
-	// DocumentFragment doesn't have a `localName?`
-	isCustomElement !== undefined ? isCustomElement : 'is' in props || node.localName?.includes('-');
 
 	// CONSTANTS
 
@@ -2266,9 +2259,22 @@
 	      }
 	    case 'object':
 	      {
+	        // HTMLElement/Text
+	        if (child instanceof HTMLElement || child instanceof Text) {
+	          return insertNode(parent, child, relative);
+	        }
+
 	        // children/fragments
 	        if (isArray(child)) {
 	          return child.length === 1 ? createChildren(parent, child[0], relative) : child.map(child => createChildren(parent, child, relative));
+	        }
+
+	        /**
+	         * The value is `null`, as in {null} or like a show returning
+	         * `null` on the falsy case
+	         */
+	        if (child === null) {
+	          return undefined;
 	        }
 
 	        // Node/DocumentFragment
@@ -2283,14 +2289,6 @@
 	            return createChildren(parent, toArray(child.childNodes), relative);
 	          }
 	          return insertNode(parent, child, relative);
-	        }
-
-	        /**
-	         * The value is `null`, as in {null} or like a show returning
-	         * `null` on the falsy case
-	         */
-	        if (child === null) {
-	          return undefined;
 	        }
 
 	        // async components
@@ -2513,8 +2511,6 @@
 	  }
 	  return next;
 	}
-
-	const dashesToCamelCase = s => s.replace(/-([a-z0-9])/g, g => g[1].toUpperCase());
 
 	/**
 	 * Defines a custom Element (if isnt defined already)
@@ -3234,8 +3230,8 @@
 	 */
 	const Match = identity;
 
-	const defaultRegistry = fromEntries(entries({
-	  RouterA: A,
+	const defaultRegistry = {
+	  A,
 	  Collapse,
 	  Dynamic,
 	  For,
@@ -3245,12 +3241,12 @@
 	  Router,
 	  Show,
 	  Switch
-	}).map(([k, v]) => [k.toLowerCase(), v]));
+	};
 
 	// parseHTML
 
-	const id = 'pota';
-	const tag = `<pota></pota>`;
+	const id = 'pota19611227';
+	const xmlns = ['class', 'on', 'prop', 'attr', 'bool', 'style', 'var', 'onMount', 'onUnmount', 'ref'].map(ns => `xmlns:${ns}="/"`).join(' ');
 
 	/**
 	 * Makes Nodes from TemplateStringsArray
@@ -3258,15 +3254,60 @@
 	 * @param {TemplateStringsArray} content
 	 * @returns {Element}
 	 */
-	const parseHTML = withCache(content => {
-	  const template = createElement('template');
-	  template.innerHTML = content.join(tag).replaceAll(`"${tag}"`, `"${id}"`)
-	  // avoid double br when self-closing
-	  .replace(/<(br|hr)\s*\/\s*>/g, '<$1>')
-	  // self-close
-	  .replace(/<([a-z-]+)([^/>]*)\/\s*>/gi, '<$1 $2></$1>');
-	  return template.content;
-	});
+	const parseHTML = withWeakCache(content => new DOMParser().parseFromString(`<xml ${xmlns}>${content.join(id)}</xml>`, 'text/xml'));
+
+	/**
+	 * Recursively walks a template and transforms it to `h` calls
+	 *
+	 * @param {{ components: {} }} html
+	 * @param {HTMLElement} cached
+	 * @param {...any} values
+	 * @returns {Children}
+	 */
+	function toH(html, cached, values) {
+	  let index = 0;
+	  function nodes(node) {
+	    // Node.ELEMENT_NODE
+	    if (node.nodeType === 1) {
+	      const localName = node.localName;
+
+	      // gather props
+	      const props = empty();
+	      for (let {
+	        name,
+	        value
+	      } of node.attributes) {
+	        if (value === id) {
+	          value = values[index++];
+	        }
+	        props[name] = value;
+	      }
+
+	      // gather children
+	      if (node.childNodes.length) {
+	        props.children = flat(toArray(node.childNodes).map(nodes));
+	      }
+	      return Component(html.components[localName] || localName, props);
+	    } else {
+	      if (node.data.includes(id)) {
+	        const textNodes = node.data.split(id);
+	        const nodes = [];
+	        for (let i = 0; i < textNodes.length; i++) {
+	          const text = textNodes[i];
+	          if (text) {
+	            nodes.push(createTextNode(text));
+	          }
+	          if (i < textNodes.length - 1) {
+	            nodes.push(values[index++]);
+	          }
+	        }
+	        return nodes;
+	      }
+	      return createTextNode(node.data);
+	    }
+	  }
+	  return flat(toArray(cached.childNodes).map(nodes));
+	}
 
 	/**
 	 * Function to create cached tagged template components
@@ -3290,53 +3331,14 @@
 
 	  function html(template, ...values) {
 	    const cached = parseHTML(template);
-	    let index = 0;
-	    function nodes(node) {
-	      // Node.ELEMENT_NODE
-	      if (node.nodeType === 1) {
-	        const localName = node.localName;
-	        if (localName === id) {
-	          return values[index++];
-	        }
-
-	        // gather props
-	        const props = empty();
-	        for (let {
-	          name,
-	          value
-	        } of node.attributes) {
-	          if (value === id) {
-	            value = values[index++];
-	          }
-	          if (name[0] === '.') {
-	            props['prop:' + dashesToCamelCase(name.slice(1))] = value;
-	          } else if (name[0] === '?') {
-	            props['bool:' + name.slice(1)] = value;
-	          } else if (name[0] === '@') {
-	            props['on:' + name.slice(1)] = value;
-	          } else {
-	            props[name] = value;
-	          }
-	        }
-
-	        // gather children
-	        if (node.childNodes.length) {
-	          props.children = flat(toArray(node.childNodes).map(nodes));
-	        }
-	        return Component(html.components[localName] || localName, props);
-	      } else {
-	        return node.cloneNode();
-	      }
-	    }
-	    return flat(toArray(cached.childNodes).map(nodes));
+	    return toH(html, cached.firstChild, values); // toPartial(html, cached, values) //
 	  }
 	  html.components = {
 	    ...defaultRegistry
 	  };
 	  html.define = userComponents => {
-	    let name;
-	    for (name in userComponents) {
-	      html.components[name.toLowerCase()] = userComponents[name];
+	    for (const name in userComponents) {
+	      html.components[name] = userComponents[name];
 	    }
 	  };
 	  return html;
@@ -3400,6 +3402,12 @@
 	  };
 	}
 
+	function timing(fn) {
+	  const start = performance.now();
+	  fn();
+	  return performance.now() - start;
+	}
+
 	let idCounter = 1;
 	const adjectives = ['pretty', 'large', 'big', 'small', 'tall', 'short', 'long', 'handsome', 'plain', 'quaint', 'clean', 'elegant', 'easy', 'angry', 'crazy', 'helpful', 'mushy', 'odd', 'unsightly', 'adorable', 'important', 'inexpensive', 'cheap', 'expensive', 'fancy'],
 	  colours = ['red', 'yellow', 'blue', 'green', 'pink', 'brown', 'purple', 'brown', 'white', 'black', 'orange'],
@@ -3439,6 +3447,29 @@
 	  const run = () => setData(buildData(1000));
 	  const runLots = () => {
 	    setData(buildData(10000));
+	  };
+	  const bench = () => {
+	    //  console.clear()
+	    // warm
+	    for (let k = 0; k < 5; k++) {
+	      setData(buildData(10000));
+	      setData([]);
+	    }
+	    let createLarge = 0;
+	    let clearLarge = 0;
+	    let createSmall = 0;
+	    let clearSmall = 0;
+	    for (let k = 0; k < 10; k++) {
+	      createLarge += timing(() => setData(buildData(10000)));
+	      clearLarge += timing(() => setData([]));
+	      console.log(k + ' createLarge', createLarge / (k + 1), k + ' clearLarge', clearLarge / (k + 1));
+	    }
+	    console.log('------------');
+	    for (let k = 0; k < 10; k++) {
+	      createSmall += timing(() => setData(buildData(1000)));
+	      clearSmall += timing(() => setData([]));
+	      console.log(k + ' createSmall', createSmall / (k + 1), k + ' clearSmall', clearSmall / (k + 1));
+	    }
 	  };
 	  const add = () => updateData(d => [...d, ...buildData(1000)]);
 	  const update = () => batch(() => {
@@ -3501,11 +3532,16 @@
               text="Swap Rows"
               fn="${swapRows}"
             />
+            <bbutton
+              id="bench"
+              text="bench"
+              fn="${bench}"
+            />
           </div>
         </div>
       </div>
     </div>
-    <div
+    <table
       class="table table-hover table-striped test-data"
       onClick="${e => {
     const element = e.target;
@@ -3516,7 +3552,7 @@
     }
   }}"
     >
-      <div>
+      <tbody>
         <For each="${data}">
           ${row => {
     const {
@@ -3526,14 +3562,14 @@
     return html`<tr class:danger="${isSelected(id)}">
               <td class="col-md-1">${id}</td>
               <td class="col-md-4">
-                <a .set-selected="${id}">${label}</a>
+                <a prop:setSelected="${id}">${label}</a>
               </td>
               <td class="col-md-1">
                 <a>
                   <span
                     class="glyphicon glyphicon-remove"
                     aria-hidden="true"
-                    .remove-row="${id}"
+                    prop:removeRow="${id}"
                   />
                 </a>
               </td>
@@ -3541,8 +3577,8 @@
             </tr>`;
   }}
         </For>
-      </div>
-    </div>
+      </tbody>
+    </table>
     <span
       class="preloadicon glyphicon glyphicon-remove"
       aria-hidden="true"

@@ -164,14 +164,6 @@
 	 * @returns {boolean}
 	 */
 	const isString = value => typeof value === 'string';
-
-	/**
-	 * Returns `true` when `typeof` of `value` is `boolean`
-	 *
-	 * @param {any} value
-	 * @returns {boolean}
-	 */
-	const isBoolean = value => typeof value === 'boolean';
 	const noop = () => {};
 
 	/**
@@ -1219,6 +1211,15 @@
 	}
 
 	/**
+	 * It gives a handler an owner, so stuff runs batched on it, and
+	 * things like context and cleanup work
+	 */
+	const ownedEvent = handler => 'handleEvent' in handler ? {
+	  ...handler,
+	  handleEvent: owned(e => handler.handleEvent(e))
+	} : owned(handler);
+
+	/**
 	 * The purpose of this file is to guarantee the timing of some
 	 * callbacks. It queues a microtask, then the callbacks are added to a
 	 * position in the array. These are run with a priority.
@@ -1387,39 +1388,6 @@
 	  plugins.set(name, !onMicrotask ? fn : (...args) => onProps(() => fn(...args)));
 	};
 
-	/**
-	 * @param {Element} node
-	 * @param {string} name
-	 * @param {unknown} value
-	 * @param {object} props
-	 * @param {string} localName
-	 * @param {string} ns
-	 */
-	const setPropertyNS = (node, name, value, props, localName, ns) => setProperty(node, localName, value);
-
-	/**
-	 * @param {Element} node
-	 * @param {string} name
-	 * @param {unknown} value
-	 * @url https://pota.quack.uy/props/setProperty
-	 */
-	const setProperty = (node, name, value) => withValue(value, value => _setProperty(node, name, value));
-
-	/**
-	 * @param {Element} node
-	 * @param {string} name
-	 * @param {unknown} value
-	 */
-	function _setProperty(node, name, value) {
-	  // if the value is null or undefined it will be set to null
-	  if (isNullUndefined(value)) {
-	    // defaulting to undefined breaks `progress` tag and the whole page
-	    node[name] = null;
-	  } else {
-	    node[name] = value;
-	  }
-	}
-
 	// NODE ATTRIBUTES
 
 	/**
@@ -1456,6 +1424,39 @@
 	  }
 	}
 
+	/**
+	 * @param {Element} node
+	 * @param {string} name
+	 * @param {unknown} value
+	 * @param {object} props
+	 * @param {string} localName
+	 * @param {string} ns
+	 */
+	const setPropertyNS = (node, name, value, props, localName, ns) => setProperty(node, localName, value);
+
+	/**
+	 * @param {Element} node
+	 * @param {string} name
+	 * @param {unknown} value
+	 * @url https://pota.quack.uy/props/setProperty
+	 */
+	const setProperty = (node, name, value) => withValue(value, value => _setProperty(node, name, value));
+
+	/**
+	 * @param {Element} node
+	 * @param {string} name
+	 * @param {unknown} value
+	 */
+	function _setProperty(node, name, value) {
+	  // if the value is null or undefined it will be set to null
+	  if (isNullUndefined(value)) {
+	    // defaulting to undefined breaks `progress` tag and the whole page
+	    node[name] = null;
+	  } else {
+	    node[name] = value;
+	  }
+	}
+
 	// NODE UNKNOWN PROPERTIES / ATTRIBUTES
 
 
@@ -1465,28 +1466,8 @@
 	 * @param {unknown} value
 	 * @param {string} [ns]
 	 */
-	const setUnknownProp = (node, name, value, ns) => withValue(value, value => _setUnknownProp(node, name, value, ns));
-
-	/**
-	 * @param {Element} node
-	 * @param {string} name
-	 * @param {unknown} value
-	 * @param {string} [ns]
-	 */
-	const _setUnknownProp = (node, name, value, ns) => {
-	  if (isObject(value)) {
-	    // when not null object
-	    _setProperty(node, name, value);
-	  } else if (isBoolean(value) && !name.includes('-')) {
-	    // when boolean and name doesnt have a hyphen
-	    _setProperty(node, name, value);
-	  } else {
-	    // fallback to attribute
-	    _setAttribute(node, name, value, ns);
-
-	    // to be able to delete properties
-	    isNullUndefined(value) && _setProperty(node, name, value);
-	  }
+	const setUnknown = (node, name, value, ns) => {
+	  name in node ? setProperty(node, name, value) : setAttribute(node, name, value, ns);
 	};
 
 	// BOOL ATTRIBUTES
@@ -1736,13 +1717,11 @@
 	 *
 	 * @param {Element} node - Element to which assign props
 	 * @param {object} props - Props to assign
-	 * @param {number} [isCE] - Is custom element
 	 */
-	function assignProps(node, props, isCE) {
+	function assignProps(node, props) {
 	  for (const name in props) {
-	    assignProp(node, name, props[name], props, isCE);
+	    assignProp(node, name, props[name], props);
 	  }
-	  return node;
 	}
 
 	/**
@@ -1752,12 +1731,11 @@
 	 * @param {string} name
 	 * @param {any} value
 	 * @param {object} props
-	 * @param {number} [isCE]
 	 */
-	function assignProp(node, name, value, props, isCE) {
+	function assignProp(node, name, value, props) {
 	  // unwrap promises
 	  if (isObject(value) && 'then' in value) {
-	    value.then(owned(value => assignProp(node, name, getValue(value), props, isCE)));
+	    value.then(owned(value => assignProp(node, name, getValue(value), props)));
 	    return;
 	  }
 
@@ -1771,7 +1749,7 @@
 	  // onClick={handler}
 	  let event = eventName(name);
 	  if (event) {
-	    addEventListener(node, event, value);
+	    addEventListener(node, event, ownedEvent(value));
 	    return;
 	  }
 	  if (name.includes(':')) {
@@ -1788,19 +1766,16 @@
 	    // onClick:my-ns={handler}
 	    event = eventName(ns);
 	    if (event) {
-	      addEventListener(node, event, value);
+	      addEventListener(node, event, ownedEvent(value));
 	      return;
 	    }
-	    isCustomElement(node, props, isCE) ? _setProperty(node, name, value) : setUnknownProp(node, name, value, ns);
+	    setUnknown(node, name, value, ns);
 	    return;
 	  }
 
 	  // catch all
-	  isCustomElement(node, props, isCE) ? _setProperty(node, name, value) : setUnknownProp(node, name, value);
+	  setUnknown(node, name, value);
 	}
-	const isCustomElement = (node, props, isCustomElement) =>
-	// DocumentFragment doesn't have a `localName?`
-	isCustomElement !== undefined ? isCustomElement : 'is' in props || node.localName?.includes('-');
 
 	// CONSTANTS
 
@@ -1925,30 +1900,28 @@
 	  }
 	  return template.content.childNodes.length === 1 ? template.content.firstChild : template.content;
 	}
-	function createPartial(content, propsAt = nothing, elementData = nothing) {
+	function createPartial(content, propsData = nothing) {
 	  let clone = () => {
-	    const node = withXMLNS(elementData.x, xmlns => cloneNode(content, xmlns));
-	    clone = elementData.i ? importNode.bind(null, node, true) : node.cloneNode.bind(node, true);
+	    const node = withXMLNS(propsData.x, xmlns => cloneNode(content, xmlns));
+	    clone = propsData.i ? importNode.bind(null, node, true) : node.cloneNode.bind(node, true);
 	    return clone();
 	  };
 	  return props => {
 	    /** Freeze props so isnt directly writable */
 	    freeze(props);
-	    return markComponent(() => assignPartialProps(clone(), props, propsAt, elementData));
+	    return markComponent(() => assignPartialProps(clone(), props, propsData));
 	  };
 	}
-	function assignPartialProps(node, props, propsAt, elementData) {
+	function assignPartialProps(node, props, propsData) {
 	  if (props) {
 	    const nodes = [];
 	    walkElements(node, node => {
 	      nodes.push(node);
-	      if (nodes.length === elementData.m) return true;
+	      if (nodes.length === propsData.m) return true;
 	    });
-	    withXMLNS(elementData.x, xmlns => {
+	    withXMLNS(propsData.x, xmlns => {
 	      for (let i = 0; i < props.length; i++) {
-	        assignProps(nodes[propsAt[i] || i], props[i],
-	        // only the container may be a custom element
-	        i === 0 ? elementData.c : 0);
+	        assignProps(nodes[propsData[i] || i], props[i]);
 	      }
 	    });
 	  }
@@ -2048,9 +2021,22 @@
 	      }
 	    case 'object':
 	      {
+	        // HTMLElement/Text
+	        if (child instanceof HTMLElement || child instanceof Text) {
+	          return insertNode(parent, child, relative);
+	        }
+
 	        // children/fragments
 	        if (isArray(child)) {
 	          return child.length === 1 ? createChildren(parent, child[0], relative) : child.map(child => createChildren(parent, child, relative));
+	        }
+
+	        /**
+	         * The value is `null`, as in {null} or like a show returning
+	         * `null` on the falsy case
+	         */
+	        if (child === null) {
+	          return undefined;
 	        }
 
 	        // Node/DocumentFragment
@@ -2065,14 +2051,6 @@
 	            return createChildren(parent, toArray(child.childNodes), relative);
 	          }
 	          return insertNode(parent, child, relative);
-	        }
-
-	        /**
-	         * The value is `null`, as in {null} or like a show returning
-	         * `null` on the falsy case
-	         */
-	        if (child === null) {
-	          return undefined;
 	        }
 
 	        // async components
@@ -2394,9 +2372,9 @@
 	  }
 	}
 
-	var _div = createPartial("<div class='col-sm-6 smallpad'><button class='btn btn-primary btn-block' type=button></button></div>", {"0":1}, {"m":2}),
-	  _div2 = createPartial("<div class=container><div class=jumbotron><div class=row><div class=col-md-6><h1>pota Keyed</h1></div><div class=col-md-6><div class=row></div></div></div></div><table class='table table-hover table-striped test-data'><tbody></tbody></table><span class='preloadicon glyphicon glyphicon-remove' aria-hidden=true></span></div>", {"0":6,"1":7,"2":8}, {"m":9}),
-	  _tr = createPartial("<tr><td class=col-md-1></td><td class=col-md-4><a></a></td><td class=col-md-1><a><span class='glyphicon glyphicon-remove' aria-hidden=true></span></a></td><td class=col-md-6></td></tr>", {"2":3,"3":6}, {"m":7});
+	var _div = createPartial("<div class='col-sm-6 smallpad'><button class='btn btn-primary btn-block' type=button></button></div>", {"0":1,"m":2}),
+	  _div2 = createPartial("<div class=container><div class=jumbotron><div class=row><div class=col-md-6><h1>pota Keyed</h1></div><div class=col-md-6><div class=row></div></div></div></div><table class='table table-hover table-striped test-data'><tbody></tbody></table><span class='preloadicon glyphicon glyphicon-remove' aria-hidden=true></span></div>", {"0":6,"1":7,"2":8,"m":9}),
+	  _tr = createPartial("<tr><td class=col-md-1></td><td class=col-md-4><a></a></td><td class=col-md-1><a><span class='glyphicon glyphicon-remove' aria-hidden=true></span></a></td><td class=col-md-6></td></tr>", {"2":3,"3":6,"m":7});
 	const _For = createComponent(For);
 	let idCounter = 1;
 	function buildData(count) {

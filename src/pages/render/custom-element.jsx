@@ -3,12 +3,12 @@ import { render, signal } from 'pota'
 const [read, write] = signal(true)
 
 function recurse(name) {
-  console.log(name)
+  render(<div>{name}</div>)
   write(!read())
 }
 
 class CustomElement extends HTMLElement {
-  static observedAttributes = ['string-attribute']
+  static observedAttributes = ['string-attribute', 'stringattribute']
 
   constructor() {
     super()
@@ -27,10 +27,19 @@ class CustomElement extends HTMLElement {
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
-    recurse('Attribute has changed.')
+    recurse(
+      `Attribute ${name} has changed. oldValue: ${newValue}, newValue: ${newValue}, `,
+    )
   }
   set boolean(value) {
-    recurse('boolean has changed.')
+    recurse(`boolean has changed. ${value}`)
+  }
+
+  set propcasetest(value) {
+    recurse(`propcasetest has changed. ${value}`)
+  }
+  set propCASEtest(value) {
+    recurse(`propCASEtest has changed. ${value}`)
   }
 }
 
@@ -39,6 +48,9 @@ customElements.define('custom-element', CustomElement)
 render(() => (
   <custom-element
     attr:string-attribute="lala"
+    attr:stringattribute="lala"
+    propcasetest="lala1"
+    propCASEtest="lala2"
     boolean={true}
   >
     Test
