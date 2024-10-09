@@ -1749,7 +1749,8 @@
 	  // onClick={handler}
 	  let event = eventName(name);
 	  if (event) {
-	    addEventListener(node, event, ownedEvent(value));
+	    // `value &&` for when `onClick={handler}` and `handler` is undefined
+	    value && addEventListener(node, event, ownedEvent(value));
 	    return;
 	  }
 	  if (name.includes(':')) {
@@ -1766,7 +1767,8 @@
 	    // onClick:my-ns={handler}
 	    event = eventName(ns);
 	    if (event) {
-	      addEventListener(node, event, ownedEvent(value));
+	      // `value &&` for when `onClick={handler}` and `handler` is undefined
+	      value && addEventListener(node, event, ownedEvent(value));
 	      return;
 	    }
 	    setUnknown(node, name, value, ns);
