@@ -22,7 +22,7 @@ function App() {
           width="100"
           height="100"
           xlink:href="/assets/quack.png"
-        />
+        ></image>
         ...
       </svg>
       <hr />

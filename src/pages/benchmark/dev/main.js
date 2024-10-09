@@ -1467,7 +1467,7 @@
 	 * @param {string} [ns]
 	 */
 	const setUnknown = (node, name, value, ns) => {
-	  name in node ? setProperty(node, name, value) : setAttribute(node, name, value, ns);
+	  name in node && !(node instanceof SVGElement) ? setProperty(node, name, value) : setAttribute(node, name, value, ns);
 	};
 
 	// BOOL ATTRIBUTES
