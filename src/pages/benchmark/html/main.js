@@ -13,6 +13,8 @@
 	const assign = Object$1.assign;
 	const entries = Object$1.entries;
 	const freeze = Object$1.freeze;
+	const getOwnPropertyDescriptors = Object$1.getOwnPropertyDescriptors;
+	const getPrototypeOf = Object$1.getPrototypeOf;
 	const groupBy = Object$1.groupBy;
 	const isArray = Array.isArray;
 	const toArray = Array.from;
@@ -106,6 +108,15 @@
 	  // always return a Document-like
 	  return nodeType === 11 || nodeType === 9 ? document : node.ownerDocument;
 	};
+	function getSetterNamesFromPrototype(object, set = new Set()) {
+	  const descriptors = getOwnPropertyDescriptors(object);
+	  for (const key in descriptors) {
+	    if (descriptors[key].set) {
+	      set.add(key);
+	    }
+	  }
+	  return set;
+	}
 
 	/**
 	 * Unwraps values. If the argument is a function then it runs it
@@ -167,6 +178,14 @@
 	 * @returns {boolean}
 	 */
 	const isString = value => typeof value === 'string';
+
+	/**
+	 * Returns `true` when `value` may be a promise
+	 *
+	 * @param {any} value
+	 * @returns {boolean}
+	 */
+	const isPromise = value => isObject(value) && 'then' in value;
 	const noop = () => {};
 
 	/**
@@ -229,9 +248,9 @@
 	class DataStore {
 	  constructor(kind) {
 	    const store = new kind();
-	    const get = store.get.bind(store);
-	    const set = store.set.bind(store);
-	    const has = store.has.bind(store);
+	    const get = k => store.get(k);
+	    const set = (k, v) => store.set(k, v);
+	    const has = k => store.has(k);
 	    this.get = (target, defaults = undefined) => {
 	      const o = get(target);
 	      if (o !== undefined) {
@@ -249,7 +268,7 @@
 	    };
 	    this.set = set;
 	    this.has = has;
-	    this.delete = store.delete.bind(store);
+	    this.delete = k => store.delete(k);
 	  }
 	  *[Symbol.iterator]() {
 	    yield this.get;
@@ -673,11 +692,9 @@
 	        this.prev = value;
 	      }
 	    }
-	    this.read = markReactive(this.read.bind(this));
-	    this.write = this.write.bind(this);
-	    this.update = this.update.bind(this);
+	    this.read = markReactive(this.read);
 	  }
-	  read() {
+	  read = () => {
 	    // checkReadForbidden()
 
 	    if (Listener) {
@@ -698,8 +715,8 @@
 	      }
 	    }
 	    return this.value;
-	  }
-	  write(value) {
+	  };
+	  write = value => {
 	    if (this.equals === false || !this.equals(this.value, value)) {
 	      if (this.save) {
 	        this.prev = this.value;
@@ -726,13 +743,13 @@
 	      return true;
 	    }
 	    return false;
-	  }
-	  update(value) {
+	  };
+	  update = value => {
 	    if (isFunction(value)) {
 	      value = value(this.value);
 	    }
 	    return this.write(value);
-	  }
+	  };
 	  equals(a, b) {
 	    return a === b;
 	  }
@@ -759,7 +776,7 @@
 	  Owner = root;
 	  Listener = undefined;
 	  try {
-	    return runUpdates(() => fn(root.dispose.bind(root)), true);
+	    return runUpdates(() => fn(() => root.dispose()), true);
 	  } finally {
 	    Owner = prevOwner;
 	    Listener = prevListener;
@@ -1079,12 +1096,21 @@
 	}
 
 	/**
-	 * Runs a function inside an effect if value is a function
+	 * Runs a function inside an effect if value is a function.
+	 * Aditionally unwraps promises.
 	 *
 	 * @param {any} value
 	 * @param {(value) => any} fn
 	 */
-	const withValue = (value, fn) => isFunction(value) ? effect(() => fn(getValue(value))) : fn(value);
+	const withValue = (value, fn) => {
+	  if (isFunction(value)) {
+	    effect(() => withValue(getValue(value), fn));
+	  } else if (isPromise(value)) {
+	    value.then(owned(value => withValue(value, fn)));
+	  } else {
+	    fn(value);
+	  }
+	};
 
 	/**
 	 * Runs a function inside an effect if value is a function
@@ -1559,7 +1585,7 @@
 	 * @param {string} localName
 	 * @param {string} ns
 	 */
-	const setEventNS = (node, name, value, props, localName, ns) => addEventListener$1(node, localName, value);
+	const setEventNS = (node, name, value, props, localName, ns) => addEventListener$1(node, localName, ownedEvent(value));
 
 	/**
 	 * Returns an event name when the string could be mapped to an event
@@ -1569,11 +1595,6 @@
 	 *   case isnt found
 	 */
 	const eventName = withCache(name => name.startsWith('on') && name.toLowerCase() in window ? name.slice(2).toLowerCase() : null);
-	/*
-	const eventNames = new Set(
-		keys(global).filter(prop => prop.startsWith('on')),
-	)
-	*/
 
 	const plugins = cacheStore();
 	const pluginsNS = cacheStore();
@@ -1718,8 +1739,73 @@
 	 * @param {string} [ns]
 	 */
 	const setUnknown = (node, name, value, ns) => {
-	  name in node && !(node instanceof SVGElement) ? setProperty(node, name, value) : setAttribute(node, name, value, ns);
+	  withValue(value, value => _setUnknown(node, name, value, ns));
 	};
+
+	/**
+	 * @param {Element} node
+	 * @param {string} name
+	 * @param {unknown} value
+	 * @param {string} [ns]
+	 */
+	const _setUnknown = (node, name, value, ns) => {
+	  if (typeof value !== 'string' && setters(node).element.has(name)) {
+	    /**
+	     * 1. First check in element because a custom-element may overwrite
+	     *    builtIn setters
+	     * 2. Only do this when it's different to a string to avoid coarcing
+	     *    on native elements (ex: (img.width = '16px') === 0)
+	     */
+	    setProperty(node, name, value);
+	  } else if (setters(node).builtIn.has(name)) {
+	    // ex: innerHTML, textContent, draggable={true}
+	    setProperty(node, name, value);
+	  } else {
+	    setAttribute(node, name, value, ns);
+	  }
+	};
+	const elements = new Map();
+
+	/** @param {Element} node */
+	function setters(node) {
+	  /**
+	   * Use `node.constructor` instead of `node.nodeName` because it
+	   * handles the difference between `a` `HTMLAnchorElement` and `a`
+	   * `SVGAElement`
+	   */
+	  let setters = elements.get(node.constructor);
+	  if (setters) return setters;
+	  setters = {
+	    builtIn: new Set(builtInSetters),
+	    element: new Set()
+	  };
+	  elements.set(node.constructor, setters);
+	  let store = setters.element;
+	  let proto = getPrototypeOf(node);
+
+	  /**
+	   * Stop at `Element` instead of `HTMLElement` because it handles the
+	   * difference between `HTMLElement`, `SVGElement`, `FutureElement`
+	   * etc
+	   */
+	  while (proto.constructor !== Element) {
+	    const nextProto = getPrototypeOf(proto);
+
+	    /**
+	     * The previous prototype to `Element` is a `builtIn`
+	     * (`HTMLElement`, `SVGElement`,`FutureElement`, etc)
+	     */
+	    if (nextProto.constructor === Element) {
+	      store = setters.builtIn;
+	    }
+	    getSetterNamesFromPrototype(proto, store);
+	    proto = nextProto;
+	  }
+	  return setters;
+	}
+
+	/** Setters shared by all kind of elements */
+	const builtInSetters = getSetterNamesFromPrototype(Element.prototype, getSetterNamesFromPrototype(Node.prototype));
 
 	// BOOL ATTRIBUTES
 
@@ -1749,7 +1835,7 @@
 	 */
 	const _setBool = (node, name, value) =>
 	// if the value is falsy gets removed
-	!value ? node.removeAttribute(name) : node.setAttribute(name, '');
+	value ? node.setAttribute(name, '') : node.removeAttribute(name);
 
 	// node style
 
@@ -1895,6 +1981,35 @@
 	// null, undefined or false, the class is removed
 	!value ? classListRemove(node, name) : classListAdd(node, ...name.trim().split(/\s+/));
 
+	/**
+	 * `value` as a prop is special cased so the button `reset` in forms
+	 * works as expected. The first time a value is set, its done as an
+	 * attribute.
+	 */
+	const setValue = (node, name, value) => withValue(value, value => _setValue(node, name, value));
+	const defaults = new Set();
+	function _setValue(node, name, value) {
+	  if (!defaults.has(node)) {
+	    defaults.add(node);
+	    cleanup(() => defaults.delete(node));
+	    if (!isNullUndefined(value)) {
+	      switch (node.localName) {
+	        case 'input':
+	          {
+	            node.setAttribute('value', value);
+	            return;
+	          }
+	        case 'textarea':
+	          {
+	            node.textContent = value;
+	            return;
+	          }
+	      }
+	    }
+	  }
+	  _setProperty(node, name, value);
+	}
+
 	/** Returns true or false with a `chance` of getting `true` */
 	const randomId = () => crypto.getRandomValues(new BigUint64Array(1))[0].toString(36);
 
@@ -1947,11 +2062,9 @@
 	propsPluginNS('bool', setBoolNS, false);
 	propsPluginNS('on', setEventNS, false);
 	propsPluginNS('var', setVarNS, false);
-	for (const item of ['value', 'textContent', 'innerText', 'innerHTML']) {
-	  propsPlugin(item, setProperty, false);
-	}
 	propsPlugin('__dev', noop, false);
 	propsPlugin('xmlns', noop, false);
+	propsPlugin('value', setValue, false);
 	propsPluginBoth('css', setCSS, false);
 	propsPluginBoth('onMount', setOnMount, false);
 	propsPluginBoth('onUnmount', setUnmount, false);
@@ -1984,12 +2097,6 @@
 	 * @param {object} props
 	 */
 	function assignProp(node, name, value, props) {
-	  // unwrap promises
-	  if (isObject(value) && 'then' in value) {
-	    value.then(owned(value => assignProp(node, name, getValue(value), props)));
-	    return;
-	  }
-
 	  // run plugins
 	  let plugin = plugins.get(name);
 	  if (plugin) {
@@ -2570,9 +2677,7 @@
 	   * @param {boolean} value
 	   */
 	  set hidden(value) {
-	    withValue(value, value => {
-	      value ? setAttribute$1(this, 'hidden', '') : removeAttribute(this, 'hidden');
-	    });
+	    value ? setAttribute$1(this, 'hidden', '') : removeAttribute(this, 'hidden');
 	  }
 
 	  /* EVENTS API */
@@ -2615,12 +2720,9 @@
 				}
 			`];
 
-	    /**
-	     * @template T
-	     * @param {When<T>} value - To toggle children
-	     */
+	    /** @param {any} value - To toggle children */
 	    set when(value) {
-	      withValue(value, value => this.html = value ? '<slot/>' : '');
+	      this.html = value ? '<slot/>' : '';
 	    }
 	  }
 	  const name = 'pota-collapse';

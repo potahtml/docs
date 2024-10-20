@@ -98,7 +98,10 @@ const Button = ({ id, text, fn }) => (
 const App = () => {
   const [data, setData, updateData] = signal([]),
     [selected, setSelected] = signal(null),
-    run = () => setData(buildData(10)),
+    run = () => {
+      // debugger
+      setData(buildData(10))
+    },
     runLots = () => {
       setData(buildData(10000))
     },
@@ -226,7 +229,7 @@ const App = () => {
               const { id, label } = row
 
               return (
-                <tr class:danger={isSelected(id)}>
+                <tr class={{ danger: isSelected(id) }}>
                   <td
                     class="col-md-1"
                     textContent={id}

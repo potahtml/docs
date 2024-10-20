@@ -105,21 +105,11 @@ export default function () {
 				</p>
 			</Section>
 
-			<Section title="Locked To Properties">
-				<p>
-					<mark>value</mark>, <mark>textContent</mark>,{' '}
-					<mark>innerText</mark>, <mark>innerHTML</mark> are locked to
-					always use <mark>setProperty</mark>
-				</p>
-			</Section>
-
 			<Section title="Children">
 				<p>
 					<mark>children</mark> as an attribute will be used as long
 					as the node on where it's defined doesn't have any{' '}
-					<mark>childNodes</mark>. <b>Note</b>: <mark>children</mark>{' '}
-					cannot be overridden via a <mark>propsPlugin</mark>.
-					Everything else can be changed.
+					<mark>childNodes</mark>.
 				</p>
 			</Section>
 

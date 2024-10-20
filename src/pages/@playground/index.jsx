@@ -5,7 +5,7 @@ import { Code } from '../../lib/components/code/code.jsx'
 import { Header } from '../../lib/components/header.jsx'
 
 import { effect, memo, signal } from 'pota'
-import { Collapse, For, Head, Show } from 'pota/web'
+import { Collapse, For, Show } from 'pota/web'
 
 import { compress, uncompress } from '../../lib/compress.js'
 import example from './default-example.js'
@@ -84,23 +84,15 @@ export default function () {
 		initialValue.code ? initialValue.code : initialValue,
 	)
 
-	const codeDownload = memo(() =>
+	/*const codeDownload = memo(() =>
 		URL.createObjectURL(
 			new Blob([code()], {
 				type: 'application/tsx',
 			}),
 		),
-	)
+	)*/
 
 	const codeURL = memo(() => compress(code()))
-
-	// transformed code
-
-	const [transformed, setTransformed] = signal('')
-
-	effect(() => {
-		transform(code()).then(setTransformed)
-	})
 
 	effect(() => {
 		window.location.hash = '#' + codeURL()
@@ -150,34 +142,6 @@ export default function () {
 								onClick={() => setTab('cheatsheet')}
 							>
 								Cheat Sheet
-							</a>
-						</span>
-						<span>
-							<a
-								href="javascript://"
-								download="pota.tsx"
-								onClick={e => (e.target.href = codeDownload())}
-							>
-								Download
-							</a>
-						</span>
-						<span>
-							<a
-								target="_blank"
-								href="#"
-								clipboard={e => {
-									e.preventDefault()
-									const node = e.target
-									node.href = '#' + codeURL()
-
-									node.textContent = 'Link Copied!'
-									setTimeout(() => {
-										node.textContent = 'Link'
-									}, 2000)
-									return node.href
-								}}
-							>
-								Link
 							</a>
 						</span>
 						<span>
@@ -234,12 +198,7 @@ export default function () {
 									value={prettier(code(), true)}
 									onInput={e => setCode(e.target.value)}
 									grammar="tsx"
-									theme={theme()}
-									onMount={element => {
-										effect(() => {
-											element.theme = theme()
-										})
-									}}
+									theme={theme}
 									onKeyDown={e => {
 										if (e.ctrlKey && e.keyCode === 83) {
 											// CTRL + S
@@ -257,32 +216,20 @@ export default function () {
 								/>
 							</Collapse>
 							<Show when={() => tab() === 'pota-jsx'}>
-								{code => (
-									<tm-textarea
-										class="playground line-numbers"
-										grammar="tsx"
-										theme={theme()}
-										onMount={element => {
-											effect(() => {
-												element.theme = theme()
-											})
-										}}
-										value={transformed}
-										editable={false}
-									/>
-								)}
+								<tm-textarea
+									class="playground line-numbers"
+									grammar="tsx"
+									theme={theme}
+									value={() => transform(code())}
+									editable={false}
+								/>
 							</Show>
 							<Collapse when={() => tab() === 'cheatsheet'}>
 								<tm-textarea
 									class="playground"
 									value={prettier(CheatSheetText)}
 									grammar="tsx"
-									theme={theme()}
-									onMount={element => {
-										effect(() => {
-											element.theme = theme()
-										})
-									}}
+									theme={theme}
 									editable={false}
 								/>
 							</Collapse>

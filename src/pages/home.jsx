@@ -54,9 +54,7 @@ export default function Home() {
 					rather than as a value <mark>{'{count()}'}</mark>.
 				</Code>
 			</Section>
-			<Section title="Compiler-less">
-				<CompilerLess />
-			</Section>
+
 			<Section title="Key Points">
 				<ol>
 					<li>
