@@ -1742,13 +1742,13 @@
 	    defaults.add(node);
 	    cleanup(() => defaults.delete(node));
 	    if (!isNullUndefined(value)) {
-	      switch (node.localName) {
-	        case 'input':
+	      switch (node.tagName) {
+	        case 'INPUT':
 	          {
 	            node.setAttribute('value', value);
 	            return;
 	          }
-	        case 'textarea':
+	        case 'TEXTAREA':
 	          {
 	            node.textContent = value;
 	            return;
@@ -1757,6 +1757,9 @@
 	    }
 	  }
 	  _setProperty(node, name, value);
+	  if (!value && node.tagName === 'PROGRESS') {
+	    node.removeAttribute('value');
+	  }
 	}
 
 	/** Returns true or false with a `chance` of getting `true` */
@@ -2248,15 +2251,15 @@
 	function insertNode(parent, node, relative) {
 	  // special case `head`
 	  if (parent === head) {
-	    const name = node.localName;
+	    const name = node.tagName;
 
 	    // search for tags that should be unique
 	    let prev;
-	    if (name === 'title') {
+	    if (name === 'TITLE') {
 	      prev = querySelector(head, 'title');
-	    } else if (name === 'meta') {
+	    } else if (name === 'META') {
 	      prev = querySelector(head, 'meta[name="' + node.getAttribute('name') + '"]') || querySelector(head, 'meta[property="' + node.getAttribute('property') + '"]');
-	    } else if (name === 'link' && node.rel === 'canonical') {
+	    } else if (name === 'LINK' && node.rel === 'canonical') {
 	      prev = querySelector(head, 'link[rel="canonical"]');
 	    }
 

@@ -9,6 +9,10 @@
   line-height: 1;
 }
 
+progress {
+  border: revert;
+}
+
 input,
 button {
   padding: revert;
