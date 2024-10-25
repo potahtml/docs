@@ -10,12 +10,11 @@
 		"update": "npm update --include=dev --save && npm run dev"
 	},
 	"dependencies": {
-		"@bigmistqke/repl": "^0.1.8",
-		"dom-flair": "^7.0.56",
 		"fflate": "^0.8.2",
-		"kompiler": "^7.0.157",
-		"pota": "^0.14.133",
-		"tm-textarea": "^0.1.0"
+		"kompiler": "file:../kompiler",
+		"dom-flair": "file:../dom-flair",
+		"pota": "file:../pota",
+		"tm-textarea": "file:../solid/tm-textarea"
 	},
 	"kompiler": {
 		"watch": ["../pota/babel-preset"],

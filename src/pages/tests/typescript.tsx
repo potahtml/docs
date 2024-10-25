@@ -81,36 +81,44 @@ function Button2({ ...allProps }: ButtonProps2) {
 }
 
 // 💥 This breaks, as we omitted type
-  const z = <Button2 type="button">Hi</Button>
-
+const z = <Button2 type="button">Hi</Button2>
 
 // required
 
 type MakeRequired<T, K extends keyof T> = Omit<T, K> &
-  Required<{ [P in K]: T[P] }>;
+	Required<{ [P in K]: T[P] }>
 
-
-type ImgProps
-  = MakeRequired<
-    JSX.IntrinsicElements["img"],
-    "alt" | "src"
-  >;
+type ImgProps = MakeRequired<
+	JSX.IntrinsicElements['img'],
+	'alt' | 'src'
+>
 
 export function Img({ alt, ...allProps }: ImgProps) {
-  return <img alt={alt} {...allProps} />;
+	return (
+		<img
+			alt={alt}
+			{...allProps}
+		/>
+	)
 }
 
-const zz = <Img alt="..." src="..." />;
+const zz = (
+	<Img
+		alt="..."
+		src="..."
+	/>
+)
 
 // re-writes a prop
 
-type ControlledProps =
-  Omit<JSX.IntrinsicElements["input"], "value"> & {
-    value?: string;
-  };
+type ControlledProps = Omit<
+	JSX.IntrinsicElements['input'],
+	'value'
+> & {
+	value?: string
+}
 
-
-const Div = <div/>
+const Div = <div />
 
 function typescript(props) {
 	return (
@@ -129,7 +137,7 @@ function typescript(props) {
 			<Button style:stroke="antiquewhite" />
 			<Card title="lala">lala</Card>
 			<LoginMsg name="name" />
-			<Div/>
+			<Div />
 			<span
 				ref={element => {
 					console.log(element)

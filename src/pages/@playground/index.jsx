@@ -21,45 +21,45 @@ const themes = [
 	'aurora-x',
 	'ayu-dark',
 	'catppuccin-frappe',
-	'catppuccin-latte',
+	/*'catppuccin-latte',*/
 	'catppuccin-macchiato',
 	'catppuccin-mocha',
 	'dark-plus',
 	'dracula-soft',
 	'dracula',
-	'everforest-dark',
+	/*'everforest-dark',*/
 	'everforest-light',
 	'github-dark-default',
 	'github-dark-dimmed',
 	'github-dark-high-contrast',
 	'github-dark',
-	'github-light-default',
-	'github-light-high-contrast',
-	'github-light',
+	/*'github-light-default',*/
+	/*'github-light-high-contrast',*/
+	/*'github-light',*/
 	'houston',
 	'laserwave',
-	'light-plus',
+	/*'light-plus',*/
 	'material-theme-darker',
 	'material-theme-lighter',
 	'material-theme-ocean',
 	'material-theme-palenight',
 	'material-theme',
 	'min-dark',
-	'min-light',
+	/*'min-light',*/
 	'monokai',
 	'night-owl',
 	'nord',
 	'one-dark-pro',
-	'one-light',
+	/*'one-light',*/
 	'plastic',
 	'poimandres',
 	'red',
-	'rose-pine-dawn',
+	/*'rose-pine-dawn',*/
 	'rose-pine-moon',
 	'rose-pine',
 	'slack-dark',
-	'slack-ochin',
-	'snazzy-light',
+	/*'slack-ochin',*/
+	/*'snazzy-light',*/
 	'solarized-dark',
 	'solarized-light',
 	'synthwave-84',

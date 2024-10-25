@@ -12,7 +12,7 @@ import Routes from './@routes.jsx'
 import { Bench } from './lib/components/bench/bench.jsx'
 
 // tm
-import { setCDN } from 'tm-textarea/cdn'
+// import { setCDN } from 'tm-textarea/cdn'
 // setCDN('/assets/tm')
 
 import 'tm-textarea'

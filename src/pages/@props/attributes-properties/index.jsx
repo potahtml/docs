@@ -17,28 +17,12 @@ export default function () {
 
 				<ol>
 					<li>
-						the element has a dash on the <mark>tagName</mark>, as
-						custom elements do
+						<mark>tagName</mark> has a dash (as custom-elements do)
+						and <mark>propName</mark> is a setter
 					</li>
 					<li>
-						value is <mark>object</mark>, <mark>null</mark> or{' '}
-						<mark>undefined</mark>
-					</li>
-					<li>
-						value is <mark>boolean</mark> and <mark>name</mark> doesnt
-						contain hyphens
-					</li>
-				</ol>
-
-				<p>
-					<mark>setAttribute</mark> will be also used when any of the
-					following is true:
-				</p>
-
-				<ol>
-					<li>
-						value is <mark>not an object</mark>, <mark>null</mark> or{' '}
-						<mark>undefined</mark>
+						the value is different than <mark>string</mark> and
+						element has a <mark>propName</mark> setter
 					</li>
 				</ol>
 

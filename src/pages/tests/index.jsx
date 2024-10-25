@@ -1,6 +1,8 @@
 import { Pota, render } from 'pota'
 
 class MyComponent extends Pota {
+	props = { some: 'lala' }
+
 	ready() {
 		render(<div>ready callback!</div>)
 	}
@@ -16,10 +18,10 @@ class MyComponent extends Pota {
 	}
 }
 
-const dispose = render(
+/*const dispose = render(
 	<MyComponent some="prop test">hello from class!</MyComponent>,
 )
-
+*/
 const Lala = function () {
 	return 'lala'
 }
@@ -27,9 +29,8 @@ const Lala = function () {
 render(
 	<button
 		name="button"
-		onClick={dispose}
+		/*onClick={dispose}*/
 	>
-		<Lala />
-		dispose
+		{/*<Lala />*/}
 	</button>,
 )
