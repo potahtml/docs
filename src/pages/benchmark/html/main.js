@@ -2007,9 +2007,10 @@
 	      }
 	    }
 	  }
-	  _setProperty(node, name, value);
 	  if (!value && node.tagName === 'PROGRESS') {
 	    node.removeAttribute('value');
+	  } else {
+	    _setUnknown(node, name, value);
 	  }
 	}
 
