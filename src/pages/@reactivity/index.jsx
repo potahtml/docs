@@ -24,6 +24,7 @@ export default function () {
 							lazy,
 							map,
 							memo,
+							on,
 							owned,
 							ref,
 							resolve,
@@ -105,6 +106,12 @@ export default function () {
 							<td>void</td>
 
 							<td>function to re-run when dependencies change</td>
+						</tr>
+						<tr>
+							<td>on</td>
+							<td>fn, fn</td>
+							<td>void</td>
+							<td>like effect but only the first function tracks</td>
 						</tr>
 						<tr>
 							<td>syncEffect</td>

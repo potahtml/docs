@@ -9,6 +9,7 @@ signal, // const [read, write] = signal(initialValue)
 
 root, // root(fn)
 effect, // effect(fn)
+on, // on(fnThatTracks, fnThatDoesntTracks)
 syncEffect, // syncEffect(fn)
 asyncEffect, // asyncEffect((previousEffect) => await previousEffect)
 memo, // memo(fn)
