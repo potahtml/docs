@@ -43,5 +43,8 @@ if (code.startsWith('Error:')) {
 	const script = document.createElement('script')
 	script.type = 'module'
 	script.textContent = code
+
+	document.body.textContent = ''
+
 	document.head.append(script)
 }

@@ -526,7 +526,7 @@
 	      Owner = prevOwner;
 	      Listener = prevListener;
 	    }
-	    if (this.updatedAt <= time) {
+	    if (this.updatedAt < time) {
 	      this.updatedAt = time;
 	    }
 	  }
@@ -1142,6 +1142,43 @@
 
 	// MAP
 
+	class Row {
+	  runId;
+	  item;
+	  index;
+	  isDupe;
+	  disposer;
+	  nodes;
+	  constructor(item, index, fn, isDupe) {
+	    this.runId = -1;
+	    this.item = item;
+	    this.index = index;
+	    this.isDupe = isDupe;
+	    root(disposer => {
+	      this.disposer = disposer;
+	      /** @type Children[] */
+	      this.nodes = fn(item, index);
+	    });
+	  }
+	  begin() {
+	    return this.nodes[0];
+	  }
+	  end() {
+	    return this.nodes[this.nodes.length - 1];
+	  }
+	  nodesForRow() {
+	    const begin = this.begin();
+	    const end = this.end();
+	    const nodes = [begin];
+	    let nextSibling = begin;
+	    while (nextSibling !== end) {
+	      nextSibling = nextSibling.nextSibling;
+	      nodes.push(nextSibling);
+	    }
+	    return nodes;
+	  }
+	}
+
 	/**
 	 * Reactive Map
 	 *
@@ -1160,7 +1197,7 @@
 	  let prev = [];
 	  function clear() {
 	    for (let i = 0; i < prev.length; i++) {
-	      prev[i].dispose(true);
+	      dispose(prev[i], true);
 	    }
 	    cache.clear();
 	    duplicates.clear();
@@ -1170,38 +1207,18 @@
 
 	  // to get rid of all nodes when parent disposes
 	  cleanup(clear);
-	  class Row {
-	    constructor(item, index, fn, isDupe) {
-	      this.runId = -1;
-	      this.item = item;
-	      this.index = index;
-	      this.isDupe = isDupe;
-	      this.disposer = undefined;
-	      this.nodes = root(disposer => {
-	        this.disposer = disposer;
-	        /** @type Children[] */
-	        return fn(item, index);
-	      });
-	    }
-	    get begin() {
-	      return this.nodes[0];
-	    }
-	    get end() {
-	      return this.nodes[this.nodes.length - 1];
-	    }
-	    dispose(all) {
-	      // skip cache deletion as we are going to clear the full map
-	      if (all === undefined) {
-	        // delete from cache
-	        if (!this.isDupe) {
-	          cache.delete(this.item);
-	        } else {
-	          const arr = duplicates.get(this.item);
-	          arr.length === 1 ? duplicates.delete(this.item) : removeFromArray(arr, this);
-	        }
+	  function dispose(row, all) {
+	    // skip cache deletion as we are going to clear the full map
+	    if (all === undefined) {
+	      // delete from cache
+	      if (!row.isDupe) {
+	        cache.delete(row.item);
+	      } else {
+	        const arr = duplicates.get(row.item);
+	        arr.length === 1 ? duplicates.delete(row.item) : removeFromArray(arr, row);
 	      }
-	      this.disposer();
 	    }
+	    row.disposer();
 	  }
 
 	  /**
@@ -1254,7 +1271,7 @@
 	    } else {
 	      for (let i = 0; i < prev.length; i++) {
 	        if (prev[i].runId !== runId) {
-	          prev[i].dispose();
+	          dispose(prev[i]);
 	        }
 	      }
 	    }
@@ -1285,11 +1302,11 @@
 	          for (const usort of b) {
 	            for (const sort of a) {
 	              if (usort.index === sort.index - 1) {
-	                sort.begin.before(...nodesFromRow(usort));
+	                sort.begin().before(...usort.nodesForRow());
 	                unsorted--;
 	                break;
 	              } else if (usort.index === sort.index + 1) {
-	                sort.end.after(...nodesFromRow(usort));
+	                sort.end().after(...usort.nodesForRow());
 	                unsorted--;
 	                break;
 	              }
@@ -1304,8 +1321,8 @@
 	          let current = rows[rows.length - 1];
 	          for (let i = rows.length - 1; i > 0; i--) {
 	            const previous = rows[i - 1];
-	            if (current.begin.previousSibling !== previous.end) {
-	              current.begin.before(...nodesFromRow(previous));
+	            if (current.begin().previousSibling !== previous.end()) {
+	              current.begin().before(...previous.nodesForRow());
 	            }
 	            current = previous;
 	          }
@@ -1321,19 +1338,6 @@
 	  }
 	  mapper[$isMap] = undefined;
 	  return mapper;
-	}
-	function nodesFromRow(row) {
-	  const {
-	    begin,
-	    end
-	  } = row;
-	  const nodes = [begin];
-	  let nextSibling = begin;
-	  while (nextSibling !== end) {
-	    nextSibling = nextSibling.nextSibling;
-	    nodes.push(nextSibling);
-	  }
-	  return nodes;
 	}
 
 	/**
@@ -1899,8 +1903,7 @@
 	 */
 	function setNodeStyle(style, value) {
 	  if (isObject(value)) {
-	    let name;
-	    for (name in value) {
+	    for (const name in value) {
 	      setStyleValue(style, name, value[name]);
 	    }
 	    return;
@@ -2111,6 +2114,7 @@
 	    assignProp(node, name, props[name], props);
 	  }
 	}
+	const propNS = empty();
 
 	/**
 	 * Assigns a prop to an Element
@@ -2135,9 +2139,10 @@
 	    value && addEventListener$1(node, event, ownedEvent(value));
 	    return;
 	  }
-	  if (name.includes(':')) {
+	  if (propNS[name] || name.includes(':')) {
 	    // with ns
-	    const [ns, localName] = name.split(':');
+	    propNS[name] = propNS[name] || name.split(':');
+	    const [ns, localName] = propNS[name];
 
 	    // run plugins NS
 	    plugin = pluginsNS.get(ns);
@@ -2329,6 +2334,15 @@
 	    case 'string':
 	    case 'number':
 	      {
+	        /**
+	         * The text node could be created by just doing
+	         * `parent.textContent = value` when the parent node has no
+	         * children.
+	         */
+	        if (!relative && parent.childNodes.length === 0) {
+	          parent.textContent = child;
+	          return parent.firstChild;
+	        }
 	        if (prev instanceof Text) {
 	          prev.nodeValue = child;
 	          return prev;
@@ -2361,7 +2375,7 @@
 	              const begin = createPlaceholder(parent, undefined /*begin*/, true);
 	              const end = createPlaceholder(parent, undefined /*end*/, true);
 	              return [begin, createChildren(end, child, true), end];
-	            }));
+	            }), true);
 	          });
 	          cleanup(() => {
 	            toDiff(node);
@@ -2373,7 +2387,7 @@
 	        // maybe a signal so needs an effect
 
 	        effect(() => {
-	          node = toDiff(node, [createChildren(parent, child(), true, node[0])]);
+	          node = toDiff(node, [createChildren(parent, child(), true, node[0])], true);
 	        });
 	        cleanup(() => {
 	          toDiff(node);
@@ -2636,8 +2650,20 @@
 	 * @param {Element[]} next - Array with next elements
 	 * @returns {Element[]}
 	 */
-	function toDiff(prev = [], next = []) {
+	function toDiff(prev = [], next = [], short = false) {
 	  next = next.flat(Infinity);
+	  // fast clear
+	  if (short && prev.length && next.length === 0) {
+	    // + 1 because of the original placeholder
+	    if (prev.length + 1 === prev[0].parentNode.childNodes.length) {
+	      const parent = prev[0].parentNode;
+	      // save the placeholder
+	      const child = parent.lastChild;
+	      parent.textContent = '';
+	      parent.append(child);
+	      return;
+	    }
+	  }
 	  for (let i = 0, item; i < prev.length; i++) {
 	    item = prev[i];
 	    item && (next.length === 0 || !next.includes(item)) && item.remove();
@@ -3374,6 +3400,7 @@
 	// parseHTML
 
 	const id = 'pota19611227';
+	const splitId = /(pota19611227)/;
 	const xmlns = ['class', 'on', 'prop', 'attr', 'bool', 'style', 'var', 'onMount', 'onUnmount', 'ref'].map(ns => `xmlns:${ns}="/"`).join(' ');
 
 	/**
@@ -3407,6 +3434,9 @@
 	      } of node.attributes) {
 	        if (value === id) {
 	          value = values[index++];
+	        } else if (value.includes(id)) {
+	          const val = value.split(splitId).map(x => x === id ? values[index++] : x);
+	          value = () => val.map(getValue).join('');
 	        }
 	        props[name] = value;
 	      }
@@ -3417,21 +3447,8 @@
 	      }
 	      return Component(html.components[tagName] || tagName, props);
 	    } else {
-	      if (node.data.includes(id)) {
-	        const textNodes = node.data.split(id);
-	        const nodes = [];
-	        for (let i = 0; i < textNodes.length; i++) {
-	          const text = textNodes[i];
-	          if (text) {
-	            nodes.push(createTextNode(text));
-	          }
-	          if (i < textNodes.length - 1) {
-	            nodes.push(values[index++]);
-	          }
-	        }
-	        return nodes;
-	      }
-	      return createTextNode(node.data);
+	      const value = node.nodeValue;
+	      return value.includes(id) ? value.split(splitId).map(x => x === id ? values[index++] : x) : value;
 	    }
 	  }
 	  return flat(toArray(cached.childNodes).map(nodes));

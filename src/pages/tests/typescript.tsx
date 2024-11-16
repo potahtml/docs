@@ -128,6 +128,7 @@ function typescript(props) {
 			aria-readonly={true}
 			what-what="aer"
 			class:lalala={true}
+			bool:bla={true}
 			data-pathname={location.pathname}
 			on:click={e => {
 				console.log(e, e.currentTarget)
