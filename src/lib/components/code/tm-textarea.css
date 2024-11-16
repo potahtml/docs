@@ -7,7 +7,7 @@ tm-textarea {
 	font-size: 18px;
 	line-height: 1.25;
 
-	tab-size: 2;
+	tab-size: 1 !important;
 }
 
 /* change background */

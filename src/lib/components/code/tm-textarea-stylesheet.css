@@ -2,4 +2,5 @@ code,
 code * {
 	text-decoration: initial !important;
 	font-style: normal !important;
+	tab-size: 1 !important;
 }
