@@ -97,7 +97,7 @@ export default function Home() {
 					<li>
 						Utilities to track objects, as <mark>mutable</mark>,{' '}
 						<mark>signalify</mark> with reconcile-like apis. See{' '}
-						<a href="/Reactivity/">Reactivity</a>
+						<a href="/Store/">Stores</a>
 					</li>
 				</ol>
 			</Section>

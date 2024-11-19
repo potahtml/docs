@@ -5,7 +5,7 @@ import { Section } from '../../lib/components/section.jsx'
 export default function () {
 	return (
 		<>
-			<Header title="Stores">
+			<Header title="Store">
 				Utilities to make and modify reactive objects
 			</Header>
 

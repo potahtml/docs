@@ -31,7 +31,7 @@
 	const stringify = JSON.stringify;
 	const history = global.history;
 	const location$1 = global.location;
-	const origin$1 = location$1.origin;
+	const origin$1 = location$1?.origin;
 	const promise = fn => new Promise$1(fn);
 
 	/**
@@ -48,7 +48,7 @@
 	const removeAttribute = (node, name) => node.removeAttribute(name);
 	const isConnected = node => node.isConnected;
 	const activeElement = () => document$1.activeElement;
-	const documentElement = document$1.documentElement;
+	const documentElement = document$1?.documentElement;
 
 	/**
 	 * Runs an array of functions
@@ -58,7 +58,7 @@
 	const call = fns => {
 	  for (const fn of fns) fn();
 	};
-	const bind = fn => document$1[fn].bind(document$1);
+	const bind = fn => document$1 && document$1[fn].bind(document$1);
 	const createElement = bind('createElement');
 	const createElementNS = bind('createElementNS');
 	const createTextNode = bind('createTextNode');
@@ -1279,7 +1279,7 @@
 	    // reorder elements
 	    // `rows.length > 1` because no need for sorting when there are no items
 	    // prev.length > 0 to skip sorting on creation as its already sorted
-	    if (sort && rows.length > 1 && prev.length) {
+	    if (rows.length > 1 && prev.length) {
 	      // when appending to already created it shouldnt sort
 	      // as its already sorted
 	      let sort = false;
@@ -2818,7 +2818,7 @@
 	const For = props => map(() => {
 	  props.restoreFocus && queue();
 	  return props.each;
-	}, makeCallback(props.children), true);
+	}, makeCallback(props.children));
 	let queued;
 
 	// because re-ordering the elements trashes focus
