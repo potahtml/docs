@@ -28,7 +28,6 @@
 	const toArray = Array.from;
 	const iterator = Symbol.iterator;
 	const stringify = JSON.stringify;
-	const location = global.location;
 
 	/**
 	 * Given a promise it adds `onDone` to `then` and `catch`
@@ -41,8 +40,13 @@
 	 */
 	const resolved = (promise, onDone) => promise.then(onDone).catch(onDone);
 	const isConnected = node => node.isConnected;
-	const activeElement = () => document$1.activeElement;
-	const documentElement = document$1?.documentElement;
+	function moveBefore(parent, node, ref) {
+	  try {
+	    parent.moveBefore(node, ref);
+	  } catch (bs) {
+	    parent.insertBefore(node, ref);
+	  }
+	}
 
 	/**
 	 * Runs an array of functions
@@ -1089,14 +1093,28 @@
 	        } = groupBy(rows, (value, index) => rows[index] === prev[index] ? 'a' : 'b');
 	        let unsorted = b?.length;
 	        if (a && b && a.length && b.length && b.length < a.length && b.every(item => prev.includes(item))) {
+	          let parent;
 	          for (const usort of b) {
 	            for (const sort of a) {
 	              if (usort.index === sort.index - 1) {
-	                sort.begin().before(...usort.nodesForRow());
+	                // sort.begin().before(...usort.nodesForRow())
+	                const ref = sort.begin();
+	                parent = parent || ref.parentNode;
+	                for (const node of usort.nodesForRow()) {
+	                  // parent.insertBefore(node, ref)
+	                  moveBefore(parent, node, ref);
+	                }
 	                unsorted--;
 	                break;
 	              } else if (usort.index === sort.index + 1) {
-	                sort.end().after(...usort.nodesForRow());
+	                // sort.end().after(...usort.nodesForRow())
+	                let ref = sort.end();
+	                parent = parent || ref.parentNode;
+	                ref = ref.nextSibling;
+	                for (const node of usort.nodesForRow()) {
+	                  // parent.insertBefore(node, ref)
+	                  moveBefore(parent, node, ref);
+	                }
 	                unsorted--;
 	                break;
 	              }
@@ -1107,12 +1125,18 @@
 	          // handles all other cases
 	          // best for any combination of: push/pop/shift/unshift/insertion/deletion
 	          // must check in reverse as on creation stuff is added to the end
-
+	          let parent;
 	          let current = rows[rows.length - 1];
 	          for (let i = rows.length - 1; i > 0; i--) {
 	            const previous = rows[i - 1];
 	            if (current.begin().previousSibling !== previous.end()) {
-	              current.begin().before(...previous.nodesForRow());
+	              // current.begin().before(...previous.nodesForRow())
+	              const ref = current.begin();
+	              parent = parent || ref.parentNode;
+	              for (const node of previous.nodesForRow()) {
+	                // parent.insertBefore(node, ref)
+	                moveBefore(parent, node, ref);
+	              }
 	            }
 	            current = previous;
 	          }
@@ -1280,9 +1304,9 @@
 	let added;
 
 	/** @type [][] */
-	let queue$1;
+	let queue;
 	function reset() {
-	  queue$1 = [[], [], [], [], [], []];
+	  queue = [[], [], [], [], [], []];
 	  added = false;
 	}
 
@@ -1301,12 +1325,12 @@
 	    added = true;
 	    queueMicrotask(run);
 	  }
-	  queue$1[priority].push(owned(fn));
+	  queue[priority].push(owned(fn));
 	}
 
 	/** Runs all queued callbacks */
 	function run() {
-	  const q = queue$1;
+	  const q = queue;
 	  reset();
 	  for (const fns of q) {
 	    fns.length && call(fns);
@@ -2441,39 +2465,12 @@
 	 * @template T
 	 * @param {object} props
 	 * @param {Each<T>} props.each
-	 * @param {boolean} [props.restoreFocus] - If the focused element
-	 *   moves it may lose focus
 	 * @param {Children} [props.children]
 	 * @returns {Children}
 	 * @url https://pota.quack.uy/Components/For
 	 */
 
-	const For = props => map(() => {
-	  props.restoreFocus && queue();
-	  return props.each;
-	}, makeCallback(props.children));
-	let queued;
-
-	// because re-ordering the elements trashes focus
-	function queue() {
-	  if (!queued) {
-	    queued = true;
-	    const active = activeElement();
-	    const scroll = documentElement.scrollTop;
-	    onFixes(() => {
-	      queued = false;
-	      // re-ordering the elements trashes focus
-	      active && active !== activeElement() && isConnected(active) && active.focus();
-	      documentElement.scrollTop = scroll;
-	    });
-	  }
-	}
-
-	// window.location signal
-
-	const [getLocation, setLocation] = signal(location, {
-	  equals: false
-	});
+	const For = props => map(props.each, makeCallback(props.children));
 
 	/**
 	 * Returns a `isSelected` function that will return `true` when the
