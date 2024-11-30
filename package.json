@@ -89,6 +89,7 @@
 		"arrowParens": "avoid",
 		"proseWrap": "never",
 		"endOfLine": "lf",
-		"singleAttributePerLine": true
+		"singleAttributePerLine": true,
+		"embeddedLanguageFormatting": "off"
 	}
 }
