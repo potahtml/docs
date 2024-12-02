@@ -1,0 +1,46 @@
+{
+
+"imports": {
+
+"pota": "http://localhost:11433/node_modules/pota/src/@main.js",
+
+"pota/babel-preset": "http://localhost:11433/node_modules/pota/babel-preset/index.js",
+"pota/jsx-runtime": "http://localhost:11433/node_modules/pota/src/jsx-runtime.js",
+
+"pota/html": "http://localhost:11433/node_modules/pota/src/html.js",
+"pota/web": "http://localhost:11433/node_modules/pota/src/web/@main.js",
+
+"pota/plugin/bind": "http://localhost:11433/node_modules/pota/src/plugin/bind.js",
+"pota/plugin/clickOutside": "http://localhost:11433/node_modules/pota/src/plugin/clickOutside.js",
+"pota/plugin/clipboard": "http://localhost:11433/node_modules/pota/src/plugin/clipboard.js",
+"pota/plugin/fullscreen": "http://localhost:11433/node_modules/pota/src/plugin/fullscreen.js",
+"pota/plugin/useBrowser": "http://localhost:11433/node_modules/pota/src/plugin/useBrowser.js",
+"pota/plugin/useColor": "http://localhost:11433/node_modules/pota/src/plugin/useColor.js",
+"pota/plugin/useDocumentFocus": "http://localhost:11433/node_modules/pota/src/plugin/useDocumentFocus.js",
+"pota/plugin/useDocumentSize": "http://localhost:11433/node_modules/pota/src/plugin/useDocumentSize.js",
+"pota/plugin/useDocumentVisible": "http://localhost:11433/node_modules/pota/src/plugin/useDocumentVisible.js",
+"pota/plugin/useFocus": "http://localhost:11433/node_modules/pota/src/plugin/useFocus.js",
+"pota/plugin/useFullscreen": "http://localhost:11433/node_modules/pota/src/plugin/useFullscreen.js",
+"pota/plugin/useLocation": "http://localhost:11433/node_modules/pota/src/plugin/useLocation.js",
+"pota/plugin/useOrientation": "http://localhost:11433/node_modules/pota/src/plugin/useOrientation.js",
+"pota/plugin/usePaginate": "http://localhost:11433/node_modules/pota/src/plugin/usePaginate.js",
+"pota/plugin/usePolyfills": "http://localhost:11433/node_modules/pota/src/plugin/usePolyfills.js",
+"pota/plugin/useRandom": "http://localhost:11433/node_modules/pota/src/plugin/useRandom.js",
+"pota/plugin/useScroll": "http://localhost:11433/node_modules/pota/src/plugin/useScroll.js",
+"pota/plugin/useSelector": "http://localhost:11433/node_modules/pota/src/plugin/useSelector.js",
+"pota/plugin/useStream": "http://localhost:11433/node_modules/pota/src/plugin/useStream.js",
+"pota/plugin/useString": "http://localhost:11433/node_modules/pota/src/plugin/useString.js",
+"pota/plugin/useTest": "http://localhost:11433/node_modules/pota/src/plugin/useTest.js",
+"pota/plugin/useTime": "http://localhost:11433/node_modules/pota/src/plugin/useTime.js",
+"pota/plugin/useTimeout": "http://localhost:11433/node_modules/pota/src/plugin/useTimeout.js",
+"pota/plugin/useURL": "http://localhost:11433/node_modules/pota/src/plugin/useURL.js",
+
+"pota/experiments": "http://localhost:11433/node_modules/pota/src/lib/experiments.js",
+"pota/reactive": "http://localhost:11433/node_modules/pota/src/lib/reactive.js",
+"pota/std": "http://localhost:11433/node_modules/pota/src/lib/std.js",
+"pota/store": "http://localhost:11433/node_modules/pota/src/lib/store.js",
+
+"x/articles/": "/pages/@articles/"
+
+}
+}

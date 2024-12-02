@@ -14,6 +14,7 @@ const prettierConfig = {
 	proseWrap: 'never',
 	endOfLine: 'lf',
 	singleAttributePerLine: false,
+	embeddedLanguageFormatting: 'off',
 }
 
 export function prettier(code, playground = false) {

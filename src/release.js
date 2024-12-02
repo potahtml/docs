@@ -82,11 +82,17 @@ export function pre() {
 		'"/node_modules/',
 		'"https://pota.quack.uy/node_modules/',
 	)
+	const importmapLocal = importmapQuack.replaceAll(
+		'https://pota.quack.uy',
+		'http://localhost:11433',
+	)
 
 	if (read('./src/importmap/importmap.json') !== importmap)
 		write('./src/importmap/importmap.json', importmap)
 	if (read('./src/importmap/importmap.quack.json') !== importmapQuack)
 		write('./src/importmap/importmap.quack.json', importmapQuack)
+	if (read('./src/importmap/importmap.local.json') !== importmapLocal)
+		write('./src/importmap/importmap.local.json', importmapLocal)
 }
 
 export function post() {}

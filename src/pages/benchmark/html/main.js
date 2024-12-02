@@ -62,6 +62,7 @@
 	const createElement = bind('createElement');
 	const createElementNS = bind('createElementNS');
 	const createTextNode = bind('createTextNode');
+	const createComment = bind('createComment');
 	bind('importNode');
 	bind('createTreeWalker');
 
@@ -2334,6 +2335,11 @@
 	    case 'string':
 	    case 'number':
 	      {
+	        if (prev instanceof Text) {
+	          prev.nodeValue = child;
+	          return prev;
+	        }
+
 	        /**
 	         * The text node could be created by just doing
 	         * `parent.textContent = value` when the parent node has no
@@ -2342,10 +2348,6 @@
 	        if (!relative && parent.childNodes.length === 0) {
 	          parent.textContent = child;
 	          return parent.firstChild;
-	        }
-	        if (prev instanceof Text) {
-	          prev.nodeValue = child;
-	          return prev;
 	        }
 	        return insertNode(parent, createTextNode(child), relative);
 	      }
@@ -2406,8 +2408,17 @@
 	      }
 	    case 'object':
 	      {
-	        // HTMLElement/Text
-	        if (child instanceof HTMLElement || child instanceof Text) {
+	        // Node/DocumentFragment
+	        if (child instanceof Node) {
+	          /**
+	           * DocumentFragment are special as only the children get added
+	           * to the document and the document becomes empty. If we dont
+	           * insert them 1 by 1 then we wont have a reference to them
+	           * for deletion on cleanup with node.remove()
+	           */
+	          if (child instanceof DocumentFragment) {
+	            return toArray(child.childNodes, child => createChildren(parent, child, relative));
+	          }
 	          return insertNode(parent, child, relative);
 	        }
 
@@ -2424,20 +2435,6 @@
 	          return undefined;
 	        }
 
-	        // Node/DocumentFragment
-	        if (child instanceof Node) {
-	          /**
-	           * DocumentFragment are special as only the children get added
-	           * to the document and the document becomes empty. If we dont
-	           * insert them 1 by 1 then we wont have a reference to them
-	           * for deletion on cleanup with node.remove()
-	           */
-	          if (child instanceof DocumentFragment) {
-	            return createChildren(parent, toArray(child.childNodes), relative);
-	          }
-	          return insertNode(parent, child, relative);
-	        }
-
 	        // async components
 	        if ('then' in child) {
 	          const [value, setValue] = signal(undefined);
@@ -2448,7 +2445,7 @@
 
 	        // iterable/Map/Set/NodeList
 	        if (iterator in child) {
-	          return createChildren(parent, toArray(child.values()), relative);
+	          return toArray(child.values(), child => createChildren(parent, child, relative));
 	        }
 
 	        // CSSStyleSheet
@@ -3183,12 +3180,20 @@
 	 * @url https://pota.quack.uy/Components/Show
 	 */
 	function Show(props) {
+	  // fallback
+	  const fallback = isNullUndefined(props.fallback) ? undefined : memo(() => resolve(props.fallback));
+
+	  // callback
 	  const callback = makeCallback(props.children);
+
+	  // shortcircuit non-functions
+	  if (!isFunction(props.when)) {
+	    return props.when ? callback(props.when) : fallback;
+	  }
+
+	  // signals/functions
 	  const value = memo(() => getValue(props.when));
 	  const condition = memo(() => !!value());
-
-	  // needs resolve to avoid re-rendering
-	  const fallback = isNullUndefined(props.fallback) ? undefined : memo(() => resolve(props.fallback));
 	  return memo(() => condition() ? callback(value) : fallback);
 	}
 
@@ -3409,7 +3414,17 @@
 	 * @param {TemplateStringsArray} content
 	 * @returns {Element}
 	 */
-	const parseHTML = withWeakCache(content => new DOMParser().parseFromString(`<xml ${xmlns}>${content.join(id)}</xml>`, 'text/xml'));
+	const parseHTML = withWeakCache(content => {
+	  const html = new DOMParser().parseFromString(`<xml ${xmlns}>${content.join(id)}</xml>`, 'text/xml').firstChild.childNodes;
+	  if (html[0].tagName === 'parsererror') {
+	    const err = html[0];
+	    err.style.padding = '1em';
+	    err.firstChild.textContent = 'HTML Syntax Error:';
+	    err.firstChild.nextSibling.style.cssText = '';
+	    err.lastChild.replaceWith(createTextNode(content));
+	  }
+	  return html;
+	});
 
 	/**
 	 * Recursively walks a template and transforms it to `h` calls
@@ -3422,8 +3437,8 @@
 	function toH(html, cached, values) {
 	  let index = 0;
 	  function nodes(node) {
-	    // Node.ELEMENT_NODE
 	    if (node.nodeType === 1) {
+	      // element
 	      const tagName = node.tagName;
 
 	      // gather props
@@ -3442,16 +3457,30 @@
 	      }
 
 	      // gather children
-	      if (node.childNodes.length) {
-	        props.children = flat(toArray(node.childNodes).map(nodes));
+	      const childNodes = node.childNodes;
+	      if (childNodes.length) {
+	        props.children = flat(toArray(childNodes, nodes));
 	      }
+	      /[A-Z]/.test(tagName) && !html.components[tagName] && console.warn(`Forgot to ´html.define({ ${tagName} })´?`);
 	      return Component(html.components[tagName] || tagName, props);
-	    } else {
+	    } else if (node.nodeType === 3) {
+	      // text
 	      const value = node.nodeValue;
 	      return value.includes(id) ? value.split(splitId).map(x => x === id ? values[index++] : x) : value;
+	    } else if (node.nodeType === 8) {
+	      // comment
+	      const value = node.nodeValue;
+	      if (value.includes(id)) {
+	        const val = value.split(splitId).map(x => x === id ? values[index++] : x);
+	        return () => createComment(val.map(getValue).join(''));
+	      } else {
+	        return createComment(value);
+	      }
+	    } else {
+	      console.error(`html: ´nodeType´ not supported ´${node.nodeType}´`);
 	    }
 	  }
-	  return flat(toArray(cached.childNodes).map(nodes));
+	  return flat(toArray(cached, nodes));
 	}
 
 	/**
@@ -3476,7 +3505,7 @@
 
 	  function html(template, ...values) {
 	    const cached = parseHTML(template);
-	    return toH(html, cached.firstChild, values);
+	    return toH(html, cached, values);
 	  }
 	  html.components = {
 	    ...defaultRegistry

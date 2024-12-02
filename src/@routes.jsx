@@ -188,13 +188,6 @@ export default function Routes() {
 
 				<Router
 					path=":path$"
-					params={{ path: 'autofocus' }}
-					children={load(
-						() => import('./pages/@plugin/autofocus/index.jsx'),
-					)}
-				/>
-				<Router
-					path=":path$"
 					params={{ path: 'bind' }}
 					children={load(
 						() => import('./pages/@plugin/bind/index.jsx'),
@@ -208,13 +201,7 @@ export default function Routes() {
 						() => import('./pages/@plugin/clickOutside/index.jsx'),
 					)}
 				/>
-				<Router
-					path=":path$"
-					params={{ path: 'pasteTextPlain' }}
-					children={load(
-						() => import('./pages/@plugin/pasteTextPlain/index.jsx'),
-					)}
-				/>
+
 				<Router
 					path=":path$"
 					params={{ path: 'clipboard' }}

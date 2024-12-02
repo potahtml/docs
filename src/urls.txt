@@ -49,12 +49,10 @@
 /node_modules/pota/src/jsx-runtime.js
 /node_modules/pota/src/html.js
 /node_modules/pota/src/web/@main.js
-/node_modules/pota/src/plugin/autofocus.js
 /node_modules/pota/src/plugin/bind.js
 /node_modules/pota/src/plugin/clickOutside.js
 /node_modules/pota/src/plugin/clipboard.js
 /node_modules/pota/src/plugin/fullscreen.js
-/node_modules/pota/src/plugin/pasteTextPlain.js
 /node_modules/pota/src/plugin/useBrowser.js
 /node_modules/pota/src/plugin/useColor.js
 /node_modules/pota/src/plugin/useDocumentFocus.js

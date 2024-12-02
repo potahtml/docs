@@ -22,10 +22,8 @@ export default function () {
 						code={`
  // props plugins
 
-import 'pota/plugin/autofocus'
 import { bind } from 'pota/plugin/bind'
 import 'pota/plugin/clickOutside'
-import 'pota/plugin/pasteTextPlain'
 import 'pota/plugin/clipboard'
 import 'pota/plugin/fullscreen'
 
@@ -96,20 +94,12 @@ import { useTimeout } from 'pota/plugin/useTimeout'
 
 				<ol>
 					<li>
-						<a href="/plugin/autofocus">autofocus</a> - automatically
-						focus the field
-					</li>
-					<li>
 						<a href="/plugin/bind">bind</a> - automatically bind the
 						value of a form field to a signal
 					</li>
 					<li>
 						<a href="/plugin/clickOutside">clickOutside</a> - runs a
 						function when clicking outside the element
-					</li>
-					<li>
-						<a href="/plugin/pasteTextPlain">pasteTextPlain</a> -
-						forces pasting as text/plain
 					</li>
 					<li>
 						<a href="/plugin/clipboard">clipboard</a> - allows to copy

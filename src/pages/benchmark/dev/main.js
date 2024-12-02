@@ -55,6 +55,7 @@
 	const createElement = bind('createElement');
 	const createElementNS = bind('createElementNS');
 	const createTextNode = bind('createTextNode');
+	bind('createComment');
 	const importNode = bind('importNode');
 	const createTreeWalker = bind('createTreeWalker');
 
@@ -2029,14 +2030,16 @@
 	  template.innerHTML = content;
 
 	  // xml
-	  if (!template.content) {
-	    if (template.childNodes.length === 1) {
+	  let tlpContent = template.content;
+	  if (!tlpContent) {
+	    const childNodes = template.childNodes;
+	    if (childNodes.length === 1) {
 	      return template.firstChild;
 	    }
-	    template.content = new DocumentFragment();
-	    template.content.append(...template.childNodes);
+	    tlpContent = new DocumentFragment();
+	    tlpContent.append(...childNodes);
 	  }
-	  return template.content.childNodes.length === 1 ? template.content.firstChild : template.content;
+	  return tlpContent.childNodes.length === 1 ? tlpContent.firstChild : tlpContent;
 	}
 	function createPartial(content, propsData = nothing) {
 	  let clone = () => {
@@ -2096,6 +2099,11 @@
 	    case 'string':
 	    case 'number':
 	      {
+	        if (prev instanceof Text) {
+	          prev.nodeValue = child;
+	          return prev;
+	        }
+
 	        /**
 	         * The text node could be created by just doing
 	         * `parent.textContent = value` when the parent node has no
@@ -2104,10 +2112,6 @@
 	        if (!relative && parent.childNodes.length === 0) {
 	          parent.textContent = child;
 	          return parent.firstChild;
-	        }
-	        if (prev instanceof Text) {
-	          prev.nodeValue = child;
-	          return prev;
 	        }
 	        return insertNode(parent, createTextNode(child), relative);
 	      }
@@ -2168,8 +2172,17 @@
 	      }
 	    case 'object':
 	      {
-	        // HTMLElement/Text
-	        if (child instanceof HTMLElement || child instanceof Text) {
+	        // Node/DocumentFragment
+	        if (child instanceof Node) {
+	          /**
+	           * DocumentFragment are special as only the children get added
+	           * to the document and the document becomes empty. If we dont
+	           * insert them 1 by 1 then we wont have a reference to them
+	           * for deletion on cleanup with node.remove()
+	           */
+	          if (child instanceof DocumentFragment) {
+	            return toArray(child.childNodes, child => createChildren(parent, child, relative));
+	          }
 	          return insertNode(parent, child, relative);
 	        }
 
@@ -2186,20 +2199,6 @@
 	          return undefined;
 	        }
 
-	        // Node/DocumentFragment
-	        if (child instanceof Node) {
-	          /**
-	           * DocumentFragment are special as only the children get added
-	           * to the document and the document becomes empty. If we dont
-	           * insert them 1 by 1 then we wont have a reference to them
-	           * for deletion on cleanup with node.remove()
-	           */
-	          if (child instanceof DocumentFragment) {
-	            return createChildren(parent, toArray(child.childNodes), relative);
-	          }
-	          return insertNode(parent, child, relative);
-	        }
-
 	        // async components
 	        if ('then' in child) {
 	          const [value, setValue] = signal(undefined);
@@ -2210,7 +2209,7 @@
 
 	        // iterable/Map/Set/NodeList
 	        if (iterator in child) {
-	          return createChildren(parent, toArray(child.values()), relative);
+	          return toArray(child.values(), child => createChildren(parent, child, relative));
 	        }
 
 	        // CSSStyleSheet

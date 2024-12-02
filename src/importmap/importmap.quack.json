@@ -10,12 +10,10 @@
 "pota/html": "https://pota.quack.uy/node_modules/pota/src/html.js",
 "pota/web": "https://pota.quack.uy/node_modules/pota/src/web/@main.js",
 
-"pota/plugin/autofocus": "https://pota.quack.uy/node_modules/pota/src/plugin/autofocus.js",
 "pota/plugin/bind": "https://pota.quack.uy/node_modules/pota/src/plugin/bind.js",
 "pota/plugin/clickOutside": "https://pota.quack.uy/node_modules/pota/src/plugin/clickOutside.js",
 "pota/plugin/clipboard": "https://pota.quack.uy/node_modules/pota/src/plugin/clipboard.js",
 "pota/plugin/fullscreen": "https://pota.quack.uy/node_modules/pota/src/plugin/fullscreen.js",
-"pota/plugin/pasteTextPlain": "https://pota.quack.uy/node_modules/pota/src/plugin/pasteTextPlain.js",
 "pota/plugin/useBrowser": "https://pota.quack.uy/node_modules/pota/src/plugin/useBrowser.js",
 "pota/plugin/useColor": "https://pota.quack.uy/node_modules/pota/src/plugin/useColor.js",
 "pota/plugin/useDocumentFocus": "https://pota.quack.uy/node_modules/pota/src/plugin/useDocumentFocus.js",
