@@ -46,6 +46,9 @@ export default function () {
 				this package is with <b>rollup</b>, unless you can handle vite
 				idiosyncrasies.
 			</Header>
+
+			{/*
+
 			{css`
 				repl-frame {
 					background: blue;
@@ -54,7 +57,7 @@ export default function () {
 				}
 			`}
 
-			{/*<repl-frame
+			<repl-frame
 				runtime={runtime}
 				bodyStyle={{
 					padding: '0px',

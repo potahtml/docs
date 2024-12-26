@@ -12,6 +12,10 @@ export default function Menu() {
 				</li>
 
 				<li>
+					<a href="/typescript">TypeScript</a>
+				</li>
+
+				<li>
 					<a href="/playground">Playground</a>
 				</li>
 			</ul>

@@ -167,10 +167,17 @@ export default function Routes() {
 			/>
 
 			{/* todo remove me*/}
+
 			<Router
 				path=":path$"
 				params={{ path: 'playground' }}
 				children={load(() => import('./pages/@playground/index.jsx'))}
+			/>
+
+			<Router
+				path=":path$"
+				params={{ path: 'typescript' }}
+				children={load(() => import('./pages/typescript/index.jsx'))}
 			/>
 
 			<Router path="plugin/">

@@ -4,8 +4,6 @@ import { Header } from '../lib/components/header.jsx'
 import { Section } from '../lib/components/section.jsx'
 import defaultExample from './@playground/default-example.js'
 
-import { CompilerLess } from './html/compiler-less.jsx'
-
 export default function Home() {
 	return (
 		<>

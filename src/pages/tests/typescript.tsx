@@ -112,12 +112,9 @@ export function Img({ alt, ...allProps }: ImgProps) {
 	)
 }
 
-const zz = (
-	<Img
-		alt="..."
-		src="..."
-	/>
-)
+// 💥 This works, we missing `alt` so its a type error
+
+const zz = <Img src="..." />
 
 // re-writes a prop
 

@@ -58,13 +58,11 @@
 	const call = fns => {
 	  for (const fn of fns) fn();
 	};
-	const bind = fn => document$1 && document$1[fn].bind(document$1);
+	const bind = /* #__NO_SIDE_EFFECTS__ */fn => document$1 && document$1[fn].bind(document$1);
 	const createElement = bind('createElement');
 	const createElementNS = bind('createElementNS');
 	const createTextNode = bind('createTextNode');
 	const createComment = bind('createComment');
-	bind('importNode');
-	bind('createTreeWalker');
 
 	/**
 	 * Returns an object without a prototype
@@ -685,6 +683,11 @@
 
 	// SIGNAL
 
+	/**
+	 * @template const T
+	 * @type SignalObject<T>
+	 * @returns {SignalObject<T>}
+	 */
 	class Signal {
 	  value;
 	  observers;
@@ -706,6 +709,7 @@
 	    }
 	    this.read = markReactive(this.read);
 	  }
+	  /** @type SignalAccessor<T> */
 	  read = () => {
 	    // checkReadForbidden()
 
@@ -728,6 +732,7 @@
 	    }
 	    return this.value;
 	  };
+	  /** @type SignalSetter<T> */
 	  write = value => {
 	    if (this.equals === false || !this.equals(this.value, value)) {
 	      if (this.save) {
@@ -756,6 +761,7 @@
 	    }
 	    return false;
 	  };
+	  /** @type SignalUpdate<T> */
 	  update = value => {
 	    if (isFunction(value)) {
 	      value = value(this.value);
