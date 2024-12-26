@@ -5,11 +5,11 @@ import { Section } from '../../../lib/components/section.jsx'
 export default function () {
 	return (
 		<>
-			<Header title="addEventListener / removeEventListener">
+			<Header title="addEvent / removeEvent">
 				For adding and removing event listeners
 			</Header>
 
-			<Section title="addEventListener Arguments">
+			<Section title="addEvent Arguments">
 				<p>
 					Returns a handy <mark>off</mark> function that uses no
 					arguments, to remove the added event
@@ -53,7 +53,7 @@ export default function () {
 				</table>
 			</Section>
 
-			<Section title="removeEventListener Arguments">
+			<Section title="removeEvent Arguments">
 				<p>
 					Returns a handy <mark>on</mark> function that uses no
 					arguments, to add the event back
@@ -93,7 +93,7 @@ export default function () {
 							</td>
 							<td>
 								reference to the handler that has been added using{' '}
-								<mark>addEventListener</mark>
+								<mark>addEvent</mark>
 							</td>
 						</tr>
 					</tbody>

@@ -7,9 +7,13 @@ const defaultState = {
 			? 'localhost'
 			: 'a.fake.ip.address',
 	images: [],
+	/** @type number[] */
 	keyframes: [],
+	/** @type number[] */
 	toRemove: [],
+	/** @type number[] */
 	forcedKeyframes: [],
+	/** @type boolean */
 	result: false,
 	sidebarExpanded: true,
 	timeline: {},
@@ -39,9 +43,9 @@ function addMockData() {
 function App() {
 	return (
 		<div>
-			<button onClick={toggleSidebar}>Toggle</button>
-			<button onClick={addMockData}>Add</button>
-			<button onClick={resetState}>Reset</button>
+			<button on:click={toggleSidebar}>Toggle</button>
+			<button on:click={addMockData}>Add</button>
+			<button on:click={resetState}>Reset</button>
 			<pre>{() => JSON.stringify(state, null, 2)}</pre>
 		</div>
 	)

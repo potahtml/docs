@@ -8,7 +8,7 @@ function Example() {
     <>
       <button
         name="button"
-        onClick={() => updateShowing(showing => !showing)}
+        on:click={() => updateShowing(showing => !showing)}
       >
         toggle
       </button>
@@ -20,7 +20,6 @@ function Example() {
           frameborder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           allowfullscreen
-          crossorigin="anonymous"
         ></iframe>
       </Collapse>
     </>

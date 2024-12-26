@@ -230,9 +230,9 @@ const element = ref()
 render(
 	<main>
 
-		<button onClick={() => element().toggle()}>toggle</button>
-		<button onClick={() => element().open()}>open</button>
-		<button onClick={() => element().close()}>close</button>
+		<button on:click={() => element().toggle()}>toggle</button>
+		<button on:click={() => element().open()}>open</button>
+		<button on:click={() => element().close()}>close</button>
 		<pota-alert ref={element}>
 			Use \`element.toggle()\` to toggle the alert. Use \`element.open()\`
 			to open the alert. Use \`element.close()\` to close the alert.
@@ -252,7 +252,7 @@ render(
 				<Code
 					code={`
 
-import { render, ref, effect, addEventListener} from 'pota'
+import { render, ref, effect, addEvent} from 'pota'
 
 import 'pota/components/alert'
 
@@ -260,17 +260,17 @@ const element = ref()
 
 effect(()=>{
 	if(element()){
-		addEventListener(element(), 'open', () => render(<div>open dispatched</div>))
-		addEventListener(element(), 'close', () => render(<div>close dispatched</div>))
+		addEvent(element(), 'open', () => render(<div>open dispatched</div>))
+		addEvent(element(), 'close', () => render(<div>close dispatched</div>))
 	}
 })
 
 render(
 	<main>
 
-		<button onClick={() => element().toggle()}>toggle</button>
-		<button onClick={() => element().open()}>open</button>
-		<button onClick={() => element().close()}>close</button>
+		<button on:click={() => element().toggle()}>toggle</button>
+		<button on:click={() => element().open()}>open</button>
+		<button on:click={() => element().close()}>close</button>
 		<pota-alert ref={element}>
 			Listening for \`open\` and \`close\` events
 		</pota-alert>

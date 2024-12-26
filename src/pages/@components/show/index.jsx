@@ -8,7 +8,10 @@ export default function () {
 		<>
 			<Header title={<Tag>Show ...</Tag>}>
 				Renders its children based on a condition. For the condition
-				to be reactive it needs to be function
+				to be reactive it needs to be function. The{' '}
+				<mark>callback</mark> will receive a <mark>signal</mark> for
+				in case it keeps being <mark>truthy</mark> you can update
+				accordly.
 			</Header>
 
 			<Section title="Attributes">

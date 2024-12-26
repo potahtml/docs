@@ -321,9 +321,6 @@ export default function Menu() {
 					<h4>Events</h4>
 					<ul>
 						<li>
-							<a href="/props/on__">on__</a>
-						</li>
-						<li>
 							<A
 								href="/props/:page"
 								params={{ page: 'on:__' }}

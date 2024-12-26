@@ -21,7 +21,7 @@ render(
       {item => (
         <li
           class:selected={isSelected(item)}
-          onClick={() =>
+          on:click={() =>
             updateSelected(set => {
               set.has(item) ? set.delete(item) : set.add(item)
               return set

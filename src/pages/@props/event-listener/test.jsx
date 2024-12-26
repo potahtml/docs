@@ -1,9 +1,4 @@
-import {
-  addEventListener,
-  ref,
-  removeEventListener,
-  render,
-} from 'pota'
+import { addEvent, ref, removeEvent, render } from 'pota'
 
 function Example() {
   const button = ref()
@@ -12,24 +7,24 @@ function Example() {
     render(<div>You have click me!</div>, button())
 
   const add = () => {
-    addEventListener(button(), 'click', handler)
+    addEvent(button(), 'click', handler)
   }
   const remove = () => {
-    removeEventListener(button(), 'click', handler)
+    removeEvent(button(), 'click', handler)
   }
 
   return (
     <main>
       <button
         name="button"
-        onClick={add}
+        on:click={add}
         onMount={add}
       >
         add event
       </button>
       <button
         name="button"
-        onClick={remove}
+        on:click={remove}
       >
         remove event
       </button>
@@ -41,7 +36,7 @@ function Example() {
       </button>
       <button
         name="button"
-        onClick={{
+        on:click={{
           handleEvent: () => render('boo!'),
           once: true,
         }}

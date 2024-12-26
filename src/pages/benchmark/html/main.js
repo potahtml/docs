@@ -413,6 +413,8 @@
 	  composed: true
 	}) => node.dispatchEvent(new CustomEvent(eventName, data));
 	const preventDefault = e => e.preventDefault();
+	const warn = (...args) => console.warn(...args);
+	const error = (...args) => console.error(...args);
 
 	// symbols
 
@@ -775,7 +777,7 @@
 	/**
 	 * Creates a new root
 	 *
-	 * @param {(dispose: Function) => any} fn
+	 * @param {(dispose: () => void) => any} fn
 	 * @param {object} [options]
 	 * @returns {any}
 	 */
@@ -1454,7 +1456,8 @@
 	/**
 	 * Adds an event listener to a node
 	 *
-	 * @param {Element} node - Element to add the event listener
+	 * @param {Element | Document | typeof window} node - Element to add
+	 *   the event listener
 	 * @param {(keyof WindowEventMap & keyof GlobalEventHandlersEventMap)
 	 * 	| string} type
 	 *   - The name of the event listener
@@ -1468,25 +1471,26 @@
 	 *   listener
 	 * @url https://pota.quack.uy/props/EventListener
 	 */
-	function addEventListener$1(node, type, handler) {
+	function addEvent(node, type, handler) {
 	  node.addEventListener(type, handler, !isFunction(handler) && handler);
 
 	  /**
 	   * Removes event on tracking scope disposal.
 	   *
-	   * Situation: the event was added to the `document` manually using
-	   * `addEventListener`, say to listen for clicks as a "click
+	   * Situation: the event was added to the `document` or `window`
+	   * manually using `addEvent`, say to listen for clicks as a "click
 	   * outside". The event needs to be removed when the component that
 	   * added it is disposed.
 	   */
 
-	  return cleanup(() => removeEventListener(node, type, handler));
+	  return cleanup(() => removeEvent(node, type, handler));
 	}
 
 	/**
 	 * Removes an event listener from a node
 	 *
-	 * @param {Element} node - Element to add the event listener
+	 * @param {Element | Document | typeof window} node - Element to add
+	 *   the event listener
 	 * @param {(keyof WindowEventMap & keyof GlobalEventHandlersEventMap)
 	 * 	| string} type
 	 *   - The name of the event listener
@@ -1500,9 +1504,9 @@
 	 *   listener
 	 * @url https://pota.quack.uy/props/EventListener
 	 */
-	function removeEventListener(node, type, handler) {
+	function removeEvent(node, type, handler) {
 	  node.removeEventListener(type, handler, !isFunction(handler) && handler);
-	  return () => addEventListener$1(node, type, handler);
+	  return () => addEvent(node, type, handler);
 	}
 
 	/**
@@ -1601,25 +1605,6 @@
 	 * @param {Function} fn
 	 */
 	const onDone = fn => add(5, fn);
-
-	/**
-	 * @param {Element} node
-	 * @param {string} name
-	 * @param {EventListenerOrEventListenerObject} value
-	 * @param {object} props
-	 * @param {string} localName
-	 * @param {string} ns
-	 */
-	const setEventNS = (node, name, value, props, localName, ns) => addEventListener$1(node, localName, ownedEvent(value));
-
-	/**
-	 * Returns an event name when the string could be mapped to an event
-	 *
-	 * @param {string} name - String to check for a mapped event
-	 * @returns {string | undefined} Returns the event name or null in
-	 *   case isnt found
-	 */
-	const eventName = withCache(name => name.startsWith('on') && name.toLowerCase() in window ? name.slice(2).toLowerCase() : null);
 
 	const plugins = cacheStore();
 	const pluginsNS = cacheStore();
@@ -2006,6 +1991,20 @@
 	!value ? classListRemove(node, name) : classListAdd(node, ...name.trim().split(/\s+/));
 
 	/**
+	 * @param {Element} node
+	 * @param {string} name
+	 * @param {EventListener
+	 * 	| EventListenerObject
+	 * 	| (EventListenerObject & AddEventListenerOptions)} value
+	 * @param {object} props
+	 * @param {string} localName
+	 * @param {string} ns
+	 */
+	const setEventNS = (node, name, value, props, localName, ns) =>
+	// `value &&` because avoids crash when `on:click={bla}` and `bla === null`
+	value && addEvent(node, localName, ownedEvent(value));
+
+	/**
 	 * `value` as a prop is special cased so the button `reset` in forms
 	 * works as expected. The first time a value is set, its done as an
 	 * attribute.
@@ -2132,14 +2131,6 @@
 	    plugin(node, name, value, props);
 	    return;
 	  }
-
-	  // onClick={handler}
-	  let event = eventName(name);
-	  if (event) {
-	    // `value &&` for when `onClick={handler}` and `handler` is undefined
-	    value && addEventListener$1(node, event, ownedEvent(value));
-	    return;
-	  }
 	  if (propNS[name] || name.includes(':')) {
 	    // with ns
 	    propNS[name] = propNS[name] || name.split(':');
@@ -2149,14 +2140,6 @@
 	    plugin = pluginsNS.get(ns);
 	    if (plugin) {
 	      plugin(node, name, value, props, localName, ns);
-	      return;
-	    }
-
-	    // onClick:my-ns={handler}
-	    event = eventName(ns);
-	    if (event) {
-	      // `value &&` for when `onClick={handler}` and `handler` is undefined
-	      value && addEventListener$1(node, event, ownedEvent(value));
 	      return;
 	    }
 	    setUnknown(node, name, value, ns);
@@ -2417,7 +2400,7 @@
 	           * for deletion on cleanup with node.remove()
 	           */
 	          if (child instanceof DocumentFragment) {
-	            return toArray(child.childNodes, child => createChildren(parent, child, relative));
+	            return createChildren(parent, toArray(child.childNodes), relative);
 	          }
 	          return insertNode(parent, child, relative);
 	        }
@@ -2445,7 +2428,15 @@
 
 	        // iterable/Map/Set/NodeList
 	        if (iterator in child) {
-	          return toArray(child.values(), child => createChildren(parent, child, relative));
+	          return createChildren(parent, toArray(child.values()), relative);
+	          /**
+	           * For some reason this breaks with a node list in the
+	           * `Context` example of the `html` docs section.
+	           *
+	           *     return toArray(child.values(), child =>
+	           *     	createChildren(parent, child, relative),
+	           *     )
+	           */
 	        }
 
 	        // CSSStyleSheet
@@ -2453,7 +2444,7 @@
 	          /**
 	           * Custom elements wont report a document unless is already
 	           * connected. So our stylesheet would end on the main document
-	           * intead of the shadodRoot
+	           * instead of the shadowRoot
 	           */
 	          onFixes(() => {
 	            if (isConnected(parent)) {
@@ -2556,7 +2547,7 @@
 	 *   document.body
 	 * @param {{ clear?: boolean; relative?: boolean }} [options] -
 	 *   Mounting options
-	 * @returns {Function} Disposer
+	 * @returns {() => void} Disposer
 	 * @url https://pota.quack.uy/render
 	 */
 	function render(children, parent, options = nothing) {
@@ -3188,7 +3179,7 @@
 
 	  // shortcircuit non-functions
 	  if (!isFunction(props.when)) {
-	    return props.when ? callback(props.when) : fallback;
+	    return props.when ? callback(() => props.when) : fallback;
 	  }
 
 	  // signals/functions
@@ -3367,7 +3358,7 @@
 	 * @url https://pota.quack.uy/Components/Switch
 	 */
 	function Switch(props) {
-	  const matches = resolve(() => props.children);
+	  const matches = resolve(() => isArray(props.children) ? props.children : [props.children]);
 	  const fallback = isNullUndefined(props.fallback) ? memo(() => {
 	    const r = matches().find(match => !('when' in match));
 	    return r && r.children;
@@ -3430,7 +3421,7 @@
 	 * Recursively walks a template and transforms it to `h` calls
 	 *
 	 * @param {{ components: {} }} html
-	 * @param {HTMLElement} cached
+	 * @param {Element[]} cached
 	 * @param {...any} values
 	 * @returns {Children}
 	 */
@@ -3459,9 +3450,9 @@
 	      // gather children
 	      const childNodes = node.childNodes;
 	      if (childNodes.length) {
-	        props.children = flat(toArray(childNodes, nodes));
+	        props.children = flat(toArray(childNodes).map(nodes));
 	      }
-	      /[A-Z]/.test(tagName) && !html.components[tagName] && console.warn(`Forgot to ´html.define({ ${tagName} })´?`);
+	      /[A-Z]/.test(tagName) && !html.components[tagName] && warn(`html: Forgot to ´html.define({ ${tagName} })´?`);
 	      return Component(html.components[tagName] || tagName, props);
 	    } else if (node.nodeType === 3) {
 	      // text
@@ -3477,10 +3468,10 @@
 	        return createComment(value);
 	      }
 	    } else {
-	      console.error(`html: ´nodeType´ not supported ´${node.nodeType}´`);
+	      error(`html: ´nodeType´ not supported ´${node.nodeType}´`);
 	    }
 	  }
-	  return flat(toArray(cached, nodes));
+	  return flat(toArray(cached).map(nodes));
 	}
 
 	/**
@@ -3504,8 +3495,7 @@
 	   */
 
 	  function html(template, ...values) {
-	    const cached = parseHTML(template);
-	    return toH(html, cached, values);
+	    return toH(html, parseHTML(template), values);
 	  }
 	  html.components = {
 	    ...defaultRegistry
@@ -3610,7 +3600,7 @@
       id="${id}"
       class="btn btn-primary btn-block"
       type="button"
-      onClick="${fn}"
+      on:click="${fn}"
     >
       ${text}
     </button>
@@ -3717,7 +3707,7 @@
     </div>
     <table
       class="table table-hover table-striped test-data"
-      onClick="${e => {
+      on:click="${e => {
     const element = e.target;
     if (element.setSelected !== undefined) {
       setSelected(element.setSelected);

@@ -66,16 +66,6 @@ export default function Routes() {
 							import('./pages/@components/custom-element/index.jsx'),
 					)}
 				/>
-				<Router
-					path="custom-elements-everywhere"
-					params={{ path: '' }}
-					children={load(
-						() =>
-							import(
-								'./pages/@components/custom-element/custom-elements-everywhere/index.jsx'
-							),
-					)}
-				/>
 			</Router>
 
 			<Router path="Components/">
@@ -284,16 +274,6 @@ export default function Routes() {
 					}}
 					children={load(
 						() => import('./pages/@props/event-listener/index.jsx'),
-					)}
-				/>
-				<Router
-					path=":path$"
-					params={{ path: 'on__' }}
-					children={load(
-						() =>
-							import(
-								'./pages/@props/event-listener-window/index.jsx'
-							),
 					)}
 				/>
 				<Router

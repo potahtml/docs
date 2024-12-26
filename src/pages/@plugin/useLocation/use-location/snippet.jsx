@@ -19,7 +19,9 @@ function Example() {
 					<li>
 						<button
 							name="button"
-							onClick={() => navigate('/index.html?' + Math.random())}
+							on:click={() =>
+								navigate('/index.html?' + Math.random())
+							}
 						>
 							replace to index
 						</button>
@@ -27,7 +29,7 @@ function Example() {
 					<li>
 						<button
 							name="button"
-							onClick={() =>
+							on:click={() =>
 								navigate(
 									'/path' +
 										Math.random() +

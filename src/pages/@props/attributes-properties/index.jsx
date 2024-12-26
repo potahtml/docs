@@ -107,10 +107,7 @@ export default function () {
 
 			<Section title="Events">
 				<p>
-					Events using the <mark>on__</mark> form are case insensitive
-				</p>
-				<p>
-					Events using the <mark>on:__</mark> form are case sensitive
+					Events such <mark>on:__</mark> are case sensitive
 				</p>
 			</Section>
 

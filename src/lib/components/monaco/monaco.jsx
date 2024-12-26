@@ -1,14 +1,7 @@
 import styles from './monaco.module.css'
 
-import {
-	addEventListener,
-	cleanup,
-	effect,
-	memo,
-	ref,
-	signal,
-	untrack,
-} from 'pota'
+import { cleanup, effect, memo, ref, signal, untrack } from 'pota'
+
 import { onDocumentSize } from 'pota/plugin/useDocumentSize'
 
 import { getValue } from 'pota/std'
@@ -98,10 +91,10 @@ export function Monaco(props) {
 		// on code change
 		let codeChangeTimeout
 		editor.getModel().onDidChangeContent(event => {
-			if (props.onChange) {
+			if (props['on:change']) {
 				clearTimeout(codeChangeTimeout)
 				codeChangeTimeout = setTimeout(
-					() => props.onChange(editor.getValue()),
+					() => props['on:change'](editor.getValue()),
 					props.delay || 200,
 				)
 			}

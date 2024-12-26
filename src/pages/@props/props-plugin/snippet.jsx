@@ -1,9 +1,4 @@
-import {
-  addEventListener,
-  propsPlugin,
-  propsPluginNS,
-  render,
-} from 'pota'
+import { addEvent, propsPlugin, propsPluginNS, render } from 'pota'
 
 // when `clickOutside` is found on an element
 
@@ -12,16 +7,11 @@ propsPlugin('clickOutside', (node, propName, propValue, props) => {
   // propName = 'clickOutside'
   // propValue = fn
   // props = props object
-  addEventListener(
-    document,
-    'pointerdown',
-    event => {
-      if (!node.contains(event.target)) {
-        propValue(event, node)
-      }
-    },
-    false,
-  )
+  addEvent(document, 'pointerdown', event => {
+    if (!node.contains(event.target)) {
+      propValue(event, node)
+    }
+  })
 })
 
 propsPluginNS(
@@ -34,7 +24,7 @@ propsPluginNS(
     // localName = 'click'
     // ns = 'myFancy'
 
-    addEventListener(node, localName, propValue, false)
+    addEvent(node, localName, propValue)
   },
 )
 

@@ -6,7 +6,7 @@ function App() {
       Unrelated elements arent removed on dispose
       <button
         name="button"
-        onClick={() => dispose()}
+        on:click={() => dispose()}
       >
         dispose
       </button>

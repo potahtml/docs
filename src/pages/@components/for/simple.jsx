@@ -40,7 +40,7 @@ function Buttons(props) {
     <>
       <button
         name="button"
-        onClick={() => {
+        on:click={() => {
           arr = value()
           arr.splice((arr.length / 2) | 0, 0, content())
           setValue([...arr])
@@ -50,7 +50,7 @@ function Buttons(props) {
       </button>
       <button
         name="button"
-        onClick={() => {
+        on:click={() => {
           arr = value()
           arr.push(content())
           arr.shift()

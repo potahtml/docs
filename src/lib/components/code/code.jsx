@@ -81,7 +81,7 @@ export function Code(props) {
 								value={prettier(code())}
 								bool:editable={props.render !== false}
 								stylesheet={snippetStyleSheet}
-								onInput={e => setCode(e.target.value)}
+								on:input={e => setCode(e.target.value)}
 								editable={props.render !== false}
 							/>
 						</section>
@@ -118,7 +118,7 @@ export function Code(props) {
 						<div style="text-align:right">
 							<a
 								href="javascript://"
-								onClick={() =>
+								on:click={() =>
 									frame().contentWindow.location.reload()
 								}
 							>
@@ -128,7 +128,7 @@ export function Code(props) {
 							<span class="no-playground">
 								<a
 									href="javascript://"
-									onClick={() =>
+									on:click={() =>
 										window.open('/playground#' + codeURL())
 									}
 								>
@@ -138,7 +138,7 @@ export function Code(props) {
 							</span>
 							<a
 								href="javascript://"
-								onClick={() =>
+								on:click={() =>
 									window.open(
 										'/pages/@playground/preview/index.html#' +
 											transformedURL(),

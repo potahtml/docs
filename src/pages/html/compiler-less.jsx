@@ -25,7 +25,7 @@ export const CompilerLess = (
     html.define({ count, double });
 
     return html\`<label>
-      <button name="button" onClick="\${increment}">
+      <button name="button" on:click="\${increment}">
         <count /> / <double />
       </button>
       double is: <double />

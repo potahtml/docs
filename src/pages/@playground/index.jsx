@@ -123,7 +123,7 @@ export default function () {
 						<span>
 							<a
 								href="javascript://"
-								onClick={() => setTab('code')}
+								on:click={() => setTab('code')}
 							>
 								Code
 							</a>
@@ -131,7 +131,7 @@ export default function () {
 						<span>
 							<a
 								href="javascript://"
-								onClick={() => setTab('pota-jsx')}
+								on:click={() => setTab('pota-jsx')}
 							>
 								Transformed
 							</a>
@@ -139,7 +139,7 @@ export default function () {
 						<span>
 							<a
 								href="javascript://"
-								onClick={() => setTab('cheatsheet')}
+								on:click={() => setTab('cheatsheet')}
 							>
 								Cheat Sheet
 							</a>
@@ -154,14 +154,14 @@ export default function () {
 									name="autorun"
 									type="checkbox"
 									checked={autorun()}
-									onClick={() => updateAutorun(checked => !checked)}
+									on:click={() => updateAutorun(checked => !checked)}
 								/>
 							</label>
 						</span>
 						<span>
 							<select
 								class={styles.themeSelector}
-								onChange={e => {
+								on:change={e => {
 									const value = e.currentTarget.value
 									setTheme(value)
 									localStorage.playgroundTheme = value
@@ -196,10 +196,10 @@ export default function () {
 									ref={TabIndentation.binding}
 									class="playground line-numbers"
 									value={prettier(code(), true)}
-									onInput={e => setCode(e.target.value)}
+									on:input={e => setCode(e.target.value)}
 									grammar="tsx"
 									theme={theme}
-									onKeyDown={e => {
+									on:keydown={e => {
 										if (e.ctrlKey && e.keyCode === 83) {
 											// CTRL + S
 

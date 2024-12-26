@@ -23,7 +23,7 @@ function Menu(props) {
         Filter:
         <input
           type="text"
-          onInput={e => setSearch(e.currentTarget.value)}
+          on:input={e => setSearch(e.currentTarget.value)}
         />
       </label>
       <hr />

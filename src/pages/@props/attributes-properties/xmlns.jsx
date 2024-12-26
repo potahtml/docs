@@ -10,7 +10,7 @@ function App() {
       Toggles the children of the XML tags.
       <button
         name="button"
-        onClick={() => updateShowing(showing => !showing)}
+        on:click={() => updateShowing(showing => !showing)}
       >
         toggle
       </button>

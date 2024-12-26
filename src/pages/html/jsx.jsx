@@ -7,7 +7,7 @@ function Example(props) {
   setInterval(() => updateCount(count => count + 1), 1_000)
 
   const add10 = html`<button
-    onclick="${() => updateCount(count => count + 10)}"
+    on:click="${() => updateCount(count => count + 10)}"
     name="button"
   >
     add 10

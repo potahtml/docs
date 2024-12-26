@@ -17,7 +17,7 @@ function App() {
 					bind={input}
 				/>{' '}
 				email: {input}
-				<button onClick={() => input('email2@example.net')}>
+				<button on:click={() => input('email2@example.net')}>
 					select email2@example.net
 				</button>
 			</section>
@@ -29,7 +29,7 @@ function App() {
 					<option>3</option>
 				</select>
 				select: {select}
-				<button onClick={() => select(3)}>select three</button>
+				<button on:click={() => select(3)}>select three</button>
 			</section>
 			<section>
 				<input
@@ -37,7 +37,7 @@ function App() {
 					bind={checkbox}
 				/>{' '}
 				checkbox: {checkbox}
-				<button onClick={() => checkbox(true)}>set checked</button>
+				<button on:click={() => checkbox(true)}>set checked</button>
 			</section>
 			<section>
 				<label>
@@ -60,19 +60,19 @@ function App() {
 				</label>
 				{' - '}
 				radio: {radio}
-				<button onClick={() => radio(2)}>set 2</button>
+				<button on:click={() => radio(2)}>set 2</button>
 			</section>
 			<section>
 				<label>
 					<span
-						contentEditable="true"
+						contenteditable="true"
 						bind={contentEditable}
 					></span>
 				</label>
 				{' - '}
 				{contentEditable}
 				{' - '}
-				<button onClick={() => contentEditable('')}>clear</button>
+				<button on:click={() => contentEditable('')}>clear</button>
 			</section>
 		</main>
 	)

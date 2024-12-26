@@ -19,7 +19,7 @@ render(
       {item => (
         <li
           class:selected={isSelected(item)}
-          onClick={() => setSelected(item)}
+          on:click={() => setSelected(item)}
         >
           {item} is selected? {isSelected(item)}
         </li>

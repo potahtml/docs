@@ -39,7 +39,7 @@ render(
 					viewBox="0 -960 960 960"
 					width="24"
 					class={stylesMenu.montevideo}
-					onClick={e => {
+					on:click={e => {
 						const menu = document.querySelector('#menu')
 						if (
 							menu.style.display === '' ||
@@ -99,7 +99,7 @@ render(
 
 						{/*<a
 						href=""
-						onClick={() =>
+						on:click={() =>
 							alert('sorry didnt develop the light theme yet')
 						}
 					>

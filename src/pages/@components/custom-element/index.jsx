@@ -19,15 +19,6 @@ export default function () {
 				</p>
 			</Section>
 
-			<Section title='Custom Elements "Everywhere" Tests'>
-				<p>
-					Please refer to the page{' '}
-					<a href="/CustomElement/custom-elements-everywhere">
-						Custom Elements "Everywhere"
-					</a>
-				</p>
-			</Section>
-
 			<Section title="CustomElement Class">
 				<p>
 					The <mark>CustomElement</mark> Class provides an API for

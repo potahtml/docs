@@ -23,7 +23,7 @@ const dispose = render(
 render(
   <button
     name="button"
-    onClick={dispose}
+    on:click={dispose}
   >
     dispose
   </button>,

@@ -13,7 +13,7 @@ function App() {
     <button
       name="button"
       onMount={button}
-      onClick={() => console.log(button())}
+      on:click={() => console.log(button())}
     >
       button
     </button>

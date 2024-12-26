@@ -29,7 +29,7 @@ const Lala = function () {
 render(
 	<button
 		name="button"
-		/*onClick={dispose}*/
+		/*on:click={dispose}*/
 	>
 		{/*<Lala />*/}
 	</button>,

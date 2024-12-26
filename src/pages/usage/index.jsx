@@ -76,17 +76,20 @@ export default function () {
 				}}
 			/>*/}
 
-			<Section title="JavaScript">
+			<Section title="Rollup (recommended)">
+				<p>Very customizable, you are in control!</p>
+
 				<p>
 					<tm-textarea
 						class="shell"
 						grammar="shellscript"
 						theme="monokai"
 						value={`
-							npx degit potahtml/templates/js my-js-pota-project
-							cd my-js-pota-project
-							npm install --include=dev
-							npm run dev
+npx degit potahtml/templates/rollup-js pota-rollup-js-project
+cd pota-rollup-js-project
+npm install --include=dev
+npm run dev
+npm run serve
 						`
 							.split('\n')
 							.map(s => s.trim())
@@ -97,22 +100,38 @@ export default function () {
 				</p>
 			</Section>
 
-			<Section title="Typescript">
-				<p>
-					Please keep in mind this template may needs a tweak. The
-					typings on the lib are a work in progress
-				</p>
-
+			<Section title="Vite JavaScript">
 				<p>
 					<tm-textarea
 						class="shell"
 						grammar="shellscript"
 						theme="monokai"
 						value={`
-							npx degit potahtml/templates/ts my-ts-pota-project
-							cd my-ts-pota-project
-							npm install --include=dev
-							npm run dev
+npx degit potahtml/templates/vite-js pota-vite-js-project
+cd pota-vite-js-project
+npm install --include=dev
+npm run dev
+						`
+							.split('\n')
+							.map(s => s.trim())
+							.join('\n')
+							.trim()}
+						editable={false}
+					/>
+				</p>
+			</Section>
+
+			<Section title="Vite Typescript">
+				<p>
+					<tm-textarea
+						class="shell"
+						grammar="shellscript"
+						theme="monokai"
+						value={`
+npx degit potahtml/templates/vite-ts pota-vite-ts-project
+cd pota-vite-ts-project
+npm install --include=dev
+npm run dev
 						`
 							.split('\n')
 							.map(s => s.trim())
@@ -132,7 +151,7 @@ export default function () {
 					</a>
 					, but you may use <mark>tsc</mark>,{' '}
 					<mark>transform-react-jsx</mark> or any transform that
-					somewhat follows react way.
+					somewhat follows <mark>react-transform</mark>.
 				</p>
 				<p>
 					<tm-textarea
@@ -140,30 +159,6 @@ export default function () {
 						grammar="tsx"
 						theme="monokai"
 						value={`{babel:{presets: [["pota/babel-preset"]]}}`
-							.split('\n')
-							.map(s => s.trim())
-							.join('\n')
-							.trim()}
-						editable={false}
-					/>
-				</p>
-			</Section>
-
-			<Section title="Rollup">
-				<p>Very customizable, you are in control, recommended!</p>
-
-				<p>
-					<tm-textarea
-						class="shell"
-						grammar="shellscript"
-						theme="monokai"
-						value={`
-							npx degit potahtml/templates/rollup my-rollup-pota-project
-							cd my-rollup-pota-project
-							npm install --include=dev
-							npm run dev
-							npm run serve
-						`
 							.split('\n')
 							.map(s => s.trim())
 							.join('\n')

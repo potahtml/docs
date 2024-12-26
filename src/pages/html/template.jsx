@@ -7,7 +7,7 @@ function Example() {
   setInterval(() => updateCount(count => count + 1), 1_000)
 
   const add10 = html`<button
-    onclick="${() => updateCount(count => count + 10)}"
+    on:click="${() => updateCount(count => count + 10)}"
     name="button"
   >
     add 10
@@ -23,8 +23,8 @@ function Example() {
   return html`<div>
     Hello, The count is: ${count}!<br />
     <i
-      onclick="${thisworks}"
-      onmouseout="${hellyeah}"
+      on:click="${thisworks}"
+      on:mouseout="${hellyeah}"
       >No need to click buttons!</i
     ><br />
     ok, I know you like it ${add10}

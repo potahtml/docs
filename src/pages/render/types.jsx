@@ -68,7 +68,7 @@ for (const component of toRender) {
   render(
     <button
       name="button"
-      onClick={dispose}
+      on:click={dispose}
     >
       dispose
     </button>,

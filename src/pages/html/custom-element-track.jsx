@@ -49,8 +49,8 @@ customElements.define('custom-element', CustomElement)
 render(
   () =>
     html` <custom-element
-      attr:string-attribute="lala"
-      attr:stringattribute="lala"
+      string-attribute="lala"
+      stringattribute="lala"
       boolean="${true}"
       propcasetest="lala1"
       propCASEtest="lala2"

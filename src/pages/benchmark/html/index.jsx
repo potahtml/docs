@@ -87,7 +87,7 @@ const bbutton = ({ id, text, fn }) =>
       id="${id}"
       class="btn btn-primary btn-block"
       type="button"
-      onClick="${fn}"
+      on:click="${fn}"
     >
       ${text}
     </button>
@@ -209,7 +209,7 @@ const App = () => {
     </div>
     <table
       class="table table-hover table-striped test-data"
-      onClick="${e => {
+      on:click="${e => {
         const element = e.target
         if (element.setSelected !== undefined) {
           setSelected(element.setSelected)

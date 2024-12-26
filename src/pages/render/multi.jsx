@@ -11,25 +11,25 @@ function App() {
 
       <button
         name="button"
-        onClick={() => dispose1()}
+        on:click={() => dispose1()}
       >
         dispose 1
       </button>
       <button
         name="button"
-        onClick={() => dispose2()}
+        on:click={() => dispose2()}
       >
         dispose 2
       </button>
       <button
         name="button"
-        onClick={() => dispose3()}
+        on:click={() => dispose3()}
       >
         dispose 3
       </button>
       <button
         name="button"
-        onClick={() => dispose()}
+        on:click={() => dispose()}
       >
         dispose all
       </button>

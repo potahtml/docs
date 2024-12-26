@@ -1,6 +1,16 @@
 import { For } from 'pota/web'
 import { Pota, signal } from 'pota'
-import type { JSX } from 'pota/jsx-runtime'
+import type { JSX } from 'pota'
+
+declare module 'pota' {
+	namespace JSX {
+		interface IntrinsicElements {
+			b: {
+				testing: boolean
+			}
+		}
+	}
+}
 
 class MyComponent extends Pota {
 	props = {
@@ -80,7 +90,7 @@ function Button2({ ...allProps }: ButtonProps2) {
 	)
 }
 
-// 💥 This breaks, as we omitted type
+// 💥 This works, we omitted type so its a type error
 const z = <Button2 type="button">Hi</Button2>
 
 // required
@@ -123,7 +133,7 @@ const Div = <div />
 function typescript(props) {
 	return (
 		<span
-			onClick={read}
+			on:click={read}
 			aria-busy={true}
 			aria-readonly={true}
 			what-what="aer"
@@ -135,6 +145,7 @@ function typescript(props) {
 			}}
 			onMount={eeeeee => {}}
 		>
+			<b testing></b>
 			<Button style:stroke="antiquewhite" />
 			<Card title="lala">lala</Card>
 			<LoginMsg name="name" />
@@ -144,7 +155,7 @@ function typescript(props) {
 					console.log(element)
 				}}
 				onMount={e => e}
-				onClick={e => {
+				on:click={e => {
 					e.target
 					e.currentTarget
 				}}
@@ -162,7 +173,7 @@ function typescript(props) {
 					href="ss"
 					onMount={e => e}
 					color="red"
-					onClick={e => {
+					on:click={e => {
 						console.log(e.currentTarget)
 						console.log(e.target)
 					}}
@@ -176,12 +187,15 @@ function typescript(props) {
 						return [1, 2, 3]
 					}}
 				></For>
+				<For each={[1, 2, 3]}></For>
 				<span
 					flair=""
 					onMount={e => {
 						console.log(e)
 					}}
 				></span>
+				<dialog tabindex="-1" />
+				<div tabindex="-1" />
 			</span>
 		</span>
 	)

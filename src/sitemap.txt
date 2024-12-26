@@ -39,7 +39,6 @@ https://pota.quack.uy/props/css
 https://pota.quack.uy/props/on%3A__
 https://pota.quack.uy/props/onMount
 https://pota.quack.uy/props/onUnmount
-https://pota.quack.uy/props/on__
 https://pota.quack.uy/props/prop%3A__
 https://pota.quack.uy/props/propsPlugin
 https://pota.quack.uy/props/propsSplit

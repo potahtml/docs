@@ -24,8 +24,8 @@ owned, // const ownedFn = owned(fn); ownedFn({foo:"bar"})
 withValue, // withValue(signal, value => console.log(value))
 
 // events
-addEventListener, // const off = addEventListener(el, 'click', fn)
-removeEventListener, // const on = removeEventListener(el, 'click', fn)
+addEvent, // const off = addEvent(el, 'click', fn)
+removeEvent, // const on = removeEvent(el, 'click', fn)
 
 // components
 Pota, // class MyC extends Pota { render(props){} ready(){} cleanup(){} }
@@ -60,8 +60,11 @@ version
 } from 'pota'
 
 import {
-signalify, // const state = signalify({some:true, thing:'bla'}) // only tracks whats defined on first level
-mutable, // const state = mutable({some:{thing:{deep:true}}}) // tracks all levels
+signalify, // const state = signalify({some:true, thing:'bla'}, [keys]) // only tracks whats defined on first level
+mutable, // const state = mutable({some:{thing:{deep:true}}}, copy:boolean) // tracks all levels
+merge, // merge(target, source)
+replace,  // replace(target, source)
+reset // reset(target, source)
 } from 'pota/store'
 
 // JSX Components
@@ -83,7 +86,6 @@ CustomElement, // class Fancy extends CustomElement{}
 
 // html
 import {
-htmlEffect, // htmlEffect((html)=> html\`<div>\${obj.value}</div>\`)
 HTML, // const html = HTML(); (props) => html\`<div>\${props.children}</div>\`
 html, // (props)=> html\`<div>\${props.children}</div>\` // () => <div/>
 } from 'pota/html'
