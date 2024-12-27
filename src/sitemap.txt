@@ -53,3 +53,4 @@ https://pota.quack.uy/ready
 https://pota.quack.uy/render
 https://pota.quack.uy/resolve
 https://pota.quack.uy/toHTML
+https://pota.quack.uy/typescript
