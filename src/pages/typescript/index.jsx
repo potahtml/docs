@@ -158,16 +158,18 @@ import type { JSX } from 'pota'
 
 import { signal } from 'pota'
 
+interface SomeElement {
+	'some-string'?: string
+	'some-number'?: number
+	'some-other'?: number
+}
+
 declare module 'pota' {
 	namespace JSX {
 		interface IntrinsicElements {
 			'some-element': HTMLAttributes<
 				HTMLElement,
-				{
-					'some-string'?: string
-					'some-number'?: number
-					'some-other'?: number
-				},
+				SomeElement,
 				HTMLEvents<HTMLElement>
 			>
 		}

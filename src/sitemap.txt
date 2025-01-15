@@ -24,7 +24,7 @@ https://pota.quack.uy/cleanup
 https://pota.quack.uy/lazy
 https://pota.quack.uy/playground
 https://pota.quack.uy/plugin/bind
-https://pota.quack.uy/plugin/clickOutside
+https://pota.quack.uy/plugin/clickoutside
 https://pota.quack.uy/plugin/clipboard
 https://pota.quack.uy/plugin/fullscreen
 https://pota.quack.uy/plugin/useLocation

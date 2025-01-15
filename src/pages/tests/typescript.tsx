@@ -199,3 +199,12 @@ function typescript(props) {
 }
 
 typescript({})
+
+const s1 = signal(0)
+s1.read()
+s1.write(1)
+
+const [read1, write1] = signal(0)
+read1()
+write1('lalla')
+const bla = read1()

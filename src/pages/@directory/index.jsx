@@ -23,7 +23,7 @@ export default function () {
  // props plugins
 
 import { bind } from 'pota/plugin/bind'
-import 'pota/plugin/clickOutside'
+import 'pota/plugin/clickoutside'
 import 'pota/plugin/clipboard'
 import 'pota/plugin/fullscreen'
 
@@ -98,7 +98,7 @@ import { useTimeout } from 'pota/plugin/useTimeout'
 						value of a form field to a signal
 					</li>
 					<li>
-						<a href="/plugin/clickOutside">clickOutside</a> - runs a
+						<a href="/plugin/clickoutside">clickoutside</a> - runs a
 						function when clicking outside the element
 					</li>
 					<li>

@@ -31,6 +31,11 @@ export default function () {
 								its children
 							</td>
 						</tr>
+						<tr>
+							<td>fallback</td>
+							<td>any</td>
+							<td>when `falsy` a fallback could be displayed</td>
+						</tr>
 					</tbody>
 				</table>
 			</Section>
@@ -48,6 +53,14 @@ export default function () {
 					collapse element is set to be hidden
 				</p>
 				<Code url="/pages/@components/collapse/reactive.jsx"></Code>
+			</Section>
+
+			<Section title="Fallback">
+				<p>
+					A youtube video keeps playing in the background and a
+					fallback is shown
+				</p>
+				<Code url="/pages/@components/collapse/fallback.jsx"></Code>
 			</Section>
 		</>
 	)

@@ -11,7 +11,7 @@
 "pota/web": "https://pota.quack.uy/node_modules/pota/src/web/@main.js",
 
 "pota/plugin/bind": "https://pota.quack.uy/node_modules/pota/src/plugin/bind.js",
-"pota/plugin/clickOutside": "https://pota.quack.uy/node_modules/pota/src/plugin/clickOutside.js",
+"pota/plugin/clickoutside": "https://pota.quack.uy/node_modules/pota/src/plugin/clickoutside.js",
 "pota/plugin/clipboard": "https://pota.quack.uy/node_modules/pota/src/plugin/clipboard.js",
 "pota/plugin/fullscreen": "https://pota.quack.uy/node_modules/pota/src/plugin/fullscreen.js",
 "pota/plugin/useBrowser": "https://pota.quack.uy/node_modules/pota/src/plugin/useBrowser.js",

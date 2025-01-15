@@ -33,6 +33,13 @@ export default function () {
 								cause focus lost
 							</td>
 						</tr>
+						<tr>
+							<td>fallback</td>
+							<td>any</td>
+							<td>
+								when list is empty a fallback could be displayed
+							</td>
+						</tr>
 					</tbody>
 				</table>
 			</Section>
@@ -47,6 +54,14 @@ export default function () {
 			<Section title="Heavy Test">
 				<p>Sowwy, but I need to test this thing</p>
 				<Code url="/pages/@components/for/test.jsx"></Code>
+			</Section>
+
+			<Section title="Fallback">
+				<p>
+					For when the list has no items, a fallback could be
+					displayed
+				</p>
+				<Code url="/pages/@components/for/fallback.jsx"></Code>
 			</Section>
 		</>
 	)

@@ -193,9 +193,9 @@ export default function Routes() {
 
 				<Router
 					path=":path$"
-					params={{ path: 'clickOutside' }}
+					params={{ path: 'clickoutside' }}
 					children={load(
-						() => import('./pages/@plugin/clickOutside/index.jsx'),
+						() => import('./pages/@plugin/clickoutside/index.jsx'),
 					)}
 				/>
 

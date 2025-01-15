@@ -6,8 +6,8 @@ function App() {
 	return (
 		<main>
 			<section>
-				<div fullscreen>fullscreen body</div>
-				<div fullscreen={(event, node) => node}>
+				<div plugin:fullscreen>fullscreen body</div>
+				<div plugin:fullscreen={(event, node) => node}>
 					fullscreen element
 				</div>
 			</section>

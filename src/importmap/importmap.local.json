@@ -11,7 +11,7 @@
 "pota/web": "http://localhost:11433/node_modules/pota/src/web/@main.js",
 
 "pota/plugin/bind": "http://localhost:11433/node_modules/pota/src/plugin/bind.js",
-"pota/plugin/clickOutside": "http://localhost:11433/node_modules/pota/src/plugin/clickOutside.js",
+"pota/plugin/clickoutside": "http://localhost:11433/node_modules/pota/src/plugin/clickoutside.js",
 "pota/plugin/clipboard": "http://localhost:11433/node_modules/pota/src/plugin/clipboard.js",
 "pota/plugin/fullscreen": "http://localhost:11433/node_modules/pota/src/plugin/fullscreen.js",
 "pota/plugin/useBrowser": "http://localhost:11433/node_modules/pota/src/plugin/useBrowser.js",

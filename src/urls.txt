@@ -50,7 +50,7 @@
 /node_modules/pota/src/html.js
 /node_modules/pota/src/web/@main.js
 /node_modules/pota/src/plugin/bind.js
-/node_modules/pota/src/plugin/clickOutside.js
+/node_modules/pota/src/plugin/clickoutside.js
 /node_modules/pota/src/plugin/clipboard.js
 /node_modules/pota/src/plugin/fullscreen.js
 /node_modules/pota/src/plugin/useBrowser.js

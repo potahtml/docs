@@ -11,7 +11,7 @@
 "pota/web": "/node_modules/pota/src/web/@main.js",
 
 "pota/plugin/bind": "/node_modules/pota/src/plugin/bind.js",
-"pota/plugin/clickOutside": "/node_modules/pota/src/plugin/clickOutside.js",
+"pota/plugin/clickoutside": "/node_modules/pota/src/plugin/clickoutside.js",
 "pota/plugin/clipboard": "/node_modules/pota/src/plugin/clipboard.js",
 "pota/plugin/fullscreen": "/node_modules/pota/src/plugin/fullscreen.js",
 "pota/plugin/useBrowser": "/node_modules/pota/src/plugin/useBrowser.js",

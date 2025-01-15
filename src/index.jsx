@@ -19,7 +19,7 @@ import 'tm-textarea'
 import './lib/components/code/tm-textarea.css'
 
 // app
-import { render, setClass, signal } from 'pota'
+import { render, setClass } from 'pota'
 
 import { onDocumentSize } from 'pota/plugin/useDocumentSize'
 import { location } from 'pota/plugin/useLocation'

@@ -1,18 +1,21 @@
 import { addEvent, propsPlugin, propsPluginNS, render } from 'pota'
 
-// when `clickOutside` is found on an element
+// when `clickoutside` is found on an element
 
-propsPlugin('clickOutside', (node, propName, propValue, props) => {
-  // node = the element
-  // propName = 'clickOutside'
-  // propValue = fn
-  // props = props object
-  addEvent(document, 'pointerdown', event => {
-    if (!node.contains(event.target)) {
-      propValue(event, node)
-    }
-  })
-})
+propsPlugin(
+  'plugin:clickoutside',
+  (node, propName, propValue, props) => {
+    // node = the element
+    // propName = 'clickoutside'
+    // propValue = fn
+    // props = props object
+    addEvent(document, 'pointerdown', event => {
+      if (!node.contains(event.target)) {
+        propValue(event, node)
+      }
+    })
+  },
+)
 
 propsPluginNS(
   'myFancy',
@@ -33,7 +36,9 @@ propsPluginNS(
 function App() {
   return (
     <span
-      clickOutside={event => render(<div>you clicked outside!</div>)}
+      plugin:clickoutside={event =>
+        render(<div>you clicked outside!</div>)
+      }
       myFancy:click={event =>
         render(<div>this click is very fancy!</div>)
       }

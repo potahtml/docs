@@ -109,8 +109,9 @@ const App = () => {
     bench = () => {
       //  console.clear()
       // warm
+      // debugger
       for (let k = 0; k < 5; k++) {
-        setData(buildData(10000))
+        setData(buildData(1))
         setData([])
       }
 
@@ -139,6 +140,7 @@ const App = () => {
           clearSmall / (k + 1),
         )
       }
+      console.log('------------')
     },
     add = () => {
       updateData(d => [...d, ...buildData(1000)])

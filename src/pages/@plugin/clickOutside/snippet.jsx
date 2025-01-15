@@ -1,6 +1,6 @@
 import { render } from 'pota'
 
-import 'pota/plugin/clickOutside'
+import 'pota/plugin/clickoutside'
 
 function App() {
 	return (
@@ -8,7 +8,9 @@ function App() {
 			<section>
 				<input
 					name="name"
-					clickOutside={(event, node) => render('clicking outside')}
+					plugin:clickoutside={(event, node) =>
+						render('clicking outside')
+					}
 				/>
 			</section>
 		</main>

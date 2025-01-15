@@ -66,6 +66,20 @@
 	const empty = Object$1.create.bind(null, null);
 
 	/**
+	 * An empty frozen array
+	 *
+	 * @type {readonly []}
+	 */
+	const emptyArray = freeze([]);
+
+	/**
+	 * An empty frozen object
+	 *
+	 * @type object
+	 */
+	const nothing = freeze(empty());
+
+	/**
 	 * Flats an array/childNodes to the first children if the length is 1
 	 *
 	 * @param {any[] | NodeListOf<ChildNode>} arr
@@ -98,7 +112,7 @@
 	    if (fn(node)) return;
 	  }
 	  while (node = walk.nextNode()) {
-	    if (fn(node)) break;
+	    if (fn(node)) return;
 	  }
 	}, () => createTreeWalker(document$1, 1 /*NodeFilter.SHOW_ELEMENT*/));
 
@@ -190,15 +204,8 @@
 	 * @param {any} value
 	 * @returns {boolean}
 	 */
-	const isPromise = value => isObject(value) && 'then' in value;
+	const isPromise = value => isFunction(value?.then);
 	const noop = () => {};
-
-	/**
-	 * An empty frozen object
-	 *
-	 * @type object
-	 */
-	const nothing = freeze(empty());
 	const querySelector = (node, query) => node.querySelector(query);
 
 	/**
@@ -375,10 +382,10 @@
 	  context;
 	  constructor(owner, options) {
 	    this.owner = owner;
-	    this.context = owner?.context;
-	    if (options) {
-	      assign(this, options);
+	    if (owner?.context) {
+	      this.context = owner.context;
 	    }
+	    options && assign(this, options);
 	  }
 	  dispose() {
 	    let i;
@@ -386,13 +393,13 @@
 	      owned,
 	      cleanups
 	    } = this;
-	    if (owned) {
+	    if (owned && owned.length) {
 	      for (i = owned.length - 1; i >= 0; i--) {
 	        owned[i].dispose();
 	      }
 	      owned.length = 0;
 	    }
-	    if (cleanups) {
+	    if (cleanups && cleanups.length) {
 	      for (i = cleanups.length - 1; i >= 0; i--) {
 	        cleanups[i]();
 	      }
@@ -444,7 +451,7 @@
 	      sources,
 	      sourceSlots
 	    } = this;
-	    if (sources) {
+	    if (sources && sources.length) {
 	      let source;
 	      let observers;
 	      let index;
@@ -512,7 +519,7 @@
 	        this.prev = value;
 	      }
 	    }
-	    this.read = markReactive(this.read);
+	    markReactive(this.read);
 	  }
 	  /** @returns SignalAccessor<T> */
 	  read = () => {
@@ -527,12 +534,13 @@
 	        Listener.sources = [this];
 	        Listener.sourceSlots = [sourceSlot];
 	      }
+	      const observerSlot = Listener.sources.length - 1;
 	      if (this.observers) {
 	        this.observers.push(Listener);
-	        this.observerSlots.push(Listener.sources.length - 1);
+	        this.observerSlots.push(observerSlot);
 	      } else {
 	        this.observers = [Listener];
-	        this.observerSlots = [Listener.sources.length - 1];
+	        this.observerSlots = [observerSlot];
 	      }
 	    }
 	    return this.value;
@@ -547,19 +555,15 @@
 	        this.prev = this.value;
 	      }
 	      this.value = value;
-	      if (this.observers && this.observers.length) {
+	      const {
+	        observers
+	      } = this;
+	      if (observers && observers.length) {
 	        runUpdates(() => {
-	          for (let i = 0, observer; i < this.observers.length; i++) {
-	            observer = this.observers[i];
+	          for (const observer of observers) {
 	            if (observer.state === CLEAN) {
-	              if (observer.pure) {
-	                Updates.push(observer);
-	              } else {
-	                Effects.push(observer);
-	              }
-	              if (observer.observers) {
-	                downstream(observer);
-	              }
+	              observer.pure ? Updates.push(observer) : Effects.push(observer);
+	              observer.observers && downstream(observer);
 	            }
 	            observer.state = STALE;
 	          }
@@ -722,9 +726,7 @@
 	  }
 	  const ancestors = [];
 	  do {
-	    if (node.state) {
-	      ancestors.push(node);
-	    }
+	    node.state && ancestors.push(node);
 	    node = node.owner;
 	  } while (node && node.updatedAt < Time);
 	  for (let i = ancestors.length - 1, updates; i >= 0; i--) {
@@ -763,15 +765,15 @@
 	  try {
 	    const res = fn();
 	    if (Updates) {
-	      runQueue(Updates);
-	      Updates = null;
+	      for (const update of Updates) {
+	        runTop(update);
+	      }
 	    }
+	    Updates = null;
 	    if (!wait) {
 	      const effects = Effects;
 	      Effects = null;
-	      if (effects.length) {
-	        runUpdates(() => runEffects(effects));
-	      }
+	      effects.length && runUpdates(() => runEffects(effects));
 	    }
 	    return res;
 	  } catch (err) {
@@ -782,31 +784,22 @@
 	    throw err;
 	  }
 	}
-	function runQueue(queue) {
-	  for (let i = 0; i < queue.length; i++) {
-	    runTop(queue[i]);
-	  }
-	}
 	function runEffects(queue) {
-	  let i;
-	  let effect;
 	  let userLength = 0;
-	  for (i = 0; i < queue.length; i++) {
-	    effect = queue[i];
+	  for (const effect of queue) {
 	    if (!effect.user) {
 	      runTop(effect);
 	    } else {
 	      queue[userLength++] = effect;
 	    }
 	  }
-	  for (i = 0; i < userLength; i++) {
+	  for (let i = 0; i < userLength; i++) {
 	    runTop(queue[i]);
 	  }
 	}
 	function upstream(node, ignore) {
 	  node.state = CLEAN;
-	  for (let i = 0, source; i < node.sources.length; i++) {
-	    source = node.sources[i];
+	  for (const source of node.sources) {
 	    if (source.sources) {
 	      switch (source.state) {
 	        case STALE:
@@ -826,15 +819,10 @@
 	  }
 	}
 	function downstream(node) {
-	  for (let i = 0, observer; i < node.observers.length; i++) {
-	    observer = node.observers[i];
+	  for (const observer of node.observers) {
 	    if (observer.state === CLEAN) {
 	      observer.state = CHECK;
-	      if (observer.pure) {
-	        Updates.push(observer);
-	      } else {
-	        Effects.push(observer);
-	      }
+	      observer.pure ? Updates.push(observer) : Effects.push(observer);
 	      observer.observers && downstream(observer);
 	    }
 	  }
@@ -884,7 +872,7 @@
 	/**
 	 * Returns an owned function
 	 *
-	 * @param {function | undefined} cb
+	 * @param {Function | undefined} cb
 	 * @returns {() => any}
 	 */
 	const owned = cb => {
@@ -919,7 +907,7 @@
 	 * @param {any} value
 	 * @param {(value) => any} fn
 	 */
-	const withValue = (value, fn) => {
+	function withValue(value, fn) {
 	  if (isFunction(value)) {
 	    effect(() => withValue(getValue(value), fn));
 	  } else if (isPromise(value)) {
@@ -927,13 +915,13 @@
 	  } else {
 	    fn(value);
 	  }
-	};
+	}
 
 	/**
 	 * Runs a function inside an effect if value is a function
 	 *
 	 * @param {any} value
-	 * @param {(value) => any} fn
+	 * @param {(value: any, prev?: any) => any} fn
 	 */
 	function withPrevValue(value, fn) {
 	  if (isFunction(value)) {
@@ -951,14 +939,13 @@
 	// MAP
 
 	class Row {
-	  runId;
+	  runId = -1;
 	  item;
 	  index;
 	  isDupe;
 	  disposer;
 	  nodes;
 	  constructor(item, index, fn, isDupe) {
-	    this.runId = -1;
 	    this.item = item;
 	    this.index = index;
 	    this.isDupe = isDupe;
@@ -994,8 +981,9 @@
 	 * @param {Each<T>} list
 	 * @param {Function} callback
 	 * @param {boolean} [sort]
+	 * @param {Children} [fallback]
 	 */
-	function map(list, callback, sort) {
+	function map(list, callback, sort, fallback) {
 	  const cache = new Map();
 	  const duplicates = new Map(); // for when caching by value is not possible [1, 2, 1, 1, 1]
 
@@ -1004,8 +992,8 @@
 	  /** @type any[] */
 	  let prev = [];
 	  function clear() {
-	    for (let i = 0; i < prev.length; i++) {
-	      dispose(prev[i], true);
+	    for (const row of prev) {
+	      row.disposer();
 	    }
 	    cache.clear();
 	    duplicates.clear();
@@ -1015,16 +1003,13 @@
 
 	  // to get rid of all nodes when parent disposes
 	  cleanup(clear);
-	  function dispose(row, all) {
-	    // skip cache deletion as we are going to clear the full map
-	    if (all === undefined) {
-	      // delete from cache
-	      if (!row.isDupe) {
-	        cache.delete(row.item);
-	      } else {
-	        const arr = duplicates.get(row.item);
-	        arr.length === 1 ? duplicates.delete(row.item) : removeFromArray(arr, row);
-	      }
+	  function dispose(row) {
+	    // delete from cache
+	    if (!row.isDupe) {
+	      cache.delete(row.item);
+	    } else {
+	      const arr = duplicates.get(row.item);
+	      arr.length === 1 ? duplicates.delete(row.item) : removeFromArray(arr, row);
 	    }
 	    row.disposer();
 	  }
@@ -1073,14 +1058,17 @@
 	      rows.push(row);
 	    }
 
-	    // remove rows that arent present on the current run
+	    // fast clear
 	    if (rows.length === 0) {
 	      clear();
-	    } else {
-	      for (let i = 0; i < prev.length; i++) {
-	        if (prev[i].runId !== runId) {
-	          dispose(prev[i]);
-	        }
+	      prev = rows;
+	      return fallback ? fn(fallback) : emptyArray;
+	    }
+
+	    // remove rows that arent present on the current run
+	    for (let i = 0; i < prev.length; i++) {
+	      if (prev[i].runId !== runId) {
+	        dispose(prev[i]);
 	      }
 	    }
 
@@ -1164,7 +1152,7 @@
 	 */
 	const isComponentable = value => !isReactive(value) && (isFunction(value) ||
 	// avoid [1,2] and support { toString(){ return "something"} }
-	!isArray(value) && isObject(value) && !value.then);
+	!isArray(value) && isObject(value) && !isPromise(value));
 
 	/**
 	 * Makes of `children` a function. Reactive children will run as is,
@@ -1217,8 +1205,8 @@
 	/**
 	 * Marks a function as a `Component`.
 	 *
-	 * @param {Function} fn - Function to mark as a `Component`
-	 * @returns {Component}
+	 * @template T
+	 * @param {T} fn - Function to mark as a `Component`
 	 */
 	function markComponent(fn) {
 	  fn[$isComponent] = undefined;
@@ -1379,7 +1367,7 @@
 	 *
 	 * @param {string} propName - Name of the prop
 	 * @param {(
-	 * 	node: Elements,
+	 * 	node: Element,
 	 * 	propName: string,
 	 * 	propValue: Function | any,
 	 * 	props: object,
@@ -1400,7 +1388,7 @@
 	 *
 	 * @param {string} NSName - Name of the namespace
 	 * @param {(
-	 * 	node: Elements,
+	 * 	node: Element,
 	 * 	propName: string,
 	 * 	propValue: Function | any,
 	 * 	props: object,
@@ -1479,7 +1467,9 @@
 	 * @param {string} localName
 	 * @param {string} ns
 	 */
-	const setPropertyNS = (node, name, value, props, localName, ns) => setProperty(node, localName, value);
+	const setPropertyNS = (node, name, value, props, localName, ns) => {
+	  setProperty(node, localName, value);
+	};
 
 	/**
 	 * @param {Element} node
@@ -1487,8 +1477,9 @@
 	 * @param {unknown} value
 	 * @url https://pota.quack.uy/props/setProperty
 	 */
-	const setProperty = (node, name, value) => withValue(value, value => _setProperty(node, name, value));
-
+	const setProperty = (node, name, value) => {
+	  withValue(value, value => _setProperty(node, name, value));
+	};
 	/**
 	 * @param {Element} node
 	 * @param {string} name
@@ -1497,7 +1488,7 @@
 	function _setProperty(node, name, value) {
 	  // if the value is null or undefined it will be set to null
 	  if (isNullUndefined(value)) {
-	    // defaulting to undefined breaks `progress` tag and the whole page
+	    // defaulting to `undefined` breaks `progress` tag and the whole page
 	    node[name] = null;
 	  } else {
 	    node[name] = value;
@@ -1695,7 +1686,9 @@
 	 * @param {object | string | ArrayLike<any>} value
 	 * @param {object} props
 	 */
-	const setClass = (node, name, value, props) => isString(value) ? node.setAttribute('class', value) : setClassList(node, value);
+	const setClass = (node, name, value, props) => {
+	  isString(value) ? node.setAttribute('class', value) : setClassList(node, value);
+	};
 
 	/**
 	 * @param {Element} node
@@ -1705,7 +1698,9 @@
 	 * @param {string} localName
 	 * @param {string} ns
 	 */
-	const setClassNS = (node, name, value, props, localName, ns) => isFunction(value) ? setElementClass(node, localName, value) : setClassList(node, value);
+	const setClassNS = (node, name, value, props, localName, ns) => {
+	  isFunction(value) ? setElementClass(node, localName, value) : setClassList(node, value);
+	};
 
 	/**
 	 * @param {Element} node
@@ -1738,12 +1733,14 @@
 	 * @param {string} name
 	 * @param {unknown} value
 	 */
-	const setElementClass = (node, name, value) => withPrevValue(value, (value, prev) => {
-	  // on initialization do not remove whats not there
-	  if (!value && !prev) ; else {
-	    _setClassListValue(node, name, value);
-	  }
-	});
+	const setElementClass = (node, name, value) => {
+	  withPrevValue(value, (value, prev) => {
+	    // on initialization do not remove whats not there
+	    if (!value && !prev) ; else {
+	      _setClassListValue(node, name, value);
+	    }
+	  });
+	};
 
 	/**
 	 * @param {Element} node
@@ -1751,9 +1748,10 @@
 	 * @param {unknown} value
 	 */
 
-	const _setClassListValue = (node, name, value) =>
-	// null, undefined or false, the class is removed
-	!value ? classListRemove(node, name) : classListAdd(node, ...name.trim().split(/\s+/));
+	const _setClassListValue = (node, name, value) => {
+	  // null, undefined or false, the class is removed
+	  !value ? classListRemove(node, name) : classListAdd(node, ...name.trim().split(/\s+/));
+	};
 
 	/**
 	 * @param {Element} node
@@ -1857,6 +1855,7 @@
 	propsPlugin('__dev', noop, false);
 	propsPlugin('xmlns', noop, false);
 	propsPlugin('value', setValue, false);
+	propsPlugin('textContent', setProperty, false);
 	propsPluginBoth('css', setCSS, false);
 	propsPluginBoth('onMount', setOnMount, false);
 	propsPluginBoth('onUnmount', setUnmount, false);
@@ -1894,25 +1893,18 @@
 	  let plugin = plugins.get(name);
 	  if (plugin) {
 	    plugin(node, name, value, props);
-	    return;
-	  }
-	  if (propNS[name] || name.includes(':')) {
+	  } else if (propNS[name] || name.includes(':')) {
 	    // with ns
 	    propNS[name] = propNS[name] || name.split(':');
 	    const [ns, localName] = propNS[name];
 
 	    // run plugins NS
 	    plugin = pluginsNS.get(ns);
-	    if (plugin) {
-	      plugin(node, name, value, props, localName, ns);
-	      return;
-	    }
-	    setUnknown(node, name, value, ns);
-	    return;
+	    plugin ? plugin(node, name, value, props, localName, ns) : setUnknown(node, name, value, ns);
+	  } else {
+	    // catch all
+	    setUnknown(node, name, value);
 	  }
-
-	  // catch all
-	  setUnknown(node, name, value);
 	}
 
 	// CONSTANTS
@@ -2083,10 +2075,9 @@
 	 * Creates the children for a parent
 	 *
 	 * @param {Element} parent
-	 * @param {Children} child
+	 * @param {Component} child
 	 * @param {boolean} [relative]
 	 * @param {Text | undefined} [prev]
-	 * @returns {Children}
 	 */
 	function createChildren(parent, child, relative, prev = undefined) {
 	  switch (typeof child) {
@@ -2122,38 +2113,29 @@
 	        // needs placeholder to stay in position
 	        parent = createPlaceholder(parent, undefined /*child.name*/, relative);
 
-	        // For
-	        if ($isMap in child) {
-	          effect(() => {
-	            node = toDiff(node, child(child => {
-	              /**
-	               * Wrap the item with placeholders, for when stuff in
-	               * between moves. If a `Show` adds and removes nodes, we
-	               * dont have a reference to these nodes. By delimiting
-	               * with a shore, we can just handle anything in between
-	               * as a group.
-	               */
-	              const begin = createPlaceholder(parent, undefined /*begin*/, true);
-	              const end = createPlaceholder(parent, undefined /*end*/, true);
-	              return [begin, createChildren(end, child, true), end];
-	            }), true);
-	          });
-	          cleanup(() => {
-	            toDiff(node);
-	            parent.remove();
-	          });
-	          return [node, parent];
-	        }
-
-	        // maybe a signal so needs an effect
-
-	        effect(() => {
+	        // For - TODO move this to the `For` component
+	        $isMap in child ? effect(() => {
+	          node = toDiff(node, child(child => {
+	            /**
+	             * Wrap the item with placeholders, for when stuff in
+	             * between moves. If a `Show` adds and removes nodes,
+	             * we dont have a reference to these nodes. By
+	             * delimiting with a shore, we can just handle
+	             * anything in between as a group.
+	             */
+	            const begin = createPlaceholder(parent, undefined /*begin*/, true);
+	            const end = createPlaceholder(parent, undefined /*end*/, true);
+	            return [begin, createChildren(end, child, true), end];
+	          }), true);
+	        }) : effect(() => {
+	          // maybe a signal (at least a function) so needs an effect
 	          node = toDiff(node, [createChildren(parent, child(), true, node[0])], true);
 	        });
 	        cleanup(() => {
 	          toDiff(node);
 	          parent.remove();
 	        });
+
 	        /**
 	         * A placeholder is created and added to the document but doesnt
 	         * form part of the children. The placeholder needs to be
@@ -2163,7 +2145,7 @@
 	         * wrong place. wrong place: where the placeholder is and not
 	         * where the children were moved to
 	         */
-	        return [node, parent];
+	        return parent;
 	      }
 	    case 'object':
 	      {
@@ -2408,29 +2390,33 @@
 	}
 
 	/**
-	 * Removes from the DOM `prev` elements not found on `next`
+	 * Removes from the DOM `prev` elements not found in `next`
 	 *
 	 * @param {Element[]} prev - Array with previous elements
 	 * @param {Element[]} next - Array with next elements
 	 * @returns {Element[]}
 	 */
 	function toDiff(prev = [], next = [], short = false) {
-	  next = next.flat(Infinity);
-	  // fast clear
-	  if (short && prev.length && next.length === 0) {
-	    // + 1 because of the original placeholder
-	    if (prev.length + 1 === prev[0].parentNode.childNodes.length) {
-	      const parent = prev[0].parentNode;
-	      // save the placeholder
-	      const child = parent.lastChild;
-	      parent.textContent = '';
-	      parent.append(child);
-	      return;
+	  next = next.length ? next.flat(Infinity) : next;
+
+	  // if theres something to remove
+	  if (prev.length) {
+	    // fast clear
+	    if (short && next.length === 0) {
+	      // + 1 because of the original placeholder
+	      if (prev.length + 1 === prev[0].parentNode.childNodes.length) {
+	        const parent = prev[0].parentNode;
+	        // save the placeholder
+	        const child = parent.lastChild;
+	        parent.textContent = '';
+	        parent.append(child);
+	        return next;
+	      }
 	    }
-	  }
-	  for (let i = 0, item; i < prev.length; i++) {
-	    item = prev[i];
-	    item && (next.length === 0 || !next.includes(item)) && item.remove();
+	    for (let i = 0, item; i < prev.length; i++) {
+	      item = prev[i];
+	      item && (next.length === 0 || !next.includes(item)) && item.remove();
+	    }
 	  }
 	  return next;
 	}
@@ -2445,6 +2431,7 @@
 	 * @param {boolean} [props.restoreFocus] - If the focused element
 	 *   moves it may lose focus
 	 * @param {Children} [props.children]
+	 * @param {Children} [props.fallback]
 	 * @returns {Children}
 	 * @url https://pota.quack.uy/Components/For
 	 */
@@ -2452,7 +2439,7 @@
 	const For = props => map(() => {
 	  props.restoreFocus && queue();
 	  return props.each;
-	}, makeCallback(props.children));
+	}, makeCallback(props.children), true, props.fallback);
 	let queued;
 
 	// because re-ordering the elements trashes focus
