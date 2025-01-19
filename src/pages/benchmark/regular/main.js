@@ -1136,9 +1136,7 @@
 	 * @param {any} value
 	 * @returns {boolean}
 	 */
-	function isComponentable(value) {
-	  return !isReactive(value) && (isFunction(value) || !isArray(value) && isObject(value) && !isPromise(value));
-	}
+	const isComponentable = value => !isReactive(value) && (isFunction(value) || !isArray(value) && isObject(value) && !isPromise(value));
 
 	// avoid [1,2] and support { toString(){ return "something"} }
 
