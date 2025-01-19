@@ -183,8 +183,7 @@ const App = () => {
 		update = () => {
 			const d = data()
 			const len = d.length
-			for (let i = 0; i < len; i += 10)
-				d[i].label.update(l => l + ' !!!')
+			for (let i = 0; i < len; i += 10) d[i].update(l => l + ' !!!')
 		},
 		swapRows = () => {
 			const d = [...data()]

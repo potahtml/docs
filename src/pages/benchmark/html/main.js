@@ -1404,9 +1404,11 @@
 	 * @param {any} value
 	 * @returns {boolean}
 	 */
-	const isComponentable = value => !isReactive(value) && (isFunction(value) ||
+	function isComponentable(value) {
+	  return !isReactive(value) && (isFunction(value) || !isArray(value) && isObject(value) && !isPromise(value));
+	}
+
 	// avoid [1,2] and support { toString(){ return "something"} }
-	!isArray(value) && isObject(value) && !isPromise(value));
 
 	/**
 	 * Makes of `children` a function. Reactive children will run as is,
