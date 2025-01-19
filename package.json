@@ -10,9 +10,10 @@
 		"update": "npm update --include=dev --save && npm run dev"
 	},
 	"dependencies": {
+		"@babel/plugin-transform-for-of": "^7.25.9",
+		"dom-flair": "file:../dom-flair",
 		"fflate": "^0.8.2",
 		"kompiler": "file:../kompiler",
-		"dom-flair": "file:../dom-flair",
 		"pota": "file:../pota",
 		"tm-textarea": "file:../solid/tm-textarea"
 	},

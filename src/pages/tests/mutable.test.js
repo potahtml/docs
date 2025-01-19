@@ -8008,6 +8008,92 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
     },
   )
 
+  test(
+    lib +
+      'blacklist: doesnt creates a proxy for HTMLElement, Date, RegExp, Promise',
+    expect => {
+      const values = [
+        document.createElement('div'),
+        document.createElement('lala'),
+        document.createElement('my-el'),
+        new Date(),
+        /test/i,
+        new Promise(() => {}),
+      ]
+      for (const val of values) {
+        expect(isProxy(mutable(val))).toBe(false)
+        expect(isProxy(mutable({ nested: val }).nested)).toBe(false)
+      }
+
+      // nested
+    },
+  )
+
+  test(
+    lib +
+      'crash: doesnt crash with  window, globalThis, document, documentElement, body',
+    expect => {
+      const values = [
+        window,
+        globalThis,
+        document,
+        document.documentElement,
+        document.body,
+      ]
+      for (const val of values) {
+        expect(isProxy(mutable(val))).toBe(false)
+        expect(isProxy(mutable({ nested: val }).nested)).toBe(false)
+      }
+    },
+  )
+
+  test(lib + 'prototype walk in the right order', expect => {
+    class c {
+      get value() {
+        return 3
+      }
+    }
+
+    class b extends c {
+      get value() {
+        return 1
+      }
+    }
+
+    class a extends b {
+      get value() {
+        return 2
+      }
+    }
+
+    expect(new a().value).toBe(2)
+    expect(mutable(new a()).value).toBe(2)
+
+    class d1 {
+      value = 4
+    }
+    class c1 extends d1 {
+      get value() {
+        return 3
+      }
+    }
+
+    class b1 extends c1 {
+      get value() {
+        return 1
+      }
+    }
+
+    class a1 extends b1 {
+      get value() {
+        return 2
+      }
+    }
+
+    expect(new a1().value).toBe(4)
+    expect(mutable(new a1()).value).toBe(4)
+  })
+
   if (lib === 'pota: ') {
     // test should work with regular objects and with mutable too
     ;[identity, mutable].map(mutable => {
