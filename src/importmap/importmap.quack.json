@@ -2,13 +2,13 @@
 
 "imports": {
 
-"pota": "https://pota.quack.uy/node_modules/pota/src/@main.js",
+"pota": "https://pota.quack.uy/node_modules/pota/src/main.js",
 
 "pota/babel-preset": "https://pota.quack.uy/node_modules/pota/babel-preset/index.js",
 "pota/jsx-runtime": "https://pota.quack.uy/node_modules/pota/src/jsx-runtime.js",
 
 "pota/html": "https://pota.quack.uy/node_modules/pota/src/html.js",
-"pota/web": "https://pota.quack.uy/node_modules/pota/src/web/@main.js",
+"pota/web": "https://pota.quack.uy/node_modules/pota/src/web/main.js",
 
 "pota/plugin/bind": "https://pota.quack.uy/node_modules/pota/src/plugin/bind.js",
 "pota/plugin/clickoutside": "https://pota.quack.uy/node_modules/pota/src/plugin/clickoutside.js",

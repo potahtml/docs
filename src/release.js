@@ -37,13 +37,13 @@ const template = `\`{
 
 "imports": {
 
-"pota": "/node_modules/pota/src/@main.js",
+"pota": "/node_modules/pota/src/main.js",
 
 "pota/babel-preset": "/node_modules/pota/babel-preset/index.js",
 "pota/jsx-runtime": "/node_modules/pota/src/jsx-runtime.js",
 
 "pota/html": "/node_modules/pota/src/html.js",
-"pota/web": "/node_modules/pota/src/web/@main.js",
+"pota/web": "/node_modules/pota/src/web/main.js",
 
 __PLUGIN__,
 
