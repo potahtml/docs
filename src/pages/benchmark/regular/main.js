@@ -100,9 +100,7 @@
 
 	/** Memoize functions with a map cache */
 	const withCache = fn => withState((cache, thing) => cache.get(thing, thing => fn(thing)), cacheStore);
-	const walkElements = function (walk, node, max = Infinity) {
-	  const nodes = [];
-
+	const walkElements = function (walk, node, max = Infinity, nodes = []) {
 	  /**
 	   * The first node is not walked by the walker.
 	   *
@@ -842,7 +840,9 @@
 	 *
 	 * @param {any} [defaultValue] - Default value for the context
 	 */
-	const Context = (defaultValue = undefined) => useContext.bind(null, Symbol(), defaultValue);
+	function Context(defaultValue = undefined) {
+	  return useContext.bind(null, Symbol(), defaultValue);
+	}
 
 	/**
 	 * @overload Gets the context value
@@ -1136,7 +1136,9 @@
 	 * @param {any} value
 	 * @returns {boolean}
 	 */
-	const isComponentable = value => !isReactive(value) && (isFunction(value) || !isArray(value) && isObject(value) && !isPromise(value));
+	function isComponentable(value) {
+	  return !isReactive(value) && (isFunction(value) || !isArray(value) && isObject(value) && !isPromise(value));
+	}
 
 	// avoid [1,2] and support { toString(){ return "something"} }
 

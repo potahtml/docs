@@ -2,13 +2,13 @@
 
 "imports": {
 
-"pota": "http://localhost:11433/node_modules/pota/src/main.js",
+"pota": "http://localhost:11433/node_modules/pota/src/@main.js",
 
 "pota/babel-preset": "http://localhost:11433/node_modules/pota/babel-preset/index.js",
 "pota/jsx-runtime": "http://localhost:11433/node_modules/pota/src/jsx-runtime.js",
 
 "pota/html": "http://localhost:11433/node_modules/pota/src/html.js",
-"pota/web": "http://localhost:11433/node_modules/pota/src/web/main.js",
+"pota/web": "http://localhost:11433/node_modules/pota/src/web/@main.js",
 
 "pota/plugin/bind": "http://localhost:11433/node_modules/pota/src/plugin/bind.js",
 "pota/plugin/clickoutside": "http://localhost:11433/node_modules/pota/src/plugin/clickoutside.js",
