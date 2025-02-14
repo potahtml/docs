@@ -9,11 +9,7 @@ function App() {
           color: purple;
         }
       `}
-      <section>test inlining a stylesheet in the document</section>
-
-      <section css="class{color:green} class:hover{color:red}">
-        fancy css inline for a specific element
-      </section>
+      <section>fancy inline in the document</section>
     </main>
   )
 }

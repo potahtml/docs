@@ -147,9 +147,8 @@
 	/**
 	 * Unwraps values. If the argument is a function then it runs it
 	 * recursively and returns the value
-	 *
-	 * @param {Function | any} value - Maybe function
-	 * @returns {any}
+	 * @template T
+	 * @param {MaybeAccessor<T>} value - Maybe function
 	 */
 	function getValue(value) {
 	  while (typeof value === 'function') value = value();
@@ -291,7 +290,7 @@
 	const sheet = withCache(css => {
 	  const sheet = new CSSStyleSheet();
 	  /**
-	   * Replace is asynchronous and can accept @import statements
+	   * Replace is asynchronous and can accept `@import` statements
 	   * referencing external resources.
 	   */
 	  sheet.replace(css);
@@ -334,6 +333,8 @@
 	 */
 
 
+	/** SORRY TYPES KIND OF MESSY AROUND HERE, IM BUSY WITH SOMEHTING ELSE */
+
 	/**
 	 * Returns true when value is reactive (a signal)
 	 *
@@ -356,28 +357,39 @@
 	const CLEAN = 0;
 	const STALE = 1;
 	const CHECK = 2;
+
+	/** @type {Computation} */
 	let Owner;
+	/** @type {Computation} */
 	let Listener;
+
+	/** @type {undefined | null | any[]} */
+
 	let Updates = null;
+	/** @type {undefined | null | any[]} */
+
 	let Effects = null;
 	let Time = 0;
 
 	// ROOT
 
 	class Root {
-	  /** @type {Root} */
+	  /** @type {Root | undefined} */
 	  owner;
 
-	  /** @type {Root | Root[] | null} */
+	  /** @type {Root | Root[] | null | undefined} */
 	  owned;
 
-	  /** @type {Function | Function[] | | null} */
+	  /** @type {Function | Function[] | null | undefined} */
 	  cleanups;
 
 	  /** @type {any} */
 	  context;
 
-	  /** @param {undefined | Root} owner */
+	  /**
+	   * @param {undefined | Root} owner
+	   * @param {object} [options]
+	   */
 	  constructor(owner, options) {
 	    if (owner) {
 	      this.owner = owner;
@@ -387,6 +399,7 @@
 	    }
 	    options && assign(this, options);
 	  }
+	  /** @param {Function} fn */
 	  addCleanups(fn) {
 	    if (!this.cleanups) {
 	      this.cleanups = fn;
@@ -396,6 +409,7 @@
 	      this.cleanups = [this.cleanups, fn];
 	    }
 	  }
+	  /** @param {Root} value */
 	  addOwned(value) {
 	    if (!this.owned) {
 	      this.owned = value;
@@ -438,9 +452,17 @@
 	class Computation extends Root {
 	  state = STALE;
 	  updatedAt = 0;
+
+	  /** @type {Function | undefined} */
 	  fn;
 	  sources;
 	  sourceSlots;
+
+	  /**
+	   * @param {Root} [owner]
+	   * @param {Function} [fn]
+	   * @param {object} [options]
+	   */
 	  constructor(owner, fn, options) {
 	    super(owner, options);
 	    this.fn = fn;
@@ -500,12 +522,23 @@
 	}
 	class Effect extends Computation {
 	  user = true;
+
+	  /**
+	   * @param {Root} [owner]
+	   * @param {Function} [fn]
+	   * @param {object} [options]
+	   */
 	  constructor(owner, fn, options) {
 	    super(owner, fn, options);
 	    Effects ? Effects.push(this) : batch(() => this.update());
 	  }
 	}
 	class SyncEffect extends Computation {
+	  /**
+	   * @param {Root} [owner]
+	   * @param {Function} [fn]
+	   * @param {object} [options]
+	   */
 	  constructor(owner, fn, options) {
 	    super(owner, fn, options);
 	    batch(() => this.update());
@@ -1060,7 +1093,7 @@
 
 	    // reorder elements
 	    // `rows.length > 1` because no need for sorting when there are no items
-	    // prev.length > 0 to skip sorting on creation as its already sorted
+	    // `prev.length > 0` to skip sorting on creation as its already sorted
 	    if (rows.length > 1 && prev.length) {
 	      // when appending to already created it shouldnt sort
 	      // as its already sorted
@@ -1436,7 +1469,7 @@
 	 * @param {Element} node
 	 * @param {string} name
 	 * @param {string} value
-	 * @param {string} [ns]
+	 * @param {string } [ns]
 	 */
 	function _setAttribute(node, name, value, ns) {
 	  // if the value is null or undefined it will be removed
@@ -1506,13 +1539,14 @@
 	  const setters = elementSetters(node);
 	  if (setters.element.has(name) && (typeof value !== 'string' || node.isCustomElement)) {
 	    /**
-	     * 1. Only do this when it's different to a string to avoid coarcing
+	     * 1. when it's different to a string to avoid coarcing
 	     *    on native elements (ex: (img.width = '16px') === 0)
-	     * 2. Or when a custom element has a setter
+	     * 2. when a native element has a setter
+	     * 3. when a custom element has a setter
 	     */
 	    setProperty(node, name, value);
 	  } else if (setters.builtIn.has(name)) {
-	    // ex: innerHTML, textContent, draggable={true}
+	    // ex: innerHTML, textContent, etc
 	    setProperty(node, name, value);
 	  } else {
 	    setAttribute(node, name, value, ns);
@@ -1595,18 +1629,18 @@
 
 
 	/**
-	 * @param {Element} node
+	 * @param {DOMElement} node
 	 * @param {string} name
-	 * @param {unknown} value
+	 * @param {StylePropertyValue} value
 	 * @param {object} props
 	 * @url https://pota.quack.uy/props/setStyle
 	 */
 	const setStyle = (node, name, value, props) => setNodeStyle(node.style, value);
 
 	/**
-	 * @param {Element} node
+	 * @param {DOMElement} node
 	 * @param {string} name
-	 * @param {unknown} value
+	 * @param {StylePropertyValue} value
 	 * @param {object} props
 	 * @param {string} localName
 	 * @param {string} ns
@@ -1616,9 +1650,9 @@
 	});
 
 	/**
-	 * @param {Element} node
+	 * @param {DOMElement} node
 	 * @param {string} name
-	 * @param {unknown} value
+	 * @param {StylePropertyValue} value
 	 * @param {object} props
 	 * @param {string} localName
 	 * @param {string} ns
@@ -1629,23 +1663,17 @@
 
 	/**
 	 * @param {CSSStyleDeclaration} style
-	 * @param {unknown} value
+	 * @param {StylePropertyValue} value
 	 */
 	function setNodeStyle(style, value) {
-	  if (isObject(value)) {
+	  if (isString(value)) {
+	    style.cssText = value;
+	  } else if (isFunction(value)) {
+	    withValue(value, value => setNodeStyle(style, getValue(value)));
+	  } else if (isObject(value)) {
 	    for (const name in value) {
 	      setStyleValue(style, name, value[name]);
 	    }
-	    return;
-	  }
-	  const type = typeof value;
-	  if (type === 'string') {
-	    style.cssText = value;
-	    return;
-	  }
-	  if (type === 'function') {
-	    withValue(value, value => setNodeStyle(style, getValue(value)));
-	    return;
 	  }
 	}
 
@@ -1797,7 +1825,9 @@
 	 * @param {string} value
 	 * @param {object} props
 	 */
-	const setCSS = (node, name, value, props) => setNodeCSS(node, value);
+	const setCSS = (node, name, value, props) => {
+	  setNodeCSS(node, value);
+	};
 
 	/**
 	 * @param {Element} node
@@ -1844,7 +1874,7 @@
 	propsPlugin('xmlns', noop, false);
 	propsPlugin('value', setValue, false);
 	propsPlugin('textContent', setProperty, false);
-	propsPluginBoth('css', setCSS, false);
+	propsPlugin('plugin:css', setCSS, false);
 	propsPluginBoth('onMount', setOnMount, false);
 	propsPluginBoth('onUnmount', setUnmount, false);
 	propsPluginBoth('ref', setRef, false);
@@ -1857,9 +1887,9 @@
 
 	/**
 	 * Assigns props to an Element
-	 *
+	 * @template T
 	 * @param {Element} node - Element to which assign props
-	 * @param {object} props - Props to assign
+	 * @param {T} props - Props to assign
 	 */
 	function assignProps(node, props) {
 	  for (const name in props) {
@@ -1870,11 +1900,12 @@
 
 	/**
 	 * Assigns a prop to an Element
-	 *
+
+	 * @template T
 	 * @param {Element} node
 	 * @param {string} name
 	 * @param {any} value
-	 * @param {object} props
+	 * @param {T} props
 	 */
 	function assignProp(node, name, value, props) {
 	  // run plugins
@@ -2415,6 +2446,8 @@
 	  props.restoreFocus && queue();
 	  return props.each;
 	}, makeCallback(props.children), true, props.fallback);
+
+	/** @type {boolean} */
 	let queued;
 
 	// because re-ordering the elements trashes focus
