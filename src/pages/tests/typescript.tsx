@@ -127,6 +127,21 @@ type ControlledProps = Omit<
 
 const Div = <div />
 
+declare module 'pota' {
+	namespace JSX {
+		interface IntrinsicElements {
+			'some-element': HTMLAttributes<
+				HTMLElement,
+				{},
+				HTMLEvents<HTMLElement>
+			>
+		}
+	}
+}
+
+function Test() {
+	return <some-element on:error={e => console.log(e)} />
+}
 function typescript(props) {
 	return (
 		<span

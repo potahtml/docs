@@ -7,7 +7,7 @@ call git push
 
 :: publish to pota.quack.uy
 
-cd /D S:/www/npm/pota.docs.cloudflare/
+cd /D S:/www/pota.docs.cloudflare/
 
 del localhost.zip
 
