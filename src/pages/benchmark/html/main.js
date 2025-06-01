@@ -157,6 +157,7 @@
 	/**
 	 * Unwraps values. If the argument is a function then it runs it
 	 * recursively and returns the value
+	 *
 	 * @template T
 	 * @param {MaybeAccessor<T>} value - Maybe function
 	 */
@@ -236,6 +237,19 @@
 	 */
 	const optional = value => value === undefined || getValue(value);
 	const querySelector = (node, query) => node.querySelector(query);
+	function* range(start, stop, step = 1) {
+	  if (step < 0) step = Math.abs(step);
+	  yield start;
+	  if (start < stop) {
+	    while (start < stop) {
+	      yield start += step;
+	    }
+	  } else {
+	    while (start > stop) {
+	      yield start -= step;
+	    }
+	  }
+	}
 
 	/**
 	 * Removes a value from an array
@@ -336,7 +350,7 @@
 	 *
 	 * @param {Document | ShadowRoot} document
 	 */
-	const adoptedStyleSheetsGet = document => document.adoptedStyleSheets;
+	const adoptedStyleSheetsGet = document => document?.adoptedStyleSheets;
 
 	/**
 	 * Adds a style sheet to the document
@@ -859,10 +873,7 @@
 	   * @returns SignalUpdate<T>
 	   */
 	  update = value => {
-	    if (isFunction(value)) {
-	      value = value(this.value);
-	    }
-	    return this.write(value);
+	    return this.write(isFunction(value) ? value(this.value) : value);
 	  };
 	  /** @private */
 	  equals(a, b) {
@@ -2891,6 +2902,25 @@
 	});
 
 	/**
+	 * Renders children based on the range function arguments
+	 *
+	 * @param {object} props
+	 * @param {number} props.start
+	 * @param {number} props.stop
+	 * @param {number} props.step
+	 * @param {Children} [props.children]
+	 * @returns {Children}
+	 */
+
+	function Range(props) {
+	  const result = range(props.start ?? 0, props.stop ?? 0, props.step ?? 1);
+	  return Component(For, {
+	    each: Array.from(result),
+	    children: props.children
+	  });
+	}
+
+	/**
 	 * Scrolls to an element
 	 *
 	 * @param {Element} item - Element to scroll to
@@ -3056,22 +3086,28 @@
 
 	// only trigger on what changed
 
-	const pathname = memo(() => getLocation().pathname);
+	const protocol = location$1.protocol;
+	const protocolIsBlob = protocol === 'blob:'; // for playgrounds
+	const protocolIsFile = protocol === 'file:'; // for electron
+
+	const pathname = memo(() => protocolIsFile ? '' : getLocation().pathname);
 	const search = memo(() => getLocation().search);
 	const href = memo(() => getLocation().href);
 
 	// http://location/# reports hash to be empty
 	// http://location/ reports hash to be empty
 	// handle this difference by checking if "#" is at the end of `href`
-	const hash = memo(() => href().endsWith('#') ? '#' : getLocation().hash);
+	const hash = memo(() => getLocation().hash || '#');
 
 	/**
 	 * @typedef {object} location
 	 * @property {SignalAccessor<string>} href - The full url
-	 * @property {SignalAccessor<string>} pathname - Mirror of window.location.pathname
+	 * @property {SignalAccessor<string>} pathname - Mirror of
+	 *   window.location.pathname
 	 * @property {SignalAccessor<string>} hash - Everything after #
 	 * @property {SignalAccessor<string>} path - Pathname + hash
-	 * @property {SignalAccessor<string>} query - Key value pairs with search params
+	 * @property {SignalAccessor<string>} query - Key value pairs with
+	 *   search params
 	 * @property {Function} params - Key value pairs with route params
 	 */
 
@@ -3189,9 +3225,11 @@
 	  const node = e.composedPath().find(item => item instanceof HTMLAnchorElement);
 
 	  // validate
-	  if (!node || !node.href || node.download || node.target || !node.href.startsWith('http') ||
-	  // when using other protocol than "http"
-	  isExternal(node.href) || node.rel && node.rel.split(/\s/).includes('external')) return;
+	  if (!node || !node.href || node.download || node.target ||
+	  // !node.href.startsWith('http') || // when using a different protocol
+	  !protocolIsBlob && protocol !== node.protocol || isExternal(node.href) || node.rel && node.rel.split(/\s/).includes('external')) {
+	    return;
+	  }
 	  preventDefault(e);
 	  navigate(node.href, {
 	    replace: node.replace
@@ -3278,10 +3316,8 @@
 	  props.path === undefined ? '(|#.*)$' // ends with nothing or has a hash followed of stuff
 	  :
 	  // ends with nothing or has a hash followed of stuff
-	  props.path.replace('$', '(|#.*)$')
-	  // pathname always starts with /, make sure the hash is considered
-	  .replace(/^#/, '/#'), props.params);
-	  const route = new RegExp('^' + base.replace(/\:([a-z0-9_\-]+)/gi, '(?<$1>[^/#]+)'));
+	  props.path.replace('$', '(|#.*)$'), props.params);
+	  const route = new RegExp('^/?' + base.replace(/\:([a-z0-9_\-]+)/gi, '(?<$1>[^/#]+)'));
 	  let href = '';
 	  const [params, setParams] = signal(() => nothing);
 
@@ -3427,6 +3463,7 @@
 	  Head,
 	  Match,
 	  Portal,
+	  Range,
 	  Router,
 	  Show,
 	  Switch

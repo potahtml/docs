@@ -125,16 +125,16 @@ type ControlledProps = Omit<
 	value?: string
 }
 
-const Div = <div />
+const Div = () => <div />
+const Div2 = <div />
 
 declare module 'pota' {
 	namespace JSX {
 		interface IntrinsicElements {
-			'some-element': HTMLAttributes<
-				HTMLElement,
-				{},
-				HTMLEvents<HTMLElement>
-			>
+			'some-element': HTMLAttributes<HTMLElement>
+		}
+		interface NSAttributes<Element> {
+			'bool:bla'?: boolean
 		}
 	}
 }
@@ -162,6 +162,7 @@ function typescript(props) {
 			<Card title="lala">lala</Card>
 			<LoginMsg name="name" />
 			<Div />
+			{Div2}
 			<span
 				ref={element => {
 					console.log(element)
@@ -214,12 +215,3 @@ function typescript(props) {
 }
 
 typescript({})
-
-const s1 = signal(0)
-s1.read()
-s1.write(1)
-
-const [read1, write1] = signal(0)
-read1()
-write1('lalla')
-const bla = read1()
