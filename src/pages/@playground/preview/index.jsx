@@ -22,10 +22,12 @@ const code = hashed ? uncompress(decodeURIComponent(hashed)) : ''
 // display error
 
 function displayError(content, type = 'error') {
-	const errors = document.createElement('div')
-	errors.classList.add(type)
-	errors.textContent = content
-	document.body.append(errors)
+	setTimeout(() => {
+		const errors = document.createElement('div')
+		errors.classList.add(type)
+		errors.textContent = content
+		document.body.append(errors)
+	}, 500)
 }
 
 // listen for errors
