@@ -11,7 +11,7 @@ cd /D S:/www/pota.docs.cloudflare/
 
 del localhost.zip
 
-call mpa http://localhost:11433/
+call mpa http://localhost:54207/
 
 
 :: tar -c -f ../pota.quack.uy.zip ./*
