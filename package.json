@@ -10,15 +10,16 @@
 		"update": "npm update --include=dev --save && npm run dev"
 	},
 	"dependencies": {
-		"@babel/plugin-transform-for-of": "^7.25.9",
+		"@types/node": "^22.15.29",
 		"dom-flair": "file:../../dom-flair",
 		"fflate": "^0.8.2",
 		"kompiler": "file:../../kompiler",
+		"monaco-editor": "^0.52.2",
 		"pota": "file:../pota",
 		"tm-textarea": "file:../../solid/tm-textarea"
 	},
 	"kompiler": {
-		"watch": ["../pota/babel-preset"],
+		"watch": ["../pota/babel-preset", "src/release.js"],
 		"builds": [
 			{
 				"input": ["src/index.jsx"],

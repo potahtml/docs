@@ -1,6 +1,9 @@
 .container {
 	width: 100%;
 	height: 100%;
+	padding: 10px;
+	padding-left: 0px;
+	margin-left: -5px;
 }
 
 .container * {
@@ -12,6 +15,7 @@
 /* background color */
 :global .monaco-editor {
 	--vscode-editor-background: transparent !important;
+	outline: none !important;
 }
 :global .monaco-editor .margin {
 	background-color: transparent !important;

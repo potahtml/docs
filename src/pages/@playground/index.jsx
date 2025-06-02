@@ -14,9 +14,15 @@ import { transform } from '../../lib/transform.js'
 
 import 'pota/plugin/clipboard'
 
-import { TabIndentation } from 'tm-textarea/bindings/tab-indentation'
+import { Monaco } from '../../lib/components/monaco/monaco.jsx'
 
-const themes = [
+const themesMonaco = [
+	//'vs',
+	'vs-dark',
+	'hc-black',
+	//'hc-light'
+]
+const themesTM = [
 	'andromeeda',
 	'aurora-x',
 	'ayu-dark',
@@ -69,6 +75,14 @@ const themes = [
 	'vitesse-dark',
 	'vitesse-light',
 ]
+
+const [themeTM, setTMTheme] = signal(
+	localStorage.themeTM || 'monokai',
+)
+const [themeMonaco, setMonacoTheme] = signal(
+	localStorage.themeMonaco || 'vs-dark',
+)
+
 export default function () {
 	const [autorun, setAutorun, updateAutorun] = signal(true)
 
@@ -84,14 +98,6 @@ export default function () {
 		initialValue.code ? initialValue.code : initialValue,
 	)
 
-	/*const codeDownload = memo(() =>
-		URL.createObjectURL(
-			new Blob([code()], {
-				type: 'application/tsx',
-			}),
-		),
-	)*/
-
 	const codeURL = memo(() => compress(code()))
 
 	effect(() => {
@@ -101,10 +107,6 @@ export default function () {
 	// ui
 
 	const [tab, setTab] = signal('code')
-
-	const [theme, setTheme] = signal(
-		localStorage.playgroundTheme || 'monokai',
-	)
 
 	return (
 		<>
@@ -159,25 +161,52 @@ export default function () {
 							</label>
 						</span>
 						<span>
-							<select
-								class={styles.themeSelector}
-								on:change={e => {
-									const value = e.currentTarget.value
-									setTheme(value)
-									localStorage.playgroundTheme = value
-								}}
+							<Show
+								when={() =>
+									tab() === 'pota-jsx' || tab() === 'cheatsheet'
+								}
 							>
-								<For each={themes}>
-									{item => (
-										<option
-											selected={theme() === item}
-											value={item}
-										>
-											{item.replace(/-/g, ' ')}
-										</option>
-									)}
-								</For>
-							</select>
+								<select
+									class={styles.themeSelector}
+									on:change={e => {
+										const value = e.currentTarget.value
+										setTMTheme(value)
+										localStorage.themeTM = value
+									}}
+								>
+									<For each={themesTM}>
+										{item => (
+											<option
+												selected={themeTM() === item}
+												value={item}
+											>
+												{item.replace(/-/g, ' ')}
+											</option>
+										)}
+									</For>
+								</select>
+							</Show>
+							<Show when={() => tab() === 'code'}>
+								<select
+									class={styles.themeSelector}
+									on:change={e => {
+										const value = e.currentTarget.value
+										setMonacoTheme(value)
+										localStorage.themeMonaco = value
+									}}
+								>
+									<For each={themesMonaco}>
+										{item => (
+											<option
+												selected={themeMonaco() === item}
+												value={item}
+											>
+												{item.replace(/-/g, ' ')}
+											</option>
+										)}
+									</For>
+								</select>
+							</Show>
 						</span>
 					</div>
 				</section>
@@ -192,34 +221,18 @@ export default function () {
 					>
 						<form id="form-playground">
 							<Collapse when={() => tab() === 'code'}>
-								<tm-textarea
-									ref={TabIndentation.binding}
-									class="playground line-numbers"
-									value={prettier(code(), true)}
-									on:input={e => setCode(e.target.value)}
-									grammar="tsx"
-									theme={theme}
-									on:keydown={e => {
-										if (e.ctrlKey && e.keyCode === 83) {
-											// CTRL + S
-
-											const textarea = e.target
-
-											e.preventDefault()
-
-											prettier(textarea.value, true).then(code => {
-												textarea.focus()
-												textarea.value = code
-											})
-										}
-									}}
+								<Monaco
+									value={prettier(code(), true).catch(x => code())}
+									on:change={value => setCode(value)}
+									on:format={code => prettier(code, true)}
+									theme={themeMonaco}
 								/>
 							</Collapse>
 							<Show when={() => tab() === 'pota-jsx'}>
 								<tm-textarea
 									class="playground line-numbers"
 									grammar="tsx"
-									theme={theme}
+									theme={themeTM}
 									value={() => transform(code())}
 									editable={false}
 								/>
@@ -229,7 +242,7 @@ export default function () {
 									class="playground"
 									value={prettier(CheatSheetText)}
 									grammar="tsx"
-									theme={theme}
+									theme={themeTM}
 									editable={false}
 								/>
 							</Collapse>
