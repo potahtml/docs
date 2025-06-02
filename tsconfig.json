@@ -12,13 +12,14 @@
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "moduleResolution": "NodeNext",
     "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
 
     "jsx": "preserve",
     "jsxImportSource": "pota",
 
     "sourceMap": true,
 
-    "types": ["pota", "dom-flair", "tm-textarea"]
+    "types": ["pota", "dom-flair", "tm-textarea", "node"]
   },
   "exclude": ["./src/dist/*", "node_modules"]
 }
