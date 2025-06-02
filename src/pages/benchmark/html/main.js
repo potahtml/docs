@@ -1,15 +1,6 @@
 (function () {
 	'use strict';
 
-	// isCustomElement
-
-	const ce = customElements;
-	const define = ce.define.bind(ce);
-	ce.define = (name, constructor, options) => {
-	  constructor.prototype.isCustomElement = true;
-	  define(name, constructor, options);
-	};
-
 	const global = globalThis;
 	const window = global;
 	const CSSStyleSheet = global.CSSStyleSheet;
@@ -178,7 +169,7 @@
 	/**
 	 * Returns `true` when `typeof` of `value` is `function`
 	 *
-	 * @param {any} value
+	 * @param {unknown} value
 	 * @returns {boolean}
 	 */
 	const isFunction = value => typeof value === 'function';
@@ -186,7 +177,7 @@
 	/**
 	 * Returns `true` when value is Iterable
 	 *
-	 * @param {any} value
+	 * @param {unknown} value
 	 * @returns {boolean}
 	 */
 	const isIterable = value => value?.[Symbol.iterator];
@@ -194,7 +185,7 @@
 	/**
 	 * Returns `true` if the value is `null` or `undefined`
 	 *
-	 * @param {any} value
+	 * @param {unknown} value
 	 * @returns {boolean}
 	 */
 	const isNullUndefined = value => value === undefined || value === null;
@@ -202,7 +193,7 @@
 	/**
 	 * Returns `true` when typeof of value is object and not null
 	 *
-	 * @param {any} value
+	 * @param {unknown} value
 	 * @returns {boolean}
 	 */
 	const isObject = value => value !== null && typeof value === 'object';
@@ -210,7 +201,7 @@
 	/**
 	 * Returns `true` when `typeof` of `value` is `string`
 	 *
-	 * @param {any} value
+	 * @param {unknown} value
 	 * @returns {boolean}
 	 */
 	const isString = value => typeof value === 'string';
@@ -218,7 +209,7 @@
 	/**
 	 * Returns `true` when `value` may be a promise
 	 *
-	 * @param {any} value
+	 * @param {unknown} value
 	 * @returns {boolean}
 	 */
 	const isPromise = value => isFunction(value?.then);
@@ -232,12 +223,12 @@
 	/**
 	 * Returns `true` when value is true or undefined
 	 *
-	 * @param {Function | boolean | undefined} value
+	 * @param {unknown} value
 	 * @returns {boolean} True when value is true or undefined
 	 */
 	const optional = value => value === undefined || getValue(value);
 	const querySelector = (node, query) => node.querySelector(query);
-	function* range(start, stop, step = 1) {
+	function* range(start, stop, step) {
 	  if (step < 0) step = Math.abs(step);
 	  yield start;
 	  if (start < stop) {
@@ -473,12 +464,10 @@
 	 */
 
 
-	/** SORRY TYPES KIND OF MESSY AROUND HERE, IM BUSY WITH SOMEHTING ELSE */
-
 	/**
 	 * Returns true when value is reactive (a signal)
 	 *
-	 * @param {any} value
+	 * @param {unknown} value
 	 * @returns {boolean}
 	 */
 	const isReactive = value => isFunction(value) && $isReactive in value;
@@ -487,8 +476,9 @@
 	 * Marks a function as reactive. Reactive functions are ran inside
 	 * effects.
 	 *
-	 * @param {Function} fn - Function to mark as reactive
-	 * @returns {Function}
+	 * @template T
+	 * @param {T} fn - Function to mark as reactive
+	 * @returns {T}
 	 */
 	function markReactive(fn) {
 	  fn[$isReactive] = undefined;
@@ -500,14 +490,14 @@
 
 	/** @type {Computation} */
 	let Owner;
+
 	/** @type {Computation} */
 	let Listener;
 
-	/** @type {undefined | null | any[]} */
-
+	/** @type {Memo[]} */
 	let Updates = null;
-	/** @type {undefined | null | any[]} */
 
+	/** @type {undefined | null | any[]} */
 	let Effects = null;
 	let Time = 0;
 
@@ -517,17 +507,17 @@
 	  /** @type {Root | undefined} */
 	  owner;
 
-	  /** @type {Root | Root[] | null | undefined} */
+	  /** @type {Computation | Computation[]} */
 	  owned;
 
-	  /** @type {Function | Function[] | null | undefined} */
+	  /** @type {Function | Function[]} */
 	  cleanups;
 
-	  /** @type {any} */
+	  /** @type {Record<string, unknown>} */
 	  context;
 
 	  /**
-	   * @param {undefined | Root} owner
+	   * @param {Root} owner
 	   * @param {object} [options]
 	   */
 	  constructor(owner, options) {
@@ -549,7 +539,7 @@
 	      this.cleanups = [this.cleanups, fn];
 	    }
 	  }
-	  /** @param {Root} value */
+	  /** @param {Computation} value */
 	  addOwned(value) {
 	    if (!this.owned) {
 	      this.owned = value;
@@ -751,8 +741,8 @@
 	    }
 	  }
 	  /**
-	   * @param {any} a
-	   * @param {any} b
+	   * @param {unknown} a
+	   * @param {unknown} b
 	   */
 	  equals(a, b) {
 	    return a === b;
@@ -791,9 +781,13 @@
 
 	// SIGNAL
 
-	/** @template in T */
+	/**
+	 * @template in T
+	 * @type SignalObject<T>
+	 */
 	class Signal {
 	  value;
+
 	  /** @private */
 	  observers;
 	  /** @private */
@@ -842,7 +836,6 @@
 	    }
 	    return this.value;
 	  });
-
 	  /**
 	   * @param {T} [value]
 	   * @returns SignalSetter<T>
@@ -869,13 +862,17 @@
 	    return false;
 	  };
 	  /**
-	   * @param {T} [value]
+	   * @type SignalUpdate<T>
 	   * @returns SignalUpdate<T>
 	   */
 	  update = value => {
-	    return this.write(isFunction(value) ? value(this.value) : value);
+	    return this.write(value(this.value));
 	  };
-	  /** @private */
+
+	  /**
+	   * @private
+	   * @type {((a, B) => boolean) | false}
+	   */
 	  equals(a, b) {
 	    return a === b;
 	  }
@@ -912,7 +909,9 @@
 	 */
 	/* #__NO_SIDE_EFFECTS__ */
 	function signal(initialValue, options) {
-	  return new Signal(initialValue, options);
+	  /** @type {SignalObject<T>} */
+	  const s = new Signal(initialValue, options);
+	  return s;
 	}
 
 	/**
@@ -942,12 +941,13 @@
 	 * @template T
 	 * @param {() => T} fn - Function to re-run when dependencies change
 	 * @param {SignalOptions} [options]
-	 * @returns {SignalAccessor<T>} - Read only signal
 	 */
 
 	/* #__NO_SIDE_EFFECTS__ */
 	function memo(fn, options = undefined) {
-	  return new Memo(Owner, fn, options);
+	  /** @type {SignalAccessor<T>} */
+	  const s = new Memo(Owner, fn, options);
+	  return s;
 	}
 
 	/**
@@ -995,7 +995,7 @@
 	 * Runs a callback on cleanup, returns callback
 	 *
 	 * @template T
-	 * @param {T} fn
+	 * @param {T extends Function} fn
 	 * @returns {T}
 	 */
 	function cleanup(fn) {
@@ -1166,8 +1166,9 @@
 	/**
 	 * Returns an owned function
 	 *
-	 * @param {Function | undefined} cb
-	 * @returns {() => any}
+	 * @template T
+	 * @param {(...args: unknown[]) => T} cb
+	 * @returns {() => T}
 	 */
 	const owned = cb => {
 	  const o = Owner;
@@ -1178,8 +1179,8 @@
 	 * Runs a function inside an effect if value is a function.
 	 * Aditionally unwraps promises.
 	 *
-	 * @param {any} value
-	 * @param {(value) => any} fn
+	 * @param {unknown | Promise<unknown>} value
+	 * @param {(value) => unknown} fn
 	 */
 	function withValue(value, fn) {
 	  if (isFunction(value)) {
@@ -1194,8 +1195,8 @@
 	/**
 	 * Runs a function inside an effect if value is a function
 	 *
-	 * @param {any} value
-	 * @param {(value: any, prev?: any) => any} fn
+	 * @param {unknown} value
+	 * @param {(value: unknown, prev?: unknown) => unknown} fn
 	 */
 	function withPrevValue(value, fn) {
 	  if (isFunction(value)) {
@@ -2902,7 +2903,7 @@
 	});
 
 	/**
-	 * Renders children based on the range function arguments
+	 * Renders children based on the `range` function arguments
 	 *
 	 * @param {object} props
 	 * @param {number} props.start
@@ -2912,13 +2913,10 @@
 	 * @returns {Children}
 	 */
 
-	function Range(props) {
-	  const result = range(props.start ?? 0, props.stop ?? 0, props.step ?? 1);
-	  return Component(For, {
-	    each: Array.from(result),
-	    children: props.children
-	  });
-	}
+	const Range = props => Component(For, {
+	  each: toArray(range(props.start ?? 0, props.stop ?? 0, props.step ?? 1)),
+	  children: props.children
+	});
 
 	/**
 	 * Scrolls to an element
