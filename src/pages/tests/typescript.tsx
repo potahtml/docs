@@ -5,7 +5,7 @@ import type { JSX } from 'pota'
 declare module 'pota' {
 	namespace JSX {
 		interface IntrinsicElements {
-			b: {
+			lala: {
 				testing: boolean
 			}
 		}
@@ -157,7 +157,7 @@ function typescript(props) {
 			}}
 			onMount={eeeeee => {}}
 		>
-			<b testing></b>
+			<lala></lala>
 			<Button style:stroke="antiquewhite" />
 			<Card title="lala">lala</Card>
 			<LoginMsg name="name" />
