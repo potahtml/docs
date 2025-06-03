@@ -71,7 +71,7 @@ export function Code(props) {
 					<Show when={props.preview !== false}>
 						<section
 							class={styles.snippetContainer}
-							bool:editable={props.render !== false}
+							data-editable={props.render !== false}
 						>
 							<tm-textarea
 								ref={TabIndentation.binding}
@@ -79,10 +79,10 @@ export function Code(props) {
 								grammar="tsx"
 								theme="monokai"
 								value={prettier(code())}
-								bool:editable={props.render !== false}
+								data-editable={props.render !== false}
+								prop:editable={props.render !== false}
 								stylesheet={snippetStyleSheet}
 								on:input={e => setCode(e.target.value)}
-								editable={props.render !== false}
 							/>
 						</section>
 					</Show>

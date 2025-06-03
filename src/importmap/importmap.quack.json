@@ -4,8 +4,9 @@
 
 "pota": "https://pota.quack.uy/node_modules/pota/src/@main.js",
 
-"pota/babel-preset": "https://pota.quack.uy/node_modules/pota/babel-preset/index.js",
-"pota/jsx-runtime": "https://pota.quack.uy/node_modules/pota/src/jsx-runtime.js",
+"pota/babel-preset": "https://pota.quack.uy/node_modules/pota/src/babel-preset/index.js",
+"pota/jsx-runtime": "https://pota.quack.uy/node_modules/pota/src/jsx/jsx-runtime.js",
+"pota/jsx-dev-runtime": "https://pota.quack.uy/node_modules/pota/src/jsx/jsx-runtime.js",
 
 "pota/html": "https://pota.quack.uy/node_modules/pota/src/html.js",
 "pota/web": "https://pota.quack.uy/node_modules/pota/src/web/@main.js",
@@ -37,6 +38,7 @@
 
 "pota/experiments": "https://pota.quack.uy/node_modules/pota/src/lib/experiments.js",
 "pota/reactive": "https://pota.quack.uy/node_modules/pota/src/lib/reactive.js",
+"pota/solid": "https://pota.quack.uy/node_modules/pota/src/lib/solid.js",
 "pota/std": "https://pota.quack.uy/node_modules/pota/src/lib/std.js",
 "pota/store": "https://pota.quack.uy/node_modules/pota/src/lib/store.js",
 

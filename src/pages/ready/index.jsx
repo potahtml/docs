@@ -13,7 +13,7 @@ export default function () {
 			<p>
 				The <mark>ready</mark> callbacks, will run once the current
 				processing batch is done. That's it, after the full queue of{' '}
-				<mark>onMount</mark> callbacks has been processed, and before
+				<mark>on:mount</mark> callbacks has been processed, and before
 				painting. Relevant Elements that render something should be
 				already connected to the document.
 			</p>
@@ -49,7 +49,7 @@ export default function () {
 			<Section title="Timing">
 				<p>
 					Displays current timings of <mark>ready</mark> vs{' '}
-					<mark>onMount</mark>
+					<mark>on:mount</mark>
 				</p>
 				<Code url="/pages/ready/timing.jsx"></Code>
 			</Section>

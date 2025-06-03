@@ -5,15 +5,15 @@ import { Section } from '../../../lib/components/section.jsx'
 export default function () {
 	return (
 		<>
-			<Header title="onMount">
-				<mark>onMount</mark> is for Elements that need to run some
+			<Header title="on:mount">
+				<mark>on:mount</mark> is for Elements that need to run some
 				initialization after these have been connected to the
 				document. Is available exclusively to Elements via an
 				attribute.
 			</Header>
 
 			<p>
-				As of this writing, the <mark>onMount</mark> callbacks, will
+				As of this writing, the <mark>on:mount</mark> callbacks, will
 				run after the current batch of Nodes have been inserted into
 				the document, before paint, in recursive order, and before the{' '}
 				<mark>ready</mark> callbacks.
@@ -54,7 +54,7 @@ export default function () {
 			</Section>
 
 			<Section title="Timing">
-				<p>Displays current timings of ready vs onMount</p>
+				<p>Displays current timings of ready vs on:mount</p>
 				<Code url="/pages/ready/timing.jsx"></Code>
 			</Section>
 		</>

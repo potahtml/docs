@@ -45,8 +45,8 @@
 
 
 /node_modules/pota/src/@main.js
-/node_modules/pota/babel-preset/index.js
-/node_modules/pota/src/jsx-runtime.js
+/node_modules/pota/src/babel-preset/index.js
+/node_modules/pota/src/jsx/jsx-runtime.js
 /node_modules/pota/src/html.js
 /node_modules/pota/src/web/@main.js
 /node_modules/pota/src/plugin/bind.js

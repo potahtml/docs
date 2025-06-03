@@ -27,7 +27,7 @@ export function H2(props) {
 			<h2 id={URL}>
 				<a
 					href={() => '#' + URL()}
-					onMount={element => {
+					on:mount={element => {
 						setTitle(element.innerText)
 						setURL(encode(element.innerText))
 					}}
@@ -37,7 +37,7 @@ export function H2(props) {
 			</h2>
 			<Show when={props.children}>
 				<p
-					onMount={element =>
+					on:mount={element =>
 						setDescription(whitespace(element.innerText))
 					}
 				>
@@ -81,7 +81,7 @@ export function H3(props) {
 		<h2 id={URL}>
 			<a
 				href={() => '#' + URL()}
-				onMount={element => {
+				on:mount={element => {
 					setURL(encode(element.innerText))
 				}}
 			>

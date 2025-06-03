@@ -5,8 +5,8 @@ import { Section } from '../../../lib/components/section.jsx'
 export default function () {
 	return (
 		<>
-			<Header title="onUnmount">
-				<mark>onUnmount</mark> is for Elements that need to run some
+			<Header title="on:unmount">
+				<mark>on:unmount</mark> is for Elements that need to run some
 				cleanup tasks before these are removed from the document.
 			</Header>
 

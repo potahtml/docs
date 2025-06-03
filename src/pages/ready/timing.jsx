@@ -5,7 +5,7 @@ function BeforeSibling() {
 
   return (
     <section
-      onMount={() => render(<div>onMount: from BeforeSibling</div>)}
+      on:mount={() => render(<div>on:mount: from BeforeSibling</div>)}
     />
   )
 }
@@ -14,29 +14,31 @@ function AfterSibling() {
 
   return (
     <section
-      onMount={() => render(<div>onMount: from AfterSibling</div>)}
+      on:mount={() => render(<div>on:mount: from AfterSibling</div>)}
     />
   )
 }
 function Test() {
   ready(() => render(<div>ready: component body</div>))
   return (
-    <main onMount={() => render(<div>onMount: from container</div>)}>
+    <main
+      on:mount={() => render(<div>on:mount: from container</div>)}
+    >
       <section>
         <div>
-          <div onMount={() => render(<div>onMount: deep 1</div>)} />
+          <div on:mount={() => render(<div>on:mount: deep 1</div>)} />
         </div>
       </section>
       <BeforeSibling />
       <section
-        onMount={() =>
-          render(<div>onMount: from inlined element</div>)
+        on:mount={() =>
+          render(<div>on:mount: from inlined element</div>)
         }
       ></section>
       <AfterSibling />
       <section>
         <div>
-          <div onMount={() => render(<div>onMount: deep 2</div>)} />
+          <div on:mount={() => render(<div>on:mount: deep 2</div>)} />
         </div>
       </section>
     </main>

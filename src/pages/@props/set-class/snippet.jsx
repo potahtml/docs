@@ -6,7 +6,7 @@ import { A } from 'pota/web'
 function App() {
   return (
     <ul
-      onMount={menu => {
+      on:mount={menu => {
         const links = menu.querySelectorAll('li a')
         for (const link of links) {
           setClass(link.parentNode, 'selected', () => {

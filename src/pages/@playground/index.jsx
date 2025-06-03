@@ -234,7 +234,7 @@ export default function () {
 									grammar="tsx"
 									theme={themeTM}
 									value={() => transform(code())}
-									editable={false}
+									prop:editable={false}
 								/>
 							</Show>
 							<Collapse when={() => tab() === 'cheatsheet'}>
@@ -243,7 +243,7 @@ export default function () {
 									value={prettier(CheatSheetText)}
 									grammar="tsx"
 									theme={themeTM}
-									editable={false}
+									prop:editable={false}
 								/>
 							</Collapse>
 						</form>

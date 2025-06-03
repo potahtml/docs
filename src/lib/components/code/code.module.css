@@ -22,6 +22,7 @@
 	padding: 15px;
 }
 iframe {
+	background: #0d1117;
 	height: 27.31px;
 	min-height: 27.31px;
 	width: calc(100% - 1px);
@@ -74,7 +75,7 @@ mark::before {
 	display: grid;
 }
 
-.snippetContainer[editable]::after {
+.snippetContainer[data-editable]::after {
 	color: #ffffff61;
 	content: 'Editable';
 	display: inline-block;

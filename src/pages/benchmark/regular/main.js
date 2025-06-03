@@ -11,8 +11,6 @@
 	const assign = Object$1.assign;
 	const entries = Object$1.entries;
 	const freeze = Object$1.freeze;
-	const getOwnPropertyDescriptors = Object$1.getOwnPropertyDescriptors;
-	const getPrototypeOf = Object$1.getPrototypeOf;
 	const groupBy = Object$1.groupBy;
 	const isArray = Array.isArray;
 	const toArray = Array.from;
@@ -125,15 +123,6 @@
 	  // always return a Document-like
 	  return nodeType === 11 || nodeType === 9 ? document : node.ownerDocument;
 	};
-	function getSetterNamesFromPrototype(object, set = new Set()) {
-	  const descriptors = getOwnPropertyDescriptors(object);
-	  for (const key in descriptors) {
-	    if (descriptors[key].set) {
-	      set.add(key);
-	    }
-	  }
-	  return set;
-	}
 
 	/**
 	 * Unwraps values. If the argument is a function then it runs it
@@ -311,27 +300,759 @@
 	};
 
 	/**
-	 * This is so far the core of Solid JS Reactivity, this may change.
+	 * This is so far the core of Solid JS 1.x Reactivity, but ported to
+	 * classes and adapted to my taste.
 	 *
-	 * Adaptation for potas needs have been made:
+	 * Adaptation for potas needs include:
 	 *
 	 * - Ported to Classes what does fit
 	 * - Signal has more options: `label` and `save` previous value
-	 * - Writing to a signal returns `true` when the value changes
+	 * - Writing to a signal returns `bollean` to tell if the value changed
 	 * - Signal is an object that could be used as signal.read/write or
-	 *   destructured as an array.
-	 * - Signals can save and wont run functions
+	 *   destructured as an array
+	 * - Signals can save and won't run functions
 	 * - `update` function on Signal that could be used to use the old value
+	 *   to set a new value
+	 * - The system is wrapped in a `createReactiveSystem` function so many
+	 *   systems can be run at the same time, for example for the
+	 *   developer tools context, so dev-tools context doesnt mess up the
+	 *   real context
 	 */
 
+	function createReactiveSystem() {
+	  const CLEAN = 0;
+	  const STALE = 1;
+	  const CHECK = 2;
 
-	/**
-	 * Returns true when value is reactive (a signal)
-	 *
-	 * @param {unknown} value
-	 * @returns {boolean}
-	 */
-	const isReactive = value => isFunction(value) && $isReactive in value;
+	  /** @type {Computation} */
+	  let Owner;
+
+	  /** @type {Computation} */
+	  let Listener;
+
+	  /** @type {Memo[]} */
+	  let Updates = null;
+
+	  /** @type {undefined | null | any[]} */
+	  let Effects = null;
+	  let Time = 0;
+
+	  // ROOT
+
+	  class Root {
+	    /** @type {Root | undefined} */
+	    owner;
+
+	    /** @type {Computation | Computation[]} */
+	    owned;
+
+	    /** @type {Function | Function[]} */
+	    cleanups;
+
+	    /** @type {Record<string, unknown>} */
+	    context;
+
+	    /**
+	     * @param {Root} owner
+	     * @param {object} [options]
+	     */
+	    constructor(owner, options) {
+	      if (owner) {
+	        this.owner = owner;
+	        if (owner.context) {
+	          this.context = owner.context;
+	        }
+	      }
+	      options && assign(this, options);
+	    }
+	    /** @param {Function} fn */
+	    addCleanups(fn) {
+	      if (!this.cleanups) {
+	        this.cleanups = fn;
+	      } else if (isArray(this.cleanups)) {
+	        this.cleanups.push(fn);
+	      } else {
+	        this.cleanups = [this.cleanups, fn];
+	      }
+	    }
+	    /** @param {Computation} value */
+	    addOwned(value) {
+	      if (!this.owned) {
+	        this.owned = value;
+	      } else if (isArray(this.owned)) {
+	        this.owned.push(value);
+	      } else {
+	        this.owned = [this.owned, value];
+	      }
+	    }
+	    dispose() {
+	      this.disposeOwned();
+	      this.doCleanups();
+	    }
+	    disposeOwned() {
+	      if (!this.owned) ; else if (isArray(this.owned)) {
+	        for (let i = this.owned.length - 1; i >= 0; i--) {
+	          this.owned[i].dispose();
+	        }
+	        this.owned = null;
+	      } else {
+	        this.owned.dispose();
+	        this.owned = null;
+	      }
+	    }
+	    doCleanups() {
+	      if (!this.cleanups) ; else if (isArray(this.cleanups)) {
+	        for (let i = this.cleanups.length - 1; i >= 0; i--) {
+	          this.cleanups[i]();
+	        }
+	        this.cleanups = null;
+	      } else {
+	        this.cleanups();
+	        this.cleanups = null;
+	      }
+	    }
+	  }
+
+	  // COMPUTATION
+
+	  class Computation extends Root {
+	    state = STALE;
+	    updatedAt = 0;
+
+	    /** @type {Function | undefined} */
+	    fn;
+	    sources;
+	    sourceSlots;
+
+	    /**
+	     * @param {Root} [owner]
+	     * @param {Function} [fn]
+	     * @param {object} [options]
+	     */
+	    constructor(owner, fn, options) {
+	      super(owner, options);
+	      this.fn = fn;
+	      owner && owner.addOwned(this);
+	    }
+	    update() {
+	      this.dispose();
+	      const time = Time;
+	      const prevOwner = Owner;
+	      const prevListener = Listener;
+	      Listener = Owner = this;
+	      try {
+	        this.fn();
+	      } catch (err) {
+	        this.updatedAt = time + 1;
+	        throw err;
+	      } finally {
+	        Owner = prevOwner;
+	        Listener = prevListener;
+	      }
+	      if (this.updatedAt < time) {
+	        this.updatedAt = time;
+	      }
+	    }
+	    dispose() {
+	      const {
+	        sources,
+	        sourceSlots
+	      } = this;
+	      if (sources && sources.length) {
+	        let source;
+	        let observers;
+	        let index;
+	        let observer;
+	        let slot;
+	        while (sources.length) {
+	          source = sources.pop();
+	          observers = source.observers;
+	          index = sourceSlots.pop();
+	          if (observers && observers.length) {
+	            observer = observers.pop();
+	            slot = source.observerSlots.pop();
+	            if (index < observers.length) {
+	              observer.sourceSlots[slot] = index;
+	              observers[index] = observer;
+	              source.observerSlots[index] = slot;
+	            }
+	          }
+	        }
+	      }
+	      super.dispose();
+	      this.state = CLEAN;
+	    }
+	    queue() {
+	      Effects.push(this);
+	    }
+	  }
+	  class Effect extends Computation {
+	    user = true;
+
+	    /**
+	     * @param {Root} [owner]
+	     * @param {Function} [fn]
+	     * @param {object} [options]
+	     */
+	    constructor(owner, fn, options) {
+	      super(owner, fn, options);
+	      Effects ? Effects.push(this) : batch(() => this.update());
+	    }
+	  }
+	  class SyncEffect extends Computation {
+	    /**
+	     * @param {Root} [owner]
+	     * @param {Function} [fn]
+	     * @param {object} [options]
+	     */
+	    constructor(owner, fn, options) {
+	      super(owner, fn, options);
+	      batch(() => this.update());
+	    }
+	  }
+
+	  // SIGNALS
+
+	  class Memo extends Computation {
+	    value;
+	    observers;
+	    observerSlots;
+
+	    // options:
+	    // equals
+	    /**
+	     * @param {Root} [owner]
+	     * @param {Function} [fn]
+	     * @param {object} [options]
+	     */
+	    constructor(owner, fn, options) {
+	      super(owner, fn, options);
+	      return this.read;
+	    }
+	    read = markReactive(() => {
+	      if (this.state) {
+	        if (this.state === STALE) {
+	          this.update();
+	        } else {
+	          const updates = Updates;
+	          Updates = null;
+	          runUpdates(() => upstream(this));
+	          Updates = updates;
+	        }
+	      }
+	      if (Listener) {
+	        const sourceSlot = this.observers ? this.observers.length : 0;
+	        if (Listener.sources) {
+	          Listener.sources.push(this);
+	          Listener.sourceSlots.push(sourceSlot);
+	        } else {
+	          Listener.sources = [this];
+	          Listener.sourceSlots = [sourceSlot];
+	        }
+	        const observerSlot = Listener.sources.length - 1;
+	        if (sourceSlot) {
+	          this.observers.push(Listener);
+	          this.observerSlots.push(observerSlot);
+	        } else {
+	          this.observers = [Listener];
+	          this.observerSlots = [observerSlot];
+	        }
+	      }
+	      return this.value;
+	    });
+	    write(value) {
+	      if (this.equals === false || !this.equals(this.value, value)) {
+	        this.value = value;
+	        if (this.observers && this.observers.length) {
+	          runUpdates(() => {
+	            for (const observer of this.observers) {
+	              if (observer.state === CLEAN) {
+	                observer.queue();
+	                observer.observers && downstream(observer);
+	              }
+	              observer.state = STALE;
+	            }
+	          });
+	        }
+	      }
+	    }
+	    /**
+	     * @param {unknown} a
+	     * @param {unknown} b
+	     */
+	    equals(a, b) {
+	      return a === b;
+	    }
+	    update() {
+	      this.dispose();
+	      let nextValue;
+	      const time = Time;
+	      const prevOwner = Owner;
+	      const prevListener = Listener;
+	      Listener = Owner = this;
+	      try {
+	        nextValue = this.fn();
+	      } catch (err) {
+	        this.state = STALE;
+	        this.disposeOwned();
+	        this.updatedAt = time + 1;
+	        throw err;
+	      } finally {
+	        Owner = prevOwner;
+	        Listener = prevListener;
+	      }
+	      if (this.updatedAt <= time) {
+	        if (this.updatedAt !== 0) {
+	          this.write(nextValue);
+	        } else {
+	          this.value = nextValue;
+	        }
+	        this.updatedAt = time;
+	      }
+	    }
+	    queue() {
+	      Updates.push(this);
+	    }
+	  }
+
+	  // SIGNAL
+
+	  /**
+	   * @template in T
+	   * @type SignalObject<T>
+	   */
+	  class Signal {
+	    value;
+
+	    /** @private */
+	    observers;
+	    /** @private */
+	    observerSlots;
+
+	    // options:
+	    // equals
+	    // save
+
+	    // `prev` if option save was given
+	    /**
+	     * @param {T} [value]
+	     * @param {SignalOptions} [options]
+	     */
+	    constructor(value, options) {
+	      this.value = value;
+	      if (options) {
+	        assign(this, options);
+	        if (this.save) {
+	          /** @private */
+	          this.prev = value;
+	        }
+	      }
+	    }
+	    /** @returns SignalAccessor<T> */
+	    read = markReactive(() => {
+	      // checkReadForbidden()
+
+	      if (Listener) {
+	        const sourceSlot = this.observers ? this.observers.length : 0;
+	        if (Listener.sources) {
+	          Listener.sources.push(this);
+	          Listener.sourceSlots.push(sourceSlot);
+	        } else {
+	          Listener.sources = [this];
+	          Listener.sourceSlots = [sourceSlot];
+	        }
+	        const observerSlot = Listener.sources.length - 1;
+	        if (sourceSlot) {
+	          this.observers.push(Listener);
+	          this.observerSlots.push(observerSlot);
+	        } else {
+	          this.observers = [Listener];
+	          this.observerSlots = [observerSlot];
+	        }
+	      }
+	      return this.value;
+	    });
+	    /**
+	     * @param {T} [value]
+	     * @returns SignalSetter<T>
+	     */
+	    write = value => {
+	      if (this.equals === false || !this.equals(this.value, value)) {
+	        if (this.save) {
+	          this.prev = this.value;
+	        }
+	        this.value = value;
+	        if (this.observers && this.observers.length) {
+	          runUpdates(() => {
+	            for (const observer of this.observers) {
+	              if (observer.state === CLEAN) {
+	                observer.queue();
+	                observer.observers && downstream(observer);
+	              }
+	              observer.state = STALE;
+	            }
+	          });
+	        }
+	        return true;
+	      }
+	      return false;
+	    };
+	    /**
+	     * @type SignalUpdate<T>
+	     * @returns SignalUpdate<T>
+	     */
+	    update = value => {
+	      return this.write(value(this.value));
+	    };
+
+	    /**
+	     * @private
+	     * @type {((a, B) => boolean) | false}
+	     */
+	    equals(a, b) {
+	      return a === b;
+	    }
+	    *[Symbol.iterator]() {
+	      /** @type SignalAccessor<T> */
+	      yield this.read;
+	      /** @type SignalSetter<T> */
+	      yield this.write;
+	      /** @type SignalUpdate<T> */
+	      yield this.update;
+	    }
+	  }
+
+	  // API
+
+	  /**
+	   * Creates a new root
+	   *
+	   * @param {(dispose: () => void) => any} fn
+	   * @param {object} [options]
+	   * @returns {any}
+	   */
+	  function root(fn, options) {
+	    const root = new Root(Owner, options);
+	    return runWithOwner(root, () => fn(() => root.dispose()));
+	  }
+
+	  /**
+	   * Creates a signal
+	   *
+	   * @template T
+	   * @param {T} [initialValue] - Initial value of the signal
+	   * @param {SignalOptions} [options] - Signal options
+	   */
+	  /* #__NO_SIDE_EFFECTS__ */
+	  function signal(initialValue, options) {
+	    /** @type {SignalObject<T>} */
+	    const s = new Signal(initialValue, options);
+	    return s;
+	  }
+
+	  /**
+	   * Creates an effect
+	   *
+	   * @param {Function} fn
+	   * @param {object} [options]
+	   */
+	  function effect(fn, options) {
+	    new Effect(Owner, fn, options);
+	  }
+
+	  /**
+	   * Creates an effect with explicit dependencies
+	   *
+	   * @param {Function} depend - Function that causes tracking
+	   * @param {Function} fn - Function that wont cause tracking
+	   * @param {object} [options]
+	   */
+	  function on(depend, fn, options) {
+	    effect(() => {
+	      depend();
+	      untrack(fn);
+	    }, options);
+	  }
+
+	  /**
+	   * Creates a syncEffect
+	   *
+	   * @param {Function} fn
+	   * @param {object} [options]
+	   */
+	  function syncEffect(fn, options) {
+	    return new SyncEffect(Owner, fn, options);
+	  }
+
+	  /**
+	   * Creates a read-only signal from the return value of a function
+	   * that automatically updates
+	   *
+	   * @template T
+	   * @param {() => T} fn - Function to re-run when dependencies change
+	   * @param {SignalOptions} [options]
+	   */
+
+	  /* #__NO_SIDE_EFFECTS__ */
+	  function memo(fn, options = undefined) {
+	    /** @type {SignalAccessor<T>} */
+	    const s = new Memo(Owner, fn, options);
+	    return s;
+	  }
+
+	  /**
+	   * Batches changes to signals
+	   *
+	   * @param {Function} fn
+	   * @returns {any}
+	   */
+	  const batch = runUpdates;
+
+	  /**
+	   * Returns current owner
+	   *
+	   * @returns {Computation}
+	   */
+	  function owner() {
+	    return Owner;
+	  }
+	  function runWithOwner(owner, fn) {
+	    const prevOwner = Owner;
+	    const prevListener = Listener;
+	    Owner = owner;
+	    Listener = undefined;
+	    try {
+	      return runUpdates(fn, true);
+	    } catch (err) {
+	      throw err;
+	    } finally {
+	      Owner = prevOwner;
+	      Listener = prevListener;
+	    }
+	  }
+
+	  /**
+	   * Disables tracking for a function
+	   *
+	   * @param {Function} fn - Function to run with tracking disabled
+	   * @returns {any}
+	   */
+	  function untrack(fn) {
+	    if (Listener === undefined) {
+	      return fn();
+	    }
+	    const prevListener = Listener;
+	    Listener = undefined;
+	    try {
+	      return fn();
+	    } finally {
+	      Listener = prevListener;
+	    }
+	  }
+
+	  /**
+	   * Runs a callback on cleanup, returns callback
+	   *
+	   * @template T
+	   * @param {T extends Function} fn
+	   * @returns {T}
+	   */
+	  function cleanup(fn) {
+	    Owner && Owner.addCleanups(fn);
+	    return fn;
+	  }
+
+	  // UPDATES
+
+	  function runTop(node) {
+	    switch (node.state) {
+	      case CLEAN:
+	        {
+	          break;
+	        }
+	      case CHECK:
+	        {
+	          upstream(node);
+	          break;
+	        }
+	      default:
+	        {
+	          const ancestors = [];
+	          do {
+	            node.state && ancestors.push(node);
+	            node = node.owner;
+	          } while (node && node.updatedAt < Time);
+	          for (let i = ancestors.length - 1, updates; i >= 0; i--) {
+	            node = ancestors[i];
+	            switch (node.state) {
+	              case STALE:
+	                {
+	                  node.update();
+	                  break;
+	                }
+	              case CHECK:
+	                {
+	                  updates = Updates;
+	                  Updates = null;
+	                  runUpdates(() => upstream(node, ancestors[0]));
+	                  Updates = updates;
+	                  break;
+	                }
+	            }
+	          }
+	        }
+	    }
+	  }
+	  function runUpdates(fn, init = false) {
+	    if (Updates) {
+	      return fn();
+	    }
+	    let wait = false;
+	    if (!init) {
+	      Updates = [];
+	    }
+	    if (Effects) {
+	      wait = true;
+	    } else {
+	      Effects = [];
+	    }
+	    Time++;
+	    try {
+	      const res = fn();
+	      if (Updates) {
+	        for (const update of Updates) {
+	          runTop(update);
+	        }
+	      }
+	      Updates = null;
+	      if (!wait) {
+	        const effects = Effects;
+	        Effects = null;
+	        effects.length && runUpdates(() => runEffects(effects));
+	      }
+	      return res;
+	    } catch (err) {
+	      if (!wait) {
+	        Effects = null;
+	      }
+	      Updates = null;
+	      throw err;
+	    }
+	  }
+	  function runEffects(queue) {
+	    let userLength = 0;
+	    for (const effect of queue) {
+	      if (effect.user) {
+	        queue[userLength++] = effect;
+	      } else {
+	        runTop(effect);
+	      }
+	    }
+	    for (let i = 0; i < userLength; i++) {
+	      runTop(queue[i]);
+	    }
+	  }
+	  function upstream(node, ignore) {
+	    node.state = CLEAN;
+	    for (const source of node.sources) {
+	      if (source.sources) {
+	        switch (source.state) {
+	          case STALE:
+	            {
+	              if (source !== ignore && source.updatedAt < Time) {
+	                runTop(source);
+	              }
+	              break;
+	            }
+	          case CHECK:
+	            {
+	              upstream(source, ignore);
+	              break;
+	            }
+	        }
+	      }
+	    }
+	  }
+	  function downstream(node) {
+	    for (const observer of node.observers) {
+	      if (observer.state === CLEAN) {
+	        observer.state = CHECK;
+	        observer.queue();
+	        observer.observers && downstream(observer);
+	      }
+	    }
+	  }
+
+	  /**
+	   * Creates a context and returns a function to get or set the value
+	   *
+	   * @param {any} [defaultValue] - Default value for the context
+	   */
+	  function Context(defaultValue = undefined) {
+	    return useContext.bind(null, Symbol(), defaultValue);
+	  }
+
+	  /**
+	   * @overload Gets the context value
+	   * @returns {any} Context value
+	   */
+	  /**
+	   * @overload Runs `fn` with a new value as context
+	   * @param {any} newValue - New value for the context
+	   * @param {Function} fn - Callback to run with the new context value
+	   * @returns {Children} Children
+	   */
+	  /**
+	   * @param {any} newValue
+	   * @param {Function} fn
+	   */
+	  function useContext(id, defaultValue, newValue, fn) {
+	    if (newValue === undefined) {
+	      return Owner?.context && Owner.context[id] !== undefined ? Owner.context[id] : defaultValue;
+	    } else {
+	      let res;
+	      syncEffect(() => {
+	        Owner.context = {
+	          ...Owner.context,
+	          [id]: newValue
+	        };
+	        res = untrack(fn);
+	      });
+	      return res;
+	    }
+	  }
+
+	  /**
+	   * Returns an owned function
+	   *
+	   * @template T
+	   * @param {(...args: unknown[]) => T} cb
+	   * @returns {() => T}
+	   */
+	  const owned = cb => {
+	    const o = Owner;
+	    return cb ? (...args) => runWithOwner(o, () => cb(...args)) : noop;
+	  };
+
+	  // export
+
+	  return {
+	    batch,
+	    cleanup,
+	    Context,
+	    effect,
+	    memo,
+	    on,
+	    owned,
+	    owner,
+	    root,
+	    runWithOwner,
+	    signal,
+	    syncEffect,
+	    untrack,
+	    useContext
+	  };
+	}
 
 	/**
 	 * Marks a function as reactive. Reactive functions are ran inside
@@ -345,576 +1066,31 @@
 	  fn[$isReactive] = undefined;
 	  return fn;
 	}
-	const CLEAN = 0;
-	const STALE = 1;
-	const CHECK = 2;
 
-	/** @type {Computation} */
-	let Owner;
-
-	/** @type {Computation} */
-	let Listener;
-
-	/** @type {Memo[]} */
-	let Updates = null;
-
-	/** @type {undefined | null | any[]} */
-	let Effects = null;
-	let Time = 0;
-
-	// ROOT
-
-	class Root {
-	  /** @type {Root | undefined} */
-	  owner;
-
-	  /** @type {Computation | Computation[]} */
-	  owned;
-
-	  /** @type {Function | Function[]} */
-	  cleanups;
-
-	  /** @type {Record<string, unknown>} */
-	  context;
-
-	  /**
-	   * @param {Root} owner
-	   * @param {object} [options]
-	   */
-	  constructor(owner, options) {
-	    if (owner) {
-	      this.owner = owner;
-	      if (owner.context) {
-	        this.context = owner.context;
-	      }
-	    }
-	    options && assign(this, options);
-	  }
-	  /** @param {Function} fn */
-	  addCleanups(fn) {
-	    if (!this.cleanups) {
-	      this.cleanups = fn;
-	    } else if (isArray(this.cleanups)) {
-	      this.cleanups.push(fn);
-	    } else {
-	      this.cleanups = [this.cleanups, fn];
-	    }
-	  }
-	  /** @param {Computation} value */
-	  addOwned(value) {
-	    if (!this.owned) {
-	      this.owned = value;
-	    } else if (isArray(this.owned)) {
-	      this.owned.push(value);
-	    } else {
-	      this.owned = [this.owned, value];
-	    }
-	  }
-	  dispose() {
-	    this.disposeOwned();
-	    this.doCleanups();
-	  }
-	  disposeOwned() {
-	    if (!this.owned) ; else if (isArray(this.owned)) {
-	      for (let i = this.owned.length - 1; i >= 0; i--) {
-	        this.owned[i].dispose();
-	      }
-	      this.owned = null;
-	    } else {
-	      this.owned.dispose();
-	      this.owned = null;
-	    }
-	  }
-	  doCleanups() {
-	    if (!this.cleanups) ; else if (isArray(this.cleanups)) {
-	      for (let i = this.cleanups.length - 1; i >= 0; i--) {
-	        this.cleanups[i]();
-	      }
-	      this.cleanups = null;
-	    } else {
-	      this.cleanups();
-	      this.cleanups = null;
-	    }
-	  }
-	}
-
-	// COMPUTATION
-
-	class Computation extends Root {
-	  state = STALE;
-	  updatedAt = 0;
-
-	  /** @type {Function | undefined} */
-	  fn;
-	  sources;
-	  sourceSlots;
-
-	  /**
-	   * @param {Root} [owner]
-	   * @param {Function} [fn]
-	   * @param {object} [options]
-	   */
-	  constructor(owner, fn, options) {
-	    super(owner, options);
-	    this.fn = fn;
-	    owner && owner.addOwned(this);
-	  }
-	  update() {
-	    this.dispose();
-	    const time = Time;
-	    const prevOwner = Owner;
-	    const prevListener = Listener;
-	    Listener = Owner = this;
-	    try {
-	      this.fn();
-	    } catch (err) {
-	      this.updatedAt = time + 1;
-	      throw err;
-	    } finally {
-	      Owner = prevOwner;
-	      Listener = prevListener;
-	    }
-	    if (this.updatedAt < time) {
-	      this.updatedAt = time;
-	    }
-	  }
-	  dispose() {
-	    const {
-	      sources,
-	      sourceSlots
-	    } = this;
-	    if (sources && sources.length) {
-	      let source;
-	      let observers;
-	      let index;
-	      let observer;
-	      let slot;
-	      while (sources.length) {
-	        source = sources.pop();
-	        observers = source.observers;
-	        index = sourceSlots.pop();
-	        if (observers && observers.length) {
-	          observer = observers.pop();
-	          slot = source.observerSlots.pop();
-	          if (index < observers.length) {
-	            observer.sourceSlots[slot] = index;
-	            observers[index] = observer;
-	            source.observerSlots[index] = slot;
-	          }
-	        }
-	      }
-	    }
-	    super.dispose();
-	    this.state = CLEAN;
-	  }
-	  queue() {
-	    Effects.push(this);
-	  }
-	}
-	class Effect extends Computation {
-	  user = true;
-
-	  /**
-	   * @param {Root} [owner]
-	   * @param {Function} [fn]
-	   * @param {object} [options]
-	   */
-	  constructor(owner, fn, options) {
-	    super(owner, fn, options);
-	    Effects ? Effects.push(this) : batch(() => this.update());
-	  }
-	}
-	class SyncEffect extends Computation {
-	  /**
-	   * @param {Root} [owner]
-	   * @param {Function} [fn]
-	   * @param {object} [options]
-	   */
-	  constructor(owner, fn, options) {
-	    super(owner, fn, options);
-	    batch(() => this.update());
-	  }
-	}
-
-	// SIGNAL
+	const {
+	  batch,
+	  cleanup,
+	  Context,
+	  effect,
+	  memo,
+	  on,
+	  owned,
+	  owner,
+	  root,
+	  runWithOwner,
+	  signal,
+	  syncEffect,
+	  untrack,
+	  useContext
+	} = createReactiveSystem();
 
 	/**
-	 * @template in T
-	 * @type SignalObject<T>
-	 */
-	class Signal {
-	  value;
-
-	  /** @private */
-	  observers;
-	  /** @private */
-	  observerSlots;
-
-	  // options:
-	  // equals
-	  // save
-
-	  // `prev` if option save was given
-	  /**
-	   * @param {T} [value]
-	   * @param {SignalOptions} [options]
-	   */
-	  constructor(value, options) {
-	    this.value = value;
-	    if (options) {
-	      assign(this, options);
-	      if (this.save) {
-	        /** @private */
-	        this.prev = value;
-	      }
-	    }
-	  }
-	  /** @returns SignalAccessor<T> */
-	  read = markReactive(() => {
-	    // checkReadForbidden()
-
-	    if (Listener) {
-	      const sourceSlot = this.observers ? this.observers.length : 0;
-	      if (Listener.sources) {
-	        Listener.sources.push(this);
-	        Listener.sourceSlots.push(sourceSlot);
-	      } else {
-	        Listener.sources = [this];
-	        Listener.sourceSlots = [sourceSlot];
-	      }
-	      const observerSlot = Listener.sources.length - 1;
-	      if (sourceSlot) {
-	        this.observers.push(Listener);
-	        this.observerSlots.push(observerSlot);
-	      } else {
-	        this.observers = [Listener];
-	        this.observerSlots = [observerSlot];
-	      }
-	    }
-	    return this.value;
-	  });
-	  /**
-	   * @param {T} [value]
-	   * @returns SignalSetter<T>
-	   */
-	  write = value => {
-	    if (this.equals === false || !this.equals(this.value, value)) {
-	      if (this.save) {
-	        this.prev = this.value;
-	      }
-	      this.value = value;
-	      if (this.observers && this.observers.length) {
-	        runUpdates(() => {
-	          for (const observer of this.observers) {
-	            if (observer.state === CLEAN) {
-	              observer.queue();
-	              observer.observers && downstream(observer);
-	            }
-	            observer.state = STALE;
-	          }
-	        });
-	      }
-	      return true;
-	    }
-	    return false;
-	  };
-	  /**
-	   * @type SignalUpdate<T>
-	   * @returns SignalUpdate<T>
-	   */
-	  update = value => {
-	    return this.write(value(this.value));
-	  };
-
-	  /**
-	   * @private
-	   * @type {((a, B) => boolean) | false}
-	   */
-	  equals(a, b) {
-	    return a === b;
-	  }
-	  *[Symbol.iterator]() {
-	    /** @type SignalAccessor<T> */
-	    yield this.read;
-	    /** @type SignalSetter<T> */
-	    yield this.write;
-	    /** @type SignalUpdate<T> */
-	    yield this.update;
-	  }
-	}
-
-	// API
-
-	/**
-	 * Creates a new root
+	 * Returns true when value is reactive (a signal)
 	 *
-	 * @param {(dispose: () => void) => any} fn
-	 * @param {object} [options]
-	 * @returns {any}
+	 * @param {unknown} value
+	 * @returns {boolean}
 	 */
-	function root(fn, options) {
-	  const root = new Root(Owner, options);
-	  return runWithOwner(root, () => fn(() => root.dispose()));
-	}
-
-	/**
-	 * Creates a signal
-	 *
-	 * @template T
-	 * @param {T} [initialValue] - Initial value of the signal
-	 * @param {SignalOptions} [options] - Signal options
-	 */
-	/* #__NO_SIDE_EFFECTS__ */
-	function signal(initialValue, options) {
-	  /** @type {SignalObject<T>} */
-	  const s = new Signal(initialValue, options);
-	  return s;
-	}
-
-	/**
-	 * Creates an effect
-	 *
-	 * @param {Function} fn
-	 * @param {object} [options]
-	 */
-	function effect(fn, options) {
-	  new Effect(Owner, fn, options);
-	}
-
-	/**
-	 * Creates a syncEffect
-	 *
-	 * @param {Function} fn
-	 * @param {object} [options]
-	 */
-	function syncEffect(fn, options) {
-	  return new SyncEffect(Owner, fn, options);
-	}
-
-	/**
-	 * Batches changes to signals
-	 *
-	 * @param {Function} fn
-	 * @returns {any}
-	 */
-	const batch = runUpdates;
-	function runWithOwner(owner, fn) {
-	  const prevOwner = Owner;
-	  const prevListener = Listener;
-	  Owner = owner;
-	  Listener = undefined;
-	  try {
-	    return runUpdates(fn, true);
-	  } catch (err) {
-	    throw err;
-	  } finally {
-	    Owner = prevOwner;
-	    Listener = prevListener;
-	  }
-	}
-
-	/**
-	 * Disables tracking for a function
-	 *
-	 * @param {Function} fn - Function to run with tracking disabled
-	 * @returns {any}
-	 */
-	function untrack(fn) {
-	  if (Listener === undefined) {
-	    return fn();
-	  }
-	  const prevListener = Listener;
-	  Listener = undefined;
-	  try {
-	    return fn();
-	  } finally {
-	    Listener = prevListener;
-	  }
-	}
-
-	/**
-	 * Runs a callback on cleanup, returns callback
-	 *
-	 * @template T
-	 * @param {T extends Function} fn
-	 * @returns {T}
-	 */
-	function cleanup(fn) {
-	  Owner && Owner.addCleanups(fn);
-	  return fn;
-	}
-
-	// UPDATES
-
-	function runTop(node) {
-	  switch (node.state) {
-	    case CLEAN:
-	      {
-	        break;
-	      }
-	    case CHECK:
-	      {
-	        upstream(node);
-	        break;
-	      }
-	    default:
-	      {
-	        const ancestors = [];
-	        do {
-	          node.state && ancestors.push(node);
-	          node = node.owner;
-	        } while (node && node.updatedAt < Time);
-	        for (let i = ancestors.length - 1, updates; i >= 0; i--) {
-	          node = ancestors[i];
-	          switch (node.state) {
-	            case STALE:
-	              {
-	                node.update();
-	                break;
-	              }
-	            case CHECK:
-	              {
-	                updates = Updates;
-	                Updates = null;
-	                runUpdates(() => upstream(node, ancestors[0]));
-	                Updates = updates;
-	                break;
-	              }
-	          }
-	        }
-	      }
-	  }
-	}
-	function runUpdates(fn, init = false) {
-	  if (Updates) {
-	    return fn();
-	  }
-	  let wait = false;
-	  if (!init) {
-	    Updates = [];
-	  }
-	  if (Effects) {
-	    wait = true;
-	  } else {
-	    Effects = [];
-	  }
-	  Time++;
-	  try {
-	    const res = fn();
-	    if (Updates) {
-	      for (const update of Updates) {
-	        runTop(update);
-	      }
-	    }
-	    Updates = null;
-	    if (!wait) {
-	      const effects = Effects;
-	      Effects = null;
-	      effects.length && runUpdates(() => runEffects(effects));
-	    }
-	    return res;
-	  } catch (err) {
-	    if (!wait) {
-	      Effects = null;
-	    }
-	    Updates = null;
-	    throw err;
-	  }
-	}
-	function runEffects(queue) {
-	  let userLength = 0;
-	  for (const effect of queue) {
-	    if (effect.user) {
-	      queue[userLength++] = effect;
-	    } else {
-	      runTop(effect);
-	    }
-	  }
-	  for (let i = 0; i < userLength; i++) {
-	    runTop(queue[i]);
-	  }
-	}
-	function upstream(node, ignore) {
-	  node.state = CLEAN;
-	  for (const source of node.sources) {
-	    if (source.sources) {
-	      switch (source.state) {
-	        case STALE:
-	          {
-	            if (source !== ignore && source.updatedAt < Time) {
-	              runTop(source);
-	            }
-	            break;
-	          }
-	        case CHECK:
-	          {
-	            upstream(source, ignore);
-	            break;
-	          }
-	      }
-	    }
-	  }
-	}
-	function downstream(node) {
-	  for (const observer of node.observers) {
-	    if (observer.state === CLEAN) {
-	      observer.state = CHECK;
-	      observer.queue();
-	      observer.observers && downstream(observer);
-	    }
-	  }
-	}
-
-	/**
-	 * Creates a context and returns a function to get or set the value
-	 *
-	 * @param {any} [defaultValue] - Default value for the context
-	 */
-	function Context(defaultValue = undefined) {
-	  return useContext.bind(null, Symbol(), defaultValue);
-	}
-
-	/**
-	 * @overload Gets the context value
-	 * @returns {any} Context value
-	 */
-	/**
-	 * @overload Runs `fn` with a new value as context
-	 * @param {any} newValue - New value for the context
-	 * @param {Function} fn - Callback to run with the new context value
-	 * @returns {Children} Children
-	 */
-	/**
-	 * @param {any} newValue
-	 * @param {Function} fn
-	 */
-	function useContext(id, defaultValue, newValue, fn) {
-	  if (newValue === undefined) {
-	    return Owner?.context && Owner.context[id] !== undefined ? Owner.context[id] : defaultValue;
-	  } else {
-	    let res;
-	    syncEffect(() => {
-	      Owner.context = {
-	        ...Owner.context,
-	        [id]: newValue
-	      };
-	      res = untrack(fn);
-	    });
-	    return res;
-	  }
-	}
-
-	/**
-	 * Returns an owned function
-	 *
-	 * @template T
-	 * @param {(...args: unknown[]) => T} cb
-	 * @returns {() => T}
-	 */
-	const owned = cb => {
-	  const o = Owner;
-	  return cb ? (...args) => runWithOwner(o, () => cb(...args)) : noop;
-	};
+	const isReactive = value => isFunction(value) && $isReactive in value;
 
 	/**
 	 * Runs a function inside an effect if value is a function.
@@ -1423,36 +1599,9 @@
 	const propsPluginNS = (NSName, fn, onMicrotask) => {
 	  plugin(pluginsNS, NSName, fn, onMicrotask);
 	};
-
-	/**
-	 * Defines prop and namespaced prop that can be used on any Element
-	 *
-	 * @param {string} propName - Name of the prop/namespace
-	 * @param {Function} fn - Function to run when this prop is found on
-	 *   any Element
-	 * @param {boolean} [onMicrotask=true] - Set to run on a microtask to
-	 *   avoid the problem of needed props not being set, or children
-	 *   elements not being created yet. Default is `true`
-	 */
-	const propsPluginBoth = (propName, fn, onMicrotask) => {
-	  plugin(plugins, propName, fn, onMicrotask);
-	  plugin(pluginsNS, propName, fn, onMicrotask);
-	};
 	const plugin = (plugins, name, fn, onMicrotask = true) => {
 	  plugins.set(name, !onMicrotask ? fn : (...args) => onProps(() => fn(...args)));
 	};
-
-	// NODE ATTRIBUTES
-
-	/**
-	 * @param {Element} node
-	 * @param {string} name
-	 * @param {unknown} value
-	 * @param {object} props
-	 * @param {string} localName
-	 * @param {string} ns
-	 */
-	const setAttributeNS = (node, name, value, props, localName, ns) => setAttribute(node, localName, value);
 
 	/**
 	 * @param {Element} node
@@ -1466,15 +1615,17 @@
 	/**
 	 * @param {Element} node
 	 * @param {string} name
-	 * @param {string} value
-	 * @param {string } [ns]
+	 * @param {string | boolean} value
+	 * @param {string} [ns]
 	 */
 	function _setAttribute(node, name, value, ns) {
-	  // if the value is null or undefined it will be removed
-	  if (isNullUndefined(value)) {
+	  // @ts-ignore
+
+	  // if the value is false/null/undefined it will be removed
+	  if (value === false || isNullUndefined(value)) {
 	    ns && NS[ns] ? node.removeAttributeNS(NS[ns], name) : node.removeAttribute(name);
 	  } else {
-	    ns && NS[ns] ? node.setAttributeNS(NS[ns], name, value) : node.setAttribute(name, value);
+	    ns && NS[ns] ? node.setAttributeNS(NS[ns], name, value === true ? '' : value) : node.setAttribute(name, value === true ? '' : value);
 	  }
 	}
 
@@ -1513,115 +1664,6 @@
 	    node[name] = value;
 	  }
 	}
-
-	// NODE UNKNOWN PROPERTIES / ATTRIBUTES
-
-
-	/**
-	 * @param {Element} node
-	 * @param {string} name
-	 * @param {unknown} value
-	 * @param {string} [ns]
-	 */
-	const setUnknown = (node, name, value, ns) => {
-	  withValue(value, value => _setUnknown(node, name, value, ns));
-	};
-
-	/**
-	 * @param {Element} node
-	 * @param {string} name
-	 * @param {unknown} value
-	 * @param {string} [ns]
-	 */
-	const _setUnknown = (node, name, value, ns) => {
-	  const setters = elementSetters(node);
-	  if (setters.element.has(name) && (typeof value !== 'string' || node.isCustomElement)) {
-	    /**
-	     * 1. when it's different to a string to avoid coarcing
-	     *    on native elements (ex: (img.width = '16px') === 0)
-	     * 2. when a native element has a setter
-	     * 3. when a custom element has a setter
-	     */
-	    setProperty(node, name, value);
-	  } else if (setters.builtIn.has(name)) {
-	    // ex: innerHTML, textContent, etc
-	    setProperty(node, name, value);
-	  } else {
-	    setAttribute(node, name, value, ns);
-	  }
-	};
-	const elements = new Map();
-
-	/** @param {Element} node */
-	function elementSetters(node) {
-	  /**
-	   * Use `node.constructor` instead of `node.nodeName` because it
-	   * handles the difference between `a` `HTMLAnchorElement` and `a`
-	   * `SVGAElement`
-	   */
-	  let setters = elements.get(node.constructor);
-	  if (setters) return setters;
-	  setters = {
-	    builtIn: new Set(builtInSetters),
-	    element: new Set()
-	  };
-	  elements.set(node.constructor, setters);
-	  let store = setters.element;
-	  let proto = getPrototypeOf(node);
-
-	  /**
-	   * Stop at `Element` instead of `HTMLElement` because it handles the
-	   * difference between `HTMLElement`, `SVGElement`, `FutureElement`
-	   * etc
-	   */
-	  while (proto.constructor !== Element) {
-	    const nextProto = getPrototypeOf(proto);
-
-	    /**
-	     * The previous prototype to `Element` is a `builtIn`
-	     * (`HTMLElement`, `SVGElement`,`FutureElement`, etc)
-	     */
-	    if (nextProto.constructor === Element) {
-	      store = setters.builtIn;
-	    }
-	    getSetterNamesFromPrototype(proto, store);
-	    proto = nextProto;
-	  }
-	  return setters;
-	}
-
-	/** Setters shared by all kind of elements */
-	const builtInSetters = getSetterNamesFromPrototype(Element.prototype, getSetterNamesFromPrototype(Node.prototype));
-
-	// BOOL ATTRIBUTES
-
-
-	/**
-	 * @param {Element} node
-	 * @param {string} name
-	 * @param {unknown} value
-	 * @param {object} props
-	 * @param {string} localName
-	 * @param {string} ns
-	 */
-	const setBoolNS = (node, name, value, props, localName, ns) => setBool(node, localName, value);
-
-	/**
-	 * @param {Element} node
-	 * @param {string} name
-	 * @param {unknown} value
-	 * @url https://pota.quack.uy/props/setBool
-	 */
-	const setBool = (node, name, value) => withValue(value, value => _setBool(node, name, value));
-
-	/**
-	 * @param {Element} node
-	 * @param {string} name
-	 * @param {unknown} value
-	 */
-	const _setBool = (node, name, value) =>
-	// if the value is falsy gets removed
-	value ? node.setAttribute(name, '') : node.removeAttribute(name);
 
 	// node style
 
@@ -1781,39 +1823,6 @@
 	// `value &&` because avoids crash when `on:click={bla}` and `bla === null`
 	value && addEvent(node, localName, ownedEvent(value));
 
-	/**
-	 * `value` as a prop is special cased so the button `reset` in forms
-	 * works as expected. The first time a value is set, its done as an
-	 * attribute.
-	 */
-	const setValue = (node, name, value) => withValue(value, value => _setValue(node, name, value));
-	const defaults = new Set();
-	function _setValue(node, name, value) {
-	  if (!defaults.has(node)) {
-	    defaults.add(node);
-	    cleanup(() => defaults.delete(node));
-	    if (!isNullUndefined(value)) {
-	      switch (node.tagName) {
-	        case 'INPUT':
-	          {
-	            node.setAttribute('value', value);
-	            return;
-	          }
-	        case 'TEXTAREA':
-	          {
-	            node.textContent = value;
-	            return;
-	          }
-	      }
-	    }
-	  }
-	  if (!value && node.tagName === 'PROGRESS') {
-	    node.removeAttribute('value');
-	  } else {
-	    _setUnknown(node, name, value);
-	  }
-	}
-
 	/** Returns true or false with a `chance` of getting `true` */
 	const randomId = () => crypto.getRandomValues(new BigUint64Array(1))[0].toString(36);
 
@@ -1864,18 +1873,12 @@
 	const setUnmount = (node, name, value, props) => cleanup(() => value(node));
 
 	propsPluginNS('prop', setPropertyNS, false);
-	propsPluginNS('attr', setAttributeNS, false);
-	propsPluginNS('bool', setBoolNS, false);
 	propsPluginNS('on', setEventNS, false);
 	propsPluginNS('var', setVarNS, false);
-	propsPlugin('__dev', noop, false);
-	propsPlugin('xmlns', noop, false);
-	propsPlugin('value', setValue, false);
-	propsPlugin('textContent', setProperty, false);
 	propsPlugin('plugin:css', setCSS, false);
-	propsPluginBoth('onMount', setOnMount, false);
-	propsPluginBoth('onUnmount', setUnmount, false);
-	propsPluginBoth('ref', setRef, false);
+	propsPlugin('on:mount', setOnMount, false);
+	propsPlugin('on:unmount', setUnmount, false);
+	propsPlugin('ref', setRef, false);
 	propsPlugin('style', setStyle, false);
 	propsPluginNS('style', setStyleNS, false);
 	propsPlugin('class', setClass, false);
@@ -1883,22 +1886,11 @@
 
 	// catch all
 
-	/**
-	 * Assigns props to an Element
-	 * @template T
-	 * @param {Element} node - Element to which assign props
-	 * @param {T} props - Props to assign
-	 */
-	function assignProps(node, props) {
-	  for (const name in props) {
-	    assignProp(node, name, props[name], props);
-	  }
-	}
 	const propNS = empty();
 
 	/**
 	 * Assigns a prop to an Element
-
+	 *
 	 * @template T
 	 * @param {Element} node
 	 * @param {string} name
@@ -1917,10 +1909,23 @@
 
 	    // run plugins NS
 	    plugin = pluginsNS.get(ns);
-	    plugin ? plugin(node, name, value, props, localName, ns) : setUnknown(node, name, value, ns);
+	    plugin ? plugin(node, name, value, props, localName, ns) : setAttribute(node, name, value, ns);
 	  } else {
 	    // catch all
-	    setUnknown(node, name, value);
+	    setAttribute(node, name, value);
+	  }
+	}
+
+	/**
+	 * Assigns props to an Element
+	 *
+	 * @template T
+	 * @param {Element} node - Element to which assign props
+	 * @param {T} props - Props to assign
+	 */
+	function assignProps(node, props) {
+	  for (const name in props) {
+	    assignProp(node, name, props[name], props);
 	  }
 	}
 
@@ -2403,10 +2408,8 @@
 	function toDiff(prev = [], next = [], short = false) {
 	  // if theres something to remove
 	  if (prev.length) {
-	    const nextLength = next.length;
-
 	    // fast clear
-	    if (short && nextLength === 0 &&
+	    if (short && next.length === 0 &&
 	    // + 1 because of the original placeholder
 	    prev.length + 1 === prev[0].parentNode.childNodes.length) {
 	      const parent = prev[0].parentNode;
@@ -2414,9 +2417,13 @@
 	      const lastChild = parent.lastChild;
 	      parent.textContent = '';
 	      parent.appendChild(lastChild);
+	    } else if (next.length === 0) {
+	      for (const item of prev) {
+	        item && item.remove();
+	      }
 	    } else {
 	      for (const item of prev) {
-	        if (item && (nextLength === 0 || !next.includes(item))) {
+	        if (item && !next.includes(item)) {
 	          item.remove();
 	        }
 	      }

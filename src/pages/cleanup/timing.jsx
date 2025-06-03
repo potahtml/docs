@@ -7,8 +7,8 @@ function BeforeSibling() {
 
   return (
     <section
-      onUnmount={() =>
-        render(<div>onUnmountNode: from BeforeSibling</div>)
+      on:unmount={() =>
+        render(<div>on:unmount Node: from BeforeSibling</div>)
       }
     />
   )
@@ -20,8 +20,8 @@ function AfterSibling() {
 
   return (
     <section
-      onUnmount={() =>
-        render(<div>onUnmountNode: from AfterSibling</div>)
+      on:unmount={() =>
+        render(<div>on:unmount Node: from AfterSibling</div>)
       }
     />
   )
@@ -30,28 +30,32 @@ function Test() {
   cleanup(() => render(<div>cleanup: component body</div>))
   return (
     <main
-      onUnmount={() =>
-        render(<div>onUnmountNode: from container</div>)
+      on:unmount={() =>
+        render(<div>on:unmount Node: from container</div>)
       }
     >
       <section>
         <div>
           <div
-            onUnmount={() => render(<div>onUnmountNode: deep 1</div>)}
+            on:unmount={() =>
+              render(<div>on:unmount Node: deep 1</div>)
+            }
           />
         </div>
       </section>
       <BeforeSibling />
       <section
-        onUnmount={() =>
-          render(<div>onUnmountNode: from inlined element</div>)
+        on:unmount={() =>
+          render(<div>on:unmount Node: from inlined element</div>)
         }
       ></section>
       <AfterSibling />
       <section>
         <div>
           <div
-            onUnmount={() => render(<div>onUnmountNode: deep 2</div>)}
+            on:unmount={() =>
+              render(<div>on:unmount Node: deep 2</div>)
+            }
           />
         </div>
       </section>

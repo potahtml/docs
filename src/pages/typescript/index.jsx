@@ -25,7 +25,7 @@ export function LoginMessage({ name = "Quack" }: Props) {
 	return <p>Hi {name}</p>
 }
 						`.trim()}
-						editable={false}
+						prop:editable={false}
 					/>
 				</p>
 			</Section>
@@ -45,7 +45,7 @@ function Button({ ...all }: ButtonProps) {
 	return <button {...all} />
 }
 						`.trim()}
-						editable={false}
+						prop:editable={false}
 					/>
 				</p>
 			</Section>
@@ -74,7 +74,7 @@ function Card({ title, children }: CardProps) {
 	)
 }
 						`.trim()}
-						editable={false}
+						prop:editable={false}
 					/>
 				</p>
 			</Section>
@@ -105,7 +105,7 @@ export function Component() {
 	return <Button type="button">Hi</Button>
 }
 						`.trim()}
-						editable={false}
+						prop:editable={false}
 					/>
 				</p>
 			</Section>
@@ -142,7 +142,7 @@ export function Component() {
 	return <Img src="..." />
 }
 						`.trim()}
-						editable={false}
+						prop:editable={false}
 					/>
 				</p>
 			</Section>
@@ -190,7 +190,7 @@ function Test() {
 
 
 						`.trim()}
-						editable={false}
+						prop:editable={false}
 					/>
 				</p>
 			</Section>

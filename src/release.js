@@ -47,8 +47,9 @@ const template = `\`{
 
 "pota": "/node_modules/pota/src/@main.js",
 
-"pota/babel-preset": "/node_modules/pota/babel-preset/index.js",
-"pota/jsx-runtime": "/node_modules/pota/src/jsx-runtime.js",
+"pota/babel-preset": "/node_modules/pota/src/babel-preset/index.js",
+"pota/jsx-runtime": "/node_modules/pota/src/jsx/jsx-runtime.js",
+"pota/jsx-dev-runtime": "/node_modules/pota/src/jsx/jsx-runtime.js",
 
 "pota/html": "/node_modules/pota/src/html.js",
 "pota/web": "/node_modules/pota/src/web/@main.js",
@@ -155,7 +156,7 @@ export function pre() {
 			} else {
 				types.push({
 					f: moduleName + '/index.d.ts',
-					c: `export * from "${importMap.imports[moduleName].replace(/^.*\/pota\/src\//, 'pota/types/src/').replace(/\.js$/, '.d.ts')}"`,
+					c: `export * from "${importMap.imports[moduleName].replace(/^.*\/pota\/src\//, 'pota/types/').replace(/\.js$/, '.d.ts')}"`,
 				})
 			}
 		}

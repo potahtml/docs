@@ -19,7 +19,6 @@ export default function Menu() {
 					<a href="/playground">Playground</a>
 				</li>
 			</ul>
-
 			<h3>Rendering</h3>
 			<ul>
 				<li>
@@ -54,7 +53,6 @@ export default function Menu() {
 					<a href="/Context">Context</a>
 				</li>
 			</ul>
-
 			<h3>Components</h3>
 			<ul>
 				{/*<li>
@@ -212,10 +210,20 @@ export default function Menu() {
 							</A>
 						</li>
 						<li>
-							<a href="/props/onMount">onMount</a>
+							<A
+								href="/props/:page"
+								params={{ page: 'on:mount' }}
+							>
+								on:mount
+							</A>
 						</li>
 						<li>
-							<a href="/props/onUnmount">onUnmount</a>
+							<A
+								href="/props/:page"
+								params={{ page: 'on:unmount' }}
+							>
+								on:unmount
+							</A>
 						</li>
 					</ul>
 				</li>
@@ -234,23 +242,6 @@ export default function Menu() {
 						<li>
 							<A
 								href="/props/:page"
-								params={{ page: 'attr:__' }}
-							>
-								attr:__
-							</A>
-						</li>
-						<li>
-							<A
-								href="/props/:page"
-								params={{ page: 'bool:__' }}
-							>
-								bool:__
-							</A>
-						</li>
-
-						<li>
-							<A
-								href="/props/:page"
 								params={{ page: 'setProperty' }}
 							>
 								setProperty
@@ -262,14 +253,6 @@ export default function Menu() {
 								params={{ page: 'setAttribute' }}
 							>
 								setAttribute
-							</A>
-						</li>
-						<li>
-							<A
-								href="/props/:page"
-								params={{ page: 'setBool' }}
-							>
-								setBool
 							</A>
 						</li>
 					</ul>

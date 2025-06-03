@@ -44,7 +44,6 @@ ref, // const button = ref(); <div ref={button}.. /> effect(()=>button())
 
 setAttribute, // setAttribute(node, 'data-active', signal, ns)
 setProperty, // setProperty(node, 'hidden', signal)
-setBool, // setBool(node, 'disabled', signal)
 
 // css
 setStyle, // setStyle(node, 'color', signal)

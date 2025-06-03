@@ -1,3 +1,4 @@
+import { A } from 'pota/web'
 import { Code } from '../../../lib/components/code/code.jsx'
 import { Header } from '../../../lib/components/header.jsx'
 import { Section } from '../../../lib/components/section.jsx'
@@ -47,30 +48,12 @@ export default function () {
 					<tbody>
 						<tr>
 							<td>
-								<mark>attr:name</mark>
-							</td>
-							<td>
-								<mark>setAttribute</mark>
-							</td>
-							<td>will always add it as an attribute</td>
-						</tr>
-						<tr>
-							<td>
 								<mark>prop:name</mark>
 							</td>
 							<td>
 								<mark>setProperty</mark>
 							</td>
 							<td>will always set it as a property</td>
-						</tr>
-						<tr>
-							<td>
-								<mark>bool:name</mark>
-							</td>
-							<td>
-								<mark>setBool</mark>
-							</td>
-							<td>adds/remove based on truthy/falsy</td>
 						</tr>
 					</tbody>
 				</table>
@@ -131,18 +114,28 @@ export default function () {
 						<tr>
 							<td>
 								<mark>
-									<a href="/props/onMount">onMount</a>
+									<A
+										href="/props/:page"
+										params={{ page: 'on:mount' }}
+									>
+										on:mount
+									</A>
 								</mark>
 							</td>
-							<td>onMount adds a callback to the mount event</td>
+							<td>on:mount adds a callback to the mount event</td>
 						</tr>
 						<tr>
 							<td>
 								<mark>
-									<a href="/props/onUnmount">onUnmount</a>
+									<A
+										href="/props/:page"
+										params={{ page: 'on:unmount' }}
+									>
+										on:unmount
+									</A>
 								</mark>
 							</td>
-							<td>onUnmount adds a callback to the unmount event</td>
+							<td>on:unmount adds a callback to the unmount event</td>
 						</tr>
 						<tr>
 							<td>

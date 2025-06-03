@@ -1,7 +1,7 @@
 function Component() {
   return (
     <main
-      onUnmount={node =>
+      on:unmount={node =>
         console.log(node, 'on Component is about to unmount')
       }
     >

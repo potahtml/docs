@@ -34,7 +34,7 @@ npm run serve
 							.map(s => s.trim())
 							.join('\n')
 							.trim()}
-						editable={false}
+						prop:editable={false}
 					/>
 				</p>
 			</Section>
@@ -55,7 +55,7 @@ npm run dev
 							.map(s => s.trim())
 							.join('\n')
 							.trim()}
-						editable={false}
+						prop:editable={false}
 					/>
 				</p>
 			</Section>
@@ -76,7 +76,7 @@ npm run dev
 							.map(s => s.trim())
 							.join('\n')
 							.trim()}
-						editable={false}
+						prop:editable={false}
 					/>
 				</p>
 			</Section>
@@ -102,7 +102,7 @@ npm run dev
 							.map(s => s.trim())
 							.join('\n')
 							.trim()}
-						editable={false}
+						prop:editable={false}
 					/>
 				</p>
 			</Section>

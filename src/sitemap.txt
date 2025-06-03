@@ -37,14 +37,13 @@ https://pota.quack.uy/props/bool%3A__
 https://pota.quack.uy/props/class%3A__
 https://pota.quack.uy/props/css
 https://pota.quack.uy/props/on%3A__
-https://pota.quack.uy/props/onMount
-https://pota.quack.uy/props/onUnmount
+https://pota.quack.uy/props/on%3Amount
+https://pota.quack.uy/props/on%3Aunmount
 https://pota.quack.uy/props/prop%3A__
 https://pota.quack.uy/props/propsPlugin
 https://pota.quack.uy/props/propsSplit
 https://pota.quack.uy/props/ref
 https://pota.quack.uy/props/setAttribute
-https://pota.quack.uy/props/setBool
 https://pota.quack.uy/props/setClass
 https://pota.quack.uy/props/setProperty
 https://pota.quack.uy/props/setStyle

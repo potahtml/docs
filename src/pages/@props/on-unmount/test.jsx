@@ -3,7 +3,7 @@ import { render } from 'pota'
 function Component() {
   return (
     <main
-      onUnmount={node =>
+      on:unmount={node =>
         render('Element on Component is about to unmount')
       }
     >

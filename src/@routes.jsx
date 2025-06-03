@@ -242,14 +242,6 @@ export default function Routes() {
 
 				<Router
 					path=":path$"
-					params={{ path: 'attr:__' }}
-					children={load(
-						() => import('./pages/@props/attr/index.jsx'),
-					)}
-				/>
-
-				<Router
-					path=":path$"
 					params={{ path: 'attributes-properties' }}
 					children={load(
 						() =>
@@ -258,29 +250,11 @@ export default function Routes() {
 							),
 					)}
 				/>
-
-				<Router
-					path=":path$"
-					params={{ path: 'bool:__' }}
-					children={load(
-						() => import('./pages/@props/bool/index.jsx'),
-					)}
-				/>
 				<Router
 					path=":path$"
 					params={{ path: 'class:__' }}
 					children={load(
 						() => import('./pages/@props/class/index.jsx'),
-					)}
-				/>
-
-				<Router
-					path=":path$"
-					params={{
-						path: 'EventListener',
-					}}
-					children={load(
-						() => import('./pages/@props/event-listener/index.jsx'),
 					)}
 				/>
 				<Router
@@ -293,10 +267,23 @@ export default function Routes() {
 							),
 					)}
 				/>
-
 				<Router
 					path=":path$"
-					params={{ path: 'onMount' }}
+					params={{ path: 'prop:__' }}
+					children={load(
+						() => import('./pages/@props/prop/index.jsx'),
+					)}
+				/>
+				<Router
+					path=":path$"
+					params={{ path: 'style:__' }}
+					children={load(
+						() => import('./pages/@props/style/index.jsx'),
+					)}
+				/>
+				<Router
+					path=":path$"
+					params={{ path: 'on:mount' }}
 					children={load(
 						() => import('./pages/@props/on-mount/index.jsx'),
 					)}
@@ -304,16 +291,9 @@ export default function Routes() {
 
 				<Router
 					path=":path$"
-					params={{ path: 'onUnmount' }}
+					params={{ path: 'on:unmount' }}
 					children={load(
 						() => import('./pages/@props/on-unmount/index.jsx'),
-					)}
-				/>
-				<Router
-					path=":path$"
-					params={{ path: 'prop:__' }}
-					children={load(
-						() => import('./pages/@props/prop/index.jsx'),
 					)}
 				/>
 
@@ -350,13 +330,6 @@ export default function Routes() {
 				/>
 				<Router
 					path=":path$"
-					params={{ path: 'setBool' }}
-					children={load(
-						() => import('./pages/@props/set-bool/index.jsx'),
-					)}
-				/>
-				<Router
-					path=":path$"
 					params={{ path: 'setProperty' }}
 					children={load(
 						() => import('./pages/@props/set-property/index.jsx'),
@@ -378,16 +351,19 @@ export default function Routes() {
 				/>
 				<Router
 					path=":path$"
-					params={{ path: 'style:__' }}
-					children={load(
-						() => import('./pages/@props/style/index.jsx'),
-					)}
-				/>
-				<Router
-					path=":path$"
 					params={{ path: 'css' }}
 					children={load(
 						() => import('./pages/@props/css/index.jsx'),
+					)}
+				/>
+
+				<Router
+					path=":path$"
+					params={{
+						path: 'EventListener',
+					}}
+					children={load(
+						() => import('./pages/@props/event-listener/index.jsx'),
 					)}
 				/>
 			</Router>

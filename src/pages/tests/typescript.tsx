@@ -134,7 +134,7 @@ declare module 'pota' {
 			'some-element': HTMLAttributes<HTMLElement>
 		}
 		interface NSAttributes<Element> {
-			'bool:bla'?: boolean
+			'prop:bla'?: boolean
 		}
 	}
 }
@@ -146,16 +146,16 @@ function typescript(props) {
 	return (
 		<span
 			on:click={read}
-			aria-busy={true}
-			aria-readonly={true}
+			aria-busy={'true'}
+			aria-readonly={'true'}
 			what-what="aer"
 			class:lalala={true}
-			bool:bla={true}
+			prop:bla={true}
 			data-pathname={location.pathname}
 			on:click={e => {
 				console.log(e, e.currentTarget)
 			}}
-			onMount={eeeeee => {}}
+			on:mount={e => {}}
 		>
 			<lala></lala>
 			<Button style:stroke="antiquewhite" />
@@ -167,7 +167,7 @@ function typescript(props) {
 				ref={element => {
 					console.log(element)
 				}}
-				onMount={e => e}
+				on:mount={e => e}
 				on:click={e => {
 					e.target
 					e.currentTarget
@@ -184,7 +184,7 @@ function typescript(props) {
 				<meta content="404 Not Found" />
 				<svg
 					href="ss"
-					onMount={e => e}
+					on:mount={e => e}
 					color="red"
 					on:click={e => {
 						console.log(e.currentTarget)
@@ -203,7 +203,7 @@ function typescript(props) {
 				<For each={[1, 2, 3]}></For>
 				<span
 					flair=""
-					onMount={e => {
+					on:mount={e => {
 						console.log(e)
 					}}
 				></span>

@@ -18,7 +18,7 @@ function Example() {
       <button
         name="button"
         on:click={add}
-        onMount={add}
+        on:mount={add}
       >
         add event
       </button>

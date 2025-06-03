@@ -4,8 +4,9 @@
 
 "pota": "/node_modules/pota/src/@main.js",
 
-"pota/babel-preset": "/node_modules/pota/babel-preset/index.js",
-"pota/jsx-runtime": "/node_modules/pota/src/jsx-runtime.js",
+"pota/babel-preset": "/node_modules/pota/src/babel-preset/index.js",
+"pota/jsx-runtime": "/node_modules/pota/src/jsx/jsx-runtime.js",
+"pota/jsx-dev-runtime": "/node_modules/pota/src/jsx/jsx-runtime.js",
 
 "pota/html": "/node_modules/pota/src/html.js",
 "pota/web": "/node_modules/pota/src/web/@main.js",
@@ -37,6 +38,7 @@
 
 "pota/experiments": "/node_modules/pota/src/lib/experiments.js",
 "pota/reactive": "/node_modules/pota/src/lib/reactive.js",
+"pota/solid": "/node_modules/pota/src/lib/solid.js",
 "pota/std": "/node_modules/pota/src/lib/std.js",
 "pota/store": "/node_modules/pota/src/lib/store.js",
 

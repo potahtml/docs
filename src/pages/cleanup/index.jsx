@@ -50,7 +50,7 @@ export default function () {
 
 			<Section title="Timing">
 				<p>
-					Displays current timings of <mark>onUnmount</mark> on
+					Displays current timings of <mark>on:unmount</mark> on
 					Elements vs <mark>cleanup</mark>
 				</p>
 				<Code url="/pages/cleanup/timing.jsx"></Code>
