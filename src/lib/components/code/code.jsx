@@ -2,7 +2,7 @@ import styles from './code.module.css'
 
 import { effect, memo, ref, signal } from 'pota'
 import { getValue, sheet } from 'pota/std'
-import { Show } from 'pota/web'
+import { Show } from 'pota/components'
 import { compress } from '../../compress.js'
 
 import snippetcss from './tm-textarea-stylesheet.css?raw'

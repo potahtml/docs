@@ -1,4 +1,4 @@
-import { A } from 'pota/web'
+import { A } from 'pota/components'
 
 export default function Menu() {
 	return (

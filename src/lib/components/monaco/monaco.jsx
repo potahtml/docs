@@ -4,7 +4,7 @@ import { cleanup, signal, withValue } from 'pota'
 
 import { onDocumentSize } from 'pota/plugin/useDocumentSize'
 
-import { Show } from 'pota/web'
+import { Show } from 'pota/components'
 
 import types from './types.json' with { type: 'json' }
 

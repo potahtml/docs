@@ -1,5 +1,5 @@
 import { signal, render } from 'pota'
-import { Switch, Match } from 'pota/web'
+import { Switch, Match } from 'pota/components'
 
 function Example() {
   const [read, write] = signal(false)

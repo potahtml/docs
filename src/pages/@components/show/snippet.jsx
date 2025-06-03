@@ -1,5 +1,5 @@
 import { signal } from 'pota'
-import { Show } from 'pota/web'
+import { Show } from 'pota/components'
 
 function Component() {
   const [condition, setCondition] = signal(true)

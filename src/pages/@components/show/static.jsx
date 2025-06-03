@@ -1,5 +1,5 @@
 import { render } from 'pota'
-import { Show } from 'pota/web'
+import { Show } from 'pota/components'
 
 function Example() {
   return (

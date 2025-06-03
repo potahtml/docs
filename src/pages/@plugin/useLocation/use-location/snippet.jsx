@@ -1,5 +1,5 @@
 import { render } from 'pota'
-import { Router } from 'pota/web'
+import { Router } from 'pota/components'
 
 import { location, navigate } from 'pota/plugin/useLocation'
 

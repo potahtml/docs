@@ -1,6 +1,6 @@
 import { render, signal } from 'pota'
 import { css } from 'pota/std'
-import { Show } from 'pota/web'
+import { Show } from 'pota/components'
 
 function App() {
   const [showing, setShowing, updateShowing] = signal(false)

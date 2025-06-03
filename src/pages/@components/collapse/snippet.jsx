@@ -1,5 +1,5 @@
 import { signal } from 'pota'
-import { Collapse } from 'pota/web'
+import { Collapse } from 'pota/components'
 
 function Component() {
   const [condition, setCondition] = signal(true)

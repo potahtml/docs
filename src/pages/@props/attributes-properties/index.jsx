@@ -1,4 +1,4 @@
-import { A } from 'pota/web'
+import { A } from 'pota/components'
 import { Code } from '../../../lib/components/code/code.jsx'
 import { Header } from '../../../lib/components/header.jsx'
 import { Section } from '../../../lib/components/section.jsx'

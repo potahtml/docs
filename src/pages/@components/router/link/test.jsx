@@ -1,5 +1,5 @@
 import { render } from 'pota'
-import { A } from 'pota/web'
+import { A } from 'pota/components'
 
 function Menu() {
 	return (

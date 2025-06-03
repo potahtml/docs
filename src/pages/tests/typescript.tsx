@@ -1,4 +1,4 @@
-import { For } from 'pota/web'
+import { For } from 'pota/components'
 import { Pota, signal } from 'pota'
 import type { JSX } from 'pota'
 

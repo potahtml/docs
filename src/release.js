@@ -52,7 +52,7 @@ const template = `\`{
 "pota/jsx-dev-runtime": "/node_modules/pota/src/jsx/jsx-runtime.js",
 
 "pota/html": "/node_modules/pota/src/html.js",
-"pota/web": "/node_modules/pota/src/web/@main.js",
+"pota/components": "/node_modules/pota/src/components/@main.js",
 
 __PLUGIN__,
 

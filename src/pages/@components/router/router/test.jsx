@@ -1,7 +1,7 @@
 import { render } from 'pota'
 
 import { location, navigate } from 'pota/plugin/useLocation'
-import { A, Router } from 'pota/web'
+import { A, Router } from 'pota/components'
 
 // this sort of playground has a very deep url
 // change it to pretend we are in an index page

@@ -1,4 +1,4 @@
-import { Router, load } from 'pota/web'
+import { Router, load } from 'pota/components'
 
 function App() {
   return (

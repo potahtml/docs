@@ -1,5 +1,5 @@
 import { render } from 'pota'
-import { Portal } from 'pota/web'
+import { Portal } from 'pota/components'
 
 function Test() {
   return ' me too!'

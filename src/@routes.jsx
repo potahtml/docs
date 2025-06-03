@@ -1,4 +1,4 @@
-import { load, Router } from 'pota/web'
+import { load, Router } from 'pota/components'
 
 import FourZeroFour from './404.jsx'
 import Home from './pages/home.jsx'

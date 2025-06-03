@@ -1,5 +1,5 @@
 import { render, signal } from 'pota'
-import { Show } from 'pota/web'
+import { Show } from 'pota/components'
 
 function Example() {
   // signal toggles every 1 second

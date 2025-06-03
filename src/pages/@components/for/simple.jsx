@@ -1,5 +1,5 @@
 import { render, signal } from 'pota'
-import { For } from 'pota/web'
+import { For } from 'pota/components'
 
 function Example() {
   const [value, setValue] = signal([1, 2])

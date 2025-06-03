@@ -1,5 +1,5 @@
 import { render, signal } from 'pota'
-import { For, Show } from 'pota/web'
+import { For, Show } from 'pota/components'
 
 function Example() {
   const [showing, setShowing] = signal(true)

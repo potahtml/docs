@@ -1,5 +1,5 @@
 import { render } from 'pota'
-import { For } from 'pota/web'
+import { For } from 'pota/components'
 
 function Example() {
   return (

@@ -1,4 +1,4 @@
-import { Head } from 'pota/web'
+import { Head } from 'pota/components'
 import { Code } from './lib/components/code/code.jsx'
 import { Header } from './lib/components/header.jsx'
 
@@ -38,7 +38,7 @@ export default function FourZeroFour() {
 
 			<Code
 				code={`
-				import { Head } from 'pota/web'
+				import { Head } from 'pota/components'
 import { Code } from './lib/components/code/code.jsx'
 import { Header } from './lib/components/header.jsx'
 

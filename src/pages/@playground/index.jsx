@@ -5,7 +5,7 @@ import { Code } from '../../lib/components/code/code.jsx'
 import { Header } from '../../lib/components/header.jsx'
 
 import { effect, memo, signal } from 'pota'
-import { Collapse, For, Show } from 'pota/web'
+import { Collapse, For, Show } from 'pota/components'
 
 import { compress, uncompress } from '../../lib/compress.js'
 import example from './default-example.js'

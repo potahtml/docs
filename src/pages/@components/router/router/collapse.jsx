@@ -1,6 +1,6 @@
 import { render } from 'pota'
 
-import { Router, A } from 'pota/web'
+import { Router, A } from 'pota/components'
 
 function App() {
 	return (

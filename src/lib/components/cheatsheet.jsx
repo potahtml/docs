@@ -81,7 +81,7 @@ A,// <A href="/">home</A>
 // custom element utils
 customElement, // customElement("fancy-element", class Fancy extends HTMLElement{})
 CustomElement, // class Fancy extends CustomElement{}
-} from 'pota/web'
+} from 'pota/components'
 
 // html
 import {

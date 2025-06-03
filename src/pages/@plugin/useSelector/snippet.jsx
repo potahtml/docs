@@ -1,7 +1,7 @@
 import { render, signal } from 'pota'
 import { css } from 'pota/std'
 import { useSelector } from 'pota/plugin/useSelector'
-import { For } from 'pota/web'
+import { For } from 'pota/components'
 
 const [selected, setSelected] = signal(3)
 

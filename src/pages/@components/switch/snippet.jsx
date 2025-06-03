@@ -1,4 +1,4 @@
-import { Switch, Match } from 'pota/web'
+import { Switch, Match } from 'pota/components'
 
 function Component() {
   return (
