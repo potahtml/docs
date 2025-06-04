@@ -1,5 +1,5 @@
 import { render, signal } from 'pota'
-import { For } from 'pota/web'
+import { For } from 'pota/components'
 
 import { useSelector } from 'pota/plugin/useSelector'
 

@@ -1470,8 +1470,8 @@
 	 */
 	const ownedEvent = handler => 'handleEvent' in handler ? {
 	  ...handler,
-	  handleEvent: owned(e => handler.handleEvent(e))
-	} : owned(handler);
+	  handleEvent: e => handler.handleEvent(e)
+	} : handler;
 
 	/**
 	 * The purpose of this file is to guarantee the timing of some
@@ -2533,21 +2533,20 @@
 	  return performance.now() - start;
 	}
 
-	var _div = createPartial("<div class='col-sm-6 smallpad'><button class='btn btn-primary btn-block' type=button></button></div>", {"0":1,"m":2}),
-	  _div2 = createPartial("<div class=container><div class=jumbotron><div class=row><div class=col-md-6><h1>pota Keyed</h1></div><div class=col-md-6><div class=row></div></div></div></div><table class='table table-hover table-striped test-data'><tbody></tbody></table><span class='preloadicon glyphicon glyphicon-remove' aria-hidden=true></span></div>", {"0":6,"1":7,"2":8,"m":9}),
-	  _tr = createPartial("<tr><td class=col-md-1></td><td class=col-md-4><a></a></td><td class=col-md-1><a><span class='glyphicon glyphicon-remove' aria-hidden=true></span></a></td><td class=col-md-6></td></tr>", {"2":3,"3":6,"m":7});
+	var _div = createPartial("<div class='col-sm-6 smallpad'><button type=button class='btn btn-primary btn-block'></button></div>", {"0":1,"m":2}),
+	  _div2 = createPartial("<div class=container><div class=jumbotron><div class=row><div class=col-md-6><h1>pota Keyed</h1></div><div class=col-md-6><div class=row></div></div></div></div><table class='table table-hover table-striped test-data'><tbody></tbody></table><span aria-hidden=true class='preloadicon glyphicon glyphicon-remove'></span></div>", {"0":6,"1":8,"m":9}),
+	  _tr = createPartial("<tr><td class=col-md-1></td><td class=col-md-4><a></a></td><td class=col-md-1><a><span aria-hidden=true class='glyphicon glyphicon-remove'></span></a></td><td class=col-md-6></td></tr>", {"2":3,"3":6,"m":7});
 	const _For = createComponent(For);
 	let idCounter = 1;
 	function buildData(count) {
 	  const data = new Array(count);
 	  for (let i = 0; i < count; i++) {
-	    const label = signal(`elegant green keyboard ${idCounter++}`
-	    /*  `${adjectives[_random(adjectives.length)]} ${
-	    colours[_random(colours.length)]
-	    } ${nouns[_random(nouns.length)]} ${idCounter++}`,*/);
-	    label.id = idCounter;
-	    // console.log({ ...label })
-	    data[i] = label;
+	    const [label, setLabel, updateLabel] = signal(`elegant green keyboard ${idCounter++}`);
+	    data[i] = {
+	      id: idCounter,
+	      label,
+	      updateLabel
+	    };
 	  }
 	  return data;
 	}
@@ -2557,16 +2556,13 @@
 	  fn
 	}) => _div([{
 	  id: id,
-	  textContent: text,
-	  "on:click": e => {
-	    e.stopPropagation();
-	    fn();
-	  }
+	  "prop:textContent": text,
+	  "on:click": fn
 	}]);
 	const _Button = createComponent(Button);
 	const App = () => {
 	  const [data, setData, updateData] = signal([]),
-	    [selected, setSelected] = signal(),
+	    [selected, setSelected] = signal(null),
 	    run = () => {
 	      // debugger
 	      setData(buildData(10));
@@ -2578,71 +2574,45 @@
 	      //  console.clear()
 	      // warm
 	      // debugger
-
-	      let createLarge = [];
-	      let clearLarge = [];
-	      let createSmall = [];
-	      let clearSmall = [];
-	      let k = 0;
-
-	      // debugger
-	      function run() {
-	        createSmall.push(timing(() => setData(buildData(1000))));
-	        clearSmall.push(timing(() => setData([])));
-	        if (k < 10) {
-	          k++;
-	          setTimeout(run, 100);
-	        } else {
-	          k = 0;
-	          function run() {
-	            createLarge.push(timing(() => setData(buildData(10000))));
-	            clearLarge.push(timing(() => setData([])));
-	            if (k < 10) {
-	              k++;
-	              setTimeout(run, 100);
-	            } else {
-	              const sort = function (a, b) {
-	                return a - b;
-	              };
-	              createLarge.sort(sort);
-	              clearLarge.sort(sort);
-	              createSmall.sort(sort);
-	              clearSmall.sort(sort);
-	              createLarge.splice(7, 3);
-	              clearLarge.splice(7, 3);
-	              createSmall.splice(7, 3);
-	              clearSmall.splice(7, 3);
-	              function display(arr) {
-	                return +(arr.reduce((accumulator, currentValue) => {
-	                  return accumulator + currentValue;
-	                }, 0) / arr.length).toFixed(1);
-	              }
-	              console.log('large: create', display(createLarge), 'clear', display(clearLarge));
-	              console.log('small: create', display(createSmall), 'clear', display(clearSmall));
-	              console.log('------------');
-	            }
-	          }
-	          setTimeout(run, 100);
-	        }
+	      for (let k = 0; k < 5; k++) {
+	        setData(buildData(1));
+	        setData([]);
 	      }
-	      setTimeout(run, 100);
+	      let createLarge = 0;
+	      let clearLarge = 0;
+	      let createSmall = 0;
+	      let clearSmall = 0;
+	      const results = [];
+	      for (let k = 0; k < 10; k++) {
+	        createLarge += timing(() => setData(buildData(10000)));
+	        clearLarge += timing(() => setData([]));
+	        results.push(`
+					createLarge ${createLarge / (k + 1)} clearLarge ${clearLarge / (k + 1)}
+				`);
+	      }
+	      for (let k = 0; k < 10; k++) {
+	        createSmall += timing(() => setData(buildData(1000)));
+	        clearSmall += timing(() => setData([]));
+	        results.push(`
+					createSmall ${createSmall / (k + 1)} clearSmall ${clearSmall / (k + 1)}
+				`);
+	      }
+	      for (const item of results) console.log(item.trim());
+	      console.log('------------');
 	    },
 	    add = () => {
 	      updateData(d => [...d, ...buildData(1000)]);
 	    },
 	    update = () => {
 	      const d = data();
-	      const len = d.length;
-	      for (let i = 0; i < len; i += 10) d[i].update(l => l + ' !!!');
+	      for (let i = 0; i < d.length; i += 10) d[i].updateLabel(l => l + ' !!!');
 	    },
 	    swapRows = () => {
 	      const d = [...data()];
-	      if (d.length > 998) {
-	        const tmp = d[1];
-	        d[1] = d[998];
-	        d[998] = tmp;
-	        setData(d);
-	      }
+	      const tmp = d[1];
+	      d[1] = d[998];
+	      d[998] = tmp;
+	      setData(d);
 	    },
 	    clear = () => {
 	      setData([]);
@@ -2687,29 +2657,27 @@
 	    })]
 	  }, {
 	    "on:click": e => {
-	      e.stopPropagation();
 	      const element = e.target;
 	      if (element.selectRow !== undefined) {
 	        setSelected(element.selectRow);
 	      } else if (element.removeRow !== undefined) {
 	        remove(element.removeRow);
 	      }
-	    }
-	  }, {
+	    },
 	    children: _For({
 	      each: data,
 	      children: row => {
 	        const {
 	          id,
-	          read
+	          label
 	        } = row;
 	        return _tr([{
 	          "class:danger": isSelected(id)
 	        }, {
-	          textContent: id
+	          "prop:textContent": id
 	        }, {
-	          textContent: read,
-	          "prop:selectRow": id
+	          "prop:selectRow": id,
+	          "prop:textContent": label
 	        }, {
 	          "prop:removeRow": id
 	        }]);

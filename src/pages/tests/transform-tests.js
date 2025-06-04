@@ -1204,8 +1204,8 @@
 	 */
 	const ownedEvent = handler => 'handleEvent' in handler ? {
 	  ...handler,
-	  handleEvent: owned(e => handler.handleEvent(e))
-	} : owned(handler);
+	  handleEvent: e => handler.handleEvent(e)
+	} : handler;
 
 	/**
 	 * The purpose of this file is to guarantee the timing of some

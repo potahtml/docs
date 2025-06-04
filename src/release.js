@@ -45,13 +45,13 @@ const template = `\`{
 
 "imports": {
 
-"pota": "/node_modules/pota/src/@main.js",
+"pota": "/node_modules/pota/src/exports.js",
 
 "pota/babel-preset": "/node_modules/pota/src/babel-preset/index.js",
 "pota/jsx-runtime": "/node_modules/pota/src/jsx/jsx-runtime.js",
 "pota/jsx-dev-runtime": "/node_modules/pota/src/jsx/jsx-runtime.js",
 
-"pota/html": "/node_modules/pota/src/html.js",
+"pota/html": "/node_modules/pota/src/core/html.js",
 "pota/components": "/node_modules/pota/src/components/@main.js",
 
 __PLUGIN__,
