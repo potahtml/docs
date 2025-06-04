@@ -147,11 +147,11 @@ export function pre() {
 			if (moduleName === 'pota/jsx-runtime') {
 				types.push({
 					f: 'pota/jsx-runtime/index.d.ts',
-					c: `export * from "pota/@main.d.ts"`,
+					c: `export * from "pota/pota.d.ts"`,
 				})
 				types.push({
 					f: 'pota/jsx-dev-runtime/index.d.ts',
-					c: `export * from "pota/@main.d.ts"`,
+					c: `export * from "pota/pota.d.ts"`,
 				})
 			} else {
 				types.push({

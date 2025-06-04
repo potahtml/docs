@@ -1,6 +1,7 @@
 import { For } from 'pota/components'
 import { Pota, signal } from 'pota'
 import type { JSX } from 'pota'
+import type { SignalAccessor, SignalSetter } from 'pota'
 
 declare module 'pota' {
 	namespace JSX {
