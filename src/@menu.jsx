@@ -26,7 +26,7 @@ export default function Menu() {
 				</li>
 
 				<li>
-					<a href="/HTML">HTML</a>
+					<a href="/XML">XML</a>
 				</li>
 
 				<li>
@@ -212,17 +212,17 @@ export default function Menu() {
 						<li>
 							<A
 								href="/props/:page"
-								params={{ page: 'on:mount' }}
+								params={{ page: 'connected' }}
 							>
-								on:mount
+								connected
 							</A>
 						</li>
 						<li>
 							<A
 								href="/props/:page"
-								params={{ page: 'on:unmount' }}
+								params={{ page: 'disconnected' }}
 							>
-								on:unmount
+								disconnected
 							</A>
 						</li>
 					</ul>

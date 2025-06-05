@@ -1,5 +1,5 @@
 import { render, signal } from 'pota'
-import { html } from 'pota/html'
+import { xml } from 'pota/xml'
 
 function Counter() {
   const [show, setShow, updateShow] = signal(false)
@@ -12,7 +12,7 @@ function Counter() {
 
   return [
     // displays `asd`
-    html`
+    xml`
       0
       <Show when="${show}">
         1

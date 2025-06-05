@@ -28,10 +28,10 @@
 /pages/benchmark/dev-import-node/index.jsx
 /pages/benchmark/dev-import-node/main.js
 /pages/benchmark/dev-import-node/main.js.map
-/pages/benchmark/html/index.html
-/pages/benchmark/html/index.jsx
-/pages/benchmark/html/main.js
-/pages/benchmark/html/main.js.map
+/pages/benchmark/xml/index.html
+/pages/benchmark/xml/index.jsx
+/pages/benchmark/xml/main.js
+/pages/benchmark/xml/main.js.map
 /pages/benchmark/regular/index.html
 /pages/benchmark/regular/index.jsx
 /pages/benchmark/regular/main.js
@@ -47,7 +47,7 @@
 /node_modules/pota/src/@main.js
 /node_modules/pota/src/babel-preset/index.js
 /node_modules/pota/src/jsx/jsx-runtime.js
-/node_modules/pota/src/html.js
+/node_modules/pota/src/xml.js
 /node_modules/pota/src/web/@main.js
 /node_modules/pota/src/plugin/bind.js
 /node_modules/pota/src/plugin/clickoutside.js

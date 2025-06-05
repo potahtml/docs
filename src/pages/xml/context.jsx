@@ -1,16 +1,16 @@
 import { render, context } from 'pota'
-import { HTML } from 'pota/html'
+import { XML } from 'pota/xml'
 
-const html = HTML()
+const xml = XML()
 
 const Context = context({ myValue: 1 })
 const Provider = Context.Provider
 
-html.define({ Provider, ContextValue, Cuatro })
+xml.define({ Provider, ContextValue, Cuatro })
 
 // should display "1 2 3 4 3 2 1"
 function ComponentHTML() {
-  return html`
+  return xml`
     HTML:
     <ContextValue />
     <Provider value="${{ myValue: 2 }}">
@@ -51,7 +51,7 @@ function ComponentJSX() {
 }
 
 function Cuatro(props) {
-  return html`<Provider value="${{ myValue: 4 }}">
+  return xml`<Provider value="${{ myValue: 4 }}">
     ${props.children}
   </Provider>`
 }

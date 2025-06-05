@@ -156,7 +156,7 @@ function typescript(props) {
 			on:click={e => {
 				console.log(e, e.currentTarget)
 			}}
-			on:mount={e => {}}
+			connected={e => {}}
 		>
 			<lala></lala>
 			<Button style:stroke="antiquewhite" />
@@ -168,7 +168,7 @@ function typescript(props) {
 				ref={element => {
 					console.log(element)
 				}}
-				on:mount={e => e}
+				connected={e => e}
 				on:click={e => {
 					e.target
 					e.currentTarget
@@ -185,7 +185,7 @@ function typescript(props) {
 				<meta content="404 Not Found" />
 				<svg
 					href="ss"
-					on:mount={e => e}
+					connected={e => e}
 					color="red"
 					on:click={e => {
 						console.log(e.currentTarget)
@@ -204,7 +204,7 @@ function typescript(props) {
 				<For each={[1, 2, 3]}></For>
 				<span
 					flair=""
-					on:mount={e => {
+					connected={e => {
 						console.log(e)
 					}}
 				></span>

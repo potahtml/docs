@@ -1,5 +1,5 @@
 import { render } from 'pota'
-import { html } from 'pota/html'
+import { xml } from 'pota/xml'
 
 customElements.define(
   'some-test',
@@ -13,7 +13,7 @@ customElements.define(
 
 render('before')
 
-const element = html`
+const element = xml`
   <some-test>${2 + 2}</some-test>
   <some-test>${2 + 6}</some-test>
 `

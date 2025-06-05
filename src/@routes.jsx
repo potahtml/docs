@@ -283,17 +283,17 @@ export default function Routes() {
 				/>
 				<Router
 					path=":path$"
-					params={{ path: 'on:mount' }}
+					params={{ path: 'connected' }}
 					children={load(
-						() => import('./pages/@props/on-mount/index.jsx'),
+						() => import('./pages/@props/connected/index.jsx'),
 					)}
 				/>
 
 				<Router
 					path=":path$"
-					params={{ path: 'on:unmount' }}
+					params={{ path: 'disconnected' }}
 					children={load(
-						() => import('./pages/@props/on-unmount/index.jsx'),
+						() => import('./pages/@props/disconnected/index.jsx'),
 					)}
 				/>
 
@@ -426,8 +426,8 @@ export default function Routes() {
 			/>
 			<Router
 				path=":path$"
-				params={{ path: 'HTML' }}
-				children={load(() => import('./pages/html/index.jsx'))}
+				params={{ path: 'XML' }}
+				children={load(() => import('./pages/xml/index.jsx'))}
 			/>
 			<Router
 				path=":path$"

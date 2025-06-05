@@ -83,11 +83,11 @@ customElement, // customElement("fancy-element", class Fancy extends HTMLElement
 CustomElement, // class Fancy extends CustomElement{}
 } from 'pota/components'
 
-// html
+// xml
 import {
-HTML, // const html = HTML(); (props) => html\`<div>\${props.children}</div>\`
-html, // (props)=> html\`<div>\${props.children}</div>\` // () => <div/>
-} from 'pota/html'
+XML, // const xml = XML(); (props) => xml\`<div>\${props.children}</div>\`
+xml, // (props)=> xml\`<div>\${props.children}</div>\` // () => <div/>
+} from 'pota/xml'
 
 
 `

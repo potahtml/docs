@@ -116,26 +116,28 @@ export default function () {
 								<mark>
 									<A
 										href="/props/:page"
-										params={{ page: 'on:mount' }}
+										params={{ page: 'connected' }}
 									>
-										on:mount
+										connected
 									</A>
 								</mark>
 							</td>
-							<td>on:mount adds a callback to the mount event</td>
+							<td>connected adds a callback to the mount event</td>
 						</tr>
 						<tr>
 							<td>
 								<mark>
 									<A
 										href="/props/:page"
-										params={{ page: 'on:unmount' }}
+										params={{ page: 'disconnected' }}
 									>
-										on:unmount
+										disconnected
 									</A>
 								</mark>
 							</td>
-							<td>on:unmount adds a callback to the unmount event</td>
+							<td>
+								disconnected adds a callback to the unmount event
+							</td>
 						</tr>
 						<tr>
 							<td>

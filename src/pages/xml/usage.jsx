@@ -1,10 +1,10 @@
 import { render } from 'pota'
-import { html } from 'pota/html'
+import { xml } from 'pota/xml'
 
-const Bold = text => html`<b>${text}</b>`
+const Bold = text => xml`<b>${text}</b>`
 
 function Fun(props) {
-  return html`
+  return xml`
     <div>
       ${props.message} ${props.list} ${props.node}
       <u>${props.look}</u>

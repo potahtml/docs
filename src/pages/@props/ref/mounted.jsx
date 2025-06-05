@@ -12,7 +12,7 @@ function App() {
   return (
     <button
       name="button"
-      on:mount={button}
+      connected={button}
       on:click={() => console.log(button())}
     >
       button

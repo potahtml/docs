@@ -1,5 +1,5 @@
 import { render } from 'pota'
-import { html } from 'pota/html'
+import { xml } from 'pota/xml'
 
 class MyEl extends HTMLElement {
   constructor() {
@@ -7,7 +7,7 @@ class MyEl extends HTMLElement {
 
     this.attachShadow({ mode: 'open' })
 
-    const div = html`
+    const div = xml`
       <div
         foo="hello"
         .foo="${'hi'}"

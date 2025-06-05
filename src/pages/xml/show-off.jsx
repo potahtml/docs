@@ -1,5 +1,5 @@
 import { render, signal } from 'pota'
-import { html } from 'pota/html'
+import { xml } from 'pota/xml'
 
 function Component() {
   const [show, setShow, updateShow] = signal(false)
@@ -8,21 +8,21 @@ function Component() {
 
   return [
     // displays `asd`
-    html`0<Show when="${() => !show()}">
+    xml`0<Show when="${() => !show()}">
         <p>asd</p>
       </Show>`,
 
     // first `true`, callback on attribute
-    html`1<Show
+    xml`1<Show
         when="${show}"
         children="${value => value}"
       />`,
 
     // second `true`, callback as a child
-    html`2<Show when="${show}">${value => value}</Show>`,
+    xml`2<Show when="${show}">${value => value}</Show>`,
 
     // third `true quack false`, multiple callbacks as child
-    html`3<Show when="${show}"
+    xml`3<Show when="${show}"
         >${[value => value, ' quack ', value => !value]}</Show
       >`,
   ]

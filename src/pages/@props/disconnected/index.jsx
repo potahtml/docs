@@ -5,9 +5,9 @@ import { Section } from '../../../lib/components/section.jsx'
 export default function () {
 	return (
 		<>
-			<Header title="on:unmount">
-				<mark>on:unmount</mark> is for Elements that need to run some
-				cleanup tasks before these are removed from the document.
+			<Header title="disconnected">
+				<mark>disconnected</mark> is for Elements that need to run
+				some cleanup tasks before these are removed from the document.
 			</Header>
 
 			<Section title="Arguments">
@@ -34,7 +34,7 @@ export default function () {
 
 			<Section title="Snippet">
 				<Code
-					url="/pages/@props/on-unmount/snippet.jsx"
+					url="/pages/@props/connected/snippet.jsx"
 					render={false}
 				></Code>
 			</Section>
@@ -44,7 +44,7 @@ export default function () {
 					Show when the elements are about to be removed from the
 					document
 				</p>
-				<Code url="/pages/@props/on-unmount/test.jsx"></Code>
+				<Code url="/pages/@props/connected/test.jsx"></Code>
 			</Section>
 		</>
 	)

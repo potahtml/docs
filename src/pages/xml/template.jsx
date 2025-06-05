@@ -1,12 +1,12 @@
 import { render, signal } from 'pota'
-import { html } from 'pota/html'
+import { xml } from 'pota/xml'
 
 function Example() {
   const [count, setCount, updateCount] = signal(0)
 
   setInterval(() => updateCount(count => count + 1), 1_000)
 
-  const add10 = html`<button
+  const add10 = xml`<button
     on:click="${() => updateCount(count => count + 10)}"
     name="button"
   >
@@ -20,7 +20,7 @@ function Example() {
     render('you left!')
   }
 
-  return html`<div>
+  return xml`<div>
     Hello, The count is: ${count}!<br />
     <i
       on:click="${thisworks}"

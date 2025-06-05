@@ -1,8 +1,8 @@
 import { render } from 'pota'
-import { html } from 'pota/html'
+import { xml } from 'pota/xml'
 
 function Component() {
-  return html`
+  return xml`
     <test-test
       attr:example-attr-1="${1}"
       attr:example-attr-true="${true}"

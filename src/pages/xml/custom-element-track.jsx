@@ -1,5 +1,5 @@
 import { render, signal } from 'pota'
-import { html } from 'pota/html'
+import { xml } from 'pota/xml'
 
 const [read, write] = signal(true)
 
@@ -48,7 +48,7 @@ customElements.define('custom-element', CustomElement)
 
 render(
   () =>
-    html` <custom-element
+    xml` <custom-element
       string-attribute="lala"
       stringattribute="lala"
       boolean="${true}"

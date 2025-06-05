@@ -1,19 +1,19 @@
 import { render } from 'pota'
-import { HTML } from 'pota/html'
+import { XML } from 'pota/xml'
 
-const html = HTML()
+const xml = XML()
 
 function Component() {
   function SomeComponent(props) {
-    return html`<div>-${props.children}-</div>`
+    return xml`<div>-${props.children}-</div>`
   }
 
-  html.define({ SomeComponent })
+  xml.define({ SomeComponent })
 
   const foo = 1
   const bar = 2
 
-  return html`
+  return xml`
     <SomeComponent>
       <div foo="${foo}">
         ${foo}

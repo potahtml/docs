@@ -58,12 +58,20 @@
 	const nothing = freeze(empty());
 
 	/**
-	 * Flats an array/childNodes to the first children if the length is 1
+	 * Unwraps an array/childNodes to the first item if the length is 1
 	 *
 	 * @param {any[] | NodeListOf<ChildNode>} arr
 	 * @returns {any}
 	 */
-	const flat = arr => arr.length === 1 ? arr[0] : arr;
+	const unwrapArray = arr => arr.length === 1 ? arr[0] : arr;
+
+	/**
+	 * Flats an array/childNodes recursively
+	 *
+	 * @param {any[]} arr
+	 * @returns {any}
+	 */
+	const flatToArray = arr => isArray(arr) ? arr.flat(Infinity) : [arr];
 
 	/**
 	 * Keeps state in the function as the first param
@@ -354,6 +362,14 @@
 	        this.cleanups.push(fn);
 	      } else {
 	        this.cleanups = [this.cleanups, fn];
+	      }
+	    }
+	    /** @param {Function} fn */
+	    removeCleanups(fn) {
+	      if (!this.cleanups) ; else if (this.cleanups === fn) {
+	        this.cleanups = null;
+	      } else {
+	        removeFromArray(this.cleanups, fn);
 	      }
 	    }
 	    /** @param {Computation} value */
@@ -839,7 +855,19 @@
 	   * @returns {T}
 	   */
 	  function cleanup(fn) {
-	    Owner && Owner.addCleanups(fn);
+	    Owner?.addCleanups(fn);
+	    return fn;
+	  }
+
+	  /**
+	   * Cancels a cleanup
+	   *
+	   * @template T
+	   * @param {T extends Function} fn
+	   * @returns {T}
+	   */
+	  function cancelCleanup(fn) {
+	    Owner?.removeCleanups(fn);
 	    return fn;
 	  }
 
@@ -1020,6 +1048,7 @@
 	  return {
 	    batch,
 	    cleanup,
+	    cancelCleanup,
 	    Context,
 	    effect,
 	    memo,
@@ -1049,21 +1078,13 @@
 	}
 
 	const {
-	  batch,
 	  cleanup,
 	  Context,
 	  effect,
-	  memo,
-	  on,
 	  owned,
-	  owner,
 	  root,
-	  runWithOwner,
 	  signal,
-	  syncEffect,
-	  untrack,
-	  useContext
-	} = createReactiveSystem();
+	  untrack} = createReactiveSystem();
 
 	/**
 	 * Returns true when value is reactive (a signal)
@@ -1204,8 +1225,8 @@
 	 */
 	const ownedEvent = handler => 'handleEvent' in handler ? {
 	  ...handler,
-	  handleEvent: e => handler.handleEvent(e)
-	} : handler;
+	  handleEvent: owned(e => handler.handleEvent(e))
+	} : owned(handler);
 
 	/**
 	 * The purpose of this file is to guarantee the timing of some
@@ -1341,32 +1362,6 @@
 	 * @param {Element} node
 	 * @param {string} name
 	 * @param {unknown} value
-	 * @param {string} [ns]
-	 * @url https://pota.quack.uy/props/setAttribute
-	 */
-	const setAttribute = (node, name, value, ns) => withValue(value, value => _setAttribute(node, name, value, ns));
-
-	/**
-	 * @param {Element} node
-	 * @param {string} name
-	 * @param {string | boolean} value
-	 * @param {string} [ns]
-	 */
-	function _setAttribute(node, name, value, ns) {
-	  // @ts-ignore
-
-	  // if the value is false/null/undefined it will be removed
-	  if (value === false || isNullUndefined(value)) {
-	    ns && NS[ns] ? node.removeAttributeNS(NS[ns], name) : node.removeAttribute(name);
-	  } else {
-	    ns && NS[ns] ? node.setAttributeNS(NS[ns], name, value === true ? '' : value) : node.setAttribute(name, value === true ? '' : value);
-	  }
-	}
-
-	/**
-	 * @param {Element} node
-	 * @param {string} name
-	 * @param {unknown} value
 	 * @param {object} props
 	 * @param {string} localName
 	 * @param {string} ns
@@ -1398,6 +1393,20 @@
 	    node[name] = value;
 	  }
 	}
+
+	/**
+	 * @param {Element} node
+	 * @param {string} name
+	 * @param {EventListener
+	 * 	| EventListenerObject
+	 * 	| (EventListenerObject & AddEventListenerOptions)} value
+	 * @param {object} props
+	 * @param {string} localName
+	 * @param {string} ns
+	 */
+	const setEventNS = (node, name, value, props, localName, ns) =>
+	// `value &&` because avoids crash when `on:click={bla}` and `bla === null`
+	value && addEvent(node, localName, ownedEvent(value));
 
 	// node style
 
@@ -1466,6 +1475,55 @@
 	const _setStyleValue = (style, name, value) =>
 	// if the value is null or undefined it will be removed
 	isNullUndefined(value) ? style.removeProperty(name) : style.setProperty(name, value);
+
+	/** Returns true or false with a `chance` of getting `true` */
+	const randomId = () => crypto.getRandomValues(new BigUint64Array(1))[0].toString(36);
+
+	/**
+	 * @param {Element} node
+	 * @param {string} name
+	 * @param {string} value
+	 * @param {object} props
+	 */
+	const setCSS = (node, name, value, props) => {
+	  setNodeCSS(node, value);
+	};
+
+	/**
+	 * @param {Element} node
+	 * @param {string} value
+	 */
+	const setNodeCSS = withState((state, node, value) => {
+	  classListAdd(node, state.get(value, value => {
+	    const id = 'c' + randomId();
+	    adoptedStyleSheetsAdd(getDocumentForElement(node), sheet(value.replace(/class/g, '.' + id)));
+	    return id;
+	  }));
+	});
+
+	/**
+	 * @param {Element} node
+	 * @param {string} name
+	 * @param {Function} value
+	 * @param {object} props
+	 */
+	const setRef = (node, name, value, props) => onRef(() => value(node));
+
+	/**
+	 * @param {Element} node
+	 * @param {string} name
+	 * @param {Function} value
+	 * @param {object} props
+	 */
+	const setConnected = (node, name, value, props) => onMount(() => value(node));
+
+	/**
+	 * @param {Element} node
+	 * @param {string} name
+	 * @param {Function} value
+	 * @param {object} props
+	 */
+	const setDisconnected = (node, name, value, props) => cleanup(() => value(node));
 
 	// node class / classList
 
@@ -1546,72 +1604,35 @@
 	/**
 	 * @param {Element} node
 	 * @param {string} name
-	 * @param {EventListener
-	 * 	| EventListenerObject
-	 * 	| (EventListenerObject & AddEventListenerOptions)} value
-	 * @param {object} props
-	 * @param {string} localName
-	 * @param {string} ns
+	 * @param {unknown} value
+	 * @param {string} [ns]
+	 * @url https://pota.quack.uy/props/setAttribute
 	 */
-	const setEventNS = (node, name, value, props, localName, ns) =>
-	// `value &&` because avoids crash when `on:click={bla}` and `bla === null`
-	value && addEvent(node, localName, ownedEvent(value));
-
-	/** Returns true or false with a `chance` of getting `true` */
-	const randomId = () => crypto.getRandomValues(new BigUint64Array(1))[0].toString(36);
+	const setAttribute = (node, name, value, ns) => withValue(value, value => _setAttribute(node, name, value, ns));
 
 	/**
 	 * @param {Element} node
 	 * @param {string} name
-	 * @param {string} value
-	 * @param {object} props
+	 * @param {string | boolean} value
+	 * @param {string} [ns]
 	 */
-	const setCSS = (node, name, value, props) => {
-	  setNodeCSS(node, value);
-	};
+	function _setAttribute(node, name, value, ns) {
+	  // @ts-ignore
 
-	/**
-	 * @param {Element} node
-	 * @param {string} value
-	 */
-	const setNodeCSS = withState((state, node, value) => {
-	  classListAdd(node, state.get(value, value => {
-	    const id = 'c' + randomId();
-	    adoptedStyleSheetsAdd(getDocumentForElement(node), sheet(value.replace(/class/g, '.' + id)));
-	    return id;
-	  }));
-	});
-
-	/**
-	 * @param {Element} node
-	 * @param {string} name
-	 * @param {Function} value
-	 * @param {object} props
-	 */
-	const setRef = (node, name, value, props) => onRef(() => value(node));
-
-	/**
-	 * @param {Element} node
-	 * @param {string} name
-	 * @param {Function} value
-	 * @param {object} props
-	 */
-	const setOnMount = (node, name, value, props) => onMount(() => value(node));
-
-	/**
-	 * @param {Element} node
-	 * @param {string} name
-	 * @param {Function} value
-	 * @param {object} props
-	 */
-	const setUnmount = (node, name, value, props) => cleanup(() => value(node));
+	  // if the value is false/null/undefined it will be removed
+	  if (value === false || isNullUndefined(value)) {
+	    ns && NS[ns] ? node.removeAttributeNS(NS[ns], name) : node.removeAttribute(name);
+	  } else {
+	    ns && NS[ns] ? node.setAttributeNS(NS[ns], name, value === true ? '' : value) : node.setAttribute(name, value === true ? '' : value);
+	  }
+	}
 
 	propsPluginNS('prop', setPropertyNS, false);
 	propsPluginNS('on', setEventNS, false);
 	propsPluginNS('var', setVarNS, false);
 	propsPlugin('plugin:css', setCSS, false);
-	propsPlugin('on:mount', setOnMount, false);
-	propsPlugin('on:unmount', setUnmount, false);
+	propsPlugin('connected', setConnected, false);
+	propsPlugin('disconnected', setDisconnected, false);
 	propsPlugin('ref', setRef, false);
 	propsPlugin('style', setStyle, false);
 	propsPluginNS('style', setStyleNS, false);
@@ -1639,11 +1660,10 @@
 	  } else if (propNS[name] || name.includes(':')) {
 	    // with ns
 	    propNS[name] = propNS[name] || name.split(':');
-	    const [ns, localName] = propNS[name];
 
 	    // run plugins NS
-	    plugin = pluginsNS.get(ns);
-	    plugin ? plugin(node, name, value, props, localName, ns) : setAttribute(node, name, value, ns);
+	    plugin = pluginsNS.get(propNS[name][0]);
+	    plugin ? plugin(node, name, value, props, propNS[name][1], propNS[name][0]) : setAttribute(node, name, value, propNS[name][0]);
 	  } else {
 	    // catch all
 	    setAttribute(node, name, value);
@@ -1764,7 +1784,7 @@
 
 	// PARTIALS
 
-	function parseHTML(content, xmlns) {
+	function parseXML(content, xmlns) {
 	  const template = xmlns ? createElementNS(xmlns, 'template') : createElement('template');
 	  template.innerHTML = content;
 
@@ -1791,7 +1811,7 @@
 	 */
 	function createPartial(content, propsData = nothing) {
 	  let clone = () => {
-	    const node = withXMLNS(propsData.x, xmlns => parseHTML(content, xmlns));
+	    const node = withXMLNS(propsData.x, xmlns => parseXML(content, xmlns));
 	    clone = propsData.i ? importNode.bind(null, node, true) : node.cloneNode.bind(node, true);
 	    return clone();
 	  };
@@ -1880,7 +1900,7 @@
 	          }), true);
 	        }) : effect(() => {
 	          // maybe a signal (at least a function) so needs an effect
-	          node = toDiff(node, [createChildren(parent, child(), true, node[0])].flat(Infinity), true);
+	          node = toDiff(node, flatToArray(createChildren(parent, child(), true, node[0])), true);
 	        });
 	        cleanup(() => {
 	          toDiff(node);
@@ -2064,7 +2084,7 @@
 	function insert(children, parent = document.body, options = nothing) {
 	  if (options.clear && parent) parent.textContent = '';
 	  const node = createChildren(parent, isComponentable(children) ? Factory(children) : children, options.relative);
-	  cleanup(() => toDiff([node].flat(Infinity)));
+	  cleanup(() => toDiff(flatToArray(node)));
 	  return node;
 	}
 
@@ -2083,7 +2103,7 @@
 	 * DocumentFragment and then we will lose the reference.
 	 */
 
-	flat(toHTMLFragment(children).childNodes);
+	unwrapArray(toHTMLFragment(children).childNodes);
 
 	/**
 	 * Creates and returns a DocumentFragment for `children`

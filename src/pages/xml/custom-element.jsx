@@ -1,17 +1,17 @@
 import { render } from 'pota'
-import { html } from 'pota/html'
+import { xml } from 'pota/xml'
 
 const FancyCustomBold = props => {
-  return html`<b>
+  return xml`<b>
     ${props.children} ${props.test.filter(item => item % 2 === 0)}
   </b>`
 }
 
-html.define({ FancyCustomBold })
+xml.define({ FancyCustomBold })
 
 function Fun() {
   const name = 'Test'
-  return html`
+  return xml`
     <div>
       <FancyCustomBold test="${[1, 2, 3]}">
         is this bold?

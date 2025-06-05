@@ -7,8 +7,8 @@ function BeforeSibling() {
 
   return (
     <section
-      on:unmount={() =>
-        render(<div>on:unmount Node: from BeforeSibling</div>)
+      connected={() =>
+        render(<div>connected Node: from BeforeSibling</div>)
       }
     />
   )
@@ -20,8 +20,8 @@ function AfterSibling() {
 
   return (
     <section
-      on:unmount={() =>
-        render(<div>on:unmount Node: from AfterSibling</div>)
+      connected={() =>
+        render(<div>connected Node: from AfterSibling</div>)
       }
     />
   )
@@ -30,31 +30,31 @@ function Test() {
   cleanup(() => render(<div>cleanup: component body</div>))
   return (
     <main
-      on:unmount={() =>
-        render(<div>on:unmount Node: from container</div>)
+      connected={() =>
+        render(<div>connected Node: from container</div>)
       }
     >
       <section>
         <div>
           <div
-            on:unmount={() =>
-              render(<div>on:unmount Node: deep 1</div>)
+            connected={() =>
+              render(<div>connected Node: deep 1</div>)
             }
           />
         </div>
       </section>
       <BeforeSibling />
       <section
-        on:unmount={() =>
-          render(<div>on:unmount Node: from inlined element</div>)
+        connected={() =>
+          render(<div>connected Node: from inlined element</div>)
         }
       ></section>
       <AfterSibling />
       <section>
         <div>
           <div
-            on:unmount={() =>
-              render(<div>on:unmount Node: deep 2</div>)
+            connected={() =>
+              render(<div>connected Node: deep 2</div>)
             }
           />
         </div>

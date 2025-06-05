@@ -63,7 +63,7 @@ render(
 							menu.style.display = e.width < 750 ? 'none' : 'inherit'
 						})
 					}}
-					on:mount={menu => {
+					connected={menu => {
 						const links = menu.querySelectorAll('li a')
 						for (const link of links) {
 							setClass(

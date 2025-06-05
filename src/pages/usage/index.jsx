@@ -1,6 +1,6 @@
 import { Header } from '../../lib/components/header.jsx'
 import { Section } from '../../lib/components/section.jsx'
-import { CompilerLess } from '../html/compiler-less.jsx'
+import { CompilerLess } from '../xml/compiler-less.jsx'
 
 export default function () {
 	return (

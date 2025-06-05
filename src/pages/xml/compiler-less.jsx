@@ -4,7 +4,7 @@ export const CompilerLess = (
   <Code
     code={`
 
-  // pota - Compiler-less html example
+  // pota - Compiler-less xml example
 
   import {
     render,
@@ -13,8 +13,8 @@ export const CompilerLess = (
   } from "pota";
 
   import {
-    html,
-  } from "pota/html";
+    xml,
+  } from "pota/xml";
 
   function Counter() {
     const [count, setCount, updateCount] = signal(1);
@@ -22,9 +22,9 @@ export const CompilerLess = (
 
     const increment = () => updateCount((count) => count + 1);
 
-    html.define({ count, double });
+    xml.define({ count, double });
 
-    return html\`<label>
+    return xml\`<label>
       <button name="button" on:click="\${increment}">
         <count /> / <double />
       </button>

@@ -67,8 +67,8 @@
 				}
 			},
 			{
-				"input": ["src/pages/benchmark/html/index.jsx"],
-				"output": "src/pages/benchmark/html/main.js",
+				"input": ["src/pages/benchmark/xml/index.jsx"],
+				"output": "src/pages/benchmark/xml/main.js",
 				"minified": false,
 				"treeshake": true,
 				"root": false,

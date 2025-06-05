@@ -1,5 +1,5 @@
 const prettierConfig = {
-	parser: 'babel',
+	parser: 'babel-ts',
 	printWidth: 55,
 	useTabs: false,
 	tabWidth: 2,
