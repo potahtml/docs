@@ -58,12 +58,12 @@ render(
 					id="menu"
 					flair="grow col"
 					class={'menu ' + stylesMenu.menu}
-					ref={menu => {
+					use:ref={menu => {
 						onDocumentSize(e => {
 							menu.style.display = e.width < 750 ? 'none' : 'inherit'
 						})
 					}}
-					connected={menu => {
+					use:connected={menu => {
 						const links = menu.querySelectorAll('li a')
 						for (const link of links) {
 							setClass(

@@ -12,7 +12,7 @@ function App() {
   return (
     <button
       name="button"
-      ref={button}
+      use:ref={button}
       on:click={() => console.log(button())}
     >
       button

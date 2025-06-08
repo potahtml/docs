@@ -18,7 +18,7 @@ function Example() {
       <button
         name="button"
         on:click={add}
-        connected={add}
+        use:connected={add}
       >
         add event
       </button>
@@ -30,7 +30,7 @@ function Example() {
       </button>
       <button
         name="button"
-        ref={button}
+        use:ref={button}
       >
         click me
       </button>

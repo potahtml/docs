@@ -1,44 +1,41 @@
 import { render } from 'pota'
-import { Router } from 'pota/components'
+import { Route } from 'pota/components'
 
 import { location, navigate } from 'pota/plugin/useLocation'
 
 function Example() {
+	function random() {
+		return Math.random().toString().slice(4)
+	}
 	return (
 		<main>
-			<Router path="/:page">
+			<Route path="/:page">
 				<ul>
-					<li>hash: {location.hash} </li>
 					<li>pathname: {location.pathname}</li>
 					<li>path: {location.path}</li>
-					<li>query: {() => JSON.stringify(location.query())}</li>
-					<li>params: {() => JSON.stringify(location.params())}</li>
+					<li>hash: {location.hash} </li>
+					<li>search: {location.search}</li>
+					<li>
+						searchParams:{' '}
+						{() => JSON.stringify(location.searchParams)}
+					</li>
 					<li>href: {location.href}</li>
 					<hr />
 					<hr />
-					<li>
-						<button
-							name="button"
-							on:click={() =>
-								navigate('/index.html?' + Math.random())
-							}
-						>
-							replace to index
-						</button>
-					</li>
+
 					<li>
 						<button
 							name="button"
 							on:click={() =>
 								navigate(
 									'/path' +
-										Math.random() +
-										'?queryParams' +
-										Math.random() +
-										'=' +
-										Math.random() +
+										random() +
+										'?queryParams1=' +
+										random() +
+										'&queryParams2=' +
+										random() +
 										'#hash' +
-										Math.random(),
+										random(),
 								)
 							}
 						>
@@ -46,7 +43,7 @@ function Example() {
 						</button>
 					</li>
 				</ul>
-			</Router>
+			</Route>
 		</main>
 	)
 }

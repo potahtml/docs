@@ -233,7 +233,7 @@ render(
 		<button on:click={() => element().toggle()}>toggle</button>
 		<button on:click={() => element().open()}>open</button>
 		<button on:click={() => element().close()}>close</button>
-		<pota-alert ref={element}>
+		<pota-alert use:ref={element}>
 			Use \`element.toggle()\` to toggle the alert. Use \`element.open()\`
 			to open the alert. Use \`element.close()\` to close the alert.
 		</pota-alert>
@@ -271,7 +271,7 @@ render(
 		<button on:click={() => element().toggle()}>toggle</button>
 		<button on:click={() => element().open()}>open</button>
 		<button on:click={() => element().close()}>close</button>
-		<pota-alert ref={element}>
+		<pota-alert use:ref={element}>
 			Listening for \`open\` and \`close\` events
 		</pota-alert>
 	</main>,

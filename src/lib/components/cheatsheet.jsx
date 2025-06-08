@@ -40,7 +40,7 @@ isComponent, // isComponent(fn) // true for non-tracking components
 isReactive, // isReactive(fn) // true for signals
 
 // props
-ref, // const button = ref(); <div ref={button}.. /> effect(()=>button())
+ref, // const button = ref(); <div use:ref={button}.. /> effect(()=>button())
 
 setAttribute, // setAttribute(node, 'data-active', signal, ns)
 setProperty, // setProperty(node, 'hidden', signal)
@@ -75,7 +75,7 @@ For, // <For each={[1, 2, 3]} children={[item => item * 1, item => item * 2]} />
 Head, // <Head><title>Hello World</title></Head>
 Switch, Match,// <Switch fallback="ouch"><Match when={true}/></Switch>
 Portal, // <Portal mount={document.body}>Hola</Portal>
-Router,// <Router path="/">Hola home</Router>
+Route,// <Route path="/">Hola home</Route>
 A,// <A href="/">home</A>
 
 // custom element utils

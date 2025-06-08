@@ -8,6 +8,11 @@ const doc = new DocumentFragment()
 doc.append('doc frag1', 'doc frag2')
 
 const toRender = [
+  function* () {
+    yield 1
+    yield 2
+    yield 3
+  },
   'a string',
   '',
   -1,

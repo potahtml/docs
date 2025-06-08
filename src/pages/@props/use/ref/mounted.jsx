@@ -12,7 +12,7 @@ function App() {
   return (
     <button
       name="button"
-      connected={button}
+      use:connected={button}
       on:click={() => console.log(button())}
     >
       button

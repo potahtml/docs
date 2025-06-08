@@ -2,7 +2,7 @@ import { render, signal, toHTML } from 'pota'
 
 function Menu(props) {
 	const children = toHTML(props.children)
-	console.log(children)
+	// console.log(children)
 	return <ul>{children}</ul>
 }
 

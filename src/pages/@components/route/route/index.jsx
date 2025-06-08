@@ -6,11 +6,11 @@ import { Tag } from '../../../../lib/components/tag.jsx'
 export default function () {
 	return (
 		<>
-			<Header title={<Tag>Router ...</Tag>}>
+			<Header title={<Tag>Route ...</Tag>}>
 				Renders components based on location paths. It doesn't need a
 				wrapper, and routes can be nested. When a route is nested, the
 				paths are relative to the parent route.{' '}
-				<mark>{'<Router.Default/>'}</mark> can be used for rendering a
+				<mark>{'<Route.Default/>'}</mark> can be used for rendering a
 				default/404 when no sibling routes match.
 			</Header>
 
@@ -42,13 +42,13 @@ export default function () {
 								used to replace params for URI encoded equivalents.{' '}
 								<mark>
 									{
-										'<Router path="/some/:cat/:page" params={{ cat: "variété", page:"touché" }}/>'
+										'<Route path="/some/:cat/:page" params={{ cat: "variété", page:"touché" }}/>'
 									}
 								</mark>{' '}
 								will become{' '}
 								<mark>
 									{
-										'<Router path="/some/vari%C3%A9t%C3%A9/touch%C3%A9"/>'
+										'<Route path="/some/vari%C3%A9t%C3%A9/touch%C3%A9"/>'
 									}
 								</mark>
 							</td>
@@ -105,14 +105,14 @@ export default function () {
 
 			<Section title="Snippet">
 				<Code
-					url="/pages/@components/router/router/snippet.jsx"
+					url="/pages/@components/route/route/snippet.jsx"
 					render={false}
 				></Code>
 			</Section>
 
 			<Section title="Test">
-				<p>some router testing</p>
-				<Code url="/pages/@components/router/router/test.jsx"></Code>
+				<p>some route testing</p>
+				<Code url="/pages/@components/route/route/test.jsx"></Code>
 			</Section>
 
 			<Section title="Collapse">
@@ -121,7 +121,7 @@ export default function () {
 					it, so it avoids a re render and could be helpful to keep
 					state of iframes, canvas, video, audio or anything
 				</p>
-				<Code url="/pages/@components/router/router/collapse.jsx"></Code>
+				<Code url="/pages/@components/route/route/collapse.jsx"></Code>
 			</Section>
 		</>
 	)

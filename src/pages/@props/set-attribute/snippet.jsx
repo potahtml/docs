@@ -8,7 +8,7 @@ function App() {
       setAttribute(element(), 'src', () => '/favicon.ico')
     }
   })
-  return <img ref={element} />
+  return <img use:ref={element} />
 }
 
 render(App)

@@ -21,12 +21,12 @@ function loadScriptInOrder(...scripts) {
 function loadScript(src) {
 	return new Promise(resolve => {
 		const script = document.createElement('script')
-		document.head.append(script)
 		script.onload = () => {
 			setTimeout(resolve)
 		}
 		script.crossOrigin = 'anonymous'
 		script.src = src
+		document.head.append(script)
 	})
 }
 
@@ -132,7 +132,7 @@ export function Monaco(props) {
 			{() => (
 				<div
 					class={styles.container}
-					ref={async container => {
+					use:ref={async container => {
 						/** @type import('monaco-editor') */
 						const monaco = globalThis.monaco
 

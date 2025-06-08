@@ -1,6 +1,6 @@
 import { render } from 'pota'
 
-import { Router, A } from 'pota/components'
+import { Route, A } from 'pota/components'
 
 function App() {
 	return (
@@ -13,9 +13,9 @@ function App() {
 					<A href="/index.html#kilo/no-frame">no frame</A>
 				</li>
 			</ul>
-			<Router path="/index.html#">
-				<Router path="kilo/">
-					<Router
+			<Route path="/index.html#">
+				<Route path="kilo/">
+					<Route
 						path="frame"
 						collapse={true}
 					>
@@ -27,14 +27,13 @@ function App() {
 							frameborder="0"
 							allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
 							allowfullscreen
-							crossorigin="anonymous"
 						></iframe>
-					</Router>
-					<Router path="no-frame">
+					</Route>
+					<Route path="no-frame">
 						<h3>no!</h3>
-					</Router>
-				</Router>
-			</Router>
+					</Route>
+				</Route>
+			</Route>
 		</main>
 	)
 }

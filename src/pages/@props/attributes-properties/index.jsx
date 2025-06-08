@@ -163,12 +163,12 @@ export default function () {
 						</tr>
 						<tr>
 							<td>
-								<mark>plugin:css</mark>
+								<mark>use:css</mark>
 							</td>
 							<td>
 								<mark>
 									{
-										'<span plugin:css="class{color:green} class:hover{color:red}"/>'
+										'<span use:css="class{color:green} class:hover{color:red}"/>'
 									}
 								</mark>{' '}
 								becomes{' '}

@@ -9,7 +9,7 @@ function App() {
       setStyle(element(), 'border', () => '4px solid blue')
     }
   })
-  return <div ref={element} />
+  return <div use:ref={element} />
 }
 
 render(App)

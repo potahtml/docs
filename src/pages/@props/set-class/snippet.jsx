@@ -6,7 +6,7 @@ import { A } from 'pota/components'
 function App() {
   return (
     <ul
-      connected={menu => {
+      use:connected={menu => {
         const links = menu.querySelectorAll('li a')
         for (const link of links) {
           setClass(link.parentNode, 'selected', () => {

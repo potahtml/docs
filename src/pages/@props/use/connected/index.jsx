@@ -1,11 +1,11 @@
-import { Code } from '../../../lib/components/code/code.jsx'
-import { Header } from '../../../lib/components/header.jsx'
-import { Section } from '../../../lib/components/section.jsx'
+import { Code } from '../../../../lib/components/code/code.jsx'
+import { Header } from '../../../../lib/components/header.jsx'
+import { Section } from '../../../../lib/components/section.jsx'
 
 export default function () {
 	return (
 		<>
-			<Header title="connected">
+			<Header title="use:connected">
 				<mark>connected</mark> is for Elements that need to run some
 				initialization after these have been connected to the
 				document. Is available exclusively to Elements via an
@@ -48,7 +48,7 @@ export default function () {
 
 			<Section title="Snippet">
 				<Code
-					url="/pages/@props/connected/snippet.jsx"
+					url="/pages/@props/use/connected/snippet.jsx"
 					render={false}
 				/>
 			</Section>

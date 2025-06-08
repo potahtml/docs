@@ -156,7 +156,7 @@ function typescript(props) {
 			on:click={e => {
 				console.log(e, e.currentTarget)
 			}}
-			connected={e => {}}
+			use:connected={e => {}}
 		>
 			<lala></lala>
 			<Button style:stroke="antiquewhite" />
@@ -165,10 +165,10 @@ function typescript(props) {
 			<Div />
 			{Div2}
 			<span
-				ref={element => {
+				use:ref={element => {
 					console.log(element)
 				}}
-				connected={e => e}
+				use:connected={e => e}
 				on:click={e => {
 					e.target
 					e.currentTarget
@@ -185,7 +185,7 @@ function typescript(props) {
 				<meta content="404 Not Found" />
 				<svg
 					href="ss"
-					connected={e => e}
+					use:connected={e => e}
 					color="red"
 					on:click={e => {
 						console.log(e.currentTarget)
@@ -204,7 +204,7 @@ function typescript(props) {
 				<For each={[1, 2, 3]}></For>
 				<span
 					flair=""
-					connected={e => {
+					use:connected={e => {
 						console.log(e)
 					}}
 				></span>

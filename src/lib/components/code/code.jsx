@@ -74,7 +74,7 @@ export function Code(props) {
 							data-editable={props.render !== false}
 						>
 							<tm-textarea
-								ref={TabIndentation.binding}
+								use:ref={TabIndentation.binding}
 								class="snippet"
 								grammar="tsx"
 								theme="monokai"
@@ -94,7 +94,7 @@ export function Code(props) {
 								loading="lazy"
 								title="Live Code Example"
 								name="Live Code Example"
-								ref={frame}
+								use:ref={frame}
 								src={() =>
 									'/pages/@playground/preview/index.html' +
 									(window.location.href.includes('playground')

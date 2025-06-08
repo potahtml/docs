@@ -88,7 +88,7 @@ export default function Home() {
 						<mark>div</mark>
 					</li>
 					<li>
-						Includes a simple but full featured <mark>Router</mark>{' '}
+						Includes a simple but full featured <mark>Route</mark>{' '}
 						component
 					</li>
 					<li>Does not include server side rendering (SSR)</li>

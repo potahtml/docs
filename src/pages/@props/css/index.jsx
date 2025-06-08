@@ -7,7 +7,6 @@ export default function () {
 		<>
 			<Header title="css">
 				There are a variety of ways to set and inline <mark>CSS</mark>{' '}
-				<div plugin:css="class{color:green} class:hover{color:red}"></div>
 				StylesSheets.
 			</Header>
 
@@ -23,9 +22,10 @@ export default function () {
 			</Section>
 			<Section title="Inline CSS In An Attribute">
 				<p>
-					In an attribute of an element you may use the keyword{' '}
-					<mark>class</mark> which will be replaced for a random
-					class, and that class will be added to the element.
+					In the <mark>use:css</mark> attribute of an element you may
+					use the keyword <mark>class</mark> which will be replaced
+					for a random class, and that class will be added to the
+					element.
 				</p>
 				<Code url="/pages/@props/css/jsx.jsx"></Code>
 			</Section>

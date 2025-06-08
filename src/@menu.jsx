@@ -138,18 +138,18 @@ export default function Menu() {
 							/>
 						</li>
 					</ul>
-					<h4>Router</h4>
+					<h4>Route</h4>
 					<ul>
 						<li>
 							<A
-								href="/Components/Router/:page"
-								params={{ page: 'Router' }}
-								children="<Router/>"
+								href="/Components/Route/:page"
+								params={{ page: 'Route' }}
+								children="<Route/>"
 							/>
 						</li>
 						<li>
 							<A
-								href="/Components/Router/:page"
+								href="/Components/Route/:page"
 								params={{ page: 'A' }}
 								children="<A/>"
 							/>
@@ -204,25 +204,25 @@ export default function Menu() {
 						<li>
 							<A
 								href="/props/:page"
-								params={{ page: 'ref' }}
+								params={{ page: 'use:ref' }}
 							>
-								ref
+								use:ref
 							</A>
 						</li>
 						<li>
 							<A
 								href="/props/:page"
-								params={{ page: 'connected' }}
+								params={{ page: 'use:connected' }}
 							>
-								connected
+								use:connected
 							</A>
 						</li>
 						<li>
 							<A
 								href="/props/:page"
-								params={{ page: 'disconnected' }}
+								params={{ page: 'use:disconnected' }}
 							>
-								disconnected
+								use:disconnected
 							</A>
 						</li>
 					</ul>
@@ -282,7 +282,7 @@ export default function Menu() {
 								href="/props/:page"
 								params={{ page: 'css' }}
 							>
-								css
+								css / use:css
 							</A>
 						</li>
 						<li>

@@ -23,7 +23,7 @@ function App() {
 				{lazy(asyncFunctionReject, {
 					onLoading: 'promise is loading',
 					onError: 'promise fallback',
-					onLoaded: () => console.log('promise loaded!'),
+					onLoad: () => console.log('promise loaded!'),
 				})}
 			</div>
 
@@ -32,7 +32,7 @@ function App() {
 					children={asyncFunctionReject}
 					onLoading="Lazy as component is loading"
 					onError="Lazy as component fallback"
-					onLoaded={() => console.log('promise loaded!')}
+					onLoad={() => console.log('promise loaded!')}
 				/>
 			</div>
 

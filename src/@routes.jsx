@@ -1,33 +1,33 @@
-import { load, Router } from 'pota/components'
+import { load, Route } from 'pota/components'
 
 import FourZeroFour from './404.jsx'
 import Home from './pages/home.jsx'
 
 function NotFound() {
 	return (
-		<Router.Default>
+		<Route.Default>
 			<FourZeroFour />
-		</Router.Default>
+		</Route.Default>
 	)
 }
 export default function Routes() {
 	return (
-		<Router
+		<Route
 			path="/"
 			scroll={['#content']}
 		>
 			<NotFound />
 
-			<Router>
+			<Route>
 				<Home />
-			</Router>
+			</Route>
 
 			{/* todo remove me*/}
-			<Router path="articles/">
-				<Router
+			<Route path="articles/">
+				<Route
 					children={load(() => import('./pages/@articles/index.jsx'))}
 				/>
-				<Router
+				<Route
 					path=":path$"
 					params={{
 						path: 'anatomy-of-a-signals-based-reactive-renderer',
@@ -39,13 +39,13 @@ export default function Routes() {
 							),
 					)}
 				/>
-			</Router>
+			</Route>
 
-			<Router path="Articles/">
-				<Router
+			<Route path="Articles/">
+				<Route
 					children={load(() => import('./pages/@articles/index.jsx'))}
 				/>
-				<Router
+				<Route
 					path=":path$"
 					params={{
 						path: 'anatomy-of-a-signals-based-reactive-renderer',
@@ -57,49 +57,49 @@ export default function Routes() {
 							),
 					)}
 				/>
-			</Router>
+			</Route>
 
-			<Router path="CustomElement/">
-				<Router
+			<Route path="CustomElement/">
+				<Route
 					children={load(
 						() =>
 							import('./pages/@components/custom-element/index.jsx'),
 					)}
 				/>
-			</Router>
+			</Route>
 
-			<Router path="Components/">
+			<Route path="Components/">
 				<NotFound />
 
-				<Router
+				<Route
 					path=":path$"
 					params={{ path: 'Collapse' }}
 					children={load(
 						() => import('./pages/@components/collapse/index.jsx'),
 					)}
 				/>
-				<Router
+				<Route
 					path=":path$"
 					params={{ path: 'Dynamic' }}
 					children={load(
 						() => import('./pages/@components/dynamic/index.jsx'),
 					)}
 				/>
-				<Router
+				<Route
 					path=":path$"
 					params={{ path: 'For' }}
 					children={load(
 						() => import('./pages/@components/for/index.jsx'),
 					)}
 				/>
-				<Router
+				<Route
 					path=":path$"
 					params={{ path: 'Head' }}
 					children={load(
 						() => import('./pages/@components/head/index.jsx'),
 					)}
 				/>
-				<Router
+				<Route
 					path=":path$"
 					params={{ path: 'Portal' }}
 					children={load(
@@ -107,28 +107,28 @@ export default function Routes() {
 					)}
 				/>
 
-				<Router path="Router/">
+				<Route path="Route/">
 					<NotFound />
 
-					<Router
+					<Route
 						path=":path$"
-						params={{ path: 'Router' }}
+						params={{ path: 'Route' }}
 						children={load(
 							() =>
-								import('./pages/@components/router/router/index.jsx'),
+								import('./pages/@components/route/route/index.jsx'),
 						)}
 					/>
-					<Router
+					<Route
 						path=":path$"
 						params={{ path: 'A' }}
 						children={load(
 							() =>
-								import('./pages/@components/router/link/index.jsx'),
+								import('./pages/@components/route/link/index.jsx'),
 						)}
 					/>
-				</Router>
+				</Route>
 
-				<Router
+				<Route
 					path=":path$"
 					params={{ path: 'Show' }}
 					children={load(
@@ -136,7 +136,7 @@ export default function Routes() {
 					)}
 				/>
 
-				<Router
+				<Route
 					path=":path$"
 					params={{ path: 'Switch' }}
 					children={load(
@@ -144,23 +144,23 @@ export default function Routes() {
 					)}
 				/>
 
-				{/*<Router path="Library/">
-					<Router
+				{/*<Route path="Library/">
+					<Route
 						children={load(
 							() => import('./pages/@components/@library/index.jsx'),
 						)}
 					/>
-					<Router
+					<Route
 						path=":path$"
 						params={{ path: 'alert' }}
 						children={load(
 							() => import('./pages/@components/@library/alert.jsx'),
 						)}
 					/>
-				</Router>*/}
-			</Router>
+				</Route>*/}
+			</Route>
 
-			<Router
+			<Route
 				path=":path$"
 				params={{ path: 'Directory' }}
 				children={load(() => import('./pages/@directory/index.jsx'))}
@@ -168,22 +168,22 @@ export default function Routes() {
 
 			{/* todo remove me*/}
 
-			<Router
+			<Route
 				path=":path$"
 				params={{ path: 'playground' }}
 				children={load(() => import('./pages/@playground/index.jsx'))}
 			/>
 
-			<Router
+			<Route
 				path=":path$"
 				params={{ path: 'typescript' }}
 				children={load(() => import('./pages/typescript/index.jsx'))}
 			/>
 
-			<Router path="plugin/">
+			<Route path="plugin/">
 				<NotFound />
 
-				<Router
+				<Route
 					path=":path$"
 					params={{ path: 'bind' }}
 					children={load(
@@ -191,7 +191,7 @@ export default function Routes() {
 					)}
 				/>
 
-				<Router
+				<Route
 					path=":path$"
 					params={{ path: 'clickoutside' }}
 					children={load(
@@ -199,14 +199,14 @@ export default function Routes() {
 					)}
 				/>
 
-				<Router
+				<Route
 					path=":path$"
 					params={{ path: 'clipboard' }}
 					children={load(
 						() => import('./pages/@plugin/clipboard/index.jsx'),
 					)}
 				/>
-				<Router
+				<Route
 					path=":path$"
 					params={{ path: 'fullscreen' }}
 					children={load(
@@ -214,33 +214,33 @@ export default function Routes() {
 					)}
 				/>
 
-				<Router
+				<Route
 					path=":path$"
 					params={{ path: 'useSelector' }}
 					children={load(
 						() => import('./pages/@plugin/useSelector/index.jsx'),
 					)}
 				/>
-				<Router
+				<Route
 					path=":path$"
 					params={{ path: 'useTimeout' }}
 					children={load(
 						() => import('./pages/@plugin/useTimeout/index.jsx'),
 					)}
 				/>
-				<Router
+				<Route
 					path=":path$"
 					params={{ path: 'useLocation' }}
 					children={load(
 						() => import('./pages/@plugin/useLocation/index.jsx'),
 					)}
 				/>
-			</Router>
+			</Route>
 
-			<Router path="props/">
+			<Route path="props/">
 				<NotFound />
 
-				<Router
+				<Route
 					path=":path$"
 					params={{ path: 'attributes-properties' }}
 					children={load(
@@ -250,14 +250,14 @@ export default function Routes() {
 							),
 					)}
 				/>
-				<Router
+				<Route
 					path=":path$"
 					params={{ path: 'class:__' }}
 					children={load(
 						() => import('./pages/@props/class/index.jsx'),
 					)}
 				/>
-				<Router
+				<Route
 					path=":path$"
 					params={{ path: 'on:__' }}
 					children={load(
@@ -267,37 +267,37 @@ export default function Routes() {
 							),
 					)}
 				/>
-				<Router
+				<Route
 					path=":path$"
 					params={{ path: 'prop:__' }}
 					children={load(
 						() => import('./pages/@props/prop/index.jsx'),
 					)}
 				/>
-				<Router
+				<Route
 					path=":path$"
 					params={{ path: 'style:__' }}
 					children={load(
 						() => import('./pages/@props/style/index.jsx'),
 					)}
 				/>
-				<Router
+				<Route
 					path=":path$"
-					params={{ path: 'connected' }}
+					params={{ path: 'use:connected' }}
 					children={load(
-						() => import('./pages/@props/connected/index.jsx'),
+						() => import('./pages/@props/use/connected/index.jsx'),
 					)}
 				/>
 
-				<Router
+				<Route
 					path=":path$"
-					params={{ path: 'disconnected' }}
+					params={{ path: 'use:disconnected' }}
 					children={load(
-						() => import('./pages/@props/disconnected/index.jsx'),
+						() => import('./pages/@props/use/disconnected/index.jsx'),
 					)}
 				/>
 
-				<Router
+				<Route
 					path=":path$"
 					params={{ path: 'propsPlugin' }}
 					children={load(
@@ -305,7 +305,7 @@ export default function Routes() {
 					)}
 				/>
 
-				<Router
+				<Route
 					path=":path$"
 					params={{ path: 'propsSplit' }}
 					children={load(
@@ -313,43 +313,43 @@ export default function Routes() {
 					)}
 				/>
 
-				<Router
+				<Route
 					path=":path$"
-					params={{ path: 'ref' }}
+					params={{ path: 'use:ref' }}
 					children={load(
-						() => import('./pages/@props/ref/index.jsx'),
+						() => import('./pages/@props/use/ref/index.jsx'),
 					)}
 				/>
 
-				<Router
+				<Route
 					path=":path$"
 					params={{ path: 'setAttribute' }}
 					children={load(
 						() => import('./pages/@props/set-attribute/index.jsx'),
 					)}
 				/>
-				<Router
+				<Route
 					path=":path$"
 					params={{ path: 'setProperty' }}
 					children={load(
 						() => import('./pages/@props/set-property/index.jsx'),
 					)}
 				/>
-				<Router
+				<Route
 					path=":path$"
 					params={{ path: 'setStyle' }}
 					children={load(
 						() => import('./pages/@props/set-style/index.jsx'),
 					)}
 				/>
-				<Router
+				<Route
 					path=":path$"
 					params={{ path: 'setClass' }}
 					children={load(
 						() => import('./pages/@props/set-class/index.jsx'),
 					)}
 				/>
-				<Router
+				<Route
 					path=":path$"
 					params={{ path: 'css' }}
 					children={load(
@@ -357,7 +357,7 @@ export default function Routes() {
 					)}
 				/>
 
-				<Router
+				<Route
 					path=":path$"
 					params={{
 						path: 'EventListener',
@@ -366,24 +366,24 @@ export default function Routes() {
 						() => import('./pages/@props/event-listener/index.jsx'),
 					)}
 				/>
-			</Router>
+			</Route>
 
-			<Router path="Reactivity/">
+			<Route path="Reactivity/">
 				<NotFound />
 
-				<Router
+				<Route
 					children={load(
 						() => import('./pages/@reactivity/index.jsx'),
 					)}
 				/>
-				<Router
+				<Route
 					path=":path$"
 					params={{ path: 'memo' }}
 					children={load(
 						() => import('./pages/@reactivity/memo/index.jsx'),
 					)}
 				/>
-				<Router
+				<Route
 					path=":path$"
 					params={{ path: 'map' }}
 					children={load(
@@ -391,7 +391,7 @@ export default function Routes() {
 					)}
 				/>
 
-				<Router
+				<Route
 					path=":path$"
 					params={{ path: 'mutable-tests' }}
 					children={() => {
@@ -401,74 +401,74 @@ export default function Routes() {
 								.replace(/^https?:\/\/[^/]+/, '')
 					}}
 				/>
-			</Router>
+			</Route>
 
-			<Router
+			<Route
 				path=":path$"
 				params={{ path: 'Store' }}
 				children={load(() => import('./pages/store/index.jsx'))}
 			/>
-			<Router
+			<Route
 				path=":path$"
 				params={{ path: 'Context' }}
 				children={load(() => import('./pages/context/index.jsx'))}
 			/>
 
-			<Router
+			<Route
 				path=":path$"
 				params={{ path: 'Classes' }}
 				children={load(() => import('./pages/classes/index.jsx'))}
 			/>
-			<Router
+			<Route
 				path=":path$"
 				params={{ path: 'Component' }}
 				children={load(() => import('./pages/component/index.jsx'))}
 			/>
-			<Router
+			<Route
 				path=":path$"
 				params={{ path: 'XML' }}
 				children={load(() => import('./pages/xml/index.jsx'))}
 			/>
-			<Router
+			<Route
 				path=":path$"
 				params={{ path: 'lazy' }}
 				children={load(() => import('./pages/lazy/index.jsx'))}
 			/>
-			<Router
+			<Route
 				path=":path$"
 				params={{ path: 'cleanup' }}
 				children={load(() => import('./pages/cleanup/index.jsx'))}
 			/>
-			<Router
+			<Route
 				path=":path$"
 				params={{ path: 'ready' }}
 				children={load(() => import('./pages/ready/index.jsx'))}
 			/>
-			<Router
+			<Route
 				path=":path$"
 				params={{ path: 'render' }}
 				children={load(() => import('./pages/render/index.jsx'))}
 			/>
-			<Router
+			<Route
 				path=":path$"
 				params={{ path: 'resolve' }}
 				children={load(() => import('./pages/resolve/index.jsx'))}
 			/>
-			<Router
+			<Route
 				path=":path$"
 				params={{ path: 'toHTML' }}
 				children={load(() => import('./pages/to-html/index.jsx'))}
 			/>
-			<Router
+			<Route
 				path=":path$"
 				params={{ path: 'Usage' }}
 				children={load(() => import('./pages/usage/index.jsx'))}
 			/>
-			<Router
+			<Route
 				path=":path$"
 				params={{ path: 'Test' }}
 				children={load(() => import('./pages/tests/index.jsx'))}
 			/>
-		</Router>
+		</Route>
 	)
 }

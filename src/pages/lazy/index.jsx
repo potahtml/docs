@@ -51,7 +51,7 @@ export default function () {
 							<td>renders something while the promise resolves</td>
 						</tr>
 						<tr>
-							<td>[options.onLoaded]</td>
+							<td>[options.onLoad]</td>
 							<td>
 								<mark>Function</mark>
 							</td>

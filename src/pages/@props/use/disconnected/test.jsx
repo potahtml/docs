@@ -3,7 +3,7 @@ import { render } from 'pota'
 function Component() {
   return (
     <main
-      disconnected={node =>
+      use:disconnected={node =>
         render('Element on Component is about to unmount')
       }
     >

@@ -3,7 +3,9 @@ import { render } from 'pota'
 function App() {
   return (
     <main>
-      <section>fancy css in attribute</section>
+      <section use:css="class:hover{color:red}">
+        fancy css in attribute
+      </section>
     </main>
   )
 }

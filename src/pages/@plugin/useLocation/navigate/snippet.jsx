@@ -1,4 +1,4 @@
-import { Navigate } from 'pota/plugin/useLocation'
+import { Navigate } from 'pota/components'
 
 function Example() {
 	return (

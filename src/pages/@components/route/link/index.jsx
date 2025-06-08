@@ -9,7 +9,7 @@ export default function () {
 			<Header title={<Tag>A ...</Tag>}>
 				The <Tag mark={true}>A</Tag> component can be used to create
 				links with special characters in the URL and/or with specific
-				Router features. When the <mark>href</mark> is not absolute
+				Route features. When the <mark>href</mark> is not absolute
 				(thats it starting with <mark>/</mark>, <mark>#</mark> or{' '}
 				<mark>http</mark>) it will make the link relative to the
 				current route.
@@ -61,14 +61,14 @@ export default function () {
 
 			<Section title="Snippet">
 				<Code
-					url="/pages/@components/router/link/snippet.jsx"
+					url="/pages/@components/route/link/snippet.jsx"
 					render={false}
 				></Code>
 			</Section>
 
 			<Section title="Params">
 				<p>Testing params replacement</p>
-				<Code url="/pages/@components/router/link/test.jsx"></Code>
+				<Code url="/pages/@components/route/link/test.jsx"></Code>
 			</Section>
 		</>
 	)

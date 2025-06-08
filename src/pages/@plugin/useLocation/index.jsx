@@ -122,10 +122,17 @@ export default function () {
 					</thead>
 					<tbody>
 						<tr>
-							<td>hash</td>
-							<td>signal</td>
+							<td>protocol</td>
+							<td>string</td>
 							<td>
-								<mark>window.location.hash</mark>
+								<mark>window.location.protocol</mark>
+							</td>
+						</tr>
+						<tr>
+							<td>origin</td>
+							<td>string</td>
+							<td>
+								<mark>window.location.origin</mark>
 							</td>
 						</tr>
 						<tr>
@@ -151,8 +158,24 @@ export default function () {
 							</td>
 						</tr>
 						<tr>
-							<td>query</td>
+							<td>hash</td>
 							<td>signal</td>
+							<td>
+								<mark>window.location.hash</mark>
+							</td>
+						</tr>
+						<tr>
+							<td>search</td>
+							<td>signal</td>
+							<td>
+								<mark>window.location.search</mark>
+							</td>
+						</tr>
+						<tr>
+							<td>searchParams</td>
+							<td>
+								Record{'<'}string, string{'>'}
+							</td>
 							<td>
 								A key-value pairs object with URI decoded values of{' '}
 								<mark>searchParams</mark>, such:{' '}
@@ -163,10 +186,12 @@ export default function () {
 						</tr>
 						<tr>
 							<td>params</td>
-							<td>fn</td>
+							<td>
+								Record{'<'}string, string{'>'}
+							</td>
 							<td>
 								A key-value pairs object with URI decoded values of{' '}
-								Router <mark>params</mark>, such:{' '}
+								Route <mark>params</mark>, such:{' '}
 								<mark>
 									{'{'}page:'variété'{'}'}
 								</mark>

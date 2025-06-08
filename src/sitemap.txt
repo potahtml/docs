@@ -8,8 +8,8 @@ https://pota.quack.uy/Components/Dynamic
 https://pota.quack.uy/Components/For
 https://pota.quack.uy/Components/Head
 https://pota.quack.uy/Components/Portal
-https://pota.quack.uy/Components/Router/A
-https://pota.quack.uy/Components/Router/Router
+https://pota.quack.uy/Components/Route/A
+https://pota.quack.uy/Components/Route/Route
 https://pota.quack.uy/Components/Show
 https://pota.quack.uy/Components/Switch
 https://pota.quack.uy/Context

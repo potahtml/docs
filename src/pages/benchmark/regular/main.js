@@ -9,11 +9,22 @@
 	const Symbol = global.Symbol;
 	const queueMicrotask = global.queueMicrotask;
 	const assign = Object$1.assign;
-	const entries = Object$1.entries;
 	const freeze = Object$1.freeze;
 	const groupBy = Object$1.groupBy;
 	const isArray = Array.isArray;
 	const toArray = Array.from;
+
+	/**
+	 * @template T
+	 * @param {T} value
+	 */
+	const toValues = value => isArray(value) ? value : 'values' in value ? value.values() : toArray(value);
+
+	/**
+	 * @template T
+	 * @param {T} value
+	 */
+	const toEntries = value => 'entries' in value ? value.entries() : toArray(value);
 	const iterator = Symbol.iterator;
 	const stringify = JSON.stringify;
 
@@ -64,7 +75,7 @@
 	/**
 	 * An empty frozen object
 	 *
-	 * @type object
+	 * @type {Record<string, unknown>}
 	 */
 	const nothing = freeze(empty());
 
@@ -158,7 +169,7 @@
 	 * @param {unknown} value
 	 * @returns {boolean}
 	 */
-	const isIterable = value => value?.[Symbol.iterator];
+	const isIterable = value => value?.[iterator];
 
 	/**
 	 * Returns `true` if the value is `null` or `undefined`
@@ -172,7 +183,6 @@
 	 * Returns `true` when typeof of value is object and not null
 	 *
 	 * @param {unknown} value
-	 * @returns {boolean}
 	 */
 	const isObject = value => value !== null && typeof value === 'object';
 
@@ -205,8 +215,17 @@
 	  const index = array.indexOf(value);
 	  if (index !== -1) array.splice(index, 1);
 	}
+	function walkParents(context, propertyName, cb) {
+	  while (context) {
+	    if (cb(context)) return true;
+	    context = context[propertyName];
+	  }
+	  return false;
+	}
+
+	/** @template T */
 	class DataStore {
-	  /** @param {WeakMap | Map} kind */
+	  /** @param {T extends FunctionConstructor} kind */
 	  constructor(kind) {
 	    const store = new kind();
 	    const get = store.get.bind(store);
@@ -248,7 +267,7 @@
 	const classListRemove = (node, className) => node.classList.remove(className);
 
 	/**
-	 * - Returns `adoptedStyleSheets` for a document
+	 * Returns `adoptedStyleSheets` for a document
 	 *
 	 * @param {Document | ShadowRoot} document
 	 */
@@ -357,7 +376,7 @@
 	    /** @type {Function | Function[]} */
 	    cleanups;
 
-	    /** @type {Record<string, unknown>} */
+	    /** @type {Record<symbol, unknown>} */
 	    context;
 
 	    /**
@@ -618,11 +637,7 @@
 	        Listener = prevListener;
 	      }
 	      if (this.updatedAt <= time) {
-	        if (this.updatedAt !== 0) {
-	          this.write(nextValue);
-	        } else {
-	          this.value = nextValue;
-	        }
+	        this.write(nextValue);
 	        this.updatedAt = time;
 	      }
 	    }
@@ -885,7 +900,7 @@
 	   * @param {T extends Function} fn
 	   * @returns {T}
 	   */
-	  function cancelCleanup(fn) {
+	  function cleanupCancel(fn) {
 	    Owner?.removeCleanups(fn);
 	    return fn;
 	  }
@@ -1014,40 +1029,60 @@
 	  /**
 	   * Creates a context and returns a function to get or set the value
 	   *
-	   * @param {any} [defaultValue] - Default value for the context
+	   * @template T
+	   * @param {T} [defaultValue] - Default value for the context
 	   */
 	  function Context(defaultValue = undefined) {
-	    return useContext.bind(null, Symbol(), defaultValue);
-	  }
+	    const id = Symbol();
 
-	  /**
-	   * @overload Gets the context value
-	   * @returns {any} Context value
-	   */
-	  /**
-	   * @overload Runs `fn` with a new value as context
-	   * @param {any} newValue - New value for the context
-	   * @param {Function} fn - Callback to run with the new context value
-	   * @returns {Children} Children
-	   */
-	  /**
-	   * @param {any} newValue
-	   * @param {Function} fn
-	   */
-	  function useContext(id, defaultValue, newValue, fn) {
-	    if (newValue === undefined) {
-	      return Owner?.context && Owner.context[id] !== undefined ? Owner.context[id] : defaultValue;
-	    } else {
-	      let res;
-	      syncEffect(() => {
-	        Owner.context = {
-	          ...Owner.context,
-	          [id]: newValue
-	        };
-	        res = untrack(fn);
-	      });
-	      return res;
+	    /**
+	     * @overload Runs `fn` with a new value as context
+	     * @param {T} newValue - New value for the context
+	     * @param {() => Children} fn - Callback to run with the new
+	     *   context value
+	     * @returns {Children} Context value
+	     */
+	    /**
+	     * @overload Gets the context value
+	     * @returns {T} Context value
+	     */
+
+	    function useContext(newValue, fn) {
+	      if (newValue === undefined) {
+	        return Owner?.context && Owner.context[id] !== undefined ? Owner.context[id] : defaultValue;
+	      } else {
+	        let res;
+	        syncEffect(() => {
+	          Owner.context = {
+	            ...Owner.context,
+	            [id]: newValue
+	          };
+	          res = untrack(fn);
+	        });
+	        return res;
+	      }
 	    }
+
+	    /**
+	     * Sets the `value` for the context
+	     *
+	     * @param {object} props
+	     * @param {T} props.value
+	     * @param {Children} props.children
+	     * @returns {Children} Children
+	     * @url https://pota.quack.uy/Reactivity/Context
+	     */
+	    useContext.Provider = props => useContext(props.value, () => useContext.toHTML(props.children));
+
+	    /**
+	     * Maps context following `parent` property (if any). When `true`
+	     * is returned from the callback it stops walking.
+	     *
+	     * @param {(context: T) => boolean | void} callback
+	     * @param {T} [context]
+	     */
+	    useContext.walk = (callback, context) => walkParents(context || useContext(), 'parent', callback);
+	    return useContext;
 	  }
 
 	  /**
@@ -1067,7 +1102,7 @@
 	  return {
 	    batch,
 	    cleanup,
-	    cancelCleanup,
+	    cleanupCancel,
 	    Context,
 	    effect,
 	    memo,
@@ -1078,8 +1113,7 @@
 	    runWithOwner,
 	    signal,
 	    syncEffect,
-	    untrack,
-	    useContext
+	    untrack
 	  };
 	}
 
@@ -1104,7 +1138,8 @@
 	  root,
 	  signal,
 	  syncEffect,
-	  untrack} = createReactiveSystem();
+	  untrack
+	} = createReactiveSystem();
 
 	/**
 	 * Returns true when value is reactive (a signal)
@@ -1237,7 +1272,7 @@
 	    const value = getValue(list) || [];
 
 	    /** To allow iterate objects as if were an array with indexes */
-	    const items = isIterable(value) ? value.entries() : entries(value);
+	    const items = toEntries(value);
 	    runId++;
 	    rows = [];
 	    const hasPrev = prev.length;
@@ -1578,6 +1613,12 @@
 
 	const plugins = cacheStore();
 	const pluginsNS = cacheStore();
+	/** @type {Set<string> & { xmlns?: string }} */
+	const namespaces = new Set(['class', 'on', 'prop', 'style', 'use', 'plugin']);
+	function updateNamespaces() {
+	  namespaces.xmlns = toArray(namespaces).map(ns => `xmlns:${ns}="/"`).join(' ');
+	}
+	updateNamespaces();
 
 	/**
 	 * Defines a prop that can be used on any Element
@@ -1619,6 +1660,8 @@
 	 *   elements not being created yet. Default is `true`
 	 */
 	const propsPluginNS = (NSName, fn, onMicrotask) => {
+	  namespaces.add(NSName);
+	  updateNamespaces();
 	  plugin(pluginsNS, NSName, fn, onMicrotask);
 	};
 	const plugin = (plugins, name, fn, onMicrotask = true) => {
@@ -1672,76 +1715,8 @@
 	 * @param {string} ns
 	 */
 	const setEventNS = (node, name, value, props, localName, ns) =>
-	// `value &&` because avoids crash when `on:click={bla}` and `bla === null`
+	// `value &&` because avoids crash when `on:click={prop.onClick}` and `prop.onClick === null`
 	value && addEvent(node, localName, ownedEvent(value));
-
-	// node style
-
-
-	/**
-	 * @param {DOMElement} node
-	 * @param {string} name
-	 * @param {StylePropertyValue} value
-	 * @param {object} props
-	 * @url https://pota.quack.uy/props/setStyle
-	 */
-	const setStyle = (node, name, value, props) => setNodeStyle(node.style, value);
-
-	/**
-	 * @param {DOMElement} node
-	 * @param {string} name
-	 * @param {StylePropertyValue} value
-	 * @param {object} props
-	 * @param {string} localName
-	 * @param {string} ns
-	 */
-	const setStyleNS = (node, name, value, props, localName, ns) => setNodeStyle(node.style, isObject(value) ? value : {
-	  [localName]: value
-	});
-
-	/**
-	 * @param {DOMElement} node
-	 * @param {string} name
-	 * @param {StylePropertyValue} value
-	 * @param {object} props
-	 * @param {string} localName
-	 * @param {string} ns
-	 */
-	const setVarNS = (node, name, value, props, localName, ns) => setNodeStyle(node.style, {
-	  ['--' + localName]: value
-	});
-
-	/**
-	 * @param {CSSStyleDeclaration} style
-	 * @param {StylePropertyValue} value
-	 */
-	function setNodeStyle(style, value) {
-	  if (isString(value)) {
-	    style.cssText = value;
-	  } else if (isFunction(value)) {
-	    withValue(value, value => setNodeStyle(style, getValue(value)));
-	  } else if (isObject(value)) {
-	    for (const name in value) {
-	      setStyleValue(style, name, value[name]);
-	    }
-	  }
-	}
-
-	/**
-	 * @param {CSSStyleDeclaration} style
-	 * @param {string} name
-	 * @param {unknown} value
-	 */
-	const setStyleValue = (style, name, value) => withValue(value, value => _setStyleValue(style, name, value));
-
-	/**
-	 * @param {CSSStyleDeclaration} style
-	 * @param {string} name
-	 * @param {string | null} value
-	 */
-	const _setStyleValue = (style, name, value) =>
-	// if the value is null or undefined it will be removed
-	isNullUndefined(value) ? style.removeProperty(name) : style.setProperty(name, value);
 
 	/** Returns true or false with a `chance` of getting `true` */
 	const randomId = () => crypto.getRandomValues(new BigUint64Array(1))[0].toString(36);
@@ -1756,11 +1731,11 @@
 	  setNodeCSS(node, value);
 	};
 
-	/**
-	 * @param {Element} node
-	 * @param {string} value
-	 */
-	const setNodeCSS = withState((state, node, value) => {
+	/** @type {(node: Element, value: string) => void} */
+	const setNodeCSS = withState((state, node, value, retrying = false) => {
+	  if (!node.isConnected && !retrying) {
+	    return queueMicrotask(() => setNodeCSS(node, value, true));
+	  }
 	  classListAdd(node, state.get(value, value => {
 	    const id = 'c' + randomId();
 	    adoptedStyleSheetsAdd(getDocumentForElement(node), sheet(value.replace(/class/g, '.' + id)));
@@ -1792,6 +1767,62 @@
 	 */
 	const setDisconnected = (node, name, value, props) => cleanup(() => value(node));
 
+	// node style
+
+
+	/**
+	 * @param {DOMElement} node
+	 * @param {string} name
+	 * @param {StyleAttribute} value
+	 * @param {object} props
+	 * @url https://pota.quack.uy/props/setStyle
+	 */
+	const setStyle = (node, name, value, props) => setNodeStyle(node.style, value);
+
+	/**
+	 * @param {DOMElement} node
+	 * @param {string} name
+	 * @param {StyleAttribute} value
+	 * @param {object} props
+	 * @param {string} localName
+	 * @param {string} ns
+	 */
+	const setStyleNS = (node, name, value, props, localName, ns) => setNodeStyle(node.style, isObject(value) ? value : {
+	  [localName]: value
+	});
+
+	/**
+	 * @param {CSSStyleDeclaration} style
+	 * @param {StyleAttribute} value
+	 */
+	function setNodeStyle(style, value) {
+	  if (isString(value)) {
+	    style.cssText = value;
+	  } else if (isFunction(value)) {
+	    withValue(value, value => setNodeStyle(style, getValue(value)));
+	  } else if (isObject(value)) {
+	    for (const name in value) {
+	      setStyleValue(style, name, value[name]);
+	    }
+	  }
+	}
+
+	/**
+	 * @param {CSSStyleDeclaration} style
+	 * @param {string} name
+	 * @param {unknown} value
+	 */
+	const setStyleValue = (style, name, value) => withValue(value, value => _setStyleValue(style, name, value));
+
+	/**
+	 * @param {CSSStyleDeclaration} style
+	 * @param {string} name
+	 * @param {string | null} value
+	 */
+	const _setStyleValue = (style, name, value) =>
+	// if the value is null or undefined it will be removed
+	isNullUndefined(value) ? style.removeProperty(name) : style.setProperty(name, value);
+
 	// node class / classList
 
 
@@ -1802,7 +1833,7 @@
 	 * @param {object} props
 	 */
 	const setClass = (node, name, value, props) => {
-	  isString(value) ? node.setAttribute('class', value) : setClassList(node, value);
+	  isString(value) ? node.setAttribute(name, value) : setClassList(node, value);
 	};
 
 	/**
@@ -1896,11 +1927,10 @@
 
 	propsPluginNS('prop', setPropertyNS, false);
 	propsPluginNS('on', setEventNS, false);
-	propsPluginNS('var', setVarNS, false);
-	propsPlugin('plugin:css', setCSS, false);
-	propsPlugin('connected', setConnected, false);
-	propsPlugin('disconnected', setDisconnected, false);
-	propsPlugin('ref', setRef, false);
+	propsPlugin('use:css', setCSS, false);
+	propsPlugin('use:connected', setConnected, false);
+	propsPlugin('use:disconnected', setDisconnected, false);
+	propsPlugin('use:ref', setRef, false);
 	propsPlugin('style', setStyle, false);
 	propsPluginNS('style', setStyleNS, false);
 	propsPlugin('class', setClass, false);
@@ -2028,7 +2058,7 @@
 	 * Creates a x/html element from a tagName
 	 *
 	 * @template P
-	 * @param {TagNames} tagName
+	 * @param {string} tagName
 	 * @param {P} props
 	 * @returns {Element} Element
 	 */
@@ -2232,7 +2262,6 @@
 
 	        // iterable/Map/Set/NodeList
 	        if (iterator in child) {
-	          return createChildren(parent, toArray(/** @type Iterator */child.values()), relative);
 	          /**
 	           * For some reason this breaks with a node list in the
 	           * `Context` example of the `html` docs section.
@@ -2241,6 +2270,7 @@
 	           *     	createChildren(parent, child, relative),
 	           *     )
 	           */
+	          return createChildren(parent, toValues(child), relative);
 	        }
 
 	        // CSSStyleSheet
@@ -2332,7 +2362,8 @@
 	 * Inserts children into a parent
 	 *
 	 * @param {any} children - Thing to render
-	 * @param {Element} [parent] - Mount point, defaults to document.body
+	 * @param {Element | null} [parent] - Mount point, defaults to
+	 *   document.body
 	 * @param {{ clear?: boolean; relative?: boolean }} [options] -
 	 *   Mounting options
 	 * @returns {() => void} Disposer
@@ -2370,15 +2401,16 @@
 	 * @returns {Children}
 	 * @url https://pota.quack.uy/toHTML
 	 */
-	const toHTML = children =>
-	/**
-	 * DocumentFragment is transformed to an `Array` of `Node/Element`,
-	 * that way we can keep a reference to the nodes. Because when the
-	 * DocumentFragment is used, it removes the nodes from the
-	 * DocumentFragment and then we will lose the reference.
-	 */
+	function toHTML(children) {
+	  /**
+	   * DocumentFragment is transformed to an `Array` of `Node/Element`,
+	   * that way we can keep a reference to the nodes. Because when the
+	   * DocumentFragment is used, it removes the nodes from the
+	   * DocumentFragment and then we will lose the reference.
+	   */
 
-	unwrapArray(toHTMLFragment(children).childNodes);
+	  return unwrapArray(toHTMLFragment(children).childNodes);
+	}
 
 	/**
 	 * Creates and returns a DocumentFragment for `children`
@@ -2396,26 +2428,15 @@
 	/**
 	 * Creates a context and returns a function to get or set the value
 	 *
-	 * @param {any} [defaultValue] - Default value for the context
-	 * @returns {Function & { Provider: ({ value }) => Children }}
-	 *   Context
+	 * @template T
+	 * @param {T} [defaultValue] - Default value for the context
 	 * @url https://pota.quack.uy/Reactivity/Context
 	 */
 	/* #__NO_SIDE_EFFECTS__ */
 	function context(defaultValue = undefined) {
-	  /** @type {Function & { Provider: ({ value }) => Children }} */
 	  const ctx = Context(defaultValue);
-
-	  /**
-	   * Sets the `value` for the context
-	   *
-	   * @param {object} props
-	   * @param {any} props.value
-	   * @param {Children} [props.children]
-	   * @returns {Children} Children
-	   * @url https://pota.quack.uy/Reactivity/Context
-	   */
-	  ctx.Provider = props => ctx(props.value, () => toHTML(props.children));
+	  // @ts-ignore
+	  ctx.toHTML = toHTML;
 	  return ctx;
 	}
 

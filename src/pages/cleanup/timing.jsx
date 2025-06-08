@@ -7,7 +7,7 @@ function BeforeSibling() {
 
   return (
     <section
-      connected={() =>
+      use:connected={() =>
         render(<div>connected Node: from BeforeSibling</div>)
       }
     />
@@ -20,7 +20,7 @@ function AfterSibling() {
 
   return (
     <section
-      connected={() =>
+      use:connected={() =>
         render(<div>connected Node: from AfterSibling</div>)
       }
     />
@@ -30,14 +30,14 @@ function Test() {
   cleanup(() => render(<div>cleanup: component body</div>))
   return (
     <main
-      connected={() =>
+      use:connected={() =>
         render(<div>connected Node: from container</div>)
       }
     >
       <section>
         <div>
           <div
-            connected={() =>
+            use:connected={() =>
               render(<div>connected Node: deep 1</div>)
             }
           />
@@ -45,7 +45,7 @@ function Test() {
       </section>
       <BeforeSibling />
       <section
-        connected={() =>
+        use:connected={() =>
           render(<div>connected Node: from inlined element</div>)
         }
       ></section>
@@ -53,7 +53,7 @@ function Test() {
       <section>
         <div>
           <div
-            connected={() =>
+            use:connected={() =>
               render(<div>connected Node: deep 2</div>)
             }
           />
