@@ -11,20 +11,25 @@
 	const assign = Object$1.assign;
 	const freeze = Object$1.freeze;
 	const groupBy = Object$1.groupBy;
-	const isArray = Array.isArray;
+	/**
+	 * @template T
+	 * @param {T} value
+	 * @returns {value is array}
+	 */
+	const isArray = value => Array.isArray(value);
 	const toArray = Array.from;
 
 	/**
 	 * @template T
 	 * @param {T} value
 	 */
-	const toValues = value => isArray(value) ? value : 'values' in value ? value.values() : toArray(value);
+	const toValues = value => isArray(value) ? value : isObject(value) && 'values' in value ? /** @type {{ values(): IterableIterator<T> }} */value.values() : toArray(/** @type {Iterable<T> | ArrayLike<T>} */value);
 
 	/**
 	 * @template T
 	 * @param {T} value
 	 */
-	const toEntries = value => 'entries' in value ? value.entries() : toArray(value);
+	const toEntries = value => isObject(value) && 'entries' in value ? /** @type {{ entries(): IterableIterator<[string, T]> }} */value.entries() : toArray(/** @type {Iterable<T> | ArrayLike<T>} */value);
 	const iterator = Symbol.iterator;
 	const stringify = JSON.stringify;
 
@@ -128,9 +133,9 @@
 	 * @param {Element} node
 	 * @returns {Document | ShadowRoot}
 	 */
-
 	const getDocumentForElement = node => {
-	  const document = node.getRootNode();
+	  const document = /** @type {Document | ShadowRoot} */
+	  node.getRootNode();
 	  const {
 	    nodeType
 	  } = document;
@@ -149,9 +154,10 @@
 	 *
 	 * @template T
 	 * @param {Accessor<T>} value - Maybe function
+	 * @returns T
 	 */
 	function getValue(value) {
-	  while (typeof value === 'function') value = value();
+	  while (typeof value === 'function') value = /** @type {() => T} */value();
 	  return value;
 	}
 
@@ -159,7 +165,7 @@
 	 * Returns `true` when `typeof` of `value` is `function`
 	 *
 	 * @param {unknown} value
-	 * @returns {boolean}
+	 * @returns {value is function}
 	 */
 	const isFunction = value => typeof value === 'function';
 
@@ -167,7 +173,7 @@
 	 * Returns `true` when value is Iterable
 	 *
 	 * @param {unknown} value
-	 * @returns {boolean}
+	 * @returns {value is Iterable<unknown>}
 	 */
 	const isIterable = value => value?.[iterator];
 
@@ -175,14 +181,16 @@
 	 * Returns `true` if the value is `null` or `undefined`
 	 *
 	 * @param {unknown} value
-	 * @returns {boolean}
+	 * @returns {value is null | undefined}
 	 */
 	const isNullUndefined = value => value === undefined || value === null;
 
 	/**
 	 * Returns `true` when typeof of value is object and not null
 	 *
-	 * @param {unknown} value
+	 * @template T
+	 * @param {T} value
+	 * @returns {value is object}
 	 */
 	const isObject = value => value !== null && typeof value === 'object';
 
@@ -190,7 +198,7 @@
 	 * Returns `true` when `typeof` of `value` is `string`
 	 *
 	 * @param {unknown} value
-	 * @returns {boolean}
+	 * @returns {value is string}
 	 */
 	const isString = value => typeof value === 'string';
 
@@ -198,9 +206,9 @@
 	 * Returns `true` when `value` may be a promise
 	 *
 	 * @param {unknown} value
-	 * @returns {boolean}
+	 * @returns {value is Promise<unknown>}
 	 */
-	const isPromise = value => isFunction(value?.then);
+	const isPromise = value => isFunction(/** @type {any} */value?.then);
 	const noop = () => {};
 	const querySelector = (node, query) => node.querySelector(query);
 
@@ -223,9 +231,11 @@
 	  return false;
 	}
 
-	/** @template T */
+	/**
+	 * @template {DataStoreT} T
+	 * @returns {T} A new DataStore instance
+	 */
 	class DataStore {
-	  /** @param {T extends FunctionConstructor} kind */
 	  constructor(kind) {
 	    const store = new kind();
 	    const get = store.get.bind(store);
@@ -354,7 +364,7 @@
 	  /** @type {Computation} */
 	  let Owner;
 
-	  /** @type {Computation} */
+	  /** @type {Computation | undefined} */
 	  let Listener;
 
 	  /** @type {Memo[]} */
@@ -1089,8 +1099,9 @@
 	   * Returns an owned function
 	   *
 	   * @template T
-	   * @param {(...args: unknown[]) => T} cb
-	   * @returns {() => T}
+	   * @template A
+	   * @param {(...args: A[]) => T} cb
+	   * @returns {() => T | void}
 	   */
 	  const owned = cb => {
 	    const o = Owner;
@@ -1119,11 +1130,12 @@
 
 	/**
 	 * Marks a function as reactive. Reactive functions are ran inside
-	 * effects.
+	 * effects. This is used internally by the reactive system to track
+	 * which functions should be treated as reactive computations.
 	 *
-	 * @template T
+	 * @template {Function} T
 	 * @param {T} fn - Function to mark as reactive
-	 * @returns {T}
+	 * @returns {T} The same function with the reactive marker
 	 */
 	function markReactive(fn) {
 	  fn[$isReactive] = undefined;
@@ -1153,8 +1165,9 @@
 	 * Runs a function inside an effect if value is a function.
 	 * Aditionally unwraps promises.
 	 *
-	 * @param {unknown | Promise<unknown>} value
-	 * @param {(value) => unknown} fn
+	 * @template T
+	 * @param {(() => T) | Promise<T> | T} value
+	 * @param {(value: T) => unknown} fn
 	 */
 	function withValue(value, fn) {
 	  if (isFunction(value)) {
@@ -1411,8 +1424,10 @@
 	 * non-reactive children will run untracked, regular children will
 	 * just return.
 	 *
-	 * @param {Children} children
-	 * @returns {Function}
+	 * @template {Children} T
+	 * @param {T} children
+	 * @returns {((value: unknown) => Children)
+	 * 	| ((key: unknown, value: unknown) => Children)}
 	 */
 	function makeCallback(children) {
 	  /**
@@ -1424,6 +1439,8 @@
 	  const callbacks = !isArray(children) ? callback(children) : children.map(callback);
 	  return !isArray(children) ? markComponent((...args) => callbacks(args)) : markComponent((...args) => callbacks.map(callback => callback(args)));
 	}
+
+	/** @returns {Children} */
 	const callback = child => isFunction(child) ? isReactive(child) ? args => {
 	  /**
 	   * The function inside the `for` is saved in a signal. The
@@ -1468,23 +1485,16 @@
 	/**
 	 * Adds an event listener to a node
 	 *
-	 * @param {Element | Document | typeof window} node - Element to add
-	 *   the event listener
-	 * @param {(keyof WindowEventMap & keyof GlobalEventHandlersEventMap)
-	 * 	| string} type
-	 *   - The name of the event listener
-	 *
-	 * @param {EventListener
-	 * 	| EventListenerObject
-	 * 	| (EventListenerObject & AddEventListenerOptions)} handler
-	 *   - Function to handle the event
-	 *
+	 * @template {Element | Document | typeof window} TargetElement
+	 * @param {TargetElement} node - Element to add the event listener
+	 * @param {EventType} type - The name of the event listener
+	 * @param {EventHandler} handler - Function to handle the event
 	 * @returns {Function} - An `off` function for removing the event
 	 *   listener
 	 * @url https://pota.quack.uy/props/EventListener
 	 */
 	function addEvent(node, type, handler) {
-	  node.addEventListener(type, handler, !isFunction(handler) && handler);
+	  node.addEventListener(type, handler, !isFunction(handler) ? (/** @type {AddEventListenerOptions} */handler) : undefined);
 
 	  /**
 	   * Removes event on tracking scope disposal.
@@ -1501,29 +1511,25 @@
 	/**
 	 * Removes an event listener from a node
 	 *
-	 * @param {Element | Document | typeof window} node - Element to add
-	 *   the event listener
-	 * @param {(keyof WindowEventMap & keyof GlobalEventHandlersEventMap)
-	 * 	| string} type
-	 *   - The name of the event listener
-	 *
-	 * @param {EventListener
-	 * 	| EventListenerObject
-	 * 	| (EventListenerObject & AddEventListenerOptions)} handler
-	 *   - Function to handle the event
-	 *
+	 * @template {Element | Document | typeof window} TargetElement
+	 * @param {TargetElement} node - Element to add the event listener
+	 * @param {EventType} type - The name of the event listener
+	 * @param {EventHandler} handler - Function to handle the event
 	 * @returns {Function} - An `on` function for adding back the event
 	 *   listener
 	 * @url https://pota.quack.uy/props/EventListener
 	 */
 	function removeEvent(node, type, handler) {
-	  node.removeEventListener(type, handler, !isFunction(handler) && handler);
+	  node.removeEventListener(type, handler, !isFunction(handler) ? (/** @type {AddEventListenerOptions} */handler) : undefined);
 	  return () => addEvent(node, type, handler);
 	}
 
 	/**
 	 * It gives a handler an owner, so stuff runs batched on it, and
 	 * things like context and cleanup work
+	 *
+	 * @template {EventHandler} T
+	 * @param {T} handler
 	 */
 	const ownedEvent = handler => 'handleEvent' in handler ? {
 	  ...handler,
@@ -1664,6 +1670,13 @@
 	  updateNamespaces();
 	  plugin(pluginsNS, NSName, fn, onMicrotask);
 	};
+
+	/**
+	 * @param {Map<string, Function>} plugins
+	 * @param {string} name
+	 * @param {Function} fn
+	 * @param {boolean} [onMicrotask=true]
+	 */
 	const plugin = (plugins, name, fn, onMicrotask = true) => {
 	  plugins.set(name, !onMicrotask ? fn : (...args) => onProps(() => fn(...args)));
 	};
@@ -1991,10 +2004,10 @@
 	 * Creates a component that could be called with a props object
 	 *
 	 * @template T
-	 * @param {any} value
-	 * @returns {Component}
+	 * @param {string | Function | Element | object | symbol} value -
+	 *   Component value
+	 * @returns {(props?: Props<T>) => Children}
 	 */
-
 	function Factory(value) {
 	  if (isComponent(value)) {
 	    return value;
@@ -2070,6 +2083,13 @@
 	  const xmlns = props?.xmlns || NS[tagName];
 	  return withXMLNS(xmlns, xmlns => createNode(xmlns ? createElementNS(xmlns, tagName) : createElement(tagName), props), tagName);
 	}
+
+	/**
+	 * @param {string} [xmlns]
+	 * @param {(xmlns: string) => Element} fn
+	 * @param {string} tagName
+	 * @returns {Element}
+	 */
 	function withXMLNS(xmlns, fn, tagName) {
 	  const nsContext = useXMLNS();
 	  if (xmlns && xmlns !== nsContext) {
@@ -2107,12 +2127,14 @@
 	}
 
 	/**
+	 * @template T
 	 * @param {string} content
 	 * @param {{
 	 * 	x?: string
 	 * 	i?: boolean
 	 * 	m?: number
-	 * }} propsData
+	 * }} [propsData]
+	 * @returns {(props: T) => Children}
 	 */
 	function createPartial(content, propsData = nothing) {
 	  let clone = () => {
@@ -2122,6 +2144,18 @@
 	  };
 	  return props => markComponent(() => assignPartialProps(clone(), props, propsData));
 	}
+
+	/**
+	 * @template T
+	 * @param {Element} node
+	 * @param {T[]} [props]
+	 * @param {{
+	 * 	x?: string
+	 * 	i?: boolean
+	 * 	m?: number
+	 * } & Record<number, unknown>} propsData
+	 * @returns {Element | Element[]}
+	 */
 	function assignPartialProps(node, props, propsData) {
 	  if (props) {
 	    const nodes = walkElements(node, propsData.m);
@@ -2137,10 +2171,10 @@
 	/**
 	 * Assigns props to an element and creates its children
 	 *
-	 * @template P
-	 * @param {Element} node
-	 * @param {P} props
-	 * @returns {Element} Element
+	 * @template T
+	 * @param {Element} node - Element to assign props to
+	 * @param {Props<T>} props - Props to assign
+	 * @returns {Element} The element with props assigned
 	 */
 	function createNode(node, props) {
 	  props && assignProps(node, props);
@@ -2150,10 +2184,11 @@
 	/**
 	 * Creates the children for a parent
 	 *
-	 * @param {Element} parent
+	 * @param {Element | DocumentFragment} parent
 	 * @param {Children} child
 	 * @param {boolean} [relative]
 	 * @param {Text | undefined} [prev]
+	 * @returns {Children}
 	 */
 	function createChildren(parent, child, relative = false, prev = undefined) {
 	  switch (typeof child) {
@@ -2312,9 +2347,9 @@
 	/**
 	 * Creates placeholder to keep nodes in position
 	 *
-	 * @param {Element} parent
+	 * @param {Element | DocumentFragment} parent
 	 * @param {boolean} [relative]
-	 * @returns {Element}
+	 * @returns {Element} The placeholder element
 	 */
 	const createPlaceholder = (parent, relative) => insertNode(parent, createTextNode(''), relative);
 	const head = document$1.head;
@@ -2322,12 +2357,11 @@
 	/**
 	 * Adds the element to the document
 	 *
-	 * @param {Element} parent
+	 * @param {Element | DocumentFragment} parent
 	 * @param {Element} node
 	 * @param {boolean} [relative]
-	 * @returns {Element}
+	 * @returns {Element} The inserted node
 	 */
-
 	function insertNode(parent, node, relative) {
 	  // special case `head`
 	  if (parent === head) {
@@ -2382,10 +2416,11 @@
 
 	/**
 	 * @param {any} children - Thing to render
-	 * @param {Element} [parent] - Mount point, defaults to
+	 * @param {Element | null} [parent] - Mount point, defaults to
 	 *   `document.body`
 	 * @param {{ clear?: boolean; relative?: boolean }} [options] -
 	 *   Mounting options
+	 * @returns {Element} The inserted element
 	 */
 	function insert(children, parent = document$1.body, options = nothing) {
 	  if (options.clear && parent) parent.textContent = '';
@@ -2443,9 +2478,13 @@
 	/**
 	 * Removes from the DOM `prev` elements not found in `next`
 	 *
-	 * @param {Element[]} prev - Array with previous elements
-	 * @param {Element[]} next - Array with next elements
-	 * @returns {Element[]}
+	 * @param {Element[]} [prev=[]] - Array with previous elements.
+	 *   Default is `[]`
+	 * @param {Element[]} [next=[]] - Array with next elements. Default is
+	 *   `[]`
+	 * @param {boolean} [short=false] - Whether to use fast clear. Default
+	 *   is `false`
+	 * @returns {Element[]} The next array of elements
 	 */
 	function toDiff(prev = [], next = [], short = false) {
 	  // if theres something to remove

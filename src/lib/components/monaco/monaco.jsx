@@ -43,7 +43,7 @@ const MonacoVersion = '0.46.0'
  * 	language?: string
  * 	delay?: number
  * 	'on:format'?: Function
- * 	theme?: string
+ * 	theme?: Accessor<string>
  * }} props
  */
 export function Monaco(props) {
@@ -77,23 +77,6 @@ export function Monaco(props) {
 					'file:///project/node_modules/' + type.f,
 				)
 			}
-
-			/*
-			This works:
-
-			monaco.languages.typescript.typescriptDefaults.addExtraLib(
-				`export {render, signal, memo} from "./lala.js"`,
-				'file:///project/node_modules/pota/index.d.ts',
-			)
-			monaco.languages.typescript.typescriptDefaults.addExtraLib(
-				`
-				export function render(){}
-				export function signal(){}
-				export function memo(){}
-				`,
-				'file:///project/node_modules/pota/lala.d.ts',
-			)
-			*/
 
 			// compiler options
 			monaco.languages.typescript.typescriptDefaults.setCompilerOptions(
@@ -184,6 +167,13 @@ export function Monaco(props) {
 						// resize
 						onDocumentSize(() => editor.layout())
 
+						// code change
+
+						addEvent(window, 'monacoCodeChanged', e => {
+							if (e.detail) {
+								editor.setValue(e.detail)
+							}
+						})
 						// shorcuts
 						editor.onKeyDown(e => {
 							if (

@@ -14,11 +14,14 @@ import { transform } from '../../transform.js'
 
 // auto size frames when frame loads
 window.addEventListener('message', function (e) {
-	for (const frame of document.querySelectorAll('iframe')) {
-		if (e.source === frame.contentWindow) {
-			const size = JSON.parse(e.data).height
-			frame.style.height = size + 'px'
-			break
+	if (e.data && e.data.messageKind === 'height') {
+		const message = JSON.parse(e.data)
+		for (const frame of document.querySelectorAll('iframe')) {
+			if (e.source === frame.contentWindow) {
+				const size = message.height
+				frame.style.height = size + 'px'
+				break
+			}
 		}
 	}
 })

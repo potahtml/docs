@@ -11,7 +11,10 @@ addEventListener('hashchange', e => window.location.reload())
 const element = document.documentElement
 new ResizeObserver(() => {
 	const height = element.getBoundingClientRect().height
-	window.parent.postMessage(JSON.stringify({ height }), '*')
+	window.parent.postMessage(
+		JSON.stringify({ height, messageKind: 'height' }),
+		'*',
+	)
 }).observe(element)
 
 // code from hash
@@ -49,4 +52,11 @@ if (code.startsWith('Error:')) {
 	document.body.textContent = ''
 
 	document.head.append(script)
+
+	setTimeout(() => {
+		window.parent.postMessage(
+			JSON.stringify({ messageKind: 'done' }),
+			'*',
+		)
+	}, 1000)
 }

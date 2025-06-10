@@ -11,7 +11,7 @@ export async function transform(code) {
 
 			return prettier(
 				babel.transform(code, {
-					filename: 'bla.tsx',
+					filename: 'file.tsx',
 					presets: [[typescript.default], [pota.default]],
 				}).code,
 			)
