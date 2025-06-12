@@ -17,7 +17,7 @@ class MyComponent extends Pota {
 	props = {
 		what: 'true',
 	}
-	render(props) {
+	render() {
 		return 'lala'
 	}
 }

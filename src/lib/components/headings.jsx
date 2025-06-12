@@ -47,7 +47,7 @@ export function H2(props) {
 
 			<Show when={props['no-meta'] === undefined}>
 				<Head>
-					<title>{props.title} - pota</title>
+					<title>{props['meta-title'] || props.title} - pota</title>
 					<link
 						rel="canonical"
 						href={window.location.href}

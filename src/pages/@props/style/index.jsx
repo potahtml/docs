@@ -24,7 +24,7 @@ export default function () {
 							<td>{`style={{ color: 'red' }}`}</td>
 						</tr>
 						<tr>
-							<td>{`style="color:var(--color)" var:color="red"`}</td>
+							<td>{`style="color:var(--color)"`}</td>
 						</tr>
 						<tr>
 							<td>{`style:my-ns={{ color: "red" }}`}</td>

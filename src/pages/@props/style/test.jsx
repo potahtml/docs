@@ -24,12 +24,6 @@ function App() {
       </div>
       <div style:color="yellow">yellow namespaced</div>
       <div
-        style="color:var(--color)"
-        var:color="purple"
-      >
-        purple from var
-      </div>
-      <div
         style:my-ns={{
           color: randomColor,
         }}
@@ -38,12 +32,6 @@ function App() {
       </div>
       <div style:color={randomColor}>
         random color from signal + namespace
-      </div>
-      <div
-        style="color:var(--color)"
-        var:color={randomColor}
-      >
-        random color from signal + var
       </div>
       <div style={() => 'color:' + randomColor()}>
         cssText + signal
@@ -71,18 +59,6 @@ function App() {
         }}
       >
         object
-      </div>
-      <div
-        style="color:var(--color)"
-        var:color={undefined}
-      >
-        var:color=undefined
-      </div>
-      <div
-        style="color:var(--color)"
-        var:color={null}
-      >
-        var:color=null
       </div>
     </main>
   )

@@ -18,17 +18,22 @@ export const CompilerLess = (
 
   function Counter() {
     const [count, setCount, updateCount] = signal(1);
-    const double = memo(() => count() * 2);
 
     const increment = () => updateCount((count) => count + 1);
 
-    xml.define({ count, double });
+    const double = memo(() => count() * 2);
+
+    const counting = ()=> count
+    const doubling = ()=>double
+
+
+    xml.define({ counting, doubling });
 
     return xml\`<label>
       <button name="button" on:click="\${increment}">
-        <count /> / <double />
+        <counting /> / <doubling />
       </button>
-      double is: <double />
+      double is: <doubling />
     </label>\`;
   }
 

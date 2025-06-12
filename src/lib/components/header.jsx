@@ -8,6 +8,7 @@ export function Header(props) {
 				<H2
 					title={props.title}
 					no-meta={props['no-meta']}
+					meta-title={props['meta-title']}
 				>
 					{props.children}
 				</H2>

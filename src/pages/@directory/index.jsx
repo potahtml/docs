@@ -22,10 +22,10 @@ export default function () {
 						code={`
  // props plugins
 
-import { bind } from 'pota/plugin/bind'
-import 'pota/plugin/clickoutside'
-import 'pota/plugin/clipboard'
-import 'pota/plugin/fullscreen'
+import { bind } from 'pota/use/bind'
+import 'pota/use/clickoutside'
+import 'pota/use/clipboard'
+import 'pota/use/fullscreen'
 
 `}
 						render={false}
@@ -41,29 +41,32 @@ import 'pota/plugin/fullscreen'
 import {
   isMobile,
   isFirefox
-} from 'pota/plugin/useBrowser'
+} from 'pota/use/browser'
 
 import {
   onDocumentFocus,
   useDocumentFocus
-} from 'pota/plugin/useDocumentFocus'
+} from 'pota/use/focus'
 
 import {
   onDocumentSize,
   useDocumentSize
-} from 'pota/plugin/useDocumentSize'
+} from 'pota/use/resize'
 
 import {
   onDocumentVisible,
   useDocumentVisible,
 
   isDocumentVisible
-} from 'pota/plugin/useDocumentVisible'
+} from 'pota/use/visibility'
 
 import {
+	  onDocumentFocus,
+  useDocumentFocus,
+
   focusNext,
   focusPrevious
-} from 'pota/plugin/useFocus'
+} from 'pota/use/focus'
 
 import {
   onFullscreen,
@@ -73,18 +76,27 @@ import {
   exitFullscreen,
   requestFullscreen,
   toggleFullscreen
-} from 'pota/plugin/useFullscreen'
+} from 'pota/use/fullscreen'
 
 import {
   onOrientation,
   useOrientation,
-} from 'pota/plugin/useOrientation'
+} from 'pota/use/orientation'
 
-import { useSelector } from 'pota/plugin/useSelector'
+import { useSelector } from 'pota/use/selector'
 
-import { useTimeout } from 'pota/plugin/useTimeout'
+import { useTimeout } from 'pota/use/time'
 
-
+import {
+copyAudioTracks,
+copyVideoTracks,
+removeAudioTracks,
+removeVideoTracks,
+stopStream,
+stopTrack,
+stopTracks,
+stopTracks,
+} from 'pota/use/stream'
 
 
 `}
@@ -94,29 +106,29 @@ import { useTimeout } from 'pota/plugin/useTimeout'
 
 				<ol>
 					<li>
-						<a href="/plugin/bind">bind</a> - automatically bind the
+						<a href="/use/bind">bind</a> - automatically bind the
 						value of a form field to a signal
 					</li>
 					<li>
-						<a href="/plugin/clickoutside">clickoutside</a> - runs a
+						<a href="/use/clickoutside">clickoutside</a> - runs a
 						function when clicking outside the element
 					</li>
 					<li>
-						<a href="/plugin/clipboard">clipboard</a> - allows to copy
-						to clipboard the return value of a function, the string
-						set as the prop value or the <mark>innerText</mark> of the
+						<a href="/use/clipboard">clipboard</a> - allows to copy to
+						clipboard the return value of a function, the string set
+						as the prop value or the <mark>innerText</mark> of the
 						element
 					</li>
 					<li>
-						<a href="/plugin/fullscreen">fullscreen</a> - on click it
+						<a href="/use/fullscreen">fullscreen</a> - on click it
 						will fullscreen the element
 					</li>
 					<li>
-						<a href="/plugin/useSelector">useSelector</a> - Most
-						performant way to have an <mark>isSelected</mark> signal.
+						<a href="/use/selector">useSelector</a> - Most performant
+						way to have an <mark>isSelected</mark> signal.
 					</li>
 					<li>
-						<a href="/plugin/useTimeout">useTimeout</a> - For creating
+						<a href="/use/time">useTimeout</a> - For creating
 						setTimeouts that autodispose.
 					</li>
 				</ol>
@@ -189,24 +201,7 @@ scrollToTop,
 					/>
 				</p>
 			</Section>
-			<Section title="Streams">
-				<p>
-					<Code
-						code="
-						import {
-copyAudioTracks,
-copyVideoTracks,
-removeAudioTracks,
-removeVideoTracks,
-stopStream,
-stopTrack,
-stopTracks,
-stopTracks,
-						} from 'pota/streams'"
-						render={false}
-					/>
-				</p>
-			</Section>
+
 			<Section title="Strings">
 				<p>
 					<Code

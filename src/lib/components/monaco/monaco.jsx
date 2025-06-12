@@ -1,12 +1,12 @@
 import styles from './monaco.module.css'
 
-import { cleanup, signal, withValue } from 'pota'
+import { addEvent, cleanup, signal, withValue } from 'pota'
 
-import { onDocumentSize } from 'pota/plugin/useDocumentSize'
+import { onDocumentSize } from 'pota/use/resize'
 
 import { Show } from 'pota/components'
 
-import types from './types.json' with { type: 'json' }
+import types from '../../../../node_modules/pota/src/release/types.json' with { type: 'json' }
 
 const [scriptsLoaded, setScriptsLoaded] = signal(false)
 
@@ -171,7 +171,7 @@ export function Monaco(props) {
 
 						addEvent(window, 'monacoCodeChanged', e => {
 							if (e.detail) {
-								editor.setValue(e.detail)
+								editor.setValue(e.detail.trim())
 							}
 						})
 						// shorcuts

@@ -55,9 +55,6 @@ export default function Menu() {
 			</ul>
 			<h3>Components</h3>
 			<ul>
-				{/*<li>
-					<a href="/Components/Library/">Library</a>
-				</li>*/}
 				<li>
 					<h4>API</h4>
 					<ul>
@@ -119,6 +116,13 @@ export default function Menu() {
 						<li>
 							<A
 								href="/Components/:page"
+								params={{ page: 'Range' }}
+								children="<Range/>"
+							/>
+						</li>
+						<li>
+							<A
+								href="/Components/:page"
 								params={{ page: 'Portal' }}
 								children="<Portal/>"
 							/>
@@ -156,10 +160,10 @@ export default function Menu() {
 						</li>
 						<li>
 							<A
-								href="/plugin/:page"
-								params={{ page: 'useLocation' }}
+								href="/use/:page"
+								params={{ page: 'location' }}
 							>
-								useLocation
+								location
 							</A>
 						</li>
 					</ul>
@@ -177,50 +181,28 @@ export default function Menu() {
 				</li>
 
 				<li>
-					<h4>API</h4>
-					<ul>
-						<li>
-							<A
-								href="/props/:page"
-								params={{ page: 'propsSplit' }}
-							>
-								propsSplit
-							</A>
-						</li>
-						<li>
-							<A
-								href="/props/:page"
-								params={{ page: 'propsPlugin' }}
-							>
-								propsPlugin
-							</A>
-						</li>
-					</ul>
-				</li>
-
-				<li>
 					<h4>Lifecycles</h4>
 					<ul>
 						<li>
 							<A
-								href="/props/:page"
-								params={{ page: 'use:ref' }}
+								href="/use/:page"
+								params={{ page: 'ref' }}
 							>
 								use:ref
 							</A>
 						</li>
 						<li>
 							<A
-								href="/props/:page"
-								params={{ page: 'use:connected' }}
+								href="/use/:page"
+								params={{ page: 'connected' }}
 							>
 								use:connected
 							</A>
 						</li>
 						<li>
 							<A
-								href="/props/:page"
-								params={{ page: 'use:disconnected' }}
+								href="/use/:page"
+								params={{ page: 'disconnected' }}
 							>
 								use:disconnected
 							</A>
@@ -327,19 +309,29 @@ export default function Menu() {
 						</li>
 					</ul>
 				</li>
-			</ul>
-			<h3>Plugins</h3>
-			<ul>
 				<li>
-					<A
-						href="/props/:page"
-						params={{ page: 'propsPlugin' }}
-					>
-						propsPlugin
-					</A>
-				</li>
-				<li>
-					<a href="/Directory">Directory</a>
+					<h4>API</h4>
+					<ul>
+						<li>
+							<A
+								href="/props/:page"
+								params={{ page: 'propsSplit' }}
+							>
+								propsSplit
+							</A>
+						</li>
+						<li>
+							<A
+								href="/props/:page"
+								params={{ page: 'propsPlugin' }}
+							>
+								propsPlugin
+							</A>
+						</li>
+						<li>
+							<a href="/Directory">Directory</a>
+						</li>
+					</ul>
 				</li>
 			</ul>
 		</>

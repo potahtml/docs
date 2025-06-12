@@ -1,9 +1,9 @@
 import { render, signal } from 'pota'
 import { For } from 'pota/components'
 
-import { useSelector } from 'pota/plugin/useSelector'
+import { useSelector } from 'pota/use/selector'
 
-import { timing } from 'pota/plugin/useTime'
+import { timing } from 'pota/use/time'
 
 let idCounter = 1
 
@@ -14,14 +14,8 @@ function _random(max) {
 function buildData(count) {
 	const data = new Array(count)
 	for (let i = 0; i < count; i++) {
-		const [label, setLabel, updateLabel] = signal(
-			`elegant green keyboard ${idCounter++}`,
-		)
-		data[i] = {
-			id: idCounter,
-			label,
-			updateLabel,
-		}
+		data[i] = signal('elegant green keyboard')
+		data[i].id = idCounter++
 	}
 	return data
 }
@@ -85,7 +79,7 @@ const App = () => {
 		update = () => {
 			const d = data()
 			for (let i = 0; i < d.length; i += 10)
-				d[i].updateLabel(l => l + ' !!!')
+				d[i].update(l => l + ' !!!')
 		},
 		swapRows = () => {
 			const d = [...data()]
@@ -167,7 +161,7 @@ const App = () => {
 				>
 					<For each={data}>
 						{row => {
-							const { id, label } = row
+							const { id, read } = row
 
 							return (
 								<tr class:danger={isSelected(id)}>
@@ -178,7 +172,7 @@ const App = () => {
 									<td class="col-md-4">
 										<a
 											prop:selectRow={id}
-											prop:textContent={label}
+											prop:textContent={read}
 										/>
 									</td>
 									<td class="col-md-1">

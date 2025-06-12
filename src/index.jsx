@@ -15,14 +15,16 @@ import { Bench } from './lib/components/bench/bench.jsx'
 // import { setCDN } from 'tm-textarea/cdn'
 // setCDN('/assets/tm')
 
-import 'tm-textarea'
+import { register as registerTmTextarea } from 'tm-textarea'
 import './lib/components/code/tm-textarea.css'
 
 // app
 import { render, setClass } from 'pota'
 
-import { onDocumentSize } from 'pota/plugin/useDocumentSize'
-import { location } from 'pota/plugin/useLocation'
+import { onDocumentSize } from 'pota/use/resize'
+import { location } from 'pota/use/location'
+
+registerTmTextarea()
 
 render(
 	() => {
@@ -31,6 +33,7 @@ render(
 				flair="row grow"
 				data-pathname={location.pathname}
 			>
+				{/*<Test />*/}
 				<Bench />
 
 				<svg

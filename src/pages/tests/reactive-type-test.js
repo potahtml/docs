@@ -26,7 +26,7 @@ import { signal, memo, writable } from 'pota'
 {
 	const s = signal()
 	s.write(1)
-	const r1 = s.read()
+	const r1 = s.read() // any
 }
 
 {
@@ -36,14 +36,14 @@ import { signal, memo, writable } from 'pota'
 
 {
 	const s = signal(1)
-	const result1 = s.write(2)
-	const result2 = s.read()
+	const result1 = s.write(2) // boolean
+	const result2 = s.read() // number
 }
 
 {
 	const s = signal(1)
 	const result1 = s.write('type error') // error
-	const result2 = s.read()
+	const result2 = s.read() // number
 }
 
 {
@@ -59,9 +59,11 @@ import { signal, memo, writable } from 'pota'
 {
 	const [read, write, update] = signal(0)
 
-	read() // accessor
+	read() // number
 	write() // setter
 	update(v => v) // setter+update
+	write('oh') // error
+	write(2 + 2) // ok
 }
 
 {

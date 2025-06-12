@@ -20,13 +20,19 @@
 	},
 	"kompiler": {
 		"watch": ["../pota/src/babel-preset", "src/release.js"],
+		"node": [
+			{
+				"input": "./src/pages/tests/node.js",
+				"watch": ["../pota/"]
+			}
+		],
 		"builds": [
 			{
 				"input": ["src/index.jsx"],
 				"output": "src/dist/",
 				"map": [["/src/node_modules", "/node_modules"]],
-				"minified": false,
-				"treeshake": false,
+				"minified": true,
+				"treeshake": true,
 				"babel": {
 					"plugins": [
 						[

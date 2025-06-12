@@ -6,6 +6,7 @@ function Counter() {
   const [count, setCount, updateCount] = signal(1)
 
   const double = memo(() => count() * 2)
+
   const increment = () => updateCount(count => count + 1)
 
   return (
@@ -18,4 +19,4 @@ function Counter() {
 render(Counter)
 
 
-`
+`.trim()

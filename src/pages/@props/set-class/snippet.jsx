@@ -1,7 +1,7 @@
 import { render, setClass } from 'pota'
-import { location } from 'pota/plugin/useLocation'
-import { css } from 'pota/std'
+import { location } from 'pota/use/location'
 import { A } from 'pota/components'
+import { css } from 'pota/use/css'
 
 function App() {
   return (

@@ -1,6 +1,6 @@
 import { render } from 'pota'
 
-import { location, navigate } from 'pota/plugin/useLocation'
+import { location, navigate } from 'pota/use/location'
 import { A, Route } from 'pota/components'
 
 // this sort of playground has a very deep url

@@ -1,12 +1,12 @@
 import styles from './code.module.css'
 
-import { effect, memo, ref, signal } from 'pota'
-import { getValue, sheet } from 'pota/std'
+import { effect, memo, ref, signal, getValue } from 'pota'
 import { Show } from 'pota/components'
 import { compress } from '../../compress.js'
 
 import snippetcss from './tm-textarea-stylesheet.css?raw'
 import { prettier } from '../../prettier.js'
+import { sheet } from 'pota/use/css'
 const snippetStyleSheet = sheet(snippetcss)
 
 import { TabIndentation } from 'tm-textarea/bindings/tab-indentation'
@@ -14,13 +14,15 @@ import { transform } from '../../transform.js'
 
 // auto size frames when frame loads
 window.addEventListener('message', function (e) {
-	if (e.data && e.data.messageKind === 'height') {
+	if (e.data && typeof e.data === 'string') {
 		const message = JSON.parse(e.data)
-		for (const frame of document.querySelectorAll('iframe')) {
-			if (e.source === frame.contentWindow) {
-				const size = message.height
-				frame.style.height = size + 'px'
-				break
+		if (message && message.messageKind === 'height') {
+			for (const frame of document.querySelectorAll('iframe')) {
+				if (e.source === frame.contentWindow) {
+					const size = message.height
+					frame.style.height = size + 'px'
+					break
+				}
 			}
 		}
 	}

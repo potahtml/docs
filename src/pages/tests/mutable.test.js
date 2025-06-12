@@ -15,8 +15,8 @@ console.clear()
 
 // test stuff
 
-import { test, isProxy } from 'pota/plugin/useTest'
-import { timing, measure } from 'pota/plugin/useTime'
+import { test, isProxy } from 'pota/use/test'
+import { timing, measure } from 'pota/use/time'
 
 // oby
 
@@ -58,6 +58,9 @@ function memoSolid(fn) {
   return () => read()
 }
 
+const identity = x => x
+const copy = x => JSON.parse(JSON.stringify(x))
+
 // pota
 
 import {
@@ -66,13 +69,7 @@ import {
   signal as signalPota,
   root as rootPota,
 } from 'pota'
-import {
-  mutable,
-  mutable as mutablePota,
-  merge,
-  replace,
-} from 'pota/store'
-import { copy, identity } from 'pota/std'
+import { mutable as mutablePota, merge, replace } from 'pota/store'
 
 // bench stuff
 

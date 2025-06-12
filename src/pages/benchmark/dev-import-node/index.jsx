@@ -1,6 +1,7 @@
 import { batch, render, signal } from 'pota'
-import { useSelector } from 'pota/plugin/useSelector'
-import { timing } from 'pota/plugin/useTime'
+import { useSelector } from 'pota/use/selector'
+
+import { timing } from 'pota/use/time'
 import { For } from 'pota/components'
 
 let idCounter = 1

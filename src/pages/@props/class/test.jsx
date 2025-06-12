@@ -1,77 +1,51 @@
 import { render } from 'pota'
-import { css } from 'pota/std'
+import { css } from 'pota/use/css'
 
 function App() {
   return (
     <main>
       {css`
-        .red {
-          color: red;
-        }
         .orange {
           color: orange;
         }
-        .purple {
-          color: purple;
-        }
-        .blue {
-          color: blue;
+        .red {
+          color: red;
         }
       `}
 
-      <div class=" red"> red</div>
-      <div class=" orange  purple     "> orange purple </div>
-      <div class={{ blue: true }}>blue: true</div>
-      <div
-        class={{
-          red: undefined,
-          orange: true,
-          purple: null,
-        }}
-      >
-        object
+      <div class="orange"> orange</div>
+
+      <div class={{ orange: true }}>orange: true</div>
+      <div class:orange={true}>orange: true</div>
+      <div class:my-ns={{ orange: true }}>
+        class:my-ns= object orange:true
       </div>
-      <div class:red={true}>class:red={'{true}'}</div>
-      <div
-        class:my-ns={{
-          red: undefined,
-          orange: 0,
-          purple: true,
-        }}
-      >
-        class:my-ns= object
+
+      <div class={{ orange: false }}>orange: false</div>
+      <div class:orange={false}>orange: false</div>
+      <div class:my-ns={{ orange: false }}>
+        class:my-ns= object orange:false
       </div>
+
       <div class="undefined">class="undefined" this is ok</div>
       <div class={undefined}>class=undefined</div>
       <div
-        class="red"
-        class:red={undefined}
+        class="orange"
+        class:orange={undefined}
       >
-        class:red:undefined
+        class:orange:undefined
       </div>
       <div
-        class="red"
-        class:red={null}
+        class="orange"
+        class:orange={null}
       >
-        class:red:null
+        class:orange:null
       </div>
       <div
-        class={{
-          [undefined]: undefined,
-          [null]: null,
-          red: true,
-        }}
+        class="orange"
+        class:red={true}
       >
-        object
-      </div>
-      <div
-        class:my-ns={{
-          [undefined]: undefined,
-          [null]: null,
-          red: true,
-        }}
-      >
-        my-ns:object
+        class:orange: red=true
       </div>
     </main>
   )

@@ -1,23 +1,15 @@
 (function () {
 	'use strict';
 
-	const global = globalThis;
-	const CSSStyleSheet = global.CSSStyleSheet;
-	const document$1 = global.document;
-	const DocumentFragment = global.DocumentFragment;
-	const Object$1 = global.Object;
-	const Symbol = global.Symbol;
-	const queueMicrotask = global.queueMicrotask;
+	const window = globalThis;
+	const queueMicrotask = window.queueMicrotask;
+	const Object$1 = window.Object;
+	const Array$1 = window.Array;
+	const Symbol = window.Symbol;
 	const assign = Object$1.assign;
 	const freeze = Object$1.freeze;
 	const groupBy = Object$1.groupBy;
-	/**
-	 * @template T
-	 * @param {T} value
-	 * @returns {value is array}
-	 */
-	const isArray = value => Array.isArray(value);
-	const toArray = Array.from;
+	const toArray = Array$1.from;
 
 	/**
 	 * @template T
@@ -43,9 +35,6 @@
 	 * ```
 	 */
 	const resolved = (promise, onDone) => promise.then(onDone).catch(onDone);
-	const isConnected = node => node.isConnected;
-	const activeElement = () => document$1.activeElement;
-	const documentElement = document$1?.documentElement;
 
 	/**
 	 * Runs an array of functions
@@ -55,33 +44,22 @@
 	const call = fns => {
 	  for (const fn of fns) fn();
 	};
-	const bind = /* #__NO_SIDE_EFFECTS__ */fn => document$1 && document$1[fn].bind(document$1);
-	const createElement = bind('createElement');
-	const createElementNS = bind('createElementNS');
-	const createTextNode = bind('createTextNode');
-	const importNode = bind('importNode');
-	const createTreeWalker = bind('createTreeWalker');
 
 	/**
 	 * Returns an object without a prototype
 	 *
 	 * @type {Function}
-	 * @returns {Props} Empty object
 	 */
 	const empty = Object$1.create.bind(null, null);
 
 	/**
 	 * An empty frozen array
 	 *
-	 * @type {readonly []}
+	 * @type {readonly unknown[]}
 	 */
 	const emptyArray = freeze([]);
 
-	/**
-	 * An empty frozen object
-	 *
-	 * @type {Record<string, unknown>}
-	 */
+	/** An empty frozen object */
 	const nothing = freeze(empty());
 
 	/**
@@ -95,8 +73,8 @@
 	/**
 	 * Flats an array/childNodes recursively
 	 *
-	 * @param {any[]} arr
-	 * @returns {any}
+	 * @template T
+	 * @param {T[] | T} arr
 	 */
 	const flatToArray = arr => isArray(arr) ? arr.flat(Infinity) : [arr];
 
@@ -113,40 +91,6 @@
 
 	/** Memoize functions with a map cache */
 	const withCache = fn => withState((cache, thing) => cache.get(thing, thing => fn(thing)), cacheStore);
-	const walkElements = function (walk, node, max = Infinity, nodes = []) {
-	  /**
-	   * The first node is not walked by the walker.
-	   *
-	   * Also the first node could be a DocumentFragment
-	   */
-	  node.nodeType === 1 && nodes.push(node);
-	  walk.currentNode = node;
-	  while (nodes.length !== max && (node = walk.nextNode())) {
-	    nodes.push(node);
-	  }
-	  return nodes;
-	}.bind(null, createTreeWalker && createTreeWalker(document$1, 1 /*NodeFilter.SHOW_ELEMENT*/));
-
-	/**
-	 * Returns `document` for element. That could be a `shadowRoot`
-	 *
-	 * @param {Element} node
-	 * @returns {Document | ShadowRoot}
-	 */
-	const getDocumentForElement = node => {
-	  const document = /** @type {Document | ShadowRoot} */
-	  node.getRootNode();
-	  const {
-	    nodeType
-	  } = document;
-	  // getRootNode returns:
-	  // 1. Node for isConnected = false
-	  // 2. Document for isConnected = true
-	  // 3. shadowRoot for custom elements
-
-	  // always return a Document-like
-	  return nodeType === 11 || nodeType === 9 ? document : node.ownerDocument;
-	};
 
 	/**
 	 * Unwraps values. If the argument is a function then it runs it
@@ -209,8 +153,14 @@
 	 * @returns {value is Promise<unknown>}
 	 */
 	const isPromise = value => isFunction(/** @type {any} */value?.then);
+
+	/**
+	 * @template T
+	 * @param {T} value
+	 * @returns {value is array}
+	 */
+	const isArray = Array$1.isArray;
 	const noop = () => {};
-	const querySelector = (node, query) => node.querySelector(query);
 
 	/**
 	 * Removes a value from an array
@@ -231,11 +181,9 @@
 	  return false;
 	}
 
-	/**
-	 * @template {DataStoreT} T
-	 * @returns {T} A new DataStore instance
-	 */
+	/** @template T */
 	class DataStore {
+	  /** @param {T extends FunctionConstructor} kind */
 	  constructor(kind) {
 	    const store = new kind();
 	    const get = store.get.bind(store);
@@ -273,53 +221,11 @@
 	 * @returns {DataStoreT}
 	 */
 	const cacheStore = () => new DataStore(Map);
-	const classListAdd = (node, className) => node.classList.add(className);
-	const classListRemove = (node, className) => node.classList.remove(className);
-
-	/**
-	 * Returns `adoptedStyleSheets` for a document
-	 *
-	 * @param {Document | ShadowRoot} document
-	 */
-	const adoptedStyleSheetsGet = document => document?.adoptedStyleSheets;
-
-	/**
-	 * Adds a style sheet to the document
-	 *
-	 * @param {Document | ShadowRoot} document
-	 * @param {CSSStyleSheet} styleSheet
-	 */
-	const adoptedStyleSheetsAdd = (document, styleSheet) => adoptedStyleSheetsGet(document).push(styleSheet);
-
-	/**
-	 * Removes a style sheet from the document
-	 *
-	 * @param {Document | ShadowRoot} document
-	 * @param {CSSStyleSheet} styleSheet
-	 */
-	const adoptedStyleSheetsRemove = (document, styleSheet) => removeFromArray(adoptedStyleSheetsGet(document), styleSheet);
-
-	/**
-	 * Creates a stylesheet from a css string
-	 *
-	 * @param {string} css
-	 * @returns {CSSStyleSheet}
-	 */
-	const sheet = withCache(css => {
-	  const sheet = new CSSStyleSheet();
-	  /**
-	   * Replace is asynchronous and can accept `@import` statements
-	   * referencing external resources.
-	   */
-	  sheet.replace(css);
-	  return sheet;
-	});
 
 	// symbols
 
 	const $isComponent = Symbol();
 	const $isClass = Symbol();
-	const $isReactive = Symbol();
 	const $isMap = Symbol();
 
 	// supported namespaces
@@ -354,6 +260,12 @@
 	 *   systems can be run at the same time, for example for the
 	 *   developer tools context, so dev-tools context doesnt mess up the
 	 *   real context
+	 *
+	 * WARNING: typings here are a mess, Im slowly working on it.
+	 *
+	 * @url https://www.solidjs.com/
+	 * @url https://github.com/solidjs/solid
+	 * @url https://github.com/solidjs/signals
 	 */
 
 	function createReactiveSystem() {
@@ -574,7 +486,7 @@
 	      super(owner, fn, options);
 	      return this.read;
 	    }
-	    read = markReactive(() => {
+	    read = () => {
 	      if (this.state) {
 	        if (this.state === STALE) {
 	          this.update();
@@ -604,7 +516,7 @@
 	        }
 	      }
 	      return this.value;
-	    });
+	    };
 	    write(value) {
 	      if (this.equals === false || !this.equals(this.value, value)) {
 	        this.value = value;
@@ -690,7 +602,7 @@
 	      }
 	    }
 	    /** @returns SignalAccessor<T> */
-	    read = markReactive(() => {
+	    read = () => {
 	      // checkReadForbidden()
 
 	      if (Listener) {
@@ -712,7 +624,7 @@
 	        }
 	      }
 	      return this.value;
-	    });
+	    };
 	    /**
 	     * @param {T} [value]
 	     * @returns SignalSetter<T>
@@ -845,7 +757,6 @@
 	   * Batches changes to signals
 	   *
 	   * @param {Function} fn
-	   * @returns {any}
 	   */
 	  const batch = runUpdates;
 
@@ -875,8 +786,9 @@
 	  /**
 	   * Disables tracking for a function
 	   *
-	   * @param {Function} fn - Function to run with tracking disabled
-	   * @returns {any}
+	   * @template T
+	   * @param {() => T} fn - Function to run with tracking disabled
+	   * @returns {T}
 	   */
 	  function untrack(fn) {
 	    if (Listener === undefined) {
@@ -894,8 +806,8 @@
 	  /**
 	   * Runs a callback on cleanup, returns callback
 	   *
-	   * @template T
-	   * @param {T extends Function} fn
+	   * @template {Function} T
+	   * @param {T} fn
 	   * @returns {T}
 	   */
 	  function cleanup(fn) {
@@ -906,8 +818,8 @@
 	  /**
 	   * Cancels a cleanup
 	   *
-	   * @template T
-	   * @param {T extends Function} fn
+	   * @template {Function} T
+	   * @param {T} fn
 	   * @returns {T}
 	   */
 	  function cleanupCancel(fn) {
@@ -956,6 +868,13 @@
 	        }
 	    }
 	  }
+
+	  /**
+	   * @template T
+	   * @param {() => T} fn
+	   * @param {boolean} init
+	   * @returns {T}
+	   */
 	  function runUpdates(fn, init = false) {
 	    if (Updates) {
 	      return fn();
@@ -1128,20 +1047,6 @@
 	  };
 	}
 
-	/**
-	 * Marks a function as reactive. Reactive functions are ran inside
-	 * effects. This is used internally by the reactive system to track
-	 * which functions should be treated as reactive computations.
-	 *
-	 * @template {Function} T
-	 * @param {T} fn - Function to mark as reactive
-	 * @returns {T} The same function with the reactive marker
-	 */
-	function markReactive(fn) {
-	  fn[$isReactive] = undefined;
-	  return fn;
-	}
-
 	const {
 	  cleanup,
 	  Context,
@@ -1154,20 +1059,12 @@
 	} = createReactiveSystem();
 
 	/**
-	 * Returns true when value is reactive (a signal)
-	 *
-	 * @param {unknown} value
-	 * @returns {boolean}
-	 */
-	const isReactive = value => isFunction(value) && $isReactive in value;
-
-	/**
 	 * Runs a function inside an effect if value is a function.
 	 * Aditionally unwraps promises.
 	 *
 	 * @template T
-	 * @param {(() => T) | Promise<T> | T} value
-	 * @param {(value: T) => unknown} fn
+	 * @param {Accessor<T> | Promise<T>} value
+	 * @param {(value: Accessed<T> | T) => void} fn
 	 */
 	function withValue(value, fn) {
 	  if (isFunction(value)) {
@@ -1400,79 +1297,34 @@
 	}
 
 	/**
-	 * Returns true if the `value` is a `Component`
-	 *
-	 * @param {any} value
-	 * @returns {boolean}
-	 */
-	const isComponent = value => isFunction(value) && $isComponent in value;
-
-	/**
-	 * Returns true if the value can be made a Component
-	 *
-	 * @param {any} value
-	 * @returns {boolean}
-	 */
-	function isComponentable(value) {
-	  return !isReactive(value) && (isFunction(value) || !isArray(value) && isObject(value) && !isPromise(value));
-	}
-
-	// avoid [1,2] and support { toString(){ return "something"} }
-
-	/**
 	 * Makes of `children` a function. Reactive children will run as is,
 	 * non-reactive children will run untracked, regular children will
 	 * just return.
 	 *
 	 * @template {Children} T
 	 * @param {T} children
-	 * @returns {((value: unknown) => Children)
-	 * 	| ((key: unknown, value: unknown) => Children)}
+	 * @returns {((...args: unknown[]) => T) | T}
 	 */
 	function makeCallback(children) {
 	  /**
-	   * When children is an array, as in >${[0, 1, 2]}< then children
-	   * will end as `[[0, 1, 2]]`, so flat it
+	   * 1. Shortcut the most used case
+	   * 2. When children is an array, as in >${[0, 1, 2]}< then children
+	   *    will end as `[[0, 1, 2]]`, so flat it
 	   */
-
-	  children = isArray(children) ? unwrapArray(children) : children;
-	  const callbacks = !isArray(children) ? callback(children) : children.map(callback);
-	  return !isArray(children) ? markComponent((...args) => callbacks(args)) : markComponent((...args) => callbacks.map(callback => callback(args)));
+	  return isFunction(children) ? markComponent(children) :
+	  // @ts-ignore
+	  markComponent((...args) =>
+	  // @ts-ignore
+	  flatToArray(children).map(child => isFunction(child) ? child(...args) : child));
 	}
-
-	/** @returns {Children} */
-	const callback = child => isFunction(child) ? isReactive(child) ? args => {
-	  /**
-	   * The function inside the `for` is saved in a signal. The
-	   * result of the signal is our callback
-	   *
-	   * ```js
-	   * xml`
-	   * <table>
-	   * 		<tr>
-	   * 			<th>name</th>
-	   * 		</tr>
-	   * 		<for each="${tests}">
-	   * 			${item =>
-	   * 				xml`<tr>
-	   * 					<td>${item.name}</td>
-	   * 				</tr>`}
-	   * 		</for>
-	   * 	</table>
-	   * `
-	   * ```
-	   */
-	  // TODO this may be simplified to call itself again as `callback(r)`
-	  const r = child();
-	  return isFunction(r) ? isReactive(r) ? r() : untrack(() => r(...args)) : r;
-	} : args => untrack(() => child(...args)) : () => child;
-
-	// allows to tell a `signal function` from a `component function`
-	// signals and user functions go in effects, for reactivity
-	// components and callbacks are untracked and wont go in effects to avoid re-rendering
 
 	/**
 	 * Marks a function as a `Component`.
+	 *
+	 * Allows to tell a `signal function` from a `component function`.
+	 * Signals and user functions go in effects, for reactivity.
+	 * Components and callbacks are untracked and wont go in effects to
+	 * avoid re-rendering if signals are used in the components body
 	 *
 	 * @template T
 	 * @param {T} fn - Function to mark as a `Component`
@@ -1488,13 +1340,14 @@
 	 * @template {Element | Document | typeof window} TargetElement
 	 * @param {TargetElement} node - Element to add the event listener
 	 * @param {EventType} type - The name of the event listener
-	 * @param {EventHandler} handler - Function to handle the event
+	 * @param {EventHandler<Event, TargetElement>} handler - Function to
+	 *   handle the event
 	 * @returns {Function} - An `off` function for removing the event
 	 *   listener
 	 * @url https://pota.quack.uy/props/EventListener
 	 */
 	function addEvent(node, type, handler) {
-	  node.addEventListener(type, handler, !isFunction(handler) ? (/** @type {AddEventListenerOptions} */handler) : undefined);
+	  node.addEventListener(type, handler, !isFunction(handler) ? (/** @type {EventHandlerOptions} */handler) : undefined);
 
 	  /**
 	   * Removes event on tracking scope disposal.
@@ -1514,13 +1367,14 @@
 	 * @template {Element | Document | typeof window} TargetElement
 	 * @param {TargetElement} node - Element to add the event listener
 	 * @param {EventType} type - The name of the event listener
-	 * @param {EventHandler} handler - Function to handle the event
+	 * @param {EventHandler<Event, TargetElement>} handler - Function to
+	 *   handle the event
 	 * @returns {Function} - An `on` function for adding back the event
 	 *   listener
 	 * @url https://pota.quack.uy/props/EventListener
 	 */
 	function removeEvent(node, type, handler) {
-	  node.removeEventListener(type, handler, !isFunction(handler) ? (/** @type {AddEventListenerOptions} */handler) : undefined);
+	  node.removeEventListener(type, handler, !isFunction(handler) ? (/** @type {EventHandlerOptions} */handler) : undefined);
 	  return () => addEvent(node, type, handler);
 	}
 
@@ -1528,13 +1382,104 @@
 	 * It gives a handler an owner, so stuff runs batched on it, and
 	 * things like context and cleanup work
 	 *
-	 * @template {EventHandler} T
+	 * @template {EventHandler<Event, Element>} T
 	 * @param {T} handler
 	 */
 	const ownedEvent = handler => 'handleEvent' in handler ? {
 	  ...handler,
 	  handleEvent: owned(e => handler.handleEvent(e))
 	} : owned(handler);
+
+	const document$1 = window.document;
+	const head = document$1?.head;
+	const isConnected = node => node.isConnected;
+	const activeElement = () => document$1.activeElement;
+	const documentElement = document$1?.documentElement;
+	const DocumentFragment = window.DocumentFragment;
+	const bind = /* #__NO_SIDE_EFFECTS__ */fn => document$1 && document$1[fn].bind(document$1);
+	const createElement = bind('createElement');
+	const createElementNS = bind('createElementNS');
+	const createTextNode = bind('createTextNode');
+	const importNode = bind('importNode');
+	const createTreeWalker = bind('createTreeWalker');
+	const addClass = (node, className) => node.classList.add(className);
+	const removeClass = (node, className) => node.classList.remove(className);
+	const querySelector = (node, query) => node.querySelector(query);
+
+	/**
+	 * Returns `document` for element. That could be a `shadowRoot`
+	 *
+	 * @param {Element} node
+	 * @returns {Document | ShadowRoot}
+	 */
+	const getDocumentForElement = node => {
+	  const document = /** @type {Document | ShadowRoot} */
+	  node.getRootNode();
+	  const {
+	    nodeType
+	  } = document;
+	  // getRootNode returns:
+	  // 1. Node for isConnected = false
+	  // 2. Document for isConnected = true
+	  // 3. ShadowRoot for custom elements
+
+	  // always return a Document-like
+	  return nodeType === 11 /* DOCUMENT_FRAGMENT_NODE (11) */ || nodeType === 9 /* DOCUMENT_NODE (9)*/ ? document : node.ownerDocument;
+	};
+	const walkElements = function (walk, node, max = Infinity, nodes = []) {
+	  /**
+	   * The first node is not walked by the walker.
+	   *
+	   * Also the first node could be a DocumentFragment
+	   */
+	  node.nodeType === 1 && nodes.push(node);
+	  walk.currentNode = node;
+	  while (nodes.length !== max && (node = walk.nextNode())) {
+	    nodes.push(node);
+	  }
+	  return nodes;
+	}.bind(null, createTreeWalker && createTreeWalker(document$1, 1 /*NodeFilter.SHOW_ELEMENT*/));
+
+	const CSSStyleSheet$1 = window.CSSStyleSheet;
+
+	/**
+	 * Creates a stylesheet from a css string
+	 *
+	 * @param {string} css
+	 * @returns {CSSStyleSheet}
+	 */
+	const sheet = withCache(css => {
+	  const sheet = new CSSStyleSheet$1();
+	  /**
+	   * Replace is asynchronous and can accept `@import` statements
+	   * referencing external resources.
+	   */
+	  sheet.replace(css);
+	  return sheet;
+	});
+
+	/**
+	 * Returns `adoptedStyleSheets` for a document
+	 *
+	 * @param {Document | ShadowRoot} document
+	 */
+	const getAdoptedStyleSheets = document => document?.adoptedStyleSheets;
+
+	/**
+	 * Adds a style sheet to the document
+	 *
+	 * @param {Document | ShadowRoot} document
+	 * @param {CSSStyleSheet} styleSheet
+	 */
+	const addAdoptedStyleSheet = (document, styleSheet) => getAdoptedStyleSheets(document).push(styleSheet);
+
+	/**
+	 * Removes a style sheet from the document
+	 *
+	 * @param {Document | ShadowRoot} document
+	 * @param {CSSStyleSheet} styleSheet
+	 */
+	const removeAdoptedStyleSheet = (document, styleSheet) => removeFromArray(getAdoptedStyleSheets(document), styleSheet);
 
 	/**
 	 * The purpose of this file is to guarantee the timing of some
@@ -1619,8 +1564,9 @@
 
 	const plugins = cacheStore();
 	const pluginsNS = cacheStore();
+
 	/** @type {Set<string> & { xmlns?: string }} */
-	const namespaces = new Set(['class', 'on', 'prop', 'style', 'use', 'plugin']);
+	const namespaces = new Set(['on', 'prop', 'class', 'style', 'use']);
 	function updateNamespaces() {
 	  namespaces.xmlns = toArray(namespaces).map(ns => `xmlns:${ns}="/"`).join(' ');
 	}
@@ -1666,16 +1612,17 @@
 	 *   elements not being created yet. Default is `true`
 	 */
 	const propsPluginNS = (NSName, fn, onMicrotask) => {
+	  // update namespace for the `xml` function
 	  namespaces.add(NSName);
 	  updateNamespaces();
 	  plugin(pluginsNS, NSName, fn, onMicrotask);
 	};
 
 	/**
-	 * @param {Map<string, Function>} plugins
+	 * @param {typeof plugins} plugins
 	 * @param {string} name
 	 * @param {Function} fn
-	 * @param {boolean} [onMicrotask=true]
+	 * @param {boolean} [onMicrotask=true] Default is `true`
 	 */
 	const plugin = (plugins, name, fn, onMicrotask = true) => {
 	  plugins.set(name, !onMicrotask ? fn : (...args) => onProps(() => fn(...args)));
@@ -1718,18 +1665,18 @@
 	}
 
 	/**
-	 * @param {Element} node
+	 * @template {Element} T
+	 * @param {T} node
 	 * @param {string} name
-	 * @param {EventListener
-	 * 	| EventListenerObject
-	 * 	| (EventListenerObject & AddEventListenerOptions)} value
+	 * @param {EventHandler<Event, T>} value
 	 * @param {object} props
 	 * @param {string} localName
 	 * @param {string} ns
 	 */
-	const setEventNS = (node, name, value, props, localName, ns) =>
-	// `value &&` because avoids crash when `on:click={prop.onClick}` and `prop.onClick === null`
-	value && addEvent(node, localName, ownedEvent(value));
+	const setEventNS = (node, name, value, props, localName, ns) => {
+	  // `value &&` because avoids crash when `on:click={prop.onClick}` and `prop.onClick === null`
+	  value && addEvent(node, localName, ownedEvent(value));
+	};
 
 	/** Returns true or false with a `chance` of getting `true` */
 	const randomId = () => crypto.getRandomValues(new BigUint64Array(1))[0].toString(36);
@@ -1749,9 +1696,9 @@
 	  if (!node.isConnected && !retrying) {
 	    return queueMicrotask(() => setNodeCSS(node, value, true));
 	  }
-	  classListAdd(node, state.get(value, value => {
+	  addClass(node, state.get(value, value => {
 	    const id = 'c' + randomId();
-	    adoptedStyleSheetsAdd(getDocumentForElement(node), sheet(value.replace(/class/g, '.' + id)));
+	    addAdoptedStyleSheet(getDocumentForElement(node), sheet(value.replace(/class/g, '.' + id)));
 	    return id;
 	  }));
 	});
@@ -1762,7 +1709,9 @@
 	 * @param {Function} value
 	 * @param {object} props
 	 */
-	const setRef = (node, name, value, props) => onRef(() => value(node));
+	const setRef = (node, name, value, props) => {
+	  onRef(() => value(node));
+	};
 
 	/**
 	 * @param {Element} node
@@ -1770,7 +1719,9 @@
 	 * @param {Function} value
 	 * @param {object} props
 	 */
-	const setConnected = (node, name, value, props) => onMount(() => value(node));
+	const setConnected = (node, name, value, props) => {
+	  onMount(() => value(node));
+	};
 
 	/**
 	 * @param {Element} node
@@ -1778,7 +1729,9 @@
 	 * @param {Function} value
 	 * @param {object} props
 	 */
-	const setDisconnected = (node, name, value, props) => cleanup(() => value(node));
+	const setDisconnected = (node, name, value, props) => {
+	  cleanup(() => value(node));
+	};
 
 	// node style
 
@@ -1790,7 +1743,9 @@
 	 * @param {object} props
 	 * @url https://pota.quack.uy/props/setStyle
 	 */
-	const setStyle = (node, name, value, props) => setNodeStyle(node.style, value);
+	const setStyle = (node, name, value, props) => {
+	  setNodeStyle(node.style, value);
+	};
 
 	/**
 	 * @param {DOMElement} node
@@ -1800,9 +1755,11 @@
 	 * @param {string} localName
 	 * @param {string} ns
 	 */
-	const setStyleNS = (node, name, value, props, localName, ns) => setNodeStyle(node.style, isObject(value) ? value : {
-	  [localName]: value
-	});
+	const setStyleNS = (node, name, value, props, localName, ns) => {
+	  setNodeStyle(node.style, isObject(value) ? value : {
+	    [localName]: value
+	  });
+	};
 
 	/**
 	 * @param {CSSStyleDeclaration} style
@@ -1825,16 +1782,19 @@
 	 * @param {string} name
 	 * @param {unknown} value
 	 */
-	const setStyleValue = (style, name, value) => withValue(value, value => _setStyleValue(style, name, value));
+	const setStyleValue = (style, name, value) => {
+	  withValue(value, value => _setStyleValue(style, name, value));
+	};
 
 	/**
 	 * @param {CSSStyleDeclaration} style
 	 * @param {string} name
 	 * @param {string | null} value
 	 */
-	const _setStyleValue = (style, name, value) =>
-	// if the value is null or undefined it will be removed
-	isNullUndefined(value) ? style.removeProperty(name) : style.setProperty(name, value);
+	const _setStyleValue = (style, name, value) => {
+	  // if the value is null or undefined it will be removed
+	  isNullUndefined(value) ? style.removeProperty(name) : style.setProperty(name, value);
+	};
 
 	// node class / classList
 
@@ -1858,7 +1818,7 @@
 	 * @param {string} ns
 	 */
 	const setClassNS = (node, name, value, props, localName, ns) => {
-	  isFunction(value) ? setElementClass(node, localName, value) : setClassList(node, value);
+	  isFunction(value) || !isObject(value) ? setElementClass(node, localName, value) : setClassList(node, value);
 	};
 
 	/**
@@ -1894,7 +1854,6 @@
 	 */
 	const setElementClass = (node, name, value) => {
 	  withPrevValue(value, (value, prev) => {
-	    // on initialization do not remove whats not there
 	    if (!value && !prev) ; else {
 	      _setClassListValue(node, name, value);
 	    }
@@ -1909,18 +1868,19 @@
 
 	const _setClassListValue = (node, name, value) => {
 	  // null, undefined or false, the class is removed
-	  !value ? classListRemove(node, name) : classListAdd(node, ...name.trim().split(/\s+/));
+	  !value ? removeClass(node, name) : addClass(node, ...name.trim().split(/\s+/));
 	};
 
 	/**
 	 * @param {Element} node
 	 * @param {string} name
-	 * @param {unknown} value
+	 * @param {Accessor<string | boolean>} value
 	 * @param {string} [ns]
 	 * @url https://pota.quack.uy/props/setAttribute
 	 */
-	const setAttribute = (node, name, value, ns) => withValue(value, value => _setAttribute(node, name, value, ns));
-
+	const setAttribute = (node, name, value, ns) => {
+	  withValue(value, value => _setAttribute(node, name, value, ns));
+	};
 	/**
 	 * @param {Element} node
 	 * @param {string} name
@@ -2009,9 +1969,6 @@
 	 * @returns {(props?: Props<T>) => Children}
 	 */
 	function Factory(value) {
-	  if (isComponent(value)) {
-	    return value;
-	  }
 	  switch (typeof value) {
 	    case 'string':
 	      {
@@ -2020,19 +1977,12 @@
 	      }
 	    case 'function':
 	      {
+	        if ($isComponent in value) {
+	          return value;
+	        }
 	        if ($isClass in value) {
 	          // class component <MyComponent../>
 	          return markComponent(props => createClass(value, props));
-	        }
-
-	        /**
-	         * ```js
-	         * const [Count, setCount] = signal(1)
-	         * return <Count />
-	         * ```
-	         */
-	        if (isReactive(value)) {
-	          return markComponent(() => createAnything(value));
 	        }
 
 	        // function component <MyComponent../>
@@ -2049,16 +1999,8 @@
 	      }
 	  }
 	}
-	function createComponent(value) {
-	  const component = Factory(value);
-	  return props => {
-	    /** Freeze props so isnt directly writable */
-	    freeze(props);
-	    return markComponent(() => component(props));
-	  };
-	}
 	function createClass(value, props) {
-	  const i = new value();
+	  const i = new value(props);
 	  i.ready && ready(() => i.ready());
 	  i.cleanup && cleanup(() => i.cleanup());
 	  return i.render(props);
@@ -2070,7 +2012,7 @@
 	/**
 	 * Creates a x/html element from a tagName
 	 *
-	 * @template P
+	 * @template {Props<{ xmlns?: string }>} P
 	 * @param {string} tagName
 	 * @param {P} props
 	 * @returns {Element} Element
@@ -2085,7 +2027,7 @@
 	}
 
 	/**
-	 * @param {string} [xmlns]
+	 * @param {string} xmlns
 	 * @param {(xmlns: string) => Element} fn
 	 * @param {string} tagName
 	 * @returns {Element}
@@ -2126,15 +2068,25 @@
 	  return tlpContent.childNodes.length === 1 ? tlpContent.firstChild : tlpContent;
 	}
 
+	/** Used in transform in place of jsxs */
+	function createComponent(value) {
+	  const component = Factory(value);
+	  return props => {
+	    /** Freeze props so isnt directly writable */
+	    freeze(props);
+	    return markComponent(() => component(props));
+	  };
+	}
+
 	/**
 	 * @template T
 	 * @param {string} content
 	 * @param {{
 	 * 	x?: string
-	 * 	i?: boolean
+	 * 	i?: number
 	 * 	m?: number
-	 * }} [propsData]
-	 * @returns {(props: T) => Children}
+	 * } & Record<string, unknown>} [propsData]
+	 * @returns {(props: T extends any[]) => Children}
 	 */
 	function createPartial(content, propsData = nothing) {
 	  let clone = () => {
@@ -2148,13 +2100,13 @@
 	/**
 	 * @template T
 	 * @param {Element} node
-	 * @param {T[]} [props]
+	 * @param {T[]} props
 	 * @param {{
 	 * 	x?: string
-	 * 	i?: boolean
+	 * 	i?: number
 	 * 	m?: number
-	 * } & Record<number, unknown>} propsData
-	 * @returns {Element | Element[]}
+	 * } & Record<string, unknown>} propsData
+	 * @returns {Children}
 	 */
 	function assignPartialProps(node, props, propsData) {
 	  if (props) {
@@ -2215,8 +2167,8 @@
 	    case 'function':
 	      {
 	        // component
-	        if (isComponent(child)) {
-	          return createChildren(parent, untrack(child), relative);
+	        if ($isComponent in child) {
+	          return createChildren(parent, untrack(/** @type {() => Children} */child), relative);
 	        }
 	        let node = [];
 
@@ -2318,8 +2270,8 @@
 	          onFixes(() => {
 	            if (isConnected(parent)) {
 	              const doc = getDocumentForElement(parent);
-	              adoptedStyleSheetsAdd(doc, child);
-	              cleanup(() => adoptedStyleSheetsRemove(doc, child));
+	              addAdoptedStyleSheet(doc, child);
+	              cleanup(() => removeAdoptedStyleSheet(doc, child));
 	            }
 	          });
 	          return undefined;
@@ -2342,7 +2294,9 @@
 	      }
 	  }
 	}
-	propsPlugin('children', (node, propName, propValue) => createChildren(node, propValue), false);
+	propsPlugin('children', (node, propName, propValue) => {
+	  createChildren(node, propValue);
+	}, false);
 
 	/**
 	 * Creates placeholder to keep nodes in position
@@ -2352,7 +2306,6 @@
 	 * @returns {Element} The placeholder element
 	 */
 	const createPlaceholder = (parent, relative) => insertNode(parent, createTextNode(''), relative);
-	const head = document$1.head;
 
 	/**
 	 * Adds the element to the document
@@ -2420,11 +2373,12 @@
 	 *   `document.body`
 	 * @param {{ clear?: boolean; relative?: boolean }} [options] -
 	 *   Mounting options
-	 * @returns {Element} The inserted element
 	 */
 	function insert(children, parent = document$1.body, options = nothing) {
 	  if (options.clear && parent) parent.textContent = '';
-	  const node = createChildren(parent, isComponentable(children) ? Factory(children) : children, options.relative);
+	  const node = createChildren(parent, Factory(isFunction(children) ? children : () => children), options.relative);
+
+	  // @ts-ignore
 	  cleanup(() => toDiff(flatToArray(node)));
 	  return node;
 	}
@@ -2545,10 +2499,18 @@
 	    onFixes(() => {
 	      queued = false;
 	      // re-ordering the elements trashes focus
-	      active && active !== activeElement() && isConnected(active) && active.focus();
+	      active && active !== activeElement() && isConnected(active) &&
+	      // @ts-ignore
+	      active.focus();
 	      documentElement.scrollTop = scroll;
 	    });
 	  }
+	}
+
+	function timing(fn) {
+	  const start = performance.now();
+	  fn();
+	  return performance.now() - start;
 	}
 
 	/**
@@ -2608,12 +2570,6 @@
 	  };
 	}
 
-	function timing(fn) {
-	  const start = performance.now();
-	  fn();
-	  return performance.now() - start;
-	}
-
 	var _div = createPartial("<div class='col-sm-6 smallpad'><button type=button class='btn btn-primary btn-block'></button></div>", {"0":1,"m":2}),
 	  _div2 = createPartial("<div class=container><div class=jumbotron><div class=row><div class=col-md-6><h1>pota Keyed</h1></div><div class=col-md-6><div class=row></div></div></div></div><table class='table table-hover table-striped test-data'><tbody></tbody></table><span aria-hidden=true class='preloadicon glyphicon glyphicon-remove'></span></div>", {"0":6,"1":8,"m":9}),
 	  _tr = createPartial("<tr><td class=col-md-1></td><td class=col-md-4><a></a></td><td class=col-md-1><a><span aria-hidden=true class='glyphicon glyphicon-remove'></span></a></td><td class=col-md-6></td></tr>", {"2":3,"3":6,"m":7});
@@ -2622,12 +2578,8 @@
 	function buildData(count) {
 	  const data = new Array(count);
 	  for (let i = 0; i < count; i++) {
-	    const [label, setLabel, updateLabel] = signal(`elegant green keyboard ${idCounter++}`);
-	    data[i] = {
-	      id: idCounter,
-	      label,
-	      updateLabel
-	    };
+	    data[i] = signal('elegant green keyboard');
+	    data[i].id = idCounter++;
 	  }
 	  return data;
 	}
@@ -2686,7 +2638,7 @@
 	    },
 	    update = () => {
 	      const d = data();
-	      for (let i = 0; i < d.length; i += 10) d[i].updateLabel(l => l + ' !!!');
+	      for (let i = 0; i < d.length; i += 10) d[i].update(l => l + ' !!!');
 	    },
 	    swapRows = () => {
 	      const d = [...data()];
@@ -2750,7 +2702,7 @@
 	      children: row => {
 	        const {
 	          id,
-	          label
+	          read
 	        } = row;
 	        return _tr([{
 	          "class:danger": isSelected(id)
@@ -2758,7 +2710,7 @@
 	          "prop:textContent": id
 	        }, {
 	          "prop:selectRow": id,
-	          "prop:textContent": label
+	          "prop:textContent": read
 	        }, {
 	          "prop:removeRow": id
 	        }]);

@@ -1,5 +1,5 @@
 import { render } from 'pota'
-import { css } from 'pota/std'
+import { css } from 'pota/use/css'
 
 function App() {
   return (
@@ -8,7 +8,7 @@ function App() {
       <input
         name="example"
         type="text"
-        readOnly
+        readonly
       />
       <hr />
       disabled checkbox

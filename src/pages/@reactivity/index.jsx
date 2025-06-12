@@ -19,7 +19,6 @@ export default function () {
 							batch,
 							cleanup,
 							effect,
-							isReactive,
 							Lazy,
 							lazy,
 							map,

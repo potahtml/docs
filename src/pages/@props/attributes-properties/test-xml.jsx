@@ -1,5 +1,5 @@
 import { render } from 'pota'
-import { css } from 'pota/std'
+import { css } from 'pota/use/css'
 
 function App() {
   return (
@@ -99,7 +99,7 @@ function App() {
 
         <polygon points="5,5 195,10 185,185 10,195" />
 
-        <foreignobject
+        <foreignObject
           x="20"
           y="20"
           width="160"
@@ -112,7 +112,7 @@ function App() {
             <title>Test</title>
             erat volutpat.
           </div>
-        </foreignobject>
+        </foreignObject>
       </svg>
     </main>
   )

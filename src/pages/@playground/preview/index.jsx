@@ -8,13 +8,19 @@ addEventListener('hashchange', e => window.location.reload())
 
 // auto size frame to content
 
+let timeout
 const element = document.documentElement
 new ResizeObserver(() => {
-	const height = element.getBoundingClientRect().height
-	window.parent.postMessage(
-		JSON.stringify({ height, messageKind: 'height' }),
-		'*',
-	)
+	clearTimeout(timeout)
+	setTimeout(() => {
+		window.parent.postMessage(
+			JSON.stringify({
+				height: element.getBoundingClientRect().height,
+				messageKind: 'height',
+			}),
+			'*',
+		)
+	}, 500)
 }).observe(element)
 
 // code from hash
@@ -35,7 +41,9 @@ function displayError(content, type = 'error') {
 
 // listen for errors
 
+let errored = false
 window.onerror = function (event, source, line, col, error) {
+	errored = true
 	document.body.textContent = ''
 	displayError(error?.message, 'error')
 }
@@ -45,18 +53,20 @@ window.onerror = function (event, source, line, col, error) {
 if (code.startsWith('Error:')) {
 	displayError(code, 'error')
 } else {
+	document.body.textContent = ''
+
 	const script = document.createElement('script')
 	script.type = 'module'
 	script.textContent = code
 
-	document.body.textContent = ''
-
 	document.head.append(script)
 
-	setTimeout(() => {
-		window.parent.postMessage(
-			JSON.stringify({ messageKind: 'done' }),
-			'*',
-		)
-	}, 1000)
+	if (!errored) {
+		setTimeout(() => {
+			window.parent.postMessage(
+				JSON.stringify({ messageKind: 'done' }),
+				'*',
+			)
+		}, 1000)
+	}
 }

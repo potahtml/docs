@@ -1,7 +1,7 @@
 import { render, signal } from 'pota'
 import { For } from 'pota/components'
 
-import { useSelector } from 'pota/plugin/useSelector'
+import { useSelector } from 'pota/use/selector'
 
 let idCounter = 1
 const adjectives = [

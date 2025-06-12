@@ -7,7 +7,7 @@ export default function FourZeroFour() {
 		<>
 			<Header
 				title="console.log('404 Not Found')"
-				no-meta={true}
+				meta-title="404 Not Found"
 			>
 				<Head>
 					<title>404 Not Found - pota</title>

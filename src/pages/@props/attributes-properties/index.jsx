@@ -12,63 +12,29 @@ export default function () {
 
 			<Section title="Attributes vs Properties">
 				<p>
-					<mark>setProperty</mark> will be used when any of the
-					following is true:
+					pota defaults to attributes since <mark>v0.18.184</mark>.
+					Namespace <mark>prop:</mark> can be used when in need for
+					setting a property.
 				</p>
-
-				<ol>
-					<li>
-						<mark>tagName</mark> has a dash (as custom-elements do)
-						and <mark>propName</mark> is a setter
-					</li>
-					<li>
-						the value is different than <mark>string</mark> and
-						element has a <mark>propName</mark> setter
-					</li>
-				</ol>
 
 				<p>
-					While this does not work for every situation, it's a
-					sensible default that works in most cases. To change this
-					behavior see the next section
+					<Code
+						code={`const test = <video prop:srcObject={o}/>`}
+						render={false}
+					></Code>
 				</p>
-			</Section>
-
-			<Section title="Namespace To Force Props Type">
-				<p>A namespace can be used to force the prop kind</p>
-
-				<table>
-					<thead>
-						<tr>
-							<th>Name</th>
-							<th>Kind</th>
-							<th>Description</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr>
-							<td>
-								<mark>prop:name</mark>
-							</td>
-							<td>
-								<mark>setProperty</mark>
-							</td>
-							<td>will always set it as a property</td>
-						</tr>
-					</tbody>
-				</table>
 			</Section>
 
 			<Section title="Deleting">
 				<p>
 					On a <mark>property</mark>, deleting means setting the value
-					to <mark>null</mark> when the new value is <mark>null</mark>{' '}
-					or <mark>undefined</mark>.
+					to <mark>null</mark> when the passed value is{' '}
+					<mark>null</mark> or <mark>undefined</mark>.
 				</p>
 				<p>
 					On an <mark>attribute</mark>, deleting means removing the
-					attribute when the new value is <mark>null</mark> or{' '}
-					<mark>undefined</mark>.
+					attribute when the passed value is <mark>false</mark> ,{' '}
+					<mark>null</mark> or <mark>undefined</mark>.
 				</p>
 			</Section>
 
@@ -106,7 +72,7 @@ export default function () {
 						<tr>
 							<td>
 								<mark>
-									<a href="/props/ref">ref</a>
+									<a href="/use/ref">use:ref</a>
 								</mark>
 							</td>
 							<td>callback to get a reference to the element</td>
@@ -115,10 +81,10 @@ export default function () {
 							<td>
 								<mark>
 									<A
-										href="/props/:page"
+										href="/use/:page"
 										params={{ page: 'connected' }}
 									>
-										connected
+										use:connected
 									</A>
 								</mark>
 							</td>
@@ -128,10 +94,10 @@ export default function () {
 							<td>
 								<mark>
 									<A
-										href="/props/:page"
+										href="/use/:page"
 										params={{ page: 'disconnected' }}
 									>
-										disconnected
+										use:disconnected
 									</A>
 								</mark>
 							</td>
@@ -157,13 +123,9 @@ export default function () {
 						</tr>
 						<tr>
 							<td>
-								<mark>var</mark>
-							</td>
-							<td>sets a css var in the element</td>
-						</tr>
-						<tr>
-							<td>
-								<mark>use:css</mark>
+								<mark>
+									<a href="/props/css">use:css</a>
+								</mark>
 							</td>
 							<td>
 								<mark>
@@ -172,7 +134,7 @@ export default function () {
 									}
 								</mark>{' '}
 								becomes{' '}
-								<mark>{'<span class="class-styles-applied"/>'}</mark>
+								<mark>{'<span class="c1ywn32bqhvrzp"/>'}</mark>
 							</td>
 						</tr>
 					</tbody>

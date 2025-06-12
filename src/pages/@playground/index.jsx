@@ -4,7 +4,7 @@ import { CheatSheetText } from '../../lib/components/cheatsheet.jsx'
 import { Code } from '../../lib/components/code/code.jsx'
 import { Header } from '../../lib/components/header.jsx'
 
-import { effect, memo, signal } from 'pota'
+import { addEvent, effect, memo, signal } from 'pota'
 import { Collapse, For, Show } from 'pota/components'
 
 import { compress, uncompress } from '../../lib/compress.js'
@@ -12,9 +12,10 @@ import example from './default-example.js'
 import { prettier } from '../../lib/prettier.js'
 import { transform } from '../../lib/transform.js'
 
-import 'pota/plugin/clipboard'
+import 'pota/use/clipboard'
 
 import { Monaco } from '../../lib/components/monaco/monaco.jsx'
+import { emit } from 'pota/use/event'
 
 const themesMonaco = [
 	//'vs',
@@ -105,7 +106,7 @@ export default function () {
 	})
 
 	addEvent(window, 'message', function (e) {
-		if (e.data && isString(e.data)) {
+		if (e.data && typeof e.data === 'string') {
 			const message = JSON.parse(e.data)
 			if (message.messageKind === 'done') {
 				localStorage.playground = code()
@@ -217,8 +218,7 @@ export default function () {
 						</Show>
 					</span>
 
-					<span flair="grow" />
-					<span>
+					<span title="Restore Default Example">
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
 							height="24px"
@@ -227,6 +227,7 @@ export default function () {
 							fill="#e3e3e3"
 							on:click={e => {
 								setCode(example)
+								localStorage.playground = example
 								emit(window, 'monacoCodeChanged', { detail: example })
 							}}
 						>

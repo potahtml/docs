@@ -1,4 +1,5 @@
-import { css, render } from 'pota'
+import { render } from 'pota'
+import { css } from 'pota/use/css'
 
 function App() {
   return (
