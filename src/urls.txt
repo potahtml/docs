@@ -1,8 +1,7 @@
-
-
 /_redirects
 /sitemap.txt
 
+/vs/editor/editor.main.css
 
 /pages/benchmark/css/bootstrap.min.css
 /pages/benchmark/css/bootstrap.min.css.map
@@ -41,11 +40,11 @@
 /pages/benchmark/solid-import-node/main.js
 
 
-/node_modules/pota/src/@main.js
+/node_modules/pota/src/exports.js
 /node_modules/pota/src/babel-preset/index.js
 /node_modules/pota/src/jsx/jsx-runtime.js
-/node_modules/pota/src/xml.js
-/node_modules/pota/src/web/@main.js
+/node_modules/pota/src/core/xml.js
+/node_modules/pota/src/components/@main.js
 /node_modules/pota/src/use/bind.js
 /node_modules/pota/src/use/clickoutside.js
 /node_modules/pota/src/use/clipboard.js

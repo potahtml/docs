@@ -1,5 +1,5 @@
 import { batch, render, signal } from 'pota'
-import { html } from 'pota/html'
+import { xml } from 'pota/xml'
 import { useSelector } from 'pota/use/selector'
 
 import { timing } from 'pota/use/time'
@@ -83,7 +83,7 @@ function buildData(count) {
 }
 
 const bbutton = ({ id, text, fn }) =>
-  html`<div class="col-sm-6 smallpad">
+  xml`<div class="col-sm-6 smallpad">
     <button
       id="${id}"
       class="btn btn-primary btn-block"
@@ -159,9 +159,9 @@ const App = () => {
     })
   const isSelected = useSelector(selected)
 
-  html.define({ bbutton })
+  xml.define({ bbutton })
 
-  return html`<div class="container">
+  return xml`<div class="container">
     <div class="jumbotron">
       <div class="row">
         <div class="col-md-6">
@@ -224,7 +224,7 @@ const App = () => {
           ${row => {
             const { id, label } = row
 
-            return html`<tr class:danger="${isSelected(id)}">
+            return xml`<tr class:danger="${isSelected(id)}">
               <td class="col-md-1">${id}</td>
               <td class="col-md-4">
                 <a prop:setSelected="${id}">${label}</a>

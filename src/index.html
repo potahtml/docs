@@ -53,11 +53,11 @@
 		/>
 		<meta
 			property="og:image:width"
-			content="1200"
+			content="512"
 		/>
 		<meta
 			property="og:image:height"
-			content="630"
+			content="512"
 		/>
 		<meta
 			property="og:image:alt"
@@ -89,6 +89,32 @@
 			href="/responsive.css"
 		/>
 
+		<!-- monaco -->
+		<script>
+			globalThis.require = {
+				paths: {
+					vs: `https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.46.0/min/vs`,
+				},
+			}
+		</script>
+		<script
+			crossorigin="anonymous"
+			src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.46.0/min/vs/loader.js"
+		></script>
+		<script
+			crossorigin="anonymous"
+			src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.46.0/min/vs/editor/editor.main.nls.js"
+		></script>
+		<script
+			crossorigin="anonymous"
+			src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.46.0/min/vs/editor/editor.main.js"
+		></script>
+		<link
+			rel="stylesheet"
+			data-name="vs/editor/editor.main"
+			crossorigin="anonymous"
+			href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.46.0/min/vs/editor/editor.main.min.css"
+		/>
 		<!-- prettier -->
 		<script
 			crossorigin="anonymous"
@@ -102,6 +128,7 @@
 			globalThis.prettierPluginEstree = prettierPluginEstree
 		</script>
 
+		<!-- pota -->
 		<script
 			type="module"
 			src="/dist/multi-entry.js"

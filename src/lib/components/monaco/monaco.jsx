@@ -1,14 +1,10 @@
 import styles from './monaco.module.css'
 
-import { addEvent, cleanup, signal, withValue } from 'pota'
+import { addEvent, cleanup, withValue } from 'pota'
 
 import { onDocumentSize } from 'pota/use/resize'
 
-import { Show } from 'pota/components'
-
 import types from '../../../../node_modules/pota/src/release/types.json' with { type: 'json' }
-
-const [scriptsLoaded, setScriptsLoaded] = signal(false)
 
 function loadScriptInOrder(...scripts) {
 	return new Promise(async resolve => {
@@ -30,9 +26,38 @@ function loadScript(src) {
 	})
 }
 
-let scriptsLoading = false
+/** @type import('monaco-editor') */
+const monaco = globalThis.monaco
 
-const MonacoVersion = '0.46.0'
+for (const type of types) {
+	monaco.languages.typescript.typescriptDefaults.addExtraLib(
+		type.c,
+		'file:///project/node_modules/' + type.f,
+	)
+}
+
+// compiler options
+monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
+	allowNonTsExtensions: true,
+	jsxImportSource: 'pota',
+	types: ['pota'],
+	jsx: monaco.languages.typescript.JsxEmit.Preserve,
+	target: monaco.languages.typescript.ScriptTarget.ESNext,
+	moduleResolution:
+		monaco.languages.typescript.ModuleResolutionKind.NodeJs,
+})
+
+monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
+	noSemanticValidation: false,
+	noSyntaxValidation: false,
+})
+
+/** @type import('monaco-editor').editor.ITextModel */
+const model = monaco.editor.createModel(
+	``,
+	'',
+	monaco.Uri.parse('file:///project/main.tsx'),
+)
 
 /**
  * Create a Monaco editor
@@ -47,172 +72,93 @@ const MonacoVersion = '0.46.0'
  * }} props
  */
 export function Monaco(props) {
-	// required by the imported scripts
-	if (!globalThis.require) {
-		globalThis.require = {}
-	}
-	if (!globalThis.require.paths) {
-		globalThis.require.paths = {
-			vs: `https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/${MonacoVersion}/min/vs`,
-		}
-	}
-	if (!globalThis.require.paths.vs) {
-		globalThis.require.paths.vs = `https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/${MonacoVersion}/min/vs`
-	}
-
-	if (!scriptsLoading) {
-		scriptsLoading = true
-
-		loadScriptInOrder(
-			`https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/${MonacoVersion}/min/vs/loader.js`,
-			`https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/${MonacoVersion}/min/vs/editor/editor.main.nls.js`,
-			`https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/${MonacoVersion}/min/vs/editor/editor.main.js`,
-		).then(async x => {
-			/** @type import('monaco-editor') */
-			const monaco = globalThis.monaco
-
-			for (const type of types) {
-				monaco.languages.typescript.typescriptDefaults.addExtraLib(
-					type.c,
-					'file:///project/node_modules/' + type.f,
-				)
-			}
-
-			// compiler options
-			monaco.languages.typescript.typescriptDefaults.setCompilerOptions(
-				{
-					allowNonTsExtensions: true,
-					jsxImportSource: 'pota',
-					types: ['pota'],
-					jsx: monaco.languages.typescript.JsxEmit.Preserve,
-					target: monaco.languages.typescript.ScriptTarget.ESNext,
-					moduleResolution:
-						monaco.languages.typescript.ModuleResolutionKind.NodeJs,
-				},
-			)
-
-			monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions(
-				{
-					noSemanticValidation: false,
-					noSyntaxValidation: false,
-				},
-			)
-
-			/** @type import('monaco-editor').editor.ITextModel */
-			const model = monaco.editor.createModel(
-				``,
-				'',
-				monaco.Uri.parse('file:///project/main.tsx'),
-			)
-			monaco.model = model
-
-			setScriptsLoaded(true)
-		})
-	}
-
 	return (
-		<Show when={scriptsLoaded}>
-			{() => (
-				<div
-					class={styles.container}
-					use:ref={async container => {
-						/** @type import('monaco-editor') */
-						const monaco = globalThis.monaco
+		<div
+			class={styles.container}
+			use:ref={async container => {
+				/** @type import('monaco-editor').editor.IStandaloneCodeEditor */
+				const editor = monaco.editor.create(container, {
+					model,
+					language: props.language || 'typescript',
+					fontSize: 17,
+					roundedSelection: false,
+					scrollbar: {
+						useShadows: false,
+						vertical: 'visible',
+						horizontal: 'visible',
+						verticalScrollbarSize: 10,
+						horizontalScrollbarSize: 10,
+					},
+					formatOnType: false,
+					formatOnPaste: true,
+					renderWhitespace: 'none',
+					renderLineHighlight: 'none',
+					automaticLayout: true,
+					minimap: { enabled: false },
+					scrollBeyondLastLine: false,
+					wordWrap: props.language === 'json' ? 'on' : 'off',
+				})
 
-						/** @type import('monaco-editor').editor.IStandaloneCodeEditor */
-						const editor = monaco.editor.create(container, {
-							model: monaco.model,
-							language: props.language || 'typescript',
-							fontSize: 17,
-							roundedSelection: false,
-							scrollbar: {
-								useShadows: false,
-								vertical: 'visible',
-								horizontal: 'visible',
-								verticalScrollbarSize: 10,
-								horizontalScrollbarSize: 10,
-							},
-							formatOnType: false,
-							formatOnPaste: true,
-							renderWhitespace: 'none',
-							renderLineHighlight: 'none',
-							automaticLayout: true,
-							minimap: { enabled: false },
-							scrollBeyondLastLine: false,
-							wordWrap: props.language === 'json' ? 'on' : 'off',
-						})
+				withValue(props.value, value => {
+					editor.setValue(value)
+				})
+				withValue(props.theme, value => {
+					monaco.editor.setTheme(value || 'vs-dark')
+				})
 
-						withValue(props.value, value => {
-							editor.setValue(value)
-						})
-						withValue(props.theme, value => {
-							monaco.editor.setTheme(value || 'vs-dark')
-						})
+				// cleanup
+				cleanup(() => editor.dispose())
 
-						// cleanup
-						cleanup(() => editor.dispose())
+				// on code change
+				let codeChangeTimeout
+				editor.getModel().onDidChangeContent(event => {
+					if (props['on:change']) {
+						clearTimeout(codeChangeTimeout)
+						codeChangeTimeout = setTimeout(
+							() => props['on:change'](editor.getValue()),
+							props.delay || 200,
+						)
+					}
+				})
 
-						// on code change
-						let codeChangeTimeout
-						editor.getModel().onDidChangeContent(event => {
-							if (props['on:change']) {
-								clearTimeout(codeChangeTimeout)
-								codeChangeTimeout = setTimeout(
-									() => props['on:change'](editor.getValue()),
-									props.delay || 200,
-								)
-							}
-						})
+				// resize
+				onDocumentSize(() => editor.layout())
 
-						// resize
-						onDocumentSize(() => editor.layout())
+				// code change
 
-						// code change
-
-						addEvent(window, 'monacoCodeChanged', e => {
-							if (e.detail) {
-								editor.setValue(e.detail.trim())
-							}
-						})
-						// shorcuts
-						editor.onKeyDown(e => {
-							if (
-								// CTRL + S
-								(e.keyCode === 49 && e.ctrlKey) ||
-								// SHIFT + ALT + F
-								(e.keyCode === 36 && e.altKey && e.shiftKey)
-							) {
-								e.preventDefault()
-								if (props['on:format']) {
-									props['on:format'](editor.getValue())
-										.then(code => {
-											const position = editor.getPosition()
-											editor.setValue(code)
-											if (position) editor.setPosition(position)
-										})
-										.catch(e => {
-											editor
-												.getAction('editor.action.formatDocument')
-												.run()
-										})
-								} else {
+				addEvent(window, 'monacoCodeChanged', e => {
+					if (e.detail) {
+						editor.setValue(e.detail.trim())
+					}
+				})
+				// shorcuts
+				editor.onKeyDown(e => {
+					if (
+						// CTRL + S
+						(e.keyCode === 49 && e.ctrlKey) ||
+						// SHIFT + ALT + F
+						(e.keyCode === 36 && e.altKey && e.shiftKey)
+					) {
+						e.preventDefault()
+						if (props['on:format']) {
+							props['on:format'](editor.getValue())
+								.then(code => {
+									const position = editor.getPosition()
+									editor.setValue(code)
+									if (position) editor.setPosition(position)
+								})
+								.catch(e => {
 									editor
 										.getAction('editor.action.formatDocument')
 										.run()
-								}
-							}
-						})
-					}}
-				>
-					<link
-						rel="stylesheet"
-						data-name="vs/editor/editor.main"
-						crossorigin="anonymous"
-						href={`https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/${MonacoVersion}/min/vs/editor/editor.main.min.css`}
-					/>
-				</div>
-			)}
-		</Show>
+								})
+						} else {
+							editor.getAction('editor.action.formatDocument').run()
+						}
+					}
+				})
+			}}
+		></div>
 	)
 }
 
