@@ -61,27 +61,6 @@ npm run dev
 				</p>
 			</Section>
 
-			<Section title="Vite Typescript">
-				<p>
-					<tm-textarea
-						class="shell"
-						grammar="shellscript"
-						theme="monokai"
-						value={`
-npx degit potahtml/templates/vite-ts pota-vite-ts-project
-cd pota-vite-ts-project
-npm install --include=dev
-npm run dev
-						`
-							.split('\n')
-							.map(s => s.trim())
-							.join('\n')
-							.trim()}
-						prop:editable={false}
-					/>
-				</p>
-			</Section>
-
 			<Section title="Babel Preset">
 				<p>
 					pota provides an optimized and customized babel preset for
