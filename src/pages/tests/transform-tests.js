@@ -1319,6 +1319,11 @@
 
 	/** @type {Set<string> & { xmlns?: string }} */
 	const namespaces = new Set(['on', 'prop', 'class', 'style', 'use']);
+
+	/**
+	 * Updates the xmlns string containing all registered namespaces Used
+	 * for XML serialization of components
+	 */
 	function updateNamespaces() {
 	  namespaces.xmlns = toArray(namespaces).map(ns => `xmlns:${ns}="/"`).join(' ');
 	}
@@ -1371,10 +1376,13 @@
 	};
 
 	/**
-	 * @param {typeof plugins} plugins
-	 * @param {string} name
-	 * @param {Function} fn
-	 * @param {boolean} [onMicrotask=true] Default is `true`
+	 * Internal helper to register a prop plugin in a plugin store
+	 *
+	 * @param {typeof plugins} plugins - Plugin store to register in
+	 * @param {string} name - Name of the plugin/prop
+	 * @param {Function} fn - Handler function to run when prop is found
+	 * @param {boolean} [onMicrotask=true] - Whether to run on microtask.
+	 *   Default is `true`
 	 */
 	const plugin = (plugins, name, fn, onMicrotask = true) => {
 	  plugins.set(name, !onMicrotask ? fn : (...args) => onProps(() => fn(...args)));
@@ -1617,7 +1625,6 @@
 	 * @param {string} name
 	 * @param {unknown} value
 	 */
-
 	const _setClassListValue = (node, name, value) => {
 	  // null, undefined or false, the class is removed
 	  !value ? removeClass(node, name) : addClass(node, ...name.trim().split(/\s+/));
@@ -1747,18 +1754,27 @@
 	          // node component <div>
 	          return markComponent(props => createNode(value, props));
 	        }
-	        return markComponent(() => createAnything(value));
+
+	        // creates anything
+	        return markComponent(() => value);
 	      }
 	  }
 	}
+
+	/**
+	 * Creates an instance of a class component and handles lifecycle
+	 * methods
+	 *
+	 * @param {Function} value - The class constructor
+	 * @param {Props<unknown>} props - Props to pass to the class
+	 *   constructor
+	 * @returns {Children} The rendered output
+	 */
 	function createClass(value, props) {
 	  const i = new value(props);
 	  i.ready && ready(() => i.ready());
 	  i.cleanup && cleanup(() => i.cleanup());
 	  return i.render(props);
-	}
-	function createAnything(value) {
-	  return value;
 	}
 
 	/**
@@ -1920,7 +1936,7 @@
 
 	        // For - TODO move this to the `For` component
 	        $isMap in child ? effect(() => {
-	          node = toDiff(node, child(child => {
+	          node = toDiff(node, flatToArray(child(child => {
 	            /**
 	             * Wrap the item with placeholders, for when stuff in
 	             * between moves. If a `Show` adds and removes nodes,
@@ -1931,7 +1947,7 @@
 	            const begin = createPlaceholder(parent, true);
 	            const end = createPlaceholder(parent, true);
 	            return [begin, createChildren(end, child, true), end];
-	          }), true);
+	          })), true);
 	        }) : effect(() => {
 	          // maybe a signal (at least a function) so needs an effect
 	          node = toDiff(node, flatToArray(createChildren(parent, child(), true, node[0])), true);

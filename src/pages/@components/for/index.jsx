@@ -40,6 +40,14 @@ export default function () {
 								when list is empty a fallback could be displayed
 							</td>
 						</tr>
+						<tr>
+							<td>reactiveIndex</td>
+							<td>boolean</td>
+							<td>
+								if the callback receives a <mark>signal</mark> for the{' '}
+								<mark>index</mark>
+							</td>
+						</tr>
 					</tbody>
 				</table>
 			</Section>
