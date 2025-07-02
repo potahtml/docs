@@ -1,17 +1,17 @@
 
 :: save source changes
 
-call git add --all
-call git commit -m "update docs"
-call git push
+git add --all
+git commit -m "update docs"
+git push
 
 :: publish to pota.quack.uy
 
-cd /D S:/www/pota.docs.cloudflare/
+cd /mnt/Data/www/pota/pota.docs.cloudflare/
 
-del localhost.zip
+rm -f localhost.zip
 
-call mpa http://localhost:54207/
+mpa http://localhost:37808/
 
 
 :: tar -c -f ../pota.quack.uy.zip ./*
