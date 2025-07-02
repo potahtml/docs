@@ -20,7 +20,7 @@ new ResizeObserver(() => {
 			}),
 			'*',
 		)
-	}, 500)
+	}, 200)
 }).observe(element)
 
 // code from hash
