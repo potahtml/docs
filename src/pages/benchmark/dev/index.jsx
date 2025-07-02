@@ -1,7 +1,7 @@
 import { render, signal } from 'pota'
 import { For } from 'pota/components'
 
-import { useSelector } from 'pota/use/selector'
+import { usePrevious } from 'pota/use/selector'
 
 import { timing } from 'pota/use/time'
 
@@ -14,8 +14,13 @@ function _random(max) {
 function buildData(count) {
 	const data = new Array(count)
 	for (let i = 0; i < count; i++) {
-		data[i] = signal('elegant green keyboard')
-		data[i].id = idCounter++
+		const [label, , update] = signal('elegant green keyboard')
+
+		data[i] = {
+			id: idCounter++,
+			label,
+			update,
+		}
 	}
 	return data
 }
@@ -34,7 +39,6 @@ const Button = ({ id, text, fn }) => (
 
 const App = () => {
 	const [data, setData, updateData] = signal([]),
-		[selected, setSelected] = signal(null),
 		run = () => {
 			// debugger
 			setData(buildData(10))
@@ -98,7 +102,14 @@ const App = () => {
 				return [...d]
 			})
 		},
-		isSelected = useSelector(selected)
+		danger = usePrevious((next, previous) => {
+			next.setAttribute('class', 'danger')
+
+			if (previous) {
+				previous.removeAttribute('class')
+			}
+			return next
+		})
 
 	return (
 		<div class="container">
@@ -152,33 +163,34 @@ const App = () => {
 				<tbody
 					on:click={e => {
 						const element = e.target
-						if (element.selectRow !== undefined) {
-							setSelected(element.selectRow)
-						} else if (element.removeRow !== undefined) {
-							remove(element.removeRow)
+						if ('remove' in element.dataset) {
+							remove(
+								+element.parentNode.parentNode.parentNode.firstChild
+									.textContent,
+							)
+						} else if ('select' in element.dataset) {
+							danger(element.parentNode.parentNode)
 						}
 					}}
 				>
 					<For each={data}>
 						{row => {
-							const { id, read } = row
-
 							return (
-								<tr class:danger={isSelected(id)}>
+								<tr>
 									<td
-										prop:textContent={id}
+										prop:textContent={row.id}
 										class="col-md-1"
 									/>
 									<td class="col-md-4">
 										<a
-											prop:selectRow={id}
-											prop:textContent={read}
+											data-select
+											prop:textContent={row.label}
 										/>
 									</td>
 									<td class="col-md-1">
 										<a>
 											<span
-												prop:removeRow={id}
+												data-remove
 												aria-hidden="true"
 												class="glyphicon glyphicon-remove"
 											/>

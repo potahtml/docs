@@ -114,14 +114,6 @@
 	const isFunction = value => typeof value === 'function';
 
 	/**
-	 * Returns `true` when value is Iterable
-	 *
-	 * @param {unknown} value
-	 * @returns {value is Iterable<unknown>}
-	 */
-	const isIterable = value => value?.[iterator];
-
-	/**
 	 * Returns `true` if the value is `null` or `undefined`
 	 *
 	 * @param {unknown} value
@@ -1054,7 +1046,6 @@
 	  owned,
 	  root,
 	  signal,
-	  syncEffect,
 	  untrack
 	} = createReactiveSystem();
 
@@ -1104,15 +1095,30 @@
 	  isDupe;
 	  disposer;
 	  nodes;
-	  constructor(item, index, fn, isDupe) {
+	  indexSignal;
+	  constructor(item, index, fn, isDupe, reactiveIndex) {
 	    this.item = item;
 	    this.index = index;
 	    this.isDupe = isDupe;
 	    root(disposer => {
 	      this.disposer = disposer;
-	      /** @type Children[] */
-	      this.nodes = fn(item, index);
+	      if (reactiveIndex) {
+	        this.indexSignal = signal(index);
+	        /** @type Children[] */
+	        this.nodes = fn(item, this.indexSignal.read);
+	      } else {
+	        /** @type Children[] */
+	        this.nodes = fn(item, index);
+	      }
 	    });
+	  }
+	  updateIndex(index) {
+	    if (this.index !== index) {
+	      this.index = index; // save sort order
+	      if (this.indexSignal) {
+	        this.indexSignal.write(index);
+	      }
+	    }
 	  }
 	  begin() {
 	    return this.nodes[0];
@@ -1139,10 +1145,11 @@
 	 * @template T
 	 * @param {Each<T>} list
 	 * @param {Function} callback
-	 * @param {boolean} [sort]
+	 * @param {boolean} [noSort]
 	 * @param {Children} [fallback]
+	 * @param {boolean} [reactiveIndex] - Make indices reactive signals
 	 */
-	function map(list, callback, sort, fallback) {
+	function map(list, callback, noSort, fallback, reactiveIndex) {
 	  const cache = new Map();
 	  const duplicates = new Map(); // for when caching by value is not possible [1, 2, 1, 1, 1]
 
@@ -1174,7 +1181,7 @@
 	  }
 
 	  /**
-	   * @param {Function} fn
+	   * @param {Function} [fn]
 	   * @returns {Children}
 	   */
 	  function mapper(fn) {
@@ -1188,10 +1195,9 @@
 	    const hasPrev = prev.length;
 	    for (const [index, item] of items) {
 	      let row = hasPrev ? cache.get(item) : undefined;
-
-	      // if the item doesnt exists, create it
 	      if (row === undefined) {
-	        row = new Row(item, index, cb, false);
+	        // if the item doesnt exists, create it
+	        row = new Row(item, index, cb, false, reactiveIndex);
 	        cache.set(item, row);
 	      } else if (row.runId === runId) {
 	        // a map will save only 1 of any primitive duplicates, say: [1, 1, 1, 1]
@@ -1208,12 +1214,12 @@
 	          }
 	        }
 	        if (row.runId === runId) {
-	          row = new Row(item, index, cb, true);
+	          row = new Row(item, index, cb, true, reactiveIndex);
 	          dupes.push(row);
 	        }
 	      }
 	      row.runId = runId; // mark used on this run
-	      row.index = index; // save sort order
+	      row.updateIndex(index); // Update existing row's index (reactive if needed)
 	      rows.push(row);
 	    }
 
@@ -1567,6 +1573,11 @@
 
 	/** @type {Set<string> & { xmlns?: string }} */
 	const namespaces = new Set(['on', 'prop', 'class', 'style', 'use']);
+
+	/**
+	 * Updates the xmlns string containing all registered namespaces Used
+	 * for XML serialization of components
+	 */
 	function updateNamespaces() {
 	  namespaces.xmlns = toArray(namespaces).map(ns => `xmlns:${ns}="/"`).join(' ');
 	}
@@ -1619,10 +1630,13 @@
 	};
 
 	/**
-	 * @param {typeof plugins} plugins
-	 * @param {string} name
-	 * @param {Function} fn
-	 * @param {boolean} [onMicrotask=true] Default is `true`
+	 * Internal helper to register a prop plugin in a plugin store
+	 *
+	 * @param {typeof plugins} plugins - Plugin store to register in
+	 * @param {string} name - Name of the plugin/prop
+	 * @param {Function} fn - Handler function to run when prop is found
+	 * @param {boolean} [onMicrotask=true] - Whether to run on microtask.
+	 *   Default is `true`
 	 */
 	const plugin = (plugins, name, fn, onMicrotask = true) => {
 	  plugins.set(name, !onMicrotask ? fn : (...args) => onProps(() => fn(...args)));
@@ -1865,7 +1879,6 @@
 	 * @param {string} name
 	 * @param {unknown} value
 	 */
-
 	const _setClassListValue = (node, name, value) => {
 	  // null, undefined or false, the class is removed
 	  !value ? removeClass(node, name) : addClass(node, ...name.trim().split(/\s+/));
@@ -1995,18 +2008,27 @@
 	          // node component <div>
 	          return markComponent(props => createNode(value, props));
 	        }
-	        return markComponent(() => createAnything(value));
+
+	        // creates anything
+	        return markComponent(() => value);
 	      }
 	  }
 	}
+
+	/**
+	 * Creates an instance of a class component and handles lifecycle
+	 * methods
+	 *
+	 * @param {Function} value - The class constructor
+	 * @param {Props<unknown>} props - Props to pass to the class
+	 *   constructor
+	 * @returns {Children} The rendered output
+	 */
 	function createClass(value, props) {
 	  const i = new value(props);
 	  i.ready && ready(() => i.ready());
 	  i.cleanup && cleanup(() => i.cleanup());
 	  return i.render(props);
-	}
-	function createAnything(value) {
-	  return value;
 	}
 
 	/**
@@ -2178,7 +2200,7 @@
 
 	        // For - TODO move this to the `For` component
 	        $isMap in child ? effect(() => {
-	          node = toDiff(node, child(child => {
+	          node = toDiff(node, flatToArray(child(child => {
 	            /**
 	             * Wrap the item with placeholders, for when stuff in
 	             * between moves. If a `Show` adds and removes nodes,
@@ -2189,7 +2211,7 @@
 	            const begin = createPlaceholder(parent, true);
 	            const end = createPlaceholder(parent, true);
 	            return [begin, createChildren(end, child, true), end];
-	          }), true);
+	          })), true);
 	        }) : effect(() => {
 	          // maybe a signal (at least a function) so needs an effect
 	          node = toDiff(node, flatToArray(createChildren(parent, child(), true, node[0])), true);
@@ -2476,6 +2498,7 @@
 	 * @param {Each<T>} props.each
 	 * @param {boolean} [props.restoreFocus] - If the focused element
 	 *   moves it may lose focus
+	 * @param {boolean} [props.reactiveIndex] - Make indices reactive signals
 	 * @param {Children} [props.children]
 	 * @param {Children} [props.fallback]
 	 * @returns {Children}
@@ -2485,7 +2508,7 @@
 	const For = props => map(() => {
 	  props.restoreFocus && queue();
 	  return props.each;
-	}, makeCallback(props.children), true, props.fallback);
+	}, makeCallback(props.children), false, props.fallback, props.reactiveIndex);
 
 	/** @type {boolean} */
 	let queued;
@@ -2514,72 +2537,35 @@
 	}
 
 	/**
-	 * Returns a `isSelected` function that will return `true` when the
-	 * argument for it matches the original signal `value`.
+	 * Returns a `function` that receives as a second argument whats
+	 * returned from it.
 	 *
-	 * @param {SignalAccessor<any>} value - Signal with the current value
+	 * @template T
+	 * @param {(next: T, previous: T) => T} fn
 	 */
-	function useSelector(value) {
-	  const map = new Map();
-	  let prev = [];
-	  syncEffect(() => {
-	    const val = value();
-	    const selected = isIterable(val) ? toArray(val.values()) : val === undefined ? [] : [val];
+	function usePrevious(fn) {
+	  let previous;
 
-	    // unselect
-	    for (const value of prev) {
-	      if (!selected.includes(value)) {
-	        const current = map.get(value);
-	        current && current.write(false);
-	      }
-	    }
-
-	    // select
-	    for (const value of selected) {
-	      if (!prev.includes(value)) {
-	        const current = map.get(value);
-	        current && current.write(true);
-	      }
-	    }
-	    prev = selected;
-	  });
-
-	  /**
-	   * Is selected function, it will return `true` when the value
-	   * matches the current signal.
-	   *
-	   * @template T
-	   * @param {T} item - Values to compare with current
-	   * @returns {SignalAccessor<T>} A signal with a boolean value
-	   */
-	  return function isSelected(item) {
-	    let selected = map.get(item);
-	    if (!selected) {
-	      selected = signal(prev.includes(item));
-	      selected.counter = 1;
-	      map.set(item, selected);
-	    } else {
-	      selected.counter++;
-	    }
-	    cleanup(() => {
-	      if (--selected.counter === 0) {
-	        map.delete(item);
-	      }
-	    });
-	    return selected.read;
+	  /** @param {T} next */
+	  return next => {
+	    previous = fn(next, previous);
 	  };
 	}
 
 	var _div = createPartial("<div class='col-sm-6 smallpad'><button type=button class='btn btn-primary btn-block'></button></div>", {"0":1,"m":2}),
 	  _div2 = createPartial("<div class=container><div class=jumbotron><div class=row><div class=col-md-6><h1>pota Keyed</h1></div><div class=col-md-6><div class=row></div></div></div></div><table class='table table-hover table-striped test-data'><tbody></tbody></table><span aria-hidden=true class='preloadicon glyphicon glyphicon-remove'></span></div>", {"0":6,"1":8,"m":9}),
-	  _tr = createPartial("<tr><td class=col-md-1></td><td class=col-md-4><a></a></td><td class=col-md-1><a><span aria-hidden=true class='glyphicon glyphicon-remove'></span></a></td><td class=col-md-6></td></tr>", {"2":3,"3":6,"m":7});
+	  _tr = createPartial("<tr><td class=col-md-1></td><td class=col-md-4><a data-select></a></td><td class=col-md-1><a><span data-remove aria-hidden=true class='glyphicon glyphicon-remove'></span></a></td><td class=col-md-6></td></tr>", {"0":1,"1":3,"m":4});
 	const _For = createComponent(For);
 	let idCounter = 1;
 	function buildData(count) {
 	  const data = new Array(count);
 	  for (let i = 0; i < count; i++) {
-	    data[i] = signal('elegant green keyboard');
-	    data[i].id = idCounter++;
+	    const [label,, update] = signal('elegant green keyboard');
+	    data[i] = {
+	      id: idCounter++,
+	      label,
+	      update
+	    };
 	  }
 	  return data;
 	}
@@ -2595,7 +2581,6 @@
 	const _Button = createComponent(Button);
 	const App = () => {
 	  const [data, setData, updateData] = signal([]),
-	    [selected, setSelected] = signal(null),
 	    run = () => {
 	      // debugger
 	      setData(buildData(10));
@@ -2657,7 +2642,13 @@
 	        return [...d];
 	      });
 	    },
-	    isSelected = useSelector(selected);
+	    danger = usePrevious((next, previous) => {
+	      next.setAttribute('class', 'danger');
+	      if (previous) {
+	        previous.removeAttribute('class');
+	      }
+	      return next;
+	    });
 	  return _div2([{
 	    children: [_Button({
 	      fn: run,
@@ -2691,28 +2682,19 @@
 	  }, {
 	    "on:click": e => {
 	      const element = e.target;
-	      if (element.selectRow !== undefined) {
-	        setSelected(element.selectRow);
-	      } else if (element.removeRow !== undefined) {
-	        remove(element.removeRow);
+	      if ('remove' in element.dataset) {
+	        remove(+element.parentNode.parentNode.parentNode.firstChild.textContent);
+	      } else if ('select' in element.dataset) {
+	        danger(element.parentNode.parentNode);
 	      }
 	    },
 	    children: _For({
 	      each: data,
 	      children: row => {
-	        const {
-	          id,
-	          read
-	        } = row;
 	        return _tr([{
-	          "class:danger": isSelected(id)
+	          "prop:textContent": row.id
 	        }, {
-	          "prop:textContent": id
-	        }, {
-	          "prop:selectRow": id,
-	          "prop:textContent": read
-	        }, {
-	          "prop:removeRow": id
+	          "prop:textContent": row.label
 	        }]);
 	      }
 	    })
