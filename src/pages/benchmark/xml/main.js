@@ -492,7 +492,6 @@
 	// symbols
 
 	const $isComponent = Symbol();
-	const $isClass = Symbol();
 	const $isMap = Symbol();
 
 	// supported namespaces
@@ -1915,14 +1914,6 @@
 	const onMount = fn => add(3, fn);
 
 	/**
-	 * Queue a function to run on ready (after onMount)
-	 *
-	 * @param {Function} fn
-	 * @url https://pota.quack.uy/ready
-	 */
-	const ready = fn => add(4, fn);
-
-	/**
 	 * Queue a function to run after all user defined processes
 	 *
 	 * @param {Function} fn
@@ -2391,17 +2382,7 @@
 	      }
 	    case 'function':
 	      {
-	        if ($isComponent in value) {
-	          return value;
-	        }
-	        if ($isClass in value) {
-	          // class component <MyComponent../>
-	          return markComponent(props => createClass(value, props));
-	        }
-
-	        // function component <MyComponent../>
-	        // value = value
-	        return markComponent(value);
+	        return $isComponent in value ? value : markComponent(value);
 	      }
 	    default:
 	      {
@@ -2417,25 +2398,9 @@
 	}
 
 	/**
-	 * Creates an instance of a class component and handles lifecycle
-	 * methods
-	 *
-	 * @param {Function} value - The class constructor
-	 * @param {Props<unknown>} props - Props to pass to the class
-	 *   constructor
-	 * @returns {Children} The rendered output
-	 */
-	function createClass(value, props) {
-	  const i = new value(props);
-	  i.ready && ready(() => i.ready());
-	  i.cleanup && cleanup(() => i.cleanup());
-	  return i.render(props);
-	}
-
-	/**
 	 * Creates a x/html element from a tagName
 	 *
-	 * @template {Props<{ xmlns?: string }>} P
+	 * @template {Props<{ xmlns?: string, is?: string }>} P
 	 * @param {string} tagName
 	 * @param {P} props
 	 * @returns {Element} Element
@@ -2446,7 +2411,11 @@
 	   * of missing xmlns attribute
 	   */
 	  const xmlns = props?.xmlns || NS[tagName];
-	  return withXMLNS(xmlns, xmlns => createNode(xmlns ? createElementNS(xmlns, tagName) : createElement(tagName), props), tagName);
+	  return withXMLNS(xmlns, xmlns => createNode(xmlns ? createElementNS(xmlns, tagName, {
+	    is: props?.is
+	  }) : createElement(tagName, {
+	    is: props?.is
+	  }), props), tagName);
 	}
 
 	/**
@@ -4862,21 +4831,17 @@
 	 * @url https://pota.quack.uy/Components/Show
 	 */
 	function Show(props) {
-	  // fallback
-	  const fallback = isNullUndefined(props.fallback) ? undefined : memo(() => resolve(props.fallback));
-
 	  // callback
 	  const callback = makeCallback(props.children);
 
 	  // shortcircuit non-functions
 	  if (!isFunction(props.when)) {
-	    return props.when ? callback(() => props.when) : fallback;
+	    return props.when ? callback(() => props.when) : props.fallback;
 	  }
-
 	  // signals/functions
 	  const value = memo(() => getValue(props.when));
 	  const condition = memo(() => !!value());
-	  return memo(() => condition() ? callback(value) : fallback);
+	  return memo(() => condition() ? callback(value) : props.fallback);
 	}
 
 	/**

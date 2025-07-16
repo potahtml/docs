@@ -405,11 +405,6 @@ http://localhost:54207/playground#H4sIABYyS2gAA+x9iXYcx5Hgr5THXjdIgQABUBdnNLMeS3
 
 			<Route
 				path=":path$"
-				params={{ path: 'Classes' }}
-				children={load(() => import('./pages/classes/index.jsx'))}
-			/>
-			<Route
-				path=":path$"
 				params={{ path: 'Component' }}
 				children={load(() => import('./pages/component/index.jsx'))}
 			/>
