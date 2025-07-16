@@ -24,7 +24,6 @@
 	const groupBy = Object$1.groupBy;
 	const is = Object$1.is;
 	const isExtensible = Object$1.isExtensible;
-	const values = Object$1.values;
 	const setPrototypeOf = Object$1.setPrototypeOf;
 	const toArray = Array$1.from;
 
@@ -357,36 +356,6 @@
 	function removeFromArray(array, value) {
 	  const index = array.indexOf(value);
 	  if (index !== -1) array.splice(index, 1);
-	}
-	/**
-	 * Removes values from an array based on a condition
-	 *
-	 * @template T
-	 * @param {T[]} array
-	 * @param {(index: number, value: T) => boolean} cb Function with
-	 *   condition
-	 */
-	function removeFromArrayConditionally(array, cb) {
-	  let i = array.length;
-	  while (i--) {
-	    if (cb(i, array[i])) {
-	      array.splice(i, 1);
-	    }
-	  }
-	}
-	/**
-	 * Removes values from an array based on a condition
-	 *
-	 * @template T
-	 * @param {Iterable<T>} iterable
-	 * @param {PropertyKey} key Function with condition
-	 */
-	function indexByKey(iterable, key) {
-	  const byKey = empty();
-	  for (const item of iterable) {
-	    byKey[item[key]] = item;
-	  }
-	  return byKey;
 	}
 
 	/**
@@ -4369,34 +4338,15 @@
 	          // Morphed from object/array to the opposite array/object.
 	          target[id] = next;
 	        } else if (isArray(next)) {
-	          const _keys = getKeys(keys, id);
-	          const key = _keys && values(_keys).find(item => isString(item));
+	          const _keys = getKeys();
 
 	          // merge or add by key
-	          if (_keys && key) {
-	            let byKey;
-
-	            // in replace mode first remove `prevs` not found in `next`
-
-	            // index array next
-	            byKey = indexByKey(next, key);
-	            // remove
-	            removeFromArrayConditionally(prev, (i, item) => !byKey[item[key]]);
-
-	            // index array prev
-	            byKey = indexByKey(prev, key);
-
-	            // merge or push
-	            for (const item of next) {
-	              const has = byKey[item[key]];
-	              !has ? prev.push(item) : reconcile(has, item, _keys, id);
-	            }
-	          } else {
+	          {
 	            reconcile(prev, next, _keys, id, true);
 	          }
 	        } else {
 	          // simple object
-	          reconcile(prev, next, inArray ? keys : getKeys(keys, id), id);
+	          reconcile(prev, next, inArray ? keys : getKeys(), id);
 	        }
 	      } else if (prev !== next) {
 	        // simple primitive value
@@ -4417,7 +4367,7 @@
 	    }
 	  }
 	}
-	const getKeys = (keys, id) => keys && id in keys ? keys[id] : undefined;
+	const getKeys = (keys, id) => undefined;
 
 	/**
 	 * Scrolls to an element
