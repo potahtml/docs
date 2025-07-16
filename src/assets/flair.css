@@ -107,33 +107,11 @@
 	-webkit-user-select: none;
 	user-select: none;
 }
-
-/* text  */
-
-[flair~='text-multiline'] {
-	line-height: 1.4;
-}
-[flair~='right'] {
-	display: flex;
-	right: 0;
-}
 [flair~='vertical'] {
 	display: flex;
 }
 [flair~='center'] {
 	display: flex;
-}
-
-/* right */
-[flair~='right'],
-[flair~='row'][flair~='right'] {
-	justify-content: flex-end;
-	justify-items: flex-end;
-}
-[flair~='col'][flair~='right'],
-[flair~='column'][flair~='right'] {
-	align-content: flex-end;
-	align-items: flex-end;
 }
 
 /* vertical */
