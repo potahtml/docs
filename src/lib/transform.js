@@ -1,16 +1,19 @@
 import { prettier } from './prettier.js'
 
-const time = Date.now()
+import { version } from 'pota'
+
+const cacheBurst = '&server-do-not-do-that=' + version
 
 export async function transform(code) {
 	return Promise.all([
-		import('https://esm.sh/pota/babel-preset?bundle=all&bla=' + time),
 		import(
-			'https://esm.sh/@babel/preset-typescript?target=es2022&deps=@babel/helper-globals&bla=' +
-				time
+			'https://esm.sh/pota/babel-preset?bundle=all' + cacheBurst
 		),
-		import('https://esm.sh/@babel/core?bundle=all&bla=' + time),
-		//	,
+		import(
+			'https://esm.sh/@babel/preset-typescript?target=es2022&deps=@babel/helper-globals' +
+				cacheBurst
+		),
+		import('https://esm.sh/@babel/core?bundle=all' + cacheBurst),
 	])
 		.then(imports => {
 			const [

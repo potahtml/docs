@@ -97,6 +97,8 @@ export function Monaco(props) {
 					minimap: { enabled: false },
 					scrollBeyondLastLine: false,
 					wordWrap: props.language === 'json' ? 'on' : 'off',
+					smoothScrolling: false,
+					mouseWheelScrollSensitivity: 4,
 				})
 
 				withValue(props.value, value => {
