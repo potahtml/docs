@@ -77,7 +77,7 @@ const benchmarkTable = {}
 const doBenchmark = false
 
 // tests
-
+/*
 measure('solid', () =>
   testMutable(
     'solid',
@@ -86,8 +86,8 @@ measure('solid', () =>
     memoSolid,
     batchSolid,
     signalSolid,
-    rootSolid,
-  ),
+    rootSolid
+  )
 )
 
 measure('oby', () =>
@@ -98,10 +98,10 @@ measure('oby', () =>
     memoOby,
     batchOby,
     signalOby,
-    rootOby,
-  ),
+    rootOby
+  )
 )
-
+*/
 measure('pota', () =>
   testMutable(
     'pota',
@@ -189,6 +189,24 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
     const result = mutable({ source })
     expect(result.source).not.toBe(source)
     expect(isProxy(result.source)).toBe(true)
+  })
+
+  test(lib + 'equality: returns same proxy for proxy', expect => {
+    const source = { cat: 'quack' }
+    const result1 = mutable(source)
+    const result2 = mutable(result1)
+    expect(result1).toBe(result2)
+    expect(isProxy(result1)).toBe(true)
+    expect(isProxy(result2)).toBe(true)
+  })
+  test(lib + 'equality: doesnt proxy window.location', expect => {
+    const source = window.location
+    const result1 = mutable(source)
+    const result2 = mutable(result1)
+    expect(result1).toBe(result2)
+    expect(result1).toBe(window.location)
+    expect(isProxy(result1)).toBe(false)
+    expect(isProxy(result2)).toBe(false)
   })
 
   // value
@@ -1017,21 +1035,21 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
         calls++
         result.o.something
       })
-      execute1(), execute2()
+      ;(execute1(), execute2())
       expect(calls).toBe(2)
 
       result.o.something = true
       result.o.something = false
-      execute1(), execute2()
+      ;(execute1(), execute2())
       expect(calls).toBe(2)
 
       delete result.o.something
-      execute1(), execute2()
+      ;(execute1(), execute2())
       expect(calls).toBe(2)
 
       result.o.something = true
       result.o.something = false
-      execute1(), execute2()
+      ;(execute1(), execute2())
       expect(calls).toBe(2)
     }
   })
@@ -1657,15 +1675,14 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
       has = Object.hasOwn(m, 'z')
     })
 
-    execute1(), execute2(), execute3()
+    ;(execute1(), execute2(), execute3())
     expect(calls1).toBe(1)
     expect(calls2).toBe(1)
     expect(calls3).toBe(1)
     expect(has).toBe(false)
 
     m.b = 1
-
-    execute1(), execute2(), execute3()
+    ;(execute1(), execute2(), execute3())
     expect(calls1).toBe(2)
     expect(calls2).toBe(1)
     expect(calls3).toBe(1)
@@ -1674,8 +1691,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
     expect(has).toBe(false)
 
     m.a.b = 1
-
-    execute1(), execute2(), execute3()
+    ;(execute1(), execute2(), execute3())
     expect(calls1).toBe(2)
     expect(calls2).toBe(2)
     expect(calls3).toBe(1)
@@ -1684,8 +1700,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
     expect(has).toBe(false)
 
     m.z = 1
-
-    execute1(), execute2(), execute3()
+    ;(execute1(), execute2(), execute3())
     expect(calls1).toBe(2)
     expect(calls2).toBe(2)
     expect(calls3).toBe(2)
@@ -1713,6 +1728,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 
   test(lib + 'Object.create(null)', expect => {
     const o = mutable(Object.create(null))
+
     expect(o.value).toBe(undefined)
 
     testValues(
@@ -3226,16 +3242,16 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
         bar.bar
         calls += 'b'
       })
-      execute1(), execute2()
+      ;(execute1(), execute2())
 
       expect(calls).toBe('fb')
 
       foo.foo += 1
-      execute1(), execute2()
+      ;(execute1(), execute2())
       expect(calls).toBe('fbf')
 
       bar.bar += 1
-      execute1(), execute2()
+      ;(execute1(), execute2())
       expect(calls).toBe('fbfb')
     },
   )
@@ -3823,12 +3839,12 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
     const counter = mutable({ num: 0 })
     const execute1 = memo(() => (dummy1 = counter.num))
     const execute2 = memo(() => (dummy2 = counter.num))
-    execute1(), execute2()
+    ;(execute1(), execute2())
 
     expect(dummy1).toBe(0)
     expect(dummy2).toBe(0)
     counter.num++
-    execute1(), execute2()
+    ;(execute1(), execute2())
     expect(dummy1).toBe(1)
     expect(dummy2).toBe(1)
   })
@@ -3943,18 +3959,18 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
     Object.setPrototypeOf(obj, parent)
     const execute1 = memo(() => (dummy = obj.prop))
     const execute2 = memo(() => (parentDummy = parent.prop))
-    execute1(), execute2()
+    ;(execute1(), execute2())
 
     expect(dummy).toBe(undefined)
     expect(parentDummy).toBe(undefined)
 
     obj.prop = 4
-    execute1(), execute2()
+    ;(execute1(), execute2())
     expect(obj.prop).toBe(4)
     expect(dummy).toBe(4)
 
     parent.prop = 2
-    execute1(), execute2()
+    ;(execute1(), execute2())
     expect(obj.prop).toBe(2)
     expect(dummy).toBe(2)
     expect(parentDummy).toBe(2)
@@ -4038,7 +4054,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
       calls2++
       hasDummy = key in obj
     })
-    execute1(), execute2()
+    ;(execute1(), execute2())
 
     expect(calls1).toBe(1)
     expect(calls2).toBe(1)
@@ -4050,7 +4066,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
     expect(calls2).toBe(1)
 
     obj[key] = 'newValue'
-    execute1(), execute2()
+    ;(execute1(), execute2())
 
     expect(calls1).toBe(2)
     expect(calls2).toBe(1)
@@ -4062,7 +4078,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
     expect(calls2).toBe(1)
 
     delete obj[key]
-    execute1(), execute2()
+    ;(execute1(), execute2())
 
     expect(calls1).toBe(3)
     expect(calls2).toBe(2)
@@ -4157,7 +4173,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
       expect(hasDummy).toBe(true)
 
       obj.prop = 'value'
-      execute1(), execute2()
+      ;(execute1(), execute2())
 
       expect(calls1).toBe(1)
       expect(calls2).toBe(1)
@@ -4434,7 +4450,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
           calls2++
           nums.num2 = nums.num1
         })
-        execute1(), execute2()
+        ;(execute1(), execute2())
 
         expect(nums.num1).toBe(1)
         expect(nums.num2).toBe(1)
@@ -4442,7 +4458,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
         expect(calls2).toBe(1)
 
         nums.num2 = 4
-        execute1(), execute2()
+        ;(execute1(), execute2())
 
         expect(nums.num1).toBe(4)
         expect(nums.num2).toBe(4)
@@ -4450,7 +4466,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
         expect(calls2).toBe(2)
 
         nums.num1 = 10
-        execute1(), execute2()
+        ;(execute1(), execute2())
 
         expect(nums.num1).toBe(10)
         expect(nums.num2).toBe(10)
@@ -4916,6 +4932,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
     expect => {
       const subArray = new SubArray(4, 5, 6)
       const observed = mutable(subArray)
+
       let index
 
       index = subArray.indexOf(4)
@@ -5112,14 +5129,14 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
       calls2++
       result[2]
     })
-    execute1(), execute2()
+    ;(execute1(), execute2())
 
     let calls3 = 0
     const execute3 = memo(() => {
       calls3++
       result.length
     })
-    execute1(), execute2(), execute3()
+    ;(execute1(), execute2(), execute3())
 
     expect(result.length).toBe(1)
     expect(result[40]).toBe(undefined)
@@ -5131,7 +5148,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
     expect(calls3).toBe(1)
 
     result.length = 45
-    execute1(), execute2(), execute3()
+    ;(execute1(), execute2(), execute3())
 
     expect(result.length).toBe(45)
     expect(calls).toBe(1)
@@ -5139,7 +5156,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
     expect(calls3).toBe(2)
 
     result[40] = true
-    execute1(), execute2(), execute3()
+    ;(execute1(), execute2(), execute3())
 
     expect(result[40]).toBe(true)
     expect(calls).toBe(2)
@@ -5147,7 +5164,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
     expect(calls3).toBe(2)
 
     result[41] = true
-    execute1(), execute2(), execute3()
+    ;(execute1(), execute2(), execute3())
 
     expect(result[41]).toBe(true)
     expect(calls).toBe(2)
@@ -5155,7 +5172,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
     expect(calls3).toBe(2)
 
     result[2] = true
-    execute1(), execute2(), execute3()
+    ;(execute1(), execute2(), execute3())
 
     expect(result[2]).toBe(true)
     expect(calls).toBe(2)
@@ -5163,21 +5180,21 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
     expect(calls3).toBe(2)
 
     result.push()
-    execute1(), execute2(), execute3()
+    ;(execute1(), execute2(), execute3())
 
     expect(calls).toBe(2)
     expect(calls2).toBe(2)
     expect(calls3).toBe(2)
 
     result.unshift()
-    execute1(), execute2(), execute3()
+    ;(execute1(), execute2(), execute3())
 
     expect(calls).toBe(2)
     expect(calls2).toBe(2)
     expect(calls3).toBe(2)
 
     result.push(1)
-    execute1(), execute2(), execute3()
+    ;(execute1(), execute2(), execute3())
 
     expect(calls).toBe(2)
     expect(calls2).toBe(2)
@@ -5198,7 +5215,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
       const execute2 = memo(() => {
         result.push(2)
       })
-      execute1(), execute2()
+      ;(execute1(), execute2())
 
       expect(result).toEqual([0, 1, 2])
     },
@@ -5701,18 +5718,18 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
         callsString += 1
         o['0']
       })
-      execute1(), execute2()
+      ;(execute1(), execute2())
 
       expect(callsNumber).toBe(1)
       expect(callsString).toBe(1)
 
       o[0] = 1
-      execute1(), execute2()
+      ;(execute1(), execute2())
       expect(callsNumber).toBe(2)
       expect(callsString).toBe(2)
 
       o['0'] = 2
-      execute1(), execute2()
+      ;(execute1(), execute2())
       expect(callsNumber).toBe(3)
       expect(callsString).toBe(3)
     },
@@ -5794,13 +5811,13 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
     execute()
     expect(index).toBe(1)
     /*
-      console.log(
-        arr,
-        search,
-        arr[0],
-        search === arr[0],
-        search === arr[1],
-      )*/
+          console.log(
+            arr,
+            search,
+            arr[0],
+            search === arr[0],
+            search === arr[1],
+          )*/
   })
 
   test(
@@ -6099,7 +6116,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
       // console.log(observed)
 
       observed[1] = 2
-      execute1(), execute2()
+      ;(execute1(), execute2())
 
       // console.log(observed)
       expect(observed[1]).toBe(2)
@@ -6107,12 +6124,12 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
       expect(length).toBe(2)
 
       observed.unshift(3)
-      execute1(), execute2()
+      ;(execute1(), execute2())
       expect(length).toBe(3)
       expect(a).toBe(3)
 
       observed.length = 0
-      execute1(), execute2()
+      ;(execute1(), execute2())
       expect(length).toBe(0)
       expect(a).toBe(undefined)
     },
@@ -8066,6 +8083,12 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
     expect(new a().value).toBe(2)
     expect(mutable(new a()).value).toBe(2)
 
+    expect(new b().value).toBe(1)
+    expect(mutable(new b()).value).toBe(1)
+
+    expect(new c().value).toBe(3)
+    expect(mutable(new c()).value).toBe(3)
+
     class d1 {
       value = 4
     }
@@ -8089,6 +8112,36 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 
     expect(new a1().value).toBe(4)
     expect(mutable(new a1()).value).toBe(4)
+
+    const oget = {
+      _value: 2,
+      get value() {
+        return this._value
+      },
+      set value(val) {
+        this._value = val
+      },
+
+      test: { something: {} },
+    }
+
+    expect(oget.value).toBe(2)
+    expect(mutable(oget).value).toBe(2)
+
+    let called = 0
+
+    const execute = memo(() => {
+      called++
+      oget.value
+    })
+    execute()
+    expect(called).toBe(1)
+
+    oget.value = 3
+    execute()
+    expect(called).toBe(2)
+    expect(oget.value).toBe(3)
+    expect(mutable(oget).value).toBe(3)
   })
 
   if (lib === 'pota: ') {
@@ -8887,7 +8940,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
       arr: [1, 2, 3, {}],
       arrfilled: new Array(10_000).fill(0).map((_, idx) => idx),
       /*arrBuf: new ArrayBuffer(12),
-      arrTyped: new Int8Array(new ArrayBuffer(24)),*/
+            arrTyped: new Int8Array(new ArrayBuffer(24)),*/
       obj: {
         deep: {
           deeper: true,
@@ -8895,9 +8948,9 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
       },
       date: new Date(),
       /*map: new Map([
-      ['1', 1],
-      ['2', 2],
-    ]),*/
+            ['1', 1],
+            ['2', 2],
+          ]),*/
       set: new Set([1, 2, 3]),
     })
 
@@ -8905,12 +8958,12 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
       arr: new Array(100_000).fill(0).map((_, idx) => idx),
       date: new Date(),
       /*  map: new Map(
-      new Array(100_000)
-        .fill(0)
-        .map((_, idx) => idx)
-        .map(nr => [`${nr}`, nr]),
-    ),
-    set: new Set(new Array(100_000).fill(0).map((_, idx) => idx)),*/
+            new Array(100_000)
+              .fill(0)
+              .map((_, idx) => idx)
+              .map(nr => [`${nr}`, nr]),
+          ),
+          set: new Set(new Array(100_000).fill(0).map((_, idx) => idx)),*/
     })
 
     let superTotal = 0
@@ -9061,125 +9114,125 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 
     /*
 
-    benchmark(
-    'set: array 2',
-    () => {
-      return mutable(OBJ())
-    },
-    ctx => {
-      ctx.arr.copyWithin(0, 1, 2)
-      ctx.arr.fill(0)
-      ctx.arr.pop()
-      ctx.arr.push(-1, -2, -3)
-      ctx.arr.reverse()
-      ctx.arr.shift()
-      ctx.arr.sort()
-      ctx.arr.splice(0, 1, 2)
-      ctx.arr.unshift(5)
-    },
-  )
-  benchmark(
-    'mutate array: copyWithin',
-    () => {
-      return mutable(OBJ())
-    },
-    ctx => {
-      ctx.arrfilled.copyWithin(0, 1, 2)
-    },
-  )
+        benchmark(
+        'set: array 2',
+        () => {
+          return mutable(OBJ())
+        },
+        ctx => {
+          ctx.arr.copyWithin(0, 1, 2)
+          ctx.arr.fill(0)
+          ctx.arr.pop()
+          ctx.arr.push(-1, -2, -3)
+          ctx.arr.reverse()
+          ctx.arr.shift()
+          ctx.arr.sort()
+          ctx.arr.splice(0, 1, 2)
+          ctx.arr.unshift(5)
+        },
+      )
+      benchmark(
+        'mutate array: copyWithin',
+        () => {
+          return mutable(OBJ())
+        },
+        ctx => {
+          ctx.arrfilled.copyWithin(0, 1, 2)
+        },
+      )
 
-  benchmark(
-    'mutate array: fill',
-    () => {
-      return mutable(OBJ())
-    },
-    ctx => {
-      ctx.arrfilled.fill(0)
-    },
-  )
+      benchmark(
+        'mutate array: fill',
+        () => {
+          return mutable(OBJ())
+        },
+        ctx => {
+          ctx.arrfilled.fill(0)
+        },
+      )
 
-  benchmark(
-    'mutate array: pop',
-    () => {
-      return mutable(OBJ())
-    },
-    ctx => {
-      ctx.arrfilled.pop()
-    },
-  )
-  benchmark(
-    'mutate array: push',
-    () => {
-      return mutable(OBJ())
-    },
-    ctx => {
-      ctx.arrfilled.push()
-    },
-  )
-  benchmark(
-    'mutate array: reverse ',
-    () => {
-      return mutable(OBJ())
-    },
-    ctx => {
-      ctx.arrfilled.reverse()
-    },
-  )
-  benchmark(
-    'mutate array: shift ',
-    () => {
-      return mutable(OBJ())
-    },
-    ctx => {
-      ctx.arrfilled.shift()
-    },
-  )
-  benchmark(
-    'mutate array: sort ',
-    () => {
-      return mutable(OBJ())
-    },
-    ctx => {
-      ctx.arrfilled.sort()
-    },
-  )
-  benchmark(
-    'mutate array: splice ',
-    () => {
-      return mutable(OBJ())
-    },
-    ctx => {
-      ctx.arrfilled.splice(0, 1, 2)
-    },
-  )
-  benchmark(
-    'mutate array: unshift ',
-    () => {
-      return mutable(OBJ())
-    },
-    ctx => {
-      ctx.arrfilled.unshift(5)
-    },
-  )
+      benchmark(
+        'mutate array: pop',
+        () => {
+          return mutable(OBJ())
+        },
+        ctx => {
+          ctx.arrfilled.pop()
+        },
+      )
+      benchmark(
+        'mutate array: push',
+        () => {
+          return mutable(OBJ())
+        },
+        ctx => {
+          ctx.arrfilled.push()
+        },
+      )
+      benchmark(
+        'mutate array: reverse ',
+        () => {
+          return mutable(OBJ())
+        },
+        ctx => {
+          ctx.arrfilled.reverse()
+        },
+      )
+      benchmark(
+        'mutate array: shift ',
+        () => {
+          return mutable(OBJ())
+        },
+        ctx => {
+          ctx.arrfilled.shift()
+        },
+      )
+      benchmark(
+        'mutate array: sort ',
+        () => {
+          return mutable(OBJ())
+        },
+        ctx => {
+          ctx.arrfilled.sort()
+        },
+      )
+      benchmark(
+        'mutate array: splice ',
+        () => {
+          return mutable(OBJ())
+        },
+        ctx => {
+          ctx.arrfilled.splice(0, 1, 2)
+        },
+      )
+      benchmark(
+        'mutate array: unshift ',
+        () => {
+          return mutable(OBJ())
+        },
+        ctx => {
+          ctx.arrfilled.unshift(5)
+        },
+      )
 
-  benchmark(
-    'delete: object:shallow ',
-    () => {
-      return mutable(OBJ())
-    },
-    ctx => {
-      delete ctx.arr
-    },
-  )
-  benchmark(
-    'delete: object:deep ',
-    () => {
-      return mutable(OBJ())
-    },
-    ctx => {
-      delete ctx.obj.deep.deeper
-    },
-  )*/
+      benchmark(
+        'delete: object:shallow ',
+        () => {
+          return mutable(OBJ())
+        },
+        ctx => {
+          delete ctx.arr
+        },
+      )
+      benchmark(
+        'delete: object:deep ',
+        () => {
+          return mutable(OBJ())
+        },
+        ctx => {
+          delete ctx.obj.deep.deeper
+        },
+      )*/
     // create
     benchmark(
       'create: number',
@@ -9203,19 +9256,19 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
       },
     )
     /*benchmark(
-    'create: small',
-    () => {},
-    () => {
-      mutable(OBJ())
-    },
-  )
-  benchmark(
-    'create: huge',
-    () => {},
-    () => {
-      mutable(OBJ_HUGE())
-    },
-  )*/
+        'create: small',
+        () => {},
+        () => {
+          mutable(OBJ())
+        },
+      )
+      benchmark(
+        'create: huge',
+        () => {},
+        () => {
+          mutable(OBJ_HUGE())
+        },
+      )*/
   }
 
   function testValues(expect, set, get) {

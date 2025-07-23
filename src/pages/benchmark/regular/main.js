@@ -127,7 +127,7 @@
 	 * @param {unknown} value
 	 * @returns {value is null | undefined}
 	 */
-	const isNullUndefined = value => value === undefined || value === null;
+	const isNullUndefined = value => value == null;
 
 	/**
 	 * Returns `true` when typeof of value is object and not null
@@ -1416,8 +1416,15 @@
 	const createTextNode = bind('createTextNode');
 	const importNode = bind('importNode');
 	const createTreeWalker = bind('createTreeWalker');
-	const addClass = (node, className) => node.classList.add(className);
-	const removeClass = (node, className) => node.classList.remove(className);
+
+	// classNames
+
+	const classNames = s => s ? s.trim().split(/\s+/) : emptyArray;
+	const addClass = (node, className) => className.length && node.classList.add(...className);
+	const removeClass = (node, className) => className.length && node.classList.remove(...className);
+
+	// selector
+
 	const querySelector = (node, query) => node.querySelector(query);
 
 	/**
@@ -1839,26 +1846,18 @@
 	 * @param {Element} node
 	 * @param {object | string | ArrayLike<any>} value
 	 */
-	function setClassList(node, value) {
-	  switch (typeof value) {
-	    case 'string':
-	      {
-	        _setClassListValue(node, value, true);
-	        break;
-	      }
-	    case 'object':
-	      {
-	        let name;
-	        for (name in value) {
-	          setElementClass(node, name, value[name]);
-	        }
-	        break;
-	      }
-	    case 'function':
-	      {
-	        withValue(value, value => setClassList(node, value));
-	        break;
-	      }
+	function setClassList(node, value, prev) {
+	  if (isString(value) || isNullUndefined(value)) {
+	    prev && _setClassListValue(node, prev, false);
+	    value && _setClassListValue(node, value, true);
+	  } else if (isObject(value)) {
+	    for (let name in value) {
+	      setElementClass(node, name, value[name]);
+	    }
+	  } else if (isFunction(value)) {
+	    withPrevValue(value, (value, prev) => {
+	      setClassList(node, value, prev);
+	    });
 	  }
 	}
 	/**
@@ -1881,7 +1880,7 @@
 	 */
 	const _setClassListValue = (node, name, value) => {
 	  // null, undefined or false, the class is removed
-	  !value ? removeClass(node, name) : addClass(node, ...name.trim().split(/\s+/));
+	  !value ? removeClass(node, classNames(name)) : addClass(node, classNames(name));
 	};
 
 	/**

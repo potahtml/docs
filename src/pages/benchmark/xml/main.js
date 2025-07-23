@@ -24,7 +24,6 @@
 	const groupBy = Object$1.groupBy;
 	const is = Object$1.is;
 	const isExtensible = Object$1.isExtensible;
-	const setPrototypeOf = Object$1.setPrototypeOf;
 	const toArray = Array$1.from;
 
 	/**
@@ -39,9 +38,7 @@
 	 */
 	const toEntries = value => isObject(value) && 'entries' in value ? /** @type {{ entries(): IterableIterator<[string, T]> }} */value.entries() : toArray(/** @type {Iterable<T> | ArrayLike<T>} */value);
 	const iterator = Symbol.iterator;
-	const Iterator = window.Iterator;
 	const stringify = JSON.stringify;
-	const PrototypeMap = Map.prototype;
 
 	/**
 	 * @param {(
@@ -72,30 +69,6 @@
 	};
 
 	/**
-	 * @template T
-	 * @param {T} o
-	 * @param {Map<T, T>} [seen]
-	 * @returns {T}
-	 */
-	function copy(o, seen = new Map()) {
-	  if (!isObject(o)) {
-	    return o;
-	  }
-	  if (o instanceof Node || o instanceof Date || o instanceof Set || o instanceof Map || o instanceof WeakSet || o instanceof WeakMap || o instanceof Promise$1 || o instanceof RegExp) {
-	    return o;
-	  }
-	  if (seen.has(o)) {
-	    return /** @type {T} */seen.get(o);
-	  }
-	  const c = /** @type {T} */isArray(o) ? [] : (/** @type {{ [key: string]: unknown }} */{});
-	  seen.set(o, c);
-	  for (const k in o) {
-	    c[k] = copy(o[k], seen);
-	  }
-	  return c;
-	}
-
-	/**
 	 * Object.defineProperty with `enumerable` and `configurable` set to
 	 * `true` unless overwriten by `descriptor` argument
 	 *
@@ -109,28 +82,6 @@
 	  __proto__: null,
 	  configurable: true,
 	  enumerable: true
-	};
-
-	/**
-	 * Object.defineProperty with `configurable`, `writable` and
-	 * `enumerable` as `false`
-	 *
-	 * @template T
-	 * @param {T} target
-	 * @param {PropertyKey} key
-	 * @param {any} value
-	 */
-	const definePropertyReadOnly = (target, key, value) => {
-	  const descriptor = create$1(definePropertyReadOnlyDefaults);
-	  descriptor.value = value;
-	  defineProperty(target, key, descriptor);
-	};
-	const definePropertyReadOnlyDefaults = {
-	  __proto__: null,
-	  configurable: false,
-	  enumerable: false,
-	  writable: false,
-	  value: undefined
 	};
 
 	/**
@@ -154,7 +105,6 @@
 	    yield item;
 	  }
 	  for (const item of getOwnPropertySymbols(target)) {
-	    // todo: causes access!
 	    yield [item, target[item]];
 	  }
 	}
@@ -258,7 +208,7 @@
 	 * @param {unknown} value
 	 * @returns {value is null | undefined}
 	 */
-	const isNullUndefined = value => value === undefined || value === null;
+	const isNullUndefined = value => value == null;
 
 	/**
 	 * Returns `true` when typeof of value is object and not null
@@ -308,6 +258,12 @@
 	 * @returns {boolean}
 	 */
 	const morphedBetweenArrayAndObject = (a, b) => isObject(a) && !isObject(b) || isObject(b) && !isObject(a) || isArray(a) && !isArray(b) || isArray(b) && !isArray(a);
+
+	// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/GeneratorFunction
+	const GeneratorFunction = function* () {}.constructor;
+
+	/** Returns `true` when is a generator function*/
+	const isGeneratorFunction = target => target && (target.constructor === GeneratorFunction || target.constructor?.constructor === GeneratorFunction);
 	const noop = () => {};
 
 	// an optional value is `true` by default, so most of the time is undefined which means is `true`
@@ -342,8 +298,7 @@
 	  getOwnPropertyDescriptor: reflectGetOwnPropertyDescriptor,
 	  get: reflectGet,
 	  apply: reflectApply,
-	  set: reflectSet
-	} = Reflect;
+	  set: reflectSet} = Reflect;
 
 	/**
 	 * Removes a value from an array
@@ -355,21 +310,6 @@
 	function removeFromArray(array, value) {
 	  const index = array.indexOf(value);
 	  if (index !== -1) array.splice(index, 1);
-	}
-
-	/**
-	 * Replace a prototype in the prototype chain with another prototype
-	 *
-	 * @param {object} target - Target object
-	 * @param {object} search - The prototype to replace
-	 * @param {object} replacement - The replacement prototype
-	 */
-	function replacePrototypeWith(target, search, replacement) {
-	  let prototype = target;
-	  while (getPrototypeOf(prototype) !== search) {
-	    prototype = getPrototypeOf(prototype);
-	  }
-	  setPrototypeOf(prototype, replacement);
 	}
 	function walkParents(context, propertyName, cb) {
 	  while (context) {
@@ -1687,10 +1627,20 @@
 	const createTextNode = bind('createTextNode');
 	const createComment = bind('createComment');
 	const createTreeWalker = bind('createTreeWalker');
-	const addClass = (node, className) => node.classList.add(className);
-	const removeClass = (node, className) => node.classList.remove(className);
+
+	// classNames
+
+	const classNames = s => s ? s.trim().split(/\s+/) : emptyArray;
+	const addClass = (node, className) => className.length && node.classList.add(...className);
+	const removeClass = (node, className) => className.length && node.classList.remove(...className);
+
+	// attributes
+
 	const setAttribute$1 = (node, name, value) => node.setAttribute(name, value);
 	const removeAttribute = (node, name) => node.removeAttribute(name);
+
+	// selector
+
 	const querySelector = (node, query) => node.querySelector(query);
 
 	/**
@@ -2159,26 +2109,18 @@
 	 * @param {Element} node
 	 * @param {object | string | ArrayLike<any>} value
 	 */
-	function setClassList(node, value) {
-	  switch (typeof value) {
-	    case 'string':
-	      {
-	        _setClassListValue(node, value, true);
-	        break;
-	      }
-	    case 'object':
-	      {
-	        let name;
-	        for (name in value) {
-	          setElementClass(node, name, value[name]);
-	        }
-	        break;
-	      }
-	    case 'function':
-	      {
-	        withValue(value, value => setClassList(node, value));
-	        break;
-	      }
+	function setClassList(node, value, prev) {
+	  if (isString(value) || isNullUndefined(value)) {
+	    prev && _setClassListValue(node, prev, false);
+	    value && _setClassListValue(node, value, true);
+	  } else if (isObject(value)) {
+	    for (let name in value) {
+	      setElementClass(node, name, value[name]);
+	    }
+	  } else if (isFunction(value)) {
+	    withPrevValue(value, (value, prev) => {
+	      setClassList(node, value, prev);
+	    });
 	  }
 	}
 	/**
@@ -2201,7 +2143,7 @@
 	 */
 	const _setClassListValue = (node, name, value) => {
 	  // null, undefined or false, the class is removed
-	  !value ? removeClass(node, name) : addClass(node, ...name.trim().split(/\s+/));
+	  !value ? removeClass(node, classNames(name)) : addClass(node, classNames(name));
 	};
 
 	/**
@@ -2991,17 +2933,71 @@
 	  children: props.children
 	});
 
-	// @ts-nocheck
+	const constructorsTracked = [Object, Array, Map, undefined /** Object.create(null) */];
 
-	/** @type symbol */
-	const $track = Symbol('track');
-	/** @type symbol */
-	const $trackSlot = Symbol('track-slot');
+	/**
+	 * Returns `true` when `object` can't be made mutable.
+	 *
+	 * @param {any} target
+	 */
+	const isMutationBlacklisted = target => constructorsBlacklist.has(target.constructor) || isGeneratorFunction(target);
+	const constructorsBlacklist = new Set(Object.getOwnPropertyNames(window).map(value => window[value]));
+	constructorsTracked.forEach(value => constructorsBlacklist.delete(value));
+	const prototypeBlacklist = new Set([...constructorsTracked, ...constructorsBlacklist]);
+
+	/**
+	 * Returns `true` when prototype is blacklisted. We won't gather
+	 * getters/setters from the object.
+	 *
+	 * @param {any} target
+	 */
+	const isPrototypeBlacklisted = target => prototypeBlacklist.has(target.constructor) || isGeneratorFunction(target);
+
+	/**
+	 * Returns `true` when `key` is blacklisted. It won't be signalified.
+	 *
+	 * @param {PropertyKey} key
+	 */
+	const isKeyBlacklisted = key => keyBlacklist.has(key);
+
+	/** @type Set<PropertyKey> */
+	const keyBlacklist = new Set(['constructor', '__proto__', ...getOwnValues(Symbol).filter(isSymbol)]);
+
+	/**
+	 * It returns all property descriptors for `target`.
+	 *
+	 * It checks for getters/setters of the prototype chain. The idea is
+	 * that if the prototype provides some getters/setters, then, we
+	 * should be able to track them too.
+	 */
+	function getPropertyDescriptors(target) {
+	  // blacklisted by default
+	  if (isMutationBlacklisted(target)) {
+	    return nothing;
+	  }
+	  let proto = getPrototypeOf(target);
+
+	  /**
+	   * Walk the prototype chain to gather getters/setters
+	   */
+	  const protos = [target];
+	  while (proto && !isPrototypeBlacklisted(proto)) {
+	    protos.push(proto);
+	    proto = getPrototypeOf(proto);
+	  }
+
+	  /** Cocktail */
+	  const descriptors = empty();
+	  for (const proto of protos.reverse()) {
+	    assign(descriptors, getOwnPropertyDescriptors(proto));
+	  }
+	  return descriptors;
+	}
 
 	/** Tracker */
 
 	const [getTracker, setTracker] = weakStore();
-	const createTracker = target => new Track(target, true);
+	const createTracker = () => new Track();
 
 	/**
 	 * Returns a tracker for an object. A tracker is unique per object,
@@ -3013,101 +3009,36 @@
 	 */
 	const tracker = target => getTracker(target, createTracker);
 
-	/**
-	 * Returns the signal tracking the value.
-	 *
-	 * @template T
-	 * @param {T} target
-	 * @param {Track} track
-	 * @param {PropertyKey} key
-	 * @returns {[(newValue) => any, (newValue) => boolean]}
-	 */
-	function trackerValueSignal(target, track, key) {
-	  track = track || tracker(target);
-	  return [track.valueRead.bind(track, key), track.valueWrite.bind(track, key)];
-	}
-
 	/** Track Class */
 
-	const handleNaN = {
+	const equalsIs = {
 	  equals: is
 	};
-	const notEquals = {
+	const equalsNope = {
 	  equals: false
 	};
-	function signals(property, key, type, value, equalsType) {
-	  if (property[type] === undefined) {
-	    /*
-	    log(
-	    	{
-	    		id() {
-	    			return ''
-	    		},
-	    	},
-	    	'creating signal',
-	    	key,
-	    	type,
-	    	value,
-	    )
-	    */
-
-	    property[type] = signal(value, equalsType === 1 && typeof value === 'number' ? handleNaN : equalsType === 2 ? notEquals : undefined);
-	  }
-	  return property[type];
-	}
-	const All = Symbol('All');
-	const OwnKeys = Symbol('OwnKeys');
-	const Value = Symbol('Value');
-	const Has = Symbol('Has');
-	const isUndefined = Symbol('isUndefined');
-	const defaults = {
+	const equalsDefault = undefined;
+	const Values = Symbol('Values');
+	const Keys = Symbol('Keys');
+	const Value = 'Value';
+	const Key = 'Key';
+	const isUndefined = 'isUndefined';
+	const kinds = {
 	  __proto__: null,
 	  [Value]: undefined,
-	  [Has]: undefined,
+	  [Key]: undefined,
 	  [isUndefined]: undefined
 	};
 	class Track {
 	  #props = empty();
-
-	  /*
-	  #id = Math.random()
-	  	id() {
-	  	return this.#id
-	  }
-	  */
-
-	  /**
-	   * @param {object} value
-	   * @param {boolean} [isNew]
-	   */
-	  constructor(value, isNew) {
-	    if (!isNew) {
-	      /**
-	       * An object will already have a tracker when the tracker is
-	       * created outside of mutable. Outside of the proxy handlers.
-	       */
-	      const tracker = getTracker(value);
-	      if (tracker) {
-	        this.#props = tracker.#props;
-	      } else {
-	        setTracker(value, this);
-	      }
-	    }
-	  }
-	  #prop(key) {
+	  #prop(kind, key, value, equalsType) {
 	    if (!(key in this.#props)) {
-	      this.#props[key] = create$1(defaults);
+	      this.#props[key] = create$1(kinds);
 	    }
-	    return this.#props[key];
-	  }
-
-	  /**
-	   * Return true if the signals has already been created
-	   *
-	   * @returns {boolean}
-	   */
-	  #hasSignal(propKey, valueKey) {
-	    return propKey in this.#props && valueKey in this.#props[propKey] && this.#props[propKey][valueKey] !== undefined;
+	    if (this.#props[key][kind] === undefined) {
+	      this.#props[key][kind] = signal(value, equalsType);
+	    }
+	    return this.#props[key][kind];
 	  }
 
 	  /**
@@ -3118,11 +3049,9 @@
 	   * @returns {any} Value
 	   */
 	  valueRead(key, value) {
-	    // log(this, 'valueRead', key, value)
-
 	    /** Do not write to the signal here it will cause a loop */
-	    const signal = signals(this.#prop(key), key, Value, value, 1);
-	    return signal.read(), value;
+	    this.#prop(Value, key, value, equalsIs).read();
+	    return value;
 	  }
 	  /**
 	   * Keeps track of: a value for a `key`
@@ -3132,26 +3061,11 @@
 	   * @returns {boolean} Indicating if the value changed
 	   */
 	  valueWrite(key, value) {
-	    // log(this, 'valueWrite', key, value)
-
-	    const hasSignal = this.#hasSignal(key, Value);
-	    /*
-	    log(
-	    	this,
-	    	'has signal',
-	    	hasSignal,
-	    	this.#props[key] ? this.#props[key][Value] : undefined,
-	    )
-	    */
 	    /**
 	     * Write the value because tracking will re-execute when this
 	     * value changes
 	     */
-	    const signal = signals(this.#prop(key), key, Value, value, 1);
-	    const changed = signal.write(value) || !hasSignal;
-
-	    // log(this, 'valueWrite changed?', changed)
-	    return changed;
+	    return this.#prop(Value, key, undefined, equalsIs).write(value);
 	  }
 
 	  /**
@@ -3160,10 +3074,8 @@
 	   * @param {PropertyKey} key
 	   * @param {boolean} value - Indicating if the property is `in`
 	   */
-	  hasRead(key, value) {
-	    // log(this, 'hasRead', key, value)
-
-	    signals(this.#prop(key), key, Has, value, 0).read();
+	  keyRead(key, value) {
+	    this.#prop(Key, key, value, equalsDefault).read();
 	  }
 	  /**
 	   * Keeps track of: if a `key` is in an object.
@@ -3171,10 +3083,8 @@
 	   * @param {PropertyKey} key
 	   * @param {boolean} value - Indicating if the property is `in`
 	   */
-	  hasWrite(key, value) {
-	    // log(this, 'hasWrite', key, value)
-
-	    signals(this.#prop(key), key, Has, value, 0).write(value);
+	  keyWrite(key, value) {
+	    this.#prop(Key, key, value, equalsDefault).write(value);
 	  }
 
 	  /**
@@ -3182,26 +3092,20 @@
 	   * exists in the object or not.
 	   *
 	   * @param {PropertyKey} key
-	   * @param {boolean} value - Indicating if the property is
-	   *   `undefined`
+	   * @param {boolean} value
 	   */
 	  isUndefinedRead(key, value) {
-	    // log(this, 'isUndefinedRead', key, value)
-
-	    signals(this.#prop(key), key, isUndefined, value, 0).read();
+	    this.#prop(isUndefined, key, value, equalsDefault).read();
 	  }
 	  /**
 	   * Keeps track of: if value is undefined, regardless if the `key`
 	   * exists in the object or not.
 	   *
 	   * @param {PropertyKey} key
-	   * @param {boolean} value - Indicating if the property is
-	   *   `undefined`
+	   * @param {any} value
 	   */
 	  isUndefinedWrite(key, value) {
-	    // log(this, 'isUndefinedWrite', key, value)
-
-	    signals(this.#prop(key), key, isUndefined, value, 0).write(value);
+	    this.#prop(isUndefined, key, value === undefined, equalsDefault).write(value === undefined);
 	  }
 
 	  /**
@@ -3215,10 +3119,8 @@
 	   * @param {any} value
 	   */
 	  add(key, value) {
-	    // log(this, 'add', key, value)
-
-	    this.hasWrite(key, true); // change has
-	    this.isUndefinedWrite(key, value === undefined); // track when is undefined
+	    this.keyWrite(key, true); // change has
+	    this.isUndefinedWrite(key, value); // track when is undefined
 	    this.valueWrite(key, value); // change value
 	  }
 
@@ -3232,7 +3134,7 @@
 	   * @param {any} value
 	   */
 	  modify(key, value) {
-	    this.isUndefinedWrite(key, value === undefined); // track when is undefined
+	    this.isUndefinedWrite(key, value); // track when is undefined
 
 	    return this.valueWrite(key, value); // change value
 	  }
@@ -3247,61 +3149,183 @@
 	   * @param {PropertyKey} key
 	   */
 	  delete(key) {
-	    // log(this, 'delete', key)
-
-	    this.hasWrite(key, false); // change has
-	    this.isUndefinedWrite(key, true); // track when is undefined
+	    this.keyWrite(key, false); // change has
+	    this.isUndefinedWrite(key, undefined); // track when is undefined
 	    this.valueWrite(key, undefined); // change value
 	  }
 
-	  // single signal
+	  /** To indicate keys have been read */
+	  keysRead() {
+	    this.#read(Keys);
+	  }
+	  /** To indicate keys have changed */
+	  keysWrite() {
+	    this.#write(Keys);
+	  }
 
-	  /** For using exclusively with Symbols by reusing the "Value" slot */
+	  /** To indicate values have been read */
+	  valuesRead() {
+	    this.#read(Values);
+	  }
+	  /** To indicate values have changed */
+	  valuesWrite() {
+	    this.#write(Values);
+	  }
 
 	  /**
 	   * To indicate all values have been read
 	   *
 	   * @param {symbol} [key]
 	   */
-	  read(key = All) {
-	    // log(this, 'read', key)
-
-	    signals(this.#prop(key), key, Value, undefined, 2).read();
+	  #read(key) {
+	    this.#prop(Value, key, undefined, equalsNope).read();
 	  }
 	  /**
-	   * To indicate all values have changed *
+	   * To indicate all values have changed
 	   *
 	   * @param {symbol} [key]
 	   */
-	  write(key = All) {
-	    // log(this, 'write', key)
-
-	    signals(this.#prop(key), key, Value, undefined, 2).write();
-	  }
-
-	  /** `ownKeys` read */
-	  ownKeysRead() {
-	    this.read(OwnKeys);
-	  }
-	  /** To indicate keys have change */
-	  ownKeysWrite() {
-	    this.write(OwnKeys);
+	  #write(key) {
+	    this.#prop(Value, key, undefined, equalsNope).write();
 	  }
 	}
 
-	function apply(target, value, args) {
-	  return mutable(reflectApply(value, target, args));
+	/**
+	 * Signalify object properties
+	 *
+	 * @template T
+	 * @param {T} target
+	 * @param {Function} [wrapper] To wrap values
+	 */
+	function signalifyObject(target, wrapper) {
+	  const descriptors = getPropertyDescriptors(target);
+	  const track = tracker(target);
+	  for (const [key, descriptor] of entriesIncludingSymbols(descriptors)) {
+	    signalifyKey(target, key, descriptor, wrapper, track);
+	  }
 	}
-	class ProxyHandlerBase extends Track {
+
+	/**
+	 * Signalify a specific property
+	 *
+	 * @template T
+	 * @param {T} target
+	 * @param {PropertyKey} key
+	 * @param {PropertyDescriptor} descriptor
+	 * @param {Function} [wrapper] To wrap values
+	 * @param {import('./tracker.js').Track} [track] Tracker
+	 */
+	function signalifyKey(target, key, descriptor, wrapper = identity, track) {
+	  if (isKeyBlacklisted(key)) {
+	    return;
+	  }
+
+	  /** Happens when they are signalifying a key that doesn't exists */
+	  if (!descriptor) {
+	    return signalifyUndefinedKey(target, key, wrapper, track);
+	  }
+
+	  /** Avoid keys that cannot be redefined */
+	  if (!descriptor.configurable) {
+	    /** Proxy nested configurable objects */
+	    wrapper(descriptor.value);
+	    return;
+	  }
+
+	  /**
+	   * As getters shouldn't be invoked till used, we dont know the
+	   * value. Assume `descriptor.value` and then check for getters once
+	   * read.
+	   */
+
+	  let value = descriptor.value;
+
+	  /**
+	   * Avoid functions when using `signalify` as it's meant to be used
+	   * in classes. But do not avoid functions when it has a `wrapper`, like
+	   * `mutable`.
+	   */
+	  if (isFunction(value) && wrapper === identity) {
+	    return;
+	  }
+	  const getter = descriptor.get?.bind(target);
+	  const setter = descriptor.set?.bind(target);
+	  defineProperty(target, key, {
+	    get:
+	    /**
+	     * 1. We cannot know if the getter will return the same thing that
+	     *    has been set. For this reason we cant rely on the return
+	     *    value of the signal.
+	     * 2. We need to ensure the return value is always wrapped (for in
+	     *    case of being used as a mutable).
+	     */
+	    getter ? () => {
+	      value = wrapper(getter());
+	      return track.valueRead(key, value);
+	    } : () => {
+	      value = wrapper(value);
+	      return track.valueRead(key, value);
+	    },
+	    set: /** When it's only a getter it shouldn't have a setter */
+	    getter && !setter ? undefined : setter ? val => {
+	      batch(() => {
+	        value = wrapper(val);
+	        setter(value);
+	        track.valueWrite(key, value);
+	      });
+	    } : val => {
+	      batch(() => {
+	        value = wrapper(val);
+	        track.valueWrite(key, value);
+	      });
+	    },
+	    enumerable: descriptor.enumerable,
+	    configurable: true
+	  });
+	}
+
+	/**
+	 * Signalify an undefined property
+	 *
+	 * @template T
+	 * @param {T} target
+	 * @param {PropertyKey} key
+	 * @param {Function} [wrapper] To wrap values
+	 * @param {import('./tracker.js').Track} [track] Tracker
+	 * @param {any} [value] Default value
+	 */
+	function signalifyUndefinedKey(target, key, wrapper = identity, track, value = undefined) {
+	  if (isKeyBlacklisted(key)) {
+	    return;
+	  }
+	  if (isExtensible(target)) {
+	    redefineProperty(target, key, {
+	      get() {
+	        return track.valueRead(key, value);
+	      },
+	      set(val) {
+	        batch(() => {
+	          value = wrapper(val);
+	          track.valueWrite(key, value);
+	        });
+	      }
+	    });
+	  }
+	}
+
+	class ProxyHandlerBase {
 	  // type = 'Base'
 
+	  constructor(value) {
+	    this.track = tracker(value);
+	  }
 	  ownKeys(target) {
-	    this.ownKeysRead();
+	    this.track.keysRead();
 	    return reflectOwnKeys(target);
 	  }
 	  has(target, key) {
 	    const r = reflectHas(target, key);
-	    this.hasRead(key, r);
+	    this.track.keyRead(key, r);
 	    return r;
 	  }
 	  deleteProperty(target, key) {
@@ -3310,8 +3334,8 @@
 	      return true;
 	    }
 	    return batch(() => {
-	      this.ownKeysWrite();
-	      this.delete(key);
+	      this.track.keysWrite();
+	      this.track.delete(key);
 
 	      /**
 	       * Use `delete` instead of `reflectDeleteProperty` so it throws
@@ -3344,22 +3368,412 @@
 
 	    return !isExtensible(target) || !isConfigurable(target, key, value) ? (mutable(value), value) : mutable(value);
 	  }
-	  returnFunction(target, key, value) {
-	    return (...args) => {
-	      /**
-	       * 1. `Reflect.apply` to correct `receiver`. `TypeError: Method
-	       *    Set.prototype.add called on incompatible receiver #<Set>`
-	       * 2. Run in a batch to react to all changes at the same time.
-	       */
-
-	      return batch(() => Object.hasOwn(objectMethods, key) ? objectMethods[key](this, target, value, args) : apply(target, value, args));
-	    };
+	  returnFunction(target, key, value, proxy) {
+	    /**
+	     * 1. `Reflect.apply` to correct `receiver`. `TypeError: Method
+	     *    Set.prototype.add called on incompatible receiver #<Set>`
+	     * 2. Run in a batch to react to all changes at the same time.
+	     */
+	    return (...args) => batch(() => mutable(key in objectMethods ? objectMethods[key](this, target, value, args, proxy) : reflectApply(value, target, args)));
 	  }
 	}
-	var objectMethods = {
-	  hasOwnProperty(track, target, value, args) {
+	const objectMethods = {
+	  __proto__: null,
+	  hasOwnProperty(track, target, value, args, proxy) {
 	    track.has(target, args[0]);
-	    return apply(target, value, args);
+	    return reflectApply(value, target, args);
+	  }
+	};
+
+	/** Proxy for Arrays. In Arrays, values are tracked by the proxy. */
+
+	class ProxyHandlerArray extends ProxyHandlerBase {
+	  // type = 'Array'
+
+	  get(target, key, proxy) {
+	    /** To be able to track properties not yet set */
+	    if (!(key in target)) {
+	      this.track.isUndefinedRead(key, true);
+	    }
+	    const value = reflectGet(target, key, proxy);
+	    return isFunction(value) ? this.returnFunction(target, key, value, proxy) : this.track.valueRead(key, this.returnValue(target, key, value));
+	  }
+	  set(target, key, value, proxy) {
+	    return batch(() => {
+	      /** Always work with mutables */
+	      value = mutable(value);
+
+	      /** New key */
+	      if (!(key in target)) {
+	        this.track.keysWrite(); // change ownKeys
+	        this.track.keyWrite(key, true); // change has
+	        this.track.valuesWrite();
+	      }
+	      if (this.track.modify(key, value)) {
+	        /**
+	         * Dispatch that "something" changed, for these listening for
+	         * every change
+	         */
+	        this.track.valuesWrite();
+
+	        /**
+	         * When explicit setting `length` it needs to mark anything
+	         * deleted as deleted
+	         */
+	        if (key === 'length') {
+	          this.track.keysWrite(); // change ownKeys
+
+	          if (value < target.length) {
+	            for (let k = value; k < target.length; k++) {
+	              this.track.delete(k);
+	            }
+	          }
+	        }
+	      }
+	      const r = reflectSet(target, key, value, proxy);
+
+	      /**
+	       * Always update length. `arr = [], arr[0] = true` length
+	       * changed, so it needs to be updated to 1.
+	       */
+	      this.track.valueWrite('length', target.length);
+	      return r;
+	    });
+	  }
+	  returnFunction(target, key, value, proxy) {
+	    /**
+	     * 1. `Reflect.apply` to correct `receiver`. `TypeError: Method
+	     *    Set.prototype.add called on incompatible receiver #<Set>`
+	     * 2. Run in a batch to react to all changes at the same time.
+	     */
+	    return (...args) => batch(() => mutable(key in arrayMethods ? arrayMethods[key](this, target, value, args, proxy) : reflectApply(value, target, args)));
+	  }
+
+	  /** special track methods for array */
+
+	  /** Dispatch read to specific key */
+	  trackKey(target, key) {
+	    if (key in target) {
+	      this.track.valueRead(key, target[key]);
+	    }
+	  }
+
+	  /** Dispatch reads to a keys range */
+	  trackKeysRange(target, start = 0, end = target.length) {
+	    start = start < 0 ? 0 : start;
+	    end = end > target.length ? target.length : end;
+	    for (let key = start; key < end; key++) {
+	      this.track.valueRead(key, target[key]);
+	    }
+	  }
+
+	  /** Dispatch writes to values that changed */
+	  trackDiff(target, oldLength = target.length) {
+	    let changed = false;
+	    let key = 0;
+	    for (let length = target.length; key < length; key++) {
+	      if (key > oldLength) {
+	        // it's new
+	        this.track.add(key, target[key]);
+	        changed = true;
+	      } else {
+	        // modify existing
+	        if (this.track.modify(key, target[key])) {
+	          changed = true;
+	        }
+	      }
+	    }
+	    // delete deleted
+	    for (; key < oldLength; key++) {
+	      this.track.delete(key);
+	      changed = true;
+	    }
+	    if (oldLength != target.length) {
+	      this.track.keysWrite();
+
+	      // change length
+	      this.track.valueWrite('length', target.length);
+	      changed = true;
+	    }
+	    if (changed) {
+	      this.track.valuesWrite();
+	    }
+	  }
+	}
+
+	/**
+	 * Like Array but tracks.
+	 *
+	 * 1. Instances are supposed to be used Proxied, so theres no need for
+	 *    batching, because the proxy already batches the functions.
+	 * 2. This is an internal Class and is not meant to be used outside
+	 *    `mutable`.
+	 */
+
+	const arrayMethods = {
+	  __proto__: null,
+	  hasOwnProperty(handler, target, value, args, proxy) {
+	    handler.has(target, args[0]);
+	    return reflectApply(value, target, args);
+	  },
+	  /** WRITE METHODS */
+
+	  pop(handler, target, value, args, proxy) {
+	    if (target.length) {
+	      // "something" changed
+	      handler.track.valuesWrite();
+
+	      // ownKeys changed
+	      handler.track.keysWrite();
+
+	      // has, undefined state, value
+	      handler.track.delete(target.length - 1);
+
+	      // length changed
+	      handler.track.valueWrite('length', target.length - 1);
+	    }
+	    return reflectApply(value, target, args);
+	  },
+	  // lib.es5.d.ts
+
+	  push(handler, target, value, args, proxy) {
+	    args = args.map(value => mutable(value));
+
+	    // "something" changed
+	    handler.track.valuesWrite();
+
+	    // ownKeys changed
+	    handler.track.keysWrite();
+
+	    // add keys
+	    for (let key = target.length, item = 0; key < target.length + args.length; key++, item++) {
+	      handler.track.add(key, args[item]);
+	    }
+
+	    // change length
+	    handler.track.valueWrite('length', target.length + args.length);
+	    return reflectApply(value, target, args);
+	  },
+	  /** Removes the first element from an array and returns it. */
+	  shift(handler, target, value, args, proxy) {
+	    if (target.length) {
+	      const r = reflectApply(value, target, args);
+	      handler.trackDiff(target, target.length + 1);
+	      return r;
+	    }
+	  },
+	  /**
+	   * Inserts new elements at the start of an array, and returns the
+	   * new length of the array.
+	   */
+	  unshift(handler, target, value, args, proxy) {
+	    args = args.map(value => mutable(value));
+	    const r = reflectApply(value, target, args);
+	    handler.trackDiff(target, target.length - args.length);
+	    return r;
+	  },
+	  splice(handler, target, value, args, proxy) {
+	    let items = args.slice(2);
+	    items = items.map(value => mutable(value));
+	    const oldLength = target.length;
+	    const r = reflectApply(value, target, args);
+	    handler.trackDiff(target, oldLength);
+	    return r;
+	  },
+	  sort(handler, target, value, args, proxy) {
+	    const r = reflectApply(value, target, args);
+	    handler.trackDiff(target);
+	    return r;
+	  },
+	  reverse(handler, target, value, args, proxy) {
+	    const r = reflectApply(value, target, args);
+	    handler.trackDiff(target);
+	    return r;
+	  },
+	  forEach(handler, target, value, args, proxy) {
+	    handler.track.valuesRead();
+	    reflectApply(value, target, args);
+	  },
+	  map(handler, target, value, args, proxy) {
+	    handler.track.valuesRead();
+	    return reflectApply(value, target, args);
+	  },
+	  every(handler, target, value, args, proxy) {
+	    handler.track.valuesRead();
+	    return reflectApply(value, target, args);
+	  },
+	  some(handler, target, value, args, proxy) {
+	    handler.track.valuesRead();
+	    return reflectApply(value, target, args);
+	  },
+	  // lib.es2015.core.d.ts
+
+	  fill(handler, target, value, args, proxy) {
+	    args[0] = mutable(args[0]);
+	    const r = reflectApply(value, target, args);
+	    handler.trackDiff(target);
+	    return r;
+	  },
+	  copyWithin(handler, target, value, args, proxy) {
+	    const r = reflectApply(value, target, args);
+	    handler.trackDiff(target);
+	    return r;
+	  },
+	  /** READ METHODS */
+
+	  // lib.es5.d.ts
+
+	  toString(handler, target, value, args, proxy) {
+	    handler.track.valuesRead();
+	    return reflectApply(value, target, args);
+	  },
+	  toLocaleString(handler, target, value, args, proxy) {
+	    handler.track.valuesRead();
+	    return reflectApply(value, target, args);
+	  },
+	  slice(handler, target, value, args, proxy) {
+	    let start = args[0];
+	    let end = args[1];
+	    start = start > 0 ? start : start < 0 ? start + target.length : 0;
+	    end = end > 0 ? end : end < 0 ? end + target.length : target.length;
+	    const r = reflectApply(value, target, args);
+	    handler.trackKeysRange(target, start, end);
+	    return r;
+	  },
+	  join(handler, target, value, args, proxy) {
+	    handler.track.valuesRead();
+	    return reflectApply(value, target, args);
+	  },
+	  concat(handler, target, value, args, proxy) {
+	    handler.track.valuesRead();
+	    args = args.map(value => mutable(value));
+	    return reflectApply(value, target, args);
+	  },
+	  indexOf(handler, target, value, args, proxy) {
+	    const searchElement = args[0];
+	    const fromIndex = args[1];
+	    const key = target.indexOf(mutable(searchElement), fromIndex);
+	    handler.trackKey(target, key);
+	    return key;
+	  },
+	  lastIndexOf(handler, target, value, args, proxy) {
+	    const searchElement = args[0];
+	    const fromIndex = args[1];
+	    const key = target.lastIndexOf(mutable(searchElement), fromIndex === undefined ? target.length - 1 : fromIndex);
+	    handler.trackKey(target, key);
+	    return key;
+	  },
+	  filter(handler, target, value, args, proxy) {
+	    handler.track.valuesRead();
+	    return reflectApply(value, target, args);
+	  },
+	  reduce(handler, target, value, args, proxy) {
+	    handler.track.valuesRead();
+	    return reflectApply(value, target, args);
+	  },
+	  reduceRight(handler, target, value, args, proxy) {
+	    handler.track.valuesRead();
+	    return reflectApply(value, target, args);
+	  },
+	  // lib.es2015.core.d.ts
+
+	  find(handler, target, value, args, proxy) {
+	    handler.track.valuesRead();
+	    return reflectApply(value, target, args);
+	  },
+	  findIndex(handler, target, value, args, proxy) {
+	    handler.track.valuesRead();
+	    return reflectApply(value, target, args);
+	  },
+	  // lib.es2015.iterable.d.ts
+
+	  *entries(handler, target, value, args, proxy) {
+	    for (const entry of target.entries()) {
+	      handler.track.valueRead(entry[0], entry[1]);
+	      yield entry;
+	    }
+
+	    // for when empty and for when iterating all
+	    handler.track.valuesRead();
+	    handler.track.keysRead();
+	  },
+	  *keys(handler, target, value, args, proxy) {
+	    for (const key of target.keys()) {
+	      handler.track.keyRead(key, true);
+	      yield key;
+	    }
+
+	    // for when empty and for when iterating all
+	    handler.track.keysRead();
+	  },
+	  *values(handler, target, value, args, proxy) {
+	    for (const [key, _value] of target.entries()) {
+	      handler.track.valueRead(key, _value);
+	      yield _value;
+	    }
+
+	    // for when empty and for when iterating all
+	    handler.track.valuesRead();
+	    handler.track.keysRead();
+	  },
+	  [iterator](handler, target, value, args, proxy) {
+	    return this.values(handler, target, value, args, proxy);
+	  },
+	  // lib.es2016.array.include.d.ts
+
+	  includes(handler, target, value, args, proxy) {
+	    handler.track.valuesRead();
+	    args[0] = mutable(args[0]);
+	    return reflectApply(value, target, args);
+	  },
+	  // lib.es2019.array.d.ts
+
+	  flat(handler, target, value, args, proxy) {
+	    handler.track.valuesRead();
+	    return reflectApply(value, target, args);
+	  },
+	  flatMap(handler, target, value, args, proxy) {
+	    handler.track.valuesRead();
+	    return reflectApply(value, target, args);
+	  },
+	  // lib.es2022.array.d.ts
+
+	  at(handler, target, value, args, proxy) {
+	    let key = args[0];
+	    key = key < 0 ? key + target.length : key;
+	    handler.trackKey(target, key);
+	    return reflectApply(value, target, args);
+	  },
+	  // lib.es2023.array.d.ts
+
+	  findLast(handler, target, value, args, proxy) {
+	    handler.track.valuesRead();
+	    return reflectApply(value, target, args);
+	  },
+	  findLastIndex(handler, target, value, args, proxy) {
+	    handler.track.valuesRead();
+	    return reflectApply(value, target, args);
+	  },
+	  toReversed(handler, target, value, args, proxy) {
+	    handler.track.valuesRead();
+	    return reflectApply(value, target, args);
+	  },
+	  toSorted(handler, target, value, args, proxy) {
+	    handler.track.valuesRead();
+	    return reflectApply(value, target, args);
+	  },
+	  toSpliced(handler, target, value, args, proxy) {
+	    handler.track.valuesRead();
+	    for (let i = 2; i < args.length; i++) {
+	      args[i] = mutable(args[i]);
+	    }
+	    return reflectApply(value, target, args);
+	  },
+	  with(handler, target, value, args, proxy) {
+	    let key = args[0];
+	    key = key < 0 ? key + target.length : key;
+	    handler.trackKey(target, key);
+	    return reflectApply(value, target, args);
 	  }
 	};
 
@@ -3373,17 +3787,10 @@
 	  get(target, key, proxy) {
 	    /** To be able to track properties not yet set */
 	    if (!(key in target)) {
-	      this.isUndefinedRead(key, true);
+	      this.track.isUndefinedRead(key, true);
 	    }
-
-	    /** Tracking + value */
 	    const value = reflectGet(target, key, proxy);
-
-	    /** Proxy all functions */
-	    if (isFunction(value)) {
-	      return this.returnFunction(target, key, value);
-	    }
-	    return this.returnValue(target, key, value);
+	    return isFunction(value) ? this.returnFunction(target, key, value, proxy) : this.returnValue(target, key, value);
 	  }
 	  set(target, key, value, proxy) {
 	    return batch(() => {
@@ -3392,22 +3799,55 @@
 
 	      /** New key */
 	      if (!(key in target)) {
-	        this.ownKeysWrite(); // change ownKeys
-	        this.hasWrite(key, true); // change has
-	        signalifyUndefinedKey(target, key, mutable, this, value); // track value
+	        this.track.keysWrite(); // change ownKeys
+	        this.track.keyWrite(key, true); // change has
+	        signalifyUndefinedKey(target, key, mutable, this.track, value); // track value
 	      }
 	      /**
 	       * To trigger the change when was read but not yet defined. It
 	       * handles the cases: deleting an undefined property, setting to
 	       * undefined a property that was deleted.
 	       */
-	      this.isUndefinedWrite(key, value === undefined);
+	      this.track.isUndefinedWrite(key, value);
 	      return reflectSet(target, key, value, proxy);
 	    });
 	  }
 	}
 
-	// @ts-nocheck
+	/**
+	 * Proxy for objects. In objects, values are tracked by the
+	 * setter/getters in the properties.
+	 */
+	class ProxyHandlerMap extends ProxyHandlerObject {
+	  // type = 'Map'
+
+	  constructor(value) {
+	    super(value);
+	    this.trackSlot = tracker(empty());
+	  }
+	  get(target, key, proxy) {
+	    /** To be able to track properties not yet set */
+	    if (!(key in target)) {
+	      this.track.isUndefinedRead(key, true);
+	    }
+
+	    /** Tracking + value
+	     * For whatever reason `size` is special for `Map`
+	     */
+
+	    const value = key === 'size' ? this.track.valueRead(key, reflectGet(target, key, target)) : reflectGet(target, key, proxy);
+	    return isFunction(value) ? this.returnFunction(target, key, value, proxy) : this.returnValue(target, key, value);
+	  }
+	  returnFunction(target, key, value, proxy) {
+	    /**
+	     * 1. `Reflect.apply` to correct `receiver`. `TypeError: Method
+	     *    Set.prototype.add called on incompatible receiver #<Set>`
+	     * 2. Run in a batch to react to all changes at the same time.
+	     */
+
+	    return (...args) => batch(() => mutable(key in mapMethods ? mapMethods[key](this, this.trackSlot, target, value, args, proxy) : reflectApply(value, target, args)));
+	  }
+	}
 
 	/**
 	 * Like Map but tracks.
@@ -3418,131 +3858,143 @@
 	 *    `mutable`.
 	 */
 
-	class ReactiveMap extends Map {
-	  /** @type {import('../tracker.js').Track} */
-	  [$track];
-	  [$trackSlot] = new Track(this);
-	  get size() {
-	    return super.size;
-	  }
-	  has(key) {
-	    const r = super.has(key);
-	    this[$trackSlot].hasRead(key, r);
+	const mapMethods = {
+	  __proto__: null,
+	  has(handler, trackSlot, target, value, args, proxy) {
+	    const key = args[0];
+	    const r = reflectApply(value, target, args);
+	    trackSlot.keyRead(key, r);
 	    return r;
-	  }
-	  get(key) {
-	    const r = super.get(key);
-	    this[$trackSlot].valueRead(key, r);
+	  },
+	  get(handler, trackSlot, target, value, args, proxy) {
+	    const key = args[0];
+	    const r = reflectApply(value, target, args);
+	    trackSlot.valueRead(key, r);
 	    return r;
-	  }
-	  set(key, value) {
-	    value = mutable(value);
-	    const slot = this[$trackSlot];
-	    if (super.has(key)) {
-	      if (super.get(key) === value) {
-	        return this;
+	  },
+	  set(handler, trackSlot, target, value, args, proxy) {
+	    const key = args[0];
+	    const val = mutable(args[1]);
+	    if (target.has(key)) {
+	      if (target.get(key) === val) {
+	        return reflectApply(value, target, args);
 	      }
 	    } else {
-	      slot.ownKeysWrite();
+	      trackSlot.keysWrite();
 	    }
-	    slot.write();
-	    slot.hasWrite(key, true);
-	    slot.valueWrite(key, value);
-	    super.set(key, value);
-	    this[$track].valueWrite('size', super.size);
-	    return this;
-	  }
-	  delete(key) {
-	    const r = super.delete(key);
+	    trackSlot.valuesWrite();
+	    trackSlot.keyWrite(key, true);
+	    trackSlot.valueWrite(key, val);
+	    const r = reflectApply(value, target, args);
+	    handler.track.valueWrite('size', target.size);
+	    return r;
+	  },
+	  delete(handler, trackSlot, target, value, args, proxy) {
+	    const key = args[0];
+	    const r = reflectApply(value, target, args);
 	    if (r) {
-	      const slot = this[$trackSlot];
-	      slot.ownKeysWrite();
-	      slot.write();
-	      slot.hasWrite(key, false);
-	      slot.valueWrite(key, undefined);
-	      this[$track].valueWrite('size', super.size);
+	      trackSlot.keysWrite();
+	      trackSlot.valuesWrite();
+	      trackSlot.keyWrite(key, false);
+	      trackSlot.valueWrite(key, undefined);
+	      handler.track.valueWrite('size', target.size);
 	    }
 	    return r;
-	  }
-	  clear() {
-	    if (super.size) {
-	      const slot = this[$trackSlot];
-	      slot.ownKeysWrite();
-	      slot.write();
-	      for (const key of super.keys()) {
-	        slot.hasWrite(key, false);
-	        slot.valueWrite(key, undefined);
+	  },
+	  clear(handler, trackSlot, target, value, args, proxy) {
+	    if (target.size) {
+	      trackSlot.keysWrite();
+	      trackSlot.valuesWrite();
+	      for (const key of target.keys()) {
+	        trackSlot.keyWrite(key, false);
+	        trackSlot.valueWrite(key, undefined);
 	      }
-	      super.clear();
-	      this[$track].valueWrite('size', 0);
+	      reflectApply(value, target, args);
+	      handler.track.valueWrite('size', 0);
 	    }
-	  }
-	  forEach(cb) {
-	    const slot = this[$trackSlot];
-	    slot.read();
-	    slot.ownKeysRead();
-	    for (const [key, value] of super.entries()) {
-	      slot.valueRead(key, value);
-	      cb(value, key, this);
+	  },
+	  forEach(handler, trackSlot, target, value, args, proxy) {
+	    const cb = args[0];
+	    trackSlot.valuesRead();
+	    trackSlot.keysRead();
+	    for (const [key, value] of target.entries()) {
+	      trackSlot.valueRead(key, value);
+	      cb(value, key, proxy);
 	    }
-	  }
-	  *keys() {
-	    const slot = this[$trackSlot];
-	    for (const key of super.keys()) {
-	      slot.hasRead(key, true);
+	  },
+	  *keys(handler, trackSlot, target, value, args, proxy) {
+	    for (const key of target.keys()) {
+	      trackSlot.keyRead(key, true);
 	      yield key;
 	    }
 
 	    // for when empty and for when iterating all
-	    slot.ownKeysRead();
-	  }
-	  *values() {
-	    const slot = this[$trackSlot];
-	    for (const [key, value] of super.entries()) {
-	      slot.valueRead(key, value);
+	    trackSlot.keysRead();
+	  },
+	  *values(handler, trackSlot, target, value, args, proxy) {
+	    for (const [key, value] of target.entries()) {
+	      trackSlot.valueRead(key, value);
 	      yield value;
 	    }
 
 	    // for when empty and for when iterating all
-	    slot.read();
-	    slot.ownKeysRead();
-	  }
-	  *entries() {
-	    const slot = this[$trackSlot];
-	    for (const entry of super.entries()) {
-	      slot.valueRead(entry[0], entry[1]);
+	    trackSlot.valuesRead();
+	    trackSlot.keysRead();
+	  },
+	  *entries(handler, trackSlot, target, value, args, proxy) {
+	    for (const entry of target.entries()) {
+	      trackSlot.valueRead(entry[0], entry[1]);
 	      yield entry;
 	    }
 
 	    // for when empty and for when iterating all
-	    slot.read();
-	    slot.ownKeysRead();
+	    trackSlot.valuesRead();
+	    trackSlot.keysRead();
+	  },
+	  [iterator](handler, trackSlot, target, value, args, proxy) {
+	    return this.entries(handler, trackSlot, target, value, args, proxy);
 	  }
-	  [iterator]() {
-	    return this.entries();
+	};
+
+	/**
+	 * Copies an object leaving native/built-ins intact
+	 *
+	 * @template T
+	 * @param {T} o
+	 * @returns {T}
+	 */
+	function copy(o, seen = new Map()) {
+	  if (!isObject(o)) {
+	    return o;
 	  }
+	  if (isMutationBlacklisted(o)) {
+	    return o;
+	  }
+	  if (seen.has(o)) {
+	    return /** @type {T} */seen.get(o);
+	  }
+	  const c = /** @type {T} */isArray(o) ? [] : (/** @type {{ [key: string]: unknown }} */{});
+	  seen.set(o, c);
+	  for (const k in o) {
+	    c[k] = copy(o[k], seen);
+	  }
+	  return c;
 	}
 
 	/** Keeps track of what objects have already been made into a proxy */
 	const [getProxy, setProxy] = weakStore();
-	const saveProxy = (value, proxy) => {
-	  setProxy(value, proxy);
-	  if (value !== proxy) setProxy(proxy, proxy);
-	  return proxy;
-	};
-	function createProxy(target, Handler, setTrack = true) {
-	  const handler = new Handler(target);
-	  setTrack && definePropertyReadOnly(target, $track, handler);
-
+	function createProxy(target, Handler) {
+	  const proxy = new Proxy(target, new Handler(target));
 	  /**
 	   * Before mutating the content of it (for example calling
 	   * `signalifyObject` or making the content of an array mutable),
-	   * save it. In case the mutation triggers `mutable` before we have a
+	   * save it. In case the mutation triggers `mutable` on the same object, before we have a
 	   * chance to save it as a proxy. To avoid the posible situation of
 	   * having 2 different proxies for the same value.
 	   */
-
-	  return saveProxy(target, new Proxy(target, handler));
+	  setProxy(target, proxy);
+	  setProxy(proxy, proxy);
+	  return proxy;
 	}
 
 	/**
@@ -3579,13 +4031,12 @@
 	   * blacklist can be customized by editing the set from blacklist.js
 	   */
 	  if (isMutationBlacklisted(value)) {
-	    return saveProxy(value, value);
+	    setProxy(value, value);
+	    return value;
 	  }
 
 	  /**
-	   * Array methods are proxied by changing their prototype to be
-	   * `ReactiveArray extends Array`. ReactiveArray is also proxied so
-	   * functions can be batched.
+	   * Array methods are proxied by ProxyHandlerArray
 	   */
 	  if (isArray(value)) {
 	    proxy = createProxy(value, ProxyHandlerArray);
@@ -3598,682 +4049,22 @@
 	  }
 
 	  /**
-	   * Map methods are proxied by changing their prototype to be
-	   * `ReactiveMap extends Map`. ReactiveMap is also proxied so
-	   * functions can be batched.
+	   * Map methods are proxied by ProxyHandlerMap
 	   */
 	  if (value instanceof Map) {
-	    if (value instanceof ReactiveMap) {
-	      /**
-	       * If value is already an instance of ReactiveMap and not
-	       * proxied (we didn't find a proxy for it a few lines above),
-	       * then its a new copy of itself.
-	       */
-
-	      proxy = createProxy(value, ProxyHandlerObject);
-
-	      // well I didnt comment this, now I wonder whats going on here
-	      // seems like its tracking the map object but I wonder if thats needed at all
-	      signalifyObject(value, mutable);
-	      return proxy;
-	    }
-
-	    /** Class MyClass extends ... extends Map {} */
-	    replacePrototypeWith(value, PrototypeMap, new ReactiveMap());
-	    proxy = createProxy(value, ProxyHandlerObject);
+	    proxy = createProxy(value, ProxyHandlerMap);
 
 	    /** Make the content mutable. */
 	    untrack(() => value.forEach((value, key, map) => {
-	      map.set(key, value);
+	      map.set(key, mutable(value));
 	    }));
-
-	    // well I didnt comment this, now I wonder whats going on here
-	    // seems like its tracking the map object but I wonder if thats needed at all
-	    signalifyObject(value, mutable);
 	    return proxy;
 	  }
 
 	  /** An intance of something we dont have a special handler for it */
-	  proxy = createProxy(value, ProxyHandlerObject, false);
+	  proxy = createProxy(value, ProxyHandlerObject);
 	  signalifyObject(value, mutable);
 	  return proxy;
-	}
-
-	/** Proxy for Arrays. In Arrays, values are tracked by the proxy. */
-
-	class ProxyHandlerArray extends ProxyHandlerBase {
-	  // type = 'Array'
-
-	  get(target, key, proxy) {
-	    /** To be able to track properties not yet set */
-	    if (!(key in target)) {
-	      this.isUndefinedRead(key, true);
-	    }
-
-	    /** Value */
-	    const value = reflectGet(target, key, proxy);
-
-	    /** Proxy all functions */
-	    if (isFunction(value)) {
-	      return this.returnFunction(target, key, value);
-	    }
-	    return this.valueRead(key, this.returnValue(target, key, value));
-	  }
-	  set(target, key, value, proxy) {
-	    return batch(() => {
-	      /** Always work with mutables */
-	      value = mutable(value);
-
-	      /** New key */
-	      if (!(key in target)) {
-	        this.ownKeysWrite(); // change ownKeys
-	        this.hasWrite(key, true); // change has
-	        this.write();
-	      }
-	      if (this.modify(key, value)) {
-	        /**
-	         * Dispatch that "something" changed, for these listening for
-	         * every change
-	         */
-	        this.write();
-
-	        /**
-	         * When explicit setting `length` it needs to mark anything
-	         * deleted as deleted
-	         */
-	        if (key === 'length') {
-	          this.ownKeysWrite(); // change ownKeys
-
-	          if (value < target.length) {
-	            for (let k = value; k < target.length; k++) {
-	              this.delete(k);
-	            }
-	          }
-	        }
-	      }
-	      const r = reflectSet(target, key, value, proxy);
-
-	      /**
-	       * Always update length. `arr = [], arr[0] = true` length
-	       * changed, so it needs to be updated to 1.
-	       */
-	      this.valueWrite('length', target.length);
-	      return r;
-	    });
-	  }
-	  returnFunction(target, key, value) {
-	    return (...args) => {
-	      /**
-	       * 1. `Reflect.apply` to correct `receiver`. `TypeError: Method
-	       *    Set.prototype.add called on incompatible receiver #<Set>`
-	       * 2. Run in a batch to react to all changes at the same time.
-	       */
-
-	      return batch(() => Object.hasOwn(arrayMethods, key) ? arrayMethods[key](this, target, value, args) : apply(target, value, args));
-	    };
-	  }
-	}
-
-	/**
-	 * Like Array but tracks.
-	 *
-	 * 1. Instances are supposed to be used Proxied, so theres no need for
-	 *    batching, because the proxy already batches the functions.
-	 * 2. This is an internal Class and is not meant to be used outside
-	 *    `mutable`.
-	 */
-
-	const arrayMethods = {
-	  hasOwnProperty(track, target, value, args) {
-	    track.has(target, args[0]);
-	    return apply(target, value, args);
-	  },
-	  /** WRITE METHODS */
-
-	  pop(track, target, value, args) {
-	    if (target.length) {
-	      // "something" changed
-	      track.write();
-
-	      // ownKeys changed
-	      track.ownKeysWrite();
-
-	      // has, undefined state, value
-	      track.delete(target.length - 1);
-
-	      // length changed
-	      track.valueWrite('length', target.length - 1);
-	    }
-	    return apply(target, value, args);
-	  },
-	  // lib.es5.d.ts
-
-	  push(track, target, value, args) {
-	    args = args.map(mutable);
-
-	    // "something" changed
-	    track.write();
-
-	    // ownKeys changed
-	    track.ownKeysWrite();
-
-	    // add keys
-	    for (let key = target.length, item = 0; key < target.length + args.length; key++, item++) {
-	      track.add(key, args[item]);
-	    }
-
-	    // change length
-	    track.valueWrite('length', target.length + args.length);
-	    return apply(target, value, args);
-	  },
-	  /** Removes the first element from an array and returns it. */
-	  shift(track, target, value, args) {
-	    if (target.length) {
-	      const r = apply(target, value, args);
-	      trackDiff(track, target, target.length + 1);
-	      return r;
-	    }
-	  },
-	  /**
-	   * Inserts new elements at the start of an array, and returns the
-	   * new length of the array.
-	   */
-	  unshift(track, target, value, args) {
-	    args = args.map(mutable);
-	    const r = apply(target, value, args);
-	    trackDiff(track, target, target.length - args.length);
-	    return r;
-	  },
-	  splice(track, target, value, args) {
-	    let items = args.slice(2);
-	    items = items.map(mutable);
-	    const oldLength = target.length;
-	    const r = apply(target, value, args);
-	    trackDiff(track, target, oldLength);
-	    return r;
-	  },
-	  // @ts-ignore
-	  sort(track, target, value, args) {
-	    const r = apply(target, value, args);
-	    trackDiff(track, target);
-	    return r;
-	  },
-	  reverse(track, target, value, args) {
-	    const r = apply(target, value, args);
-	    trackDiff(track, target);
-	    return r;
-	  },
-	  forEach(track, target, value, args) {
-	    track.read();
-	    apply(target, value, args);
-	  },
-	  map(track, target, value, args) {
-	    track.read();
-	    return apply(target, value, args);
-	  },
-	  every(track, target, value, args) {
-	    track.read();
-	    return apply(target, value, args);
-	  },
-	  some(track, target, value, args) {
-	    track.read();
-	    return apply(target, value, args);
-	  },
-	  // lib.es2015.core.d.ts
-
-	  fill(track, target, value, args) {
-	    args[0] = mutable(args[0]);
-
-	    // @ts-ignore
-	    const r = apply(target, value, args);
-	    trackDiff(track, target);
-	    return r;
-	  },
-	  copyWithin(track, target, value, args) {
-	    // @ts-ignore
-	    const r = apply(target, value, args);
-	    trackDiff(track, target);
-	    return r;
-	  },
-	  /** READ METHODS */
-
-	  // lib.es5.d.ts
-
-	  toString(track, target, value, args) {
-	    console.log('toString');
-	    track.read();
-	    return apply(target, value, args);
-	  },
-	  toLocaleString(track, target, value, args) {
-	    track.read();
-	    return apply(target, value, args);
-	  },
-	  slice(track, target, value, args) {
-	    let start = args[0];
-	    let end = args[1];
-	    start = start > 0 ? start : start < 0 ? start + target.length : 0;
-	    end = end > 0 ? end : end < 0 ? end + target.length : target.length;
-	    const r = apply(target, value, args);
-	    trackKeysRange(track, target, start, end);
-	    return r;
-	  },
-	  join(track, target, value, args) {
-	    track.read();
-	    return apply(target, value, args);
-	  },
-	  concat(track, target, value, args) {
-	    track.read();
-	    args = args.map(mutable);
-	    return apply(target, value, args);
-	  },
-	  indexOf(track, target, value, args) {
-	    const searchElement = args[0];
-	    const fromIndex = args[1];
-	    const key = target.indexOf(mutable(searchElement), fromIndex);
-	    trackKey(track, target, key);
-	    return key;
-	  },
-	  lastIndexOf(track, target, value, args) {
-	    const searchElement = args[0];
-	    const fromIndex = args[1];
-	    const key = target.lastIndexOf(mutable(searchElement), fromIndex === undefined ? target.length - 1 : fromIndex);
-	    trackKey(track, target, key);
-	    return key;
-	  },
-	  filter(track, target, value, args) {
-	    track.read();
-	    return apply(target, value, args);
-	  },
-	  reduce(track, target, value, args) {
-	    track.read();
-	    return apply(target, value, args);
-	  },
-	  reduceRight(track, target, value, args) {
-	    track.read();
-	    return apply(target, value, args);
-	  },
-	  // lib.es2015.core.d.ts
-
-	  find(track, target, value, args) {
-	    track.read();
-	    return apply(target, value, args);
-	  },
-	  findIndex(track, target, value, args) {
-	    track.read();
-	    return apply(target, value, args);
-	  },
-	  // lib.es2015.iterable.d.ts
-
-	  *entries(track, target, value, args) {
-	    for (const entry of target) {
-	      track.valueRead(entry[0], entry[1]);
-	      yield entry;
-	    }
-
-	    // for when empty and for when iterating all
-	    track.read();
-	    track.ownKeysRead();
-	  },
-	  *keys(track, target, value, args) {
-	    for (const key of target.keys()) {
-	      track.hasRead(key, true);
-	      yield key;
-	    }
-
-	    // for when empty and for when iterating all
-	    track.ownKeysRead();
-	  },
-	  *values(track, target, _value, args) {
-	    for (const [key, value] of target.entries()) {
-	      track.valueRead(key, value);
-	      yield value;
-	    }
-
-	    // for when empty and for when iterating all
-	    track.read();
-	    track.ownKeysRead();
-	  },
-	  *[iterator](track, target, value, args) {
-	    track.read();
-	    track.ownKeysRead();
-	    return target.values();
-	  },
-	  // lib.es2016.array.include.d.ts
-
-	  includes(track, target, value, args) {
-	    track.read();
-	    args[0] = mutable(args[0]);
-	    return apply(target, value, args);
-	  },
-	  // lib.es2019.array.d.ts
-
-	  flat(track, target, value, args) {
-	    track.read();
-	    return apply(target, value, args);
-	  },
-	  flatMap(track, target, value, args) {
-	    track.read();
-	    return apply(target, value, args);
-	  },
-	  // lib.es2022.array.d.ts
-
-	  at(track, target, value, args) {
-	    let key = args[0];
-	    key = key < 0 ? key + target.length : key;
-	    trackKey(track, target, key);
-	    return apply(target, value, args);
-	  },
-	  // lib.es2023.array.d.ts
-
-	  findLast(track, target, value, args) {
-	    track.read();
-	    return apply(target, value, args);
-	  },
-	  findLastIndex(track, target, value, args) {
-	    track.read();
-	    return apply(target, value, args);
-	  },
-	  toReversed(track, target, value, args) {
-	    track.read();
-	    return apply(target, value, args);
-	  },
-	  toSorted(track, target, value, args) {
-	    track.read();
-	    return apply(target, value, args);
-	  },
-	  toSpliced(track, target, value, args) {
-	    track.read();
-	    for (let i = 2; i < args.length; i++) {
-	      args[i] = mutable(args[i]);
-	    }
-	    return apply(target, value, args);
-	  },
-	  with(track, target, value, args) {
-	    let key = args[0];
-	    key = key < 0 ? key + target.length : key;
-	    trackKey(track, target, key);
-	    return apply(target, value, args);
-	  }
-	};
-
-	/** Dispatch read to specific key */
-	function trackKey(track, target, key) {
-	  if (key in target) {
-	    track.valueRead(key, target[key]);
-	  }
-	}
-
-	/** Dispatch reads to a keys range */
-	function trackKeysRange(track, target, start = 0, end = target.length) {
-	  start = start < 0 ? 0 : start;
-	  end = end > target.length ? target.length : end;
-	  for (let key = start; key < end; key++) {
-	    // console.log('reading', key)
-	    track.valueRead(key, target[key]);
-	  }
-	}
-
-	/** Dispatch writes to values that changed */
-	function trackDiff(track, target, oldLength = target.length) {
-	  let changed = false;
-	  let key = 0;
-	  for (let length = target.length; key < length; key++) {
-	    if (key > oldLength) {
-	      // it's new
-	      track.add(key, target[key]);
-	      changed = true;
-	    } else {
-	      // modify existing
-	      if (track.modify(key, target[key])) {
-	        changed = true;
-	      }
-	    }
-	  }
-	  // delete deleted
-	  for (; key < oldLength; key++) {
-	    track.delete(key);
-	    changed = true;
-	  }
-	  if (oldLength != target.length) {
-	    track.ownKeysWrite();
-
-	    // change length
-	    track.valueWrite('length', target.length);
-	    changed = true;
-	  }
-	  if (changed) {
-	    track.write();
-	  }
-	}
-
-	const mutableBlacklist = [Date, Promise$1, RegExp, Set,
-	// Map,
-
-	Iterator,
-	// handlers - to avoid walking the prototype
-	ProxyHandlerBase, ProxyHandlerObject, ProxyHandlerArray, Track];
-	const prototypeBlacklist = [Object, Array, Map, ...mutableBlacklist];
-
-	/** @type PropertyKey[] */
-	const keyBlacklist = ['constructor', '__proto__', $track, $trackSlot, ...getOwnValues(Symbol).filter(isSymbol)];
-	const methodsBlacklist = [...getOwnValues(ReactiveMap.prototype)];
-
-	/**
-	 * Returns `true` when `object` can't be made mutable.
-	 *
-	 * @param {any} target
-	 */
-	const isMutationBlacklisted = target => target === window || target instanceof Node || mutableBlacklist.includes(target.constructor);
-
-	/**
-	 * Returns `true` when prototype is blacklisted. We won't gather
-	 * getters/setters from the object.
-	 *
-	 * @param {any} target
-	 */
-	const isPrototypeBlacklisted = target => prototypeBlacklist.includes(target.constructor) || target[Symbol.toStringTag] === 'Generator';
-
-	/**
-	 * Returns `true` when `key` is blacklisted. It won't be signalified.
-	 *
-	 * @param {PropertyKey} key
-	 */
-	const isKeyBlacklisted = key => keyBlacklist.includes(key);
-
-	/**
-	 * Returns `true` when `method` is blacklisted. It won't be
-	 * signalified.
-	 *
-	 * @param {Function} value
-	 */
-	const isMethodBlacklisted = value => methodsBlacklist.includes(value);
-
-	/**
-	 * It returns all property descriptors for `target`.
-	 *
-	 * It checks for getters/setters of the prototype chain. The idea is
-	 * that if the prototype provides some getters/setters, then, we
-	 * should be able to track them too.
-	 */
-	function getPropertyDescriptors(target) {
-	  const constructor = target?.constructor;
-
-	  // common built-ins prototype getters/setters are ignored
-	  if (constructor === Object || constructor === undefined) {
-	    return getOwnPropertyDescriptors(target);
-	  }
-
-	  // blacklisted by default
-	  if (isMutationBlacklisted(target)) {
-	    return nothing;
-	  }
-
-	  /**
-	   * Walk the prototype chain to gather getters/setters from
-	   * prototypes.
-	   */
-	  let proto = getPrototypeOf(target);
-	  if (isPrototypeBlacklisted(proto)) {
-	    return nothing;
-	  }
-
-	  /** Gather getters/setters from prototype */
-	  const protos = [];
-	  while (proto && !isPrototypeBlacklisted(proto)) {
-	    protos.push(proto);
-	    proto = getPrototypeOf(proto);
-	  }
-	  const descriptors = empty();
-	  for (const proto of protos.reverse()) {
-	    assign(descriptors, getOwnPropertyDescriptors(proto));
-	  }
-	  // TODO MOVE THIS UP
-	  // Gather getters/setters from target
-	  if (!isPrototypeBlacklisted(target)) {
-	    assign(descriptors, getOwnPropertyDescriptors(target));
-	  }
-	  // console.log(descriptors, target)
-	  return descriptors;
-	}
-
-	/**
-	 * Signalify object properties
-	 *
-	 * @template T
-	 * @param {T} target
-	 * @param {Function} [wrapper] To wrap values
-	 */
-	function signalifyObject(target, wrapper) {
-	  const descriptors = getPropertyDescriptors(target);
-	  const track = tracker(target);
-	  for (const [key, descriptor] of entriesIncludingSymbols(descriptors)) {
-	    signalifyKey(target, key, descriptor, wrapper, track);
-	  }
-	}
-
-	/**
-	 * Signalify a specific property
-	 *
-	 * @template T
-	 * @param {T} target
-	 * @param {PropertyKey} key
-	 * @param {PropertyDescriptor} descriptor
-	 * @param {Function} [wrapper] To wrap values
-	 * @param {any} [track] Tracker
-	 */
-	function signalifyKey(target, key, descriptor, wrapper = identity, track) {
-	  if (isKeyBlacklisted(key)) {
-	    return;
-	  }
-
-	  /** Happens when they are signalifying a key that doesn't exists */
-	  if (!descriptor) {
-	    return signalifyUndefinedKey(target, key, wrapper, track);
-	  }
-
-	  /** Avoid keys that cannot be redefined */
-	  if (!descriptor.configurable) {
-	    /** Proxy nested configurable objects */
-	    wrapper(descriptor.value);
-	    return;
-	  }
-
-	  /**
-	   * As getters shouldn't be invoked till used, we dont know the
-	   * value. Assume `descriptor.value` and then check for getters once
-	   * read.
-	   */
-
-	  let value = descriptor.value;
-
-	  /**
-	   * Avoid functions when using `signalify` as it's meant to be used
-	   * in classes.
-	   */
-	  if (isFunction(value)) {
-	    /**
-	     * But do not avoid functions when it has a `wrapper`, like
-	     * `mutable`.
-	     */
-	    if (wrapper === identity) {
-	      return;
-	    }
-
-	    // blacklist common prototype methods
-	    if (isMethodBlacklisted(value)) {
-	      return;
-	    }
-	  }
-
-	  // console.log(key, target)
-
-	  // tracker
-
-	  const [read, write] = trackerValueSignal(target, track, key);
-	  const getter = descriptor.get?.bind(target);
-	  const setter = descriptor.set?.bind(target);
-	  defineProperty(target, key, {
-	    get:
-	    /**
-	     * 1. We cannot know if the getter will return the same thing that
-	     *    has been set. For this reason we cant rely on the return
-	     *    value of the signal.
-	     * 2. We need to ensure the return value is always wrapped (for in
-	     *    case of being used as a mutable).
-	     */
-	    getter ? () => {
-	      value = wrapper(getter());
-	      return read(value);
-	    } : () => {
-	      value = wrapper(value);
-	      return read(value);
-	    },
-	    set: /** When it's only a getter it shouldn't have a setter */
-	    getter && !setter ? undefined : setter ? val => {
-	      batch(() => {
-	        value = wrapper(val);
-	        setter(value);
-	        write(value);
-	      });
-	    } : val => {
-	      batch(() => {
-	        value = wrapper(val);
-	        write(value);
-	      });
-	    },
-	    enumerable: descriptor.enumerable,
-	    configurable: true
-	  });
-	}
-
-	/**
-	 * Signalify an undefined property
-	 *
-	 * @template T
-	 * @param {T} target
-	 * @param {PropertyKey} key
-	 * @param {Function} [wrapper] To wrap values
-	 * @param {any} [track] Tracker
-	 * @param {any} [value] Default value
-	 */
-	function signalifyUndefinedKey(target, key, wrapper = identity, track, value = undefined) {
-	  if (isKeyBlacklisted(key)) {
-	    return;
-	  }
-	  if (isExtensible(target)) {
-	    const [read, write] = trackerValueSignal(target, track, key);
-	    redefineProperty(target, key, {
-	      get() {
-	        return read(value);
-	      },
-	      set(val) {
-	        batch(() => {
-	          value = wrapper(val);
-	          write(value);
-	        });
-	      }
-	    });
-	  }
 	}
 
 	// https://github.com/mobxjs/mobx/issues/1590
