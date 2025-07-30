@@ -114,14 +114,6 @@
 	const isFunction = value => typeof value === 'function';
 
 	/**
-	 * Returns `true` when value is Iterable
-	 *
-	 * @param {unknown} value
-	 * @returns {value is Iterable<unknown>}
-	 */
-	const isIterable = value => value?.[iterator];
-
-	/**
 	 * Returns `true` if the value is `null` or `undefined`
 	 *
 	 * @param {unknown} value
@@ -1052,7 +1044,6 @@
 	  owned,
 	  root,
 	  signal,
-	  syncEffect,
 	  untrack
 	} = createReactiveSystem();
 
@@ -1103,6 +1094,8 @@
 	  disposer;
 	  nodes;
 	  indexSignal;
+	  _begin;
+	  _end;
 	  constructor(item, index, fn, isDupe, reactiveIndex) {
 	    this.item = item;
 	    this.index = index;
@@ -1117,6 +1110,8 @@
 	        /** @type Children[] */
 	        this.nodes = fn(item, index);
 	      }
+	      this._begin = null;
+	      this._end = null;
 	    });
 	  }
 	  updateIndex(index) {
@@ -1128,10 +1123,28 @@
 	    }
 	  }
 	  begin() {
-	    return this.nodes[0];
+	    if (!this._begin) {
+	      this.getBegin(this.nodes);
+	    }
+	    return this._begin;
+	  }
+	  getBegin(nodes) {
+	    if (isArray(nodes)) {
+	      return this.getBegin(nodes[0]);
+	    }
+	    this._begin = nodes;
 	  }
 	  end() {
-	    return this.nodes[this.nodes.length - 1];
+	    if (!this._end) {
+	      this.getEnd(this.nodes);
+	    }
+	    return this._end;
+	  }
+	  getEnd(nodes) {
+	    if (isArray(nodes)) {
+	      return this.getEnd(nodes[nodes.length - 1]);
+	    }
+	    this._end = nodes;
 	  }
 	  nodesForRow() {
 	    const begin = this.begin();
@@ -1303,7 +1316,7 @@
 	    prev = rows;
 
 	    // return external representation
-	    return rows.flatMap(item => item.nodes);
+	    return rows.map(item => item.nodes);
 	  }
 	  mapper[$isMap] = undefined;
 	  return mapper;
@@ -1390,6 +1403,18 @@
 	  node.removeEventListener(type, handler, !isFunction(handler) ? (/** @type {EventHandlerOptions} */handler) : undefined);
 	  return () => addEvent(node, type, handler);
 	}
+
+	/**
+	 * It gives a handler an owner, so stuff runs batched on it, and
+	 * things like context and cleanup work
+	 *
+	 * @template {EventHandler<Event, Element>} T
+	 * @param {T} handler
+	 */
+	const ownedEvent = handler => 'handleEvent' in handler ? {
+	  ...handler,
+	  handleEvent: owned(e => handler.handleEvent(e))
+	} : owned(handler);
 
 	const document$1 = window.document;
 	const head = document$1?.head;
@@ -1501,7 +1526,7 @@
 	/** @type [][] */
 	let queue$1;
 	function reset() {
-	  queue$1 = [[], [], [], [], [], []];
+	  queue$1 = [[], [], [], [], []];
 	  added = false;
 	}
 
@@ -1549,18 +1574,11 @@
 	const onProps = fn => add(1, fn);
 
 	/**
-	 * Queue a function to run onRef (before onMount, after onProps)
-	 *
-	 * @param {Function} fn
-	 */
-	const onRef = fn => add(2, fn);
-
-	/**
 	 * Queue a function to run onMount (before ready, after onRef)
 	 *
 	 * @param {Function} fn
 	 */
-	const onMount = fn => add(3, fn);
+	const onMount = fn => add(2, fn);
 
 	const plugins = cacheStore();
 	const pluginsNS = cacheStore();
@@ -1690,7 +1708,7 @@
 	 */
 	const setEvent = (node, name, value) => {
 	  // `value &&` because avoids crash when `on:click={prop.onClick}` and `!prop.onClick`
-	  value && addEvent(node, name, value); // ownedEvent
+	  value && addEvent(node, name, ownedEvent(value)); // ownedEvent
 	};
 
 	/** Returns true or false with a `chance` of getting `true` */
@@ -1723,7 +1741,7 @@
 	 * @param {Function} value
 	 */
 	const setRef = (node, name, value) => {
-	  onRef(() => value(node));
+	  value(node);
 	};
 
 	/**
@@ -2176,18 +2194,7 @@
 
 	        // For - TODO move this to the `For` component
 	        $isMap in child ? effect(() => {
-	          node = toDiff(node, flatToArray(child(child => {
-	            /**
-	             * Wrap the item with placeholders, for when stuff
-	             * in between moves. If a `Show` adds and removes
-	             * nodes, we dont have a reference to these nodes.
-	             * By delimiting with a shore, we can just handle
-	             * anything in between as a group.
-	             */
-	            const begin = createPlaceholder(parent, true);
-	            const end = createPlaceholder(parent, true);
-	            return [begin, createChildren(end, child, true), end];
-	          })), true);
+	          node = toDiff(node, flatToArray(child(child => createChildren(parent, child, true))), true);
 	        }) : effect(() => {
 	          // maybe a signal (at least a function) so needs an effect
 	          node = toDiff(node, flatToArray(createChildren(parent, child(), true, node[0])), true);
@@ -2508,65 +2515,24 @@
 	}
 
 	/**
-	 * Returns a `isSelected` function that will return `true` when the
-	 * argument for it matches the original signal `value`.
+	 * Returns a `function` that receives as a second argument whats
+	 * returned from it.
 	 *
-	 * @param {SignalAccessor<any>} value - Signal with the current value
+	 * @template T
+	 * @param {(next: T, previous: T) => T} fn
 	 */
-	function useSelector(value) {
-	  const map = new Map();
-	  let prev = [];
-	  syncEffect(() => {
-	    const val = value();
-	    const selected = isIterable(val) ? toArray(val.values()) : val === undefined ? [] : [val];
+	function usePrevious(fn) {
+	  let previous;
 
-	    // unselect
-	    for (const value of prev) {
-	      if (!selected.includes(value)) {
-	        const current = map.get(value);
-	        current && current.write(false);
-	      }
-	    }
-
-	    // select
-	    for (const value of selected) {
-	      if (!prev.includes(value)) {
-	        const current = map.get(value);
-	        current && current.write(true);
-	      }
-	    }
-	    prev = selected;
-	  });
-
-	  /**
-	   * Is selected function, it will return `true` when the value
-	   * matches the current signal.
-	   *
-	   * @template T
-	   * @param {T} item - Values to compare with current
-	   * @returns {SignalAccessor<T>} A signal with a boolean value
-	   */
-	  return function isSelected(item) {
-	    let selected = map.get(item);
-	    if (!selected) {
-	      selected = signal(prev.includes(item));
-	      selected.counter = 1;
-	      map.set(item, selected);
-	    } else {
-	      selected.counter++;
-	    }
-	    cleanup(() => {
-	      if (--selected.counter === 0) {
-	        map.delete(item);
-	      }
-	    });
-	    return selected.read;
+	  /** @param {T} [next] */
+	  return next => {
+	    previous = fn(next, previous);
 	  };
 	}
 
 	var _div = createPartial("<div class='col-sm-6 smallpad'><button class='btn btn-primary btn-block' type=button></button></div>", {"0":1,"m":2}),
-	  _div2 = createPartial("<div class=container><div class=jumbotron><div class=row><div class=col-md-6><h1>pota Keyed</h1></div><div class=col-md-6><div class=row></div></div></div></div><table class='table table-hover table-striped test-data'><tbody></tbody></table><span class='preloadicon glyphicon glyphicon-remove' aria-hidden=true></span></div>", {"0":6,"1":7,"2":8,"m":9}),
-	  _tr = createPartial("<tr><td class=col-md-1></td><td class=col-md-4><a></a></td><td class=col-md-1><a><span class='glyphicon glyphicon-remove' aria-hidden=true></span></a></td><td class=col-md-6></td></tr>", {"2":3,"3":6,"m":7});
+	  _div2 = createPartial("<div class=container><div class=jumbotron><div class=row><div class=col-md-6><h1>pota Keyed</h1></div><div class=col-md-6><div class=row></div></div></div></div><table class='table table-hover table-striped test-data'><tbody></tbody></table><span aria-hidden=true class='preloadicon glyphicon glyphicon-remove'></span></div>", {"0":6,"1":8,"m":9}),
+	  _tr = createPartial("<tr><td class=col-md-1></td><td class=col-md-4><a data-select></a></td><td class=col-md-1><a><span data-remove aria-hidden=true class='glyphicon glyphicon-remove'></span></a></td><td class=col-md-6></td></tr>", {"0":1,"1":3,"m":4});
 	const _For = createComponent(For);
 	let idCounter = 1;
 	const adjectives = ['pretty', 'large', 'big', 'small', 'tall', 'short', 'long', 'handsome', 'plain', 'quaint', 'clean', 'elegant', 'easy', 'angry', 'crazy', 'helpful', 'mushy', 'odd', 'unsightly', 'adorable', 'important', 'inexpensive', 'cheap', 'expensive', 'fancy'],
@@ -2578,11 +2544,11 @@
 	function buildData(count) {
 	  const data = new Array(count);
 	  for (let i = 0; i < count; i++) {
-	    const [label, setLabel, updateLabel] = signal(`${adjectives[_random(adjectives.length)]} ${colours[_random(colours.length)]} ${nouns[_random(nouns.length)]}`);
+	    const [label,, update] = signal(`${adjectives[_random(adjectives.length)]} ${colours[_random(colours.length)]} ${nouns[_random(nouns.length)]}`);
 	    data[i] = {
 	      id: idCounter++,
 	      label,
-	      updateLabel
+	      update
 	    };
 	  }
 	  return data;
@@ -2592,14 +2558,13 @@
 	  text,
 	  fn
 	}) => _div([_node => {
-	  setAttribute(_node, "textContent", text);
-	  setAttribute(_node, "id", id);
+	  _node.textContent = getValue(/* @static */text);
+	  _node.setAttribute("id", getValue(/* @static */id));
 	  setEvent(_node, "click", fn);
 	}]);
 	const _Button = createComponent(Button);
 	const App = () => {
 	  const [data, setData, updateData] = signal([]),
-	    [selected, setSelected] = signal(null),
 	    run = () => {
 	      setData(buildData(1000));
 	    },
@@ -2612,7 +2577,7 @@
 	    update = () => {
 	      const d = data();
 	      const len = d.length;
-	      for (let i = 0; i < len; i += 10) d[i].updateLabel(l => l + ' !!!');
+	      for (let i = 0; i < len; i += 10) d[i].update(l => l + ' !!!');
 	    },
 	    swapRows = () => {
 	      const d = [...data()];
@@ -2633,7 +2598,13 @@
 	        return [...d];
 	      });
 	    },
-	    isSelected = useSelector(selected);
+	    danger = usePrevious((next, previous) => {
+	      next.setAttribute('class', 'danger');
+	      if (previous) {
+	        previous.removeAttribute('class');
+	      }
+	      return next;
+	    });
 	  return _div2([_node5 => {
 	    createChildren(_node5, [_Button({
 	      fn: run,
@@ -2660,32 +2631,21 @@
 	      id: "swaprows",
 	      text: "Swap Rows"
 	    })]);
-	  }, _node16 => {
-	    setEvent(_node16, "click", e => {
-	      const element = e.target;
-	      if (element.selectRow !== undefined) {
-	        setSelected(element.selectRow);
-	      } else if (element.removeRow !== undefined) {
-	        remove(element.removeRow);
+	  }, _node15 => {
+	    setEvent(_node15, "click", e => {
+	      if ('remove' in e.target.dataset) {
+	        remove(+e.target.parentNode.parentNode.parentNode.firstChild.textContent);
+	      } else if ('select' in e.target.dataset) {
+	        danger(e.target.parentNode.parentNode);
 	      }
 	    });
-	  }, _node15 => {
 	    createChildren(_node15, _For({
 	      each: data,
 	      children: row => {
-	        const {
-	          id,
-	          label
-	        } = row;
-	        return _tr([_node14 => {
-	          setElementClass(_node14, "danger", isSelected(id));
-	        }, _node9 => {
-	          setAttribute(_node9, "textContent", id);
+	        return _tr([_node9 => {
+	          _node9.textContent = getValue(/* @static  */row.id);
 	        }, _node0 => {
-	          setAttribute(_node0, "textContent", label);
-	          setProperty(_node0, "selectRow", id);
-	        }, _node10 => {
-	          setProperty(_node10, "removeRow", id);
+	          setProperty(_node0, "textContent", row.label);
 	        }]);
 	      }
 	    }));

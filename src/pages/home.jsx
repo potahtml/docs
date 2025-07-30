@@ -24,9 +24,9 @@ export default function Home() {
 
 				<p>
 					<b>pota</b> is a <em>small</em> and pluggable Reactive Web
-					Renderer. It's compiler-less, includes an <mark>html</mark>{' '}
-					function, and a optimized babel preset in case you fancy
-					JSX.
+					Renderer. It includes an optimized babel preset in case you
+					fancy JSX, but can also be used compiler-less, includes an{' '}
+					<mark>xml</mark> function.
 				</p>
 			</Header>
 
@@ -65,9 +65,6 @@ export default function Home() {
 						destructure function arguments and objects
 					</li>
 					<li>
-						Renders any kind of XML, including custom namespaces
-					</li>
-					<li>
 						Provides a <mark>propsPlugin</mark> function for using
 						custom props on any element
 					</li>
@@ -77,12 +74,6 @@ export default function Home() {
 					</li>
 					<li>Functions are tracked, regardless of nesting depth</li>
 					<li>Renders objects, promises, maps, sets, etc</li>
-
-					<li>
-						Supports <mark>Class</mark> components with automatic
-						method registration for <mark>ready</mark> and{' '}
-						<mark>cleanup</mark>
-					</li>
 					<li>
 						<mark>Portal</mark> does not wrap children in a{' '}
 						<mark>div</mark>
@@ -119,7 +110,8 @@ export default function Home() {
 					</a>{' '}
 					is small and readable. Prioritizes consistency and is
 					subjectively easy to understand. Its driven by developer
-					needs, not benchmarks.
+					needs, not benchmarks. Its mostly a research and personal
+					project, that I use for myself and to help improve Solid.
 				</p>
 			</Section>
 

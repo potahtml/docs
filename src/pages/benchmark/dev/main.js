@@ -1094,6 +1094,8 @@
 	  disposer;
 	  nodes;
 	  indexSignal;
+	  _begin;
+	  _end;
 	  constructor(item, index, fn, isDupe, reactiveIndex) {
 	    this.item = item;
 	    this.index = index;
@@ -1108,6 +1110,8 @@
 	        /** @type Children[] */
 	        this.nodes = fn(item, index);
 	      }
+	      this._begin = null;
+	      this._end = null;
 	    });
 	  }
 	  updateIndex(index) {
@@ -1119,10 +1123,28 @@
 	    }
 	  }
 	  begin() {
-	    return this.nodes[0];
+	    if (!this._begin) {
+	      this.getBegin(this.nodes);
+	    }
+	    return this._begin;
+	  }
+	  getBegin(nodes) {
+	    if (isArray(nodes)) {
+	      return this.getBegin(nodes[0]);
+	    }
+	    this._begin = nodes;
 	  }
 	  end() {
-	    return this.nodes[this.nodes.length - 1];
+	    if (!this._end) {
+	      this.getEnd(this.nodes);
+	    }
+	    return this._end;
+	  }
+	  getEnd(nodes) {
+	    if (isArray(nodes)) {
+	      return this.getEnd(nodes[nodes.length - 1]);
+	    }
+	    this._end = nodes;
 	  }
 	  nodesForRow() {
 	    const begin = this.begin();
@@ -1294,7 +1316,7 @@
 	    prev = rows;
 
 	    // return external representation
-	    return rows.flatMap(item => item.nodes);
+	    return rows.map(item => item.nodes);
 	  }
 	  mapper[$isMap] = undefined;
 	  return mapper;
@@ -1381,6 +1403,18 @@
 	  node.removeEventListener(type, handler, !isFunction(handler) ? (/** @type {EventHandlerOptions} */handler) : undefined);
 	  return () => addEvent(node, type, handler);
 	}
+
+	/**
+	 * It gives a handler an owner, so stuff runs batched on it, and
+	 * things like context and cleanup work
+	 *
+	 * @template {EventHandler<Event, Element>} T
+	 * @param {T} handler
+	 */
+	const ownedEvent = handler => 'handleEvent' in handler ? {
+	  ...handler,
+	  handleEvent: owned(e => handler.handleEvent(e))
+	} : owned(handler);
 
 	const document$1 = window.document;
 	const head = document$1?.head;
@@ -1492,7 +1526,7 @@
 	/** @type [][] */
 	let queue$1;
 	function reset() {
-	  queue$1 = [[], [], [], [], [], []];
+	  queue$1 = [[], [], [], [], []];
 	  added = false;
 	}
 
@@ -1540,18 +1574,11 @@
 	const onProps = fn => add(1, fn);
 
 	/**
-	 * Queue a function to run onRef (before onMount, after onProps)
-	 *
-	 * @param {Function} fn
-	 */
-	const onRef = fn => add(2, fn);
-
-	/**
 	 * Queue a function to run onMount (before ready, after onRef)
 	 *
 	 * @param {Function} fn
 	 */
-	const onMount = fn => add(3, fn);
+	const onMount = fn => add(2, fn);
 
 	const plugins = cacheStore();
 	const pluginsNS = cacheStore();
@@ -1681,7 +1708,7 @@
 	 */
 	const setEvent = (node, name, value) => {
 	  // `value &&` because avoids crash when `on:click={prop.onClick}` and `!prop.onClick`
-	  value && addEvent(node, name, value); // ownedEvent
+	  value && addEvent(node, name, ownedEvent(value)); // ownedEvent
 	};
 
 	/** Returns true or false with a `chance` of getting `true` */
@@ -1714,7 +1741,7 @@
 	 * @param {Function} value
 	 */
 	const setRef = (node, name, value) => {
-	  onRef(() => value(node));
+	  value(node);
 	};
 
 	/**
@@ -2167,18 +2194,7 @@
 
 	        // For - TODO move this to the `For` component
 	        $isMap in child ? effect(() => {
-	          node = toDiff(node, flatToArray(child(child => {
-	            /**
-	             * Wrap the item with placeholders, for when stuff
-	             * in between moves. If a `Show` adds and removes
-	             * nodes, we dont have a reference to these nodes.
-	             * By delimiting with a shore, we can just handle
-	             * anything in between as a group.
-	             */
-	            const begin = createPlaceholder(parent, true);
-	            const end = createPlaceholder(parent, true);
-	            return [begin, createChildren(end, child, true), end];
-	          })), true);
+	          node = toDiff(node, flatToArray(child(child => createChildren(parent, child, true))), true);
 	        }) : effect(() => {
 	          // maybe a signal (at least a function) so needs an effect
 	          node = toDiff(node, flatToArray(createChildren(parent, child(), true, node[0])), true);

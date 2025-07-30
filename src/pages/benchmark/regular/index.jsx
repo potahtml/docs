@@ -1,7 +1,7 @@
 import { render, signal } from 'pota'
 import { For } from 'pota/components'
 
-import { useSelector } from 'pota/use/selector'
+import { usePrevious } from 'pota/use/selector'
 
 let idCounter = 1
 const adjectives = [
@@ -67,13 +67,13 @@ function _random(max) {
 function buildData(count) {
   const data = new Array(count)
   for (let i = 0; i < count; i++) {
-    const [label, setLabel, updateLabel] = signal(
+    const [label, , update] = signal(
       `${adjectives[_random(adjectives.length)]} ${colours[_random(colours.length)]} ${nouns[_random(nouns.length)]}`,
     )
     data[i] = {
       id: idCounter++,
       label,
-      updateLabel,
+      update,
     }
   }
   return data
@@ -82,8 +82,8 @@ function buildData(count) {
 const Button = ({ id, text, fn }) => (
   <div class="col-sm-6 smallpad">
     <button
-      textContent={text}
-      id={id}
+      prop:textContent={/* @static */ text}
+      id={/* @static */ id}
       class="btn btn-primary btn-block"
       type="button"
       on:click={fn}
@@ -93,7 +93,6 @@ const Button = ({ id, text, fn }) => (
 
 const App = () => {
   const [data, setData, updateData] = signal([]),
-    [selected, setSelected] = signal(null),
     run = () => {
       setData(buildData(1000))
     },
@@ -106,8 +105,7 @@ const App = () => {
     update = () => {
       const d = data()
       const len = d.length
-      for (let i = 0; i < len; i += 10)
-        d[i].updateLabel(l => l + ' !!!')
+      for (let i = 0; i < len; i += 10) d[i].update(l => l + ' !!!')
     },
     swapRows = () => {
       const d = [...data()]
@@ -128,7 +126,14 @@ const App = () => {
         return [...d]
       })
     },
-    isSelected = useSelector(selected)
+    danger = usePrevious((next, previous) => {
+      next.setAttribute('class', 'danger')
+
+      if (previous) {
+        previous.removeAttribute('class')
+      }
+      return next
+    })
 
   return (
     <div class="container">
@@ -173,40 +178,39 @@ const App = () => {
           </div>
         </div>
       </div>
-      <table
-        class="table table-hover table-striped test-data"
-        on:click={e => {
-          const element = e.target
-          if (element.selectRow !== undefined) {
-            setSelected(element.selectRow)
-          } else if (element.removeRow !== undefined) {
-            remove(element.removeRow)
-          }
-        }}
-      >
-        <tbody>
+      <table class="table table-hover table-striped test-data">
+        <tbody
+          on:click={e => {
+            if ('remove' in e.target.dataset) {
+              remove(
+                +e.target.parentNode.parentNode.parentNode.firstChild
+                  .textContent,
+              )
+            } else if ('select' in e.target.dataset) {
+              danger(e.target.parentNode.parentNode)
+            }
+          }}
+        >
           <For each={data}>
             {row => {
-              const { id, label } = row
-
               return (
-                <tr class:danger={isSelected(id)}>
+                <tr>
                   <td
-                    textContent={id}
+                    prop:textContent={/* @static  */ row.id}
                     class="col-md-1"
                   />
                   <td class="col-md-4">
                     <a
-                      textContent={label}
-                      prop:selectRow={id}
+                      data-select
+                      prop:textContent={row.label}
                     />
                   </td>
                   <td class="col-md-1">
                     <a>
                       <span
-                        class="glyphicon glyphicon-remove"
+                        data-remove
                         aria-hidden="true"
-                        prop:removeRow={id}
+                        class="glyphicon glyphicon-remove"
                       />
                     </a>
                   </td>
@@ -218,8 +222,8 @@ const App = () => {
         </tbody>
       </table>
       <span
-        class="preloadicon glyphicon glyphicon-remove"
         aria-hidden="true"
+        class="preloadicon glyphicon glyphicon-remove"
       />
     </div>
   )

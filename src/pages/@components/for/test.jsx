@@ -106,8 +106,6 @@ function Example() {
   )
 }
 
-render(Example)
-
 function Buttons(props) {
   let { value, setValue, content } = props
 
@@ -369,3 +367,5 @@ function Buttons(props) {
     </>
   )
 }
+
+render(Example)
