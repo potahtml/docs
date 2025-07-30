@@ -16,7 +16,6 @@
 	const entries = Object$1.entries;
 	const freeze = Object$1.freeze;
 	const fromEntries = Object$1.fromEntries;
-	const getOwnPropertyDescriptor = Object$1.getOwnPropertyDescriptor;
 	const getOwnPropertyDescriptors = Object$1.getOwnPropertyDescriptors;
 	const getOwnPropertyNames = Object$1.getOwnPropertyNames;
 	const getOwnPropertySymbols = Object$1.getOwnPropertySymbols;
@@ -169,24 +168,6 @@
 	const identity = x => x;
 
 	/**
-	 * When `value` is an object, it will check if the `key` on `target`
-	 * is `configurable`
-	 *
-	 * @param {object} target
-	 * @param {PropertyKey} key
-	 * @param {boolean | undefined} value
-	 */
-	const isConfigurable = (target, key, value) => {
-	  if (isObject(value)) {
-	    const descriptor = getOwnPropertyDescriptor(target, key);
-	    if (descriptor) {
-	      return descriptor.configurable;
-	    }
-	  }
-	  return true;
-	};
-
-	/**
 	 * Returns `true` when `typeof` of `value` is `function`
 	 *
 	 * @param {unknown} value
@@ -262,7 +243,7 @@
 	// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/GeneratorFunction
 	const GeneratorFunction = function* () {}.constructor;
 
-	/** Returns `true` when is a generator function*/
+	/** Returns `true` when is a generator function */
 	const isGeneratorFunction = target => target && (target.constructor === GeneratorFunction || target.constructor?.constructor === GeneratorFunction);
 	const noop = () => {};
 
@@ -298,7 +279,9 @@
 	  getOwnPropertyDescriptor: reflectGetOwnPropertyDescriptor,
 	  get: reflectGet,
 	  apply: reflectApply,
-	  set: reflectSet} = Reflect;
+	  set: reflectSet,
+	  isExtensible: reflectIsExtensible
+	} = Reflect;
 
 	/**
 	 * Removes a value from an array
@@ -397,10 +380,27 @@
 	const warn = (...args) => console.warn(...args);
 	const error = (...args) => console.error(...args);
 
+	/**
+	 * 1. A non-extensible object must return the real object, but still its
+	 *    children properties could be tracked/proxied
+	 * 2. A non-configurable property must return the real value
+	 *
+	 * [[Get]] For proxy objects enforces the following invariants:
+	 *
+	 * - The value reported for a property must be the same as the value of
+	 *   the corresponding target object property if the target object
+	 *   property is a non-writable, non-configurable own data property.
+	 * - The value reported for a property must be undefined if the
+	 *   corresponding target object property is a non-configurable own
+	 *   accessor property that has undefined as its [[Get]] attribute.
+	 */
+	const isProxyValueReturnInvariant = (target, key, value) => !isObject(value) || !reflectIsExtensible(target) || reflectGetOwnPropertyDescriptor(target, key)?.configurable === false;
+
 	// symbols
 
 	const $isComponent = Symbol();
 	const $isMap = Symbol();
+	const $isMutable = Symbol();
 
 	// supported namespaces
 
@@ -1149,7 +1149,6 @@
 	     * @overload Gets the context value
 	     * @returns {T} Context value
 	     */
-
 	    function useContext(newValue, fn) {
 	      if (newValue === undefined) {
 	        return Owner?.context && Owner.context[id] !== undefined ? Owner.context[id] : defaultValue;
@@ -1170,7 +1169,7 @@
 	     * Sets the `value` for the context
 	     *
 	     * @param {object} props
-	     * @param {T} props.value
+	     * @param {T} [props.value]
 	     * @param {Children} props.children
 	     * @returns {Children} Children
 	     * @url https://pota.quack.uy/Reactivity/Context
@@ -1603,18 +1602,6 @@
 	  return () => addEvent(node, type, handler);
 	}
 
-	/**
-	 * It gives a handler an owner, so stuff runs batched on it, and
-	 * things like context and cleanup work
-	 *
-	 * @template {EventHandler<Event, Element>} T
-	 * @param {T} handler
-	 */
-	const ownedEvent = handler => 'handleEvent' in handler ? {
-	  ...handler,
-	  handleEvent: owned(e => handler.handleEvent(e))
-	} : owned(handler);
-
 	const document$1 = window.document;
 	const head = document$1?.head;
 	const isConnected = node => node.isConnected;
@@ -1861,7 +1848,6 @@
 	 * 	node: Element,
 	 * 	propName: string,
 	 * 	propValue: Function | any,
-	 * 	props: object,
 	 * ) => void} fn
 	 *   - Function to run when this prop is found on any Element
 	 *
@@ -1882,7 +1868,6 @@
 	 * 	node: Element,
 	 * 	propName: string,
 	 * 	propValue: Function | any,
-	 * 	props: object,
 	 * 	localName: string,
 	 * 	ns: string,
 	 * ) => void} fn
@@ -1916,11 +1901,10 @@
 	 * @param {Element} node
 	 * @param {string} name
 	 * @param {unknown} value
-	 * @param {object} props
 	 * @param {string} localName
 	 * @param {string} ns
 	 */
-	const setPropertyNS = (node, name, value, props, localName, ns) => {
+	const setPropertyNS = (node, name, value, localName, ns) => {
 	  setProperty(node, localName, value);
 	};
 
@@ -1953,13 +1937,23 @@
 	 * @param {T} node
 	 * @param {string} name
 	 * @param {EventHandler<Event, T>} value
-	 * @param {object} props
 	 * @param {string} localName
 	 * @param {string} ns
 	 */
-	const setEventNS = (node, name, value, props, localName, ns) => {
-	  // `value &&` because avoids crash when `on:click={prop.onClick}` and `prop.onClick === null`
-	  value && addEvent(node, localName, ownedEvent(value));
+	const setEventNS = (node, name, value, localName, ns) => {
+	  // `value &&` because avoids crash when `on:click={prop.onClick}` and `!prop.onClick`
+	  setEvent(node, localName, value);
+	};
+
+	/**
+	 * @template {Element} T
+	 * @param {T} node
+	 * @param {string} name
+	 * @param {EventHandler<Event, T>} value
+	 */
+	const setEvent = (node, name, value) => {
+	  // `value &&` because avoids crash when `on:click={prop.onClick}` and `!prop.onClick`
+	  value && addEvent(node, name, value); // ownedEvent
 	};
 
 	/** Returns true or false with a `chance` of getting `true` */
@@ -1969,9 +1963,8 @@
 	 * @param {Element} node
 	 * @param {string} name
 	 * @param {string} value
-	 * @param {object} props
 	 */
-	const setCSS = (node, name, value, props) => {
+	const setCSS = (node, name, value) => {
 	  setNodeCSS(node, value);
 	};
 
@@ -1991,9 +1984,8 @@
 	 * @param {Element} node
 	 * @param {string} name
 	 * @param {Function} value
-	 * @param {object} props
 	 */
-	const setRef = (node, name, value, props) => {
+	const setRef = (node, name, value) => {
 	  onRef(() => value(node));
 	};
 
@@ -2001,9 +1993,8 @@
 	 * @param {Element} node
 	 * @param {string} name
 	 * @param {Function} value
-	 * @param {object} props
 	 */
-	const setConnected = (node, name, value, props) => {
+	const setConnected = (node, name, value) => {
 	  onMount(() => value(node));
 	};
 
@@ -2011,9 +2002,8 @@
 	 * @param {Element} node
 	 * @param {string} name
 	 * @param {Function} value
-	 * @param {object} props
 	 */
-	const setDisconnected = (node, name, value, props) => {
+	const setDisconnected = (node, name, value) => {
 	  cleanup(() => value(node));
 	};
 
@@ -2024,10 +2014,9 @@
 	 * @param {DOMElement} node
 	 * @param {string} name
 	 * @param {StyleAttribute} value
-	 * @param {object} props
 	 * @url https://pota.quack.uy/props/setStyle
 	 */
-	const setStyle = (node, name, value, props) => {
+	const setStyle = (node, name, value) => {
 	  setNodeStyle(node.style, value);
 	};
 
@@ -2035,11 +2024,9 @@
 	 * @param {DOMElement} node
 	 * @param {string} name
 	 * @param {StyleAttribute} value
-	 * @param {object} props
 	 * @param {string} localName
-	 * @param {string} ns
 	 */
-	const setStyleNS = (node, name, value, props, localName, ns) => {
+	const setStyleNS = (node, name, value, localName) => {
 	  setNodeStyle(node.style, isObject(value) ? value : {
 	    [localName]: value
 	  });
@@ -2087,9 +2074,8 @@
 	 * @param {Element} node
 	 * @param {string} name
 	 * @param {object | string | ArrayLike<any>} value
-	 * @param {object} props
 	 */
-	const setClass = (node, name, value, props) => {
+	const setClass = (node, name, value) => {
 	  isString(value) ? node.setAttribute(name, value) : setClassList(node, value);
 	};
 
@@ -2097,11 +2083,10 @@
 	 * @param {Element} node
 	 * @param {string} name
 	 * @param {object | string | ArrayLike<any>} value
-	 * @param {object} props
 	 * @param {string} localName
-	 * @param {string} ns
+	 * @param {string} [ns]
 	 */
-	const setClassNS = (node, name, value, props, localName, ns) => {
+	const setClassNS = (node, name, value, localName, ns) => {
 	  isFunction(value) || !isObject(value) ? setElementClass(node, localName, value) : setClassList(node, value);
 	};
 
@@ -2146,31 +2131,48 @@
 	  !value ? removeClass(node, classNames(name)) : addClass(node, classNames(name));
 	};
 
+	// NODE ATTRIBUTES
+
 	/**
 	 * @param {Element} node
 	 * @param {string} name
 	 * @param {Accessor<string | boolean>} value
-	 * @param {string} [ns]
 	 * @url https://pota.quack.uy/props/setAttribute
 	 */
-	const setAttribute = (node, name, value, ns) => {
-	  withValue(value, value => _setAttribute(node, name, value, ns));
+	const setAttribute = (node, name, value) => {
+	  withValue(value, value => _setAttribute(node, name, value));
 	};
+
+	/**
+	 * @param {Element} node
+	 * @param {string} name
+	 * @param {Accessor<string | boolean>} value
+	 * @param {string} ns
+	 * @url https://pota.quack.uy/props/setAttribute
+	 */
+	const setAttributeNS = (node, name, value, ns) => {
+	  withValue(value, value => _setAttributeNS(node, name, value, ns));
+	};
+
 	/**
 	 * @param {Element} node
 	 * @param {string} name
 	 * @param {string | boolean} value
-	 * @param {string} [ns]
 	 */
-	function _setAttribute(node, name, value, ns) {
-	  // @ts-ignore
-
+	function _setAttribute(node, name, value) {
 	  // if the value is false/null/undefined it will be removed
-	  if (value === false || isNullUndefined(value)) {
-	    ns && NS[ns] ? node.removeAttributeNS(NS[ns], name) : node.removeAttribute(name);
-	  } else {
-	    ns && NS[ns] ? node.setAttributeNS(NS[ns], name, value === true ? '' : value) : node.setAttribute(name, value === true ? '' : value);
-	  }
+	  value === false || value == null ? node.removeAttribute(name) : node.setAttribute(name, value === true ? '' : value);
+	}
+
+	/**
+	 * @param {Element} node
+	 * @param {string} name
+	 * @param {string | boolean} value
+	 * @param {string} ns
+	 */
+	function _setAttributeNS(node, name, value, ns) {
+	  // if the value is false/null/undefined it will be removed
+	  value === false || value == null ? NS[ns] ? node.removeAttributeNS(NS[ns], name) : node.removeAttribute(name) : NS[ns] ? node.setAttributeNS(NS[ns], name, value === true ? '' : value) : node.setAttribute(name, value === true ? '' : value);
 	}
 
 	propsPluginNS('prop', setPropertyNS, false);
@@ -2189,33 +2191,6 @@
 	const propNS = empty();
 
 	/**
-	 * Assigns a prop to an Element
-	 *
-	 * @template T
-	 * @param {Element} node
-	 * @param {string} name
-	 * @param {any} value
-	 * @param {T} props
-	 */
-	function assignProp(node, name, value, props) {
-	  // run plugins
-	  let plugin = plugins.get(name);
-	  if (plugin) {
-	    plugin(node, name, value, props);
-	  } else if (propNS[name] || name.includes(':')) {
-	    // with ns
-	    propNS[name] = propNS[name] || name.split(':');
-
-	    // run plugins NS
-	    plugin = pluginsNS.get(propNS[name][0]);
-	    plugin ? plugin(node, name, value, props, propNS[name][1], propNS[name][0]) : setAttribute(node, name, value, propNS[name][0]);
-	  } else {
-	    // catch all
-	    setAttribute(node, name, value);
-	  }
-	}
-
-	/**
 	 * Assigns props to an Element
 	 *
 	 * @template T
@@ -2224,7 +2199,33 @@
 	 */
 	function assignProps(node, props) {
 	  for (const name in props) {
-	    assignProp(node, name, props[name], props);
+	    assignProp(node, name, props[name]);
+	  }
+	}
+
+	/**
+	 * Assigns a prop to an Element
+	 *
+	 * @template T
+	 * @param {Element} node
+	 * @param {string} name
+	 * @param {any} value
+	 */
+	function assignProp(node, name, value) {
+	  // run plugins
+	  let plugin = plugins.get(name);
+	  if (plugin) {
+	    plugin(node, name, value);
+	  } else if (propNS[name] || name.includes(':')) {
+	    // with ns
+	    propNS[name] = propNS[name] || name.split(':');
+
+	    // run plugins NS
+	    plugin = pluginsNS.get(propNS[name][0]);
+	    plugin ? plugin(node, name, value, propNS[name][1], propNS[name][0]) : setAttributeNS(node, propNS[name][1], value, propNS[name][0]);
+	  } else {
+	    // catch all
+	    setAttribute(node, name, value);
 	  }
 	}
 
@@ -2310,7 +2311,7 @@
 	/**
 	 * Creates a x/html element from a tagName
 	 *
-	 * @template {Props<{ xmlns?: string, is?: string }>} P
+	 * @template {Props<{ xmlns?: string; is?: string }>} P
 	 * @param {string} tagName
 	 * @param {P} props
 	 * @returns {Element} Element
@@ -2325,28 +2326,26 @@
 	    is: props?.is
 	  }) : createElement(tagName, {
 	    is: props?.is
-	  }), props), tagName);
+	  }), props));
 	}
+	let usedXML;
 
 	/**
 	 * @param {string} xmlns
 	 * @param {(xmlns: string) => Element} fn
-	 * @param {string} tagName
 	 * @returns {Element}
 	 */
-	function withXMLNS(xmlns, fn, tagName) {
+	function withXMLNS(xmlns, fn) {
+	  if (!usedXML) {
+	    if (!xmlns) {
+	      return fn(xmlns);
+	    }
+	    usedXML = true;
+	  }
 	  const nsContext = useXMLNS();
 	  if (xmlns && xmlns !== nsContext) {
 	    // the xmlns changed, use the new xmlns
 	    return useXMLNS(xmlns, () => fn(xmlns));
-	  }
-
-	  /**
-	   * `foreignObject` children are created with html xmlns (default
-	   * browser behaviour)
-	   */
-	  if (nsContext && tagName === 'foreignObject') {
-	    return useXMLNS(NS.html, () => fn(nsContext));
 	  }
 	  return fn(nsContext);
 	}
@@ -2411,10 +2410,10 @@
 	        $isMap in child ? effect(() => {
 	          node = toDiff(node, flatToArray(child(child => {
 	            /**
-	             * Wrap the item with placeholders, for when stuff in
-	             * between moves. If a `Show` adds and removes nodes,
-	             * we dont have a reference to these nodes. By
-	             * delimiting with a shore, we can just handle
+	             * Wrap the item with placeholders, for when stuff
+	             * in between moves. If a `Show` adds and removes
+	             * nodes, we dont have a reference to these nodes.
+	             * By delimiting with a shore, we can just handle
 	             * anything in between as a group.
 	             */
 	            const begin = createPlaceholder(parent, true);
@@ -2564,7 +2563,7 @@
 	    // replace old node if there's any
 	    prev ? prev.replaceWith(node) : parent.appendChild(node);
 	  } else {
-	    relative ? parent.before(node) : parent.appendChild(node);
+	    relative ? parent.parentNode.insertBefore(node, parent) : parent.appendChild(node);
 	  }
 	  return node;
 	}
@@ -2861,7 +2860,8 @@
 	 * @param {Each<T>} props.each
 	 * @param {boolean} [props.restoreFocus] - If the focused element
 	 *   moves it may lose focus
-	 * @param {boolean} [props.reactiveIndex] - Make indices reactive signals
+	 * @param {boolean} [props.reactiveIndex] - Make indices reactive
+	 *   signals
 	 * @param {Children} [props.children]
 	 * @param {Children} [props.fallback]
 	 * @returns {Children}
@@ -2977,9 +2977,7 @@
 	  }
 	  let proto = getPrototypeOf(target);
 
-	  /**
-	   * Walk the prototype chain to gather getters/setters
-	   */
+	  /** Walk the prototype chain to gather getters/setters */
 	  const protos = [target];
 	  while (proto && !isPrototypeBlacklisted(proto)) {
 	    protos.push(proto);
@@ -2996,7 +2994,7 @@
 
 	/** Tracker */
 
-	const [getTracker, setTracker] = weakStore();
+	const [getTracker] = weakStore();
 	const createTracker = () => new Track();
 
 	/**
@@ -3030,6 +3028,8 @@
 	  [isUndefined]: undefined
 	};
 	class Track {
+	  // id = Date.now()
+
 	  #props = empty();
 	  #prop(kind, key, value, equalsType) {
 	    if (!(key in this.#props)) {
@@ -3198,11 +3198,13 @@
 	 * @param {Function} [wrapper] To wrap values
 	 */
 	function signalifyObject(target, wrapper) {
-	  const descriptors = getPropertyDescriptors(target);
-	  const track = tracker(target);
-	  for (const [key, descriptor] of entriesIncludingSymbols(descriptors)) {
-	    signalifyKey(target, key, descriptor, wrapper, track);
-	  }
+	  untrack(() => {
+	    const descriptors = getPropertyDescriptors(target);
+	    const track = tracker(target);
+	    for (const [key, descriptor] of entriesIncludingSymbols(descriptors)) {
+	      signalifyKey(target, key, descriptor, wrapper, track);
+	    }
+	  });
 	}
 
 	/**
@@ -3242,14 +3244,19 @@
 
 	  /**
 	   * Avoid functions when using `signalify` as it's meant to be used
-	   * in classes. But do not avoid functions when it has a `wrapper`, like
-	   * `mutable`.
+	   * in classes. But do not avoid functions when it has a `wrapper`,
+	   * like `mutable`.
 	   */
 	  if (isFunction(value) && wrapper === identity) {
 	    return;
 	  }
 	  const getter = descriptor.get?.bind(target);
 	  const setter = descriptor.set?.bind(target);
+
+	  /** Needs to wrap to recurse the object */
+	  if (!setter && wrapper) {
+	    value = wrapper(value);
+	  }
 	  defineProperty(target, key, {
 	    get:
 	    /**
@@ -3349,24 +3356,7 @@
 	    return reflectGetOwnPropertyDescriptor(target, key);
 	  }
 	  returnValue(target, key, value) {
-	    /**
-	     * 1. A non-extensible object must return the real object, but still
-	     *    its children properties must be tracked
-	     * 2. A non-configurable property must return the real value
-	     *
-	     * [[Get]] For proxy objects enforces the following invariants:
-	     *
-	     * The value reported for a property must be the same as the value
-	     * of the corresponding target object property if the target
-	     * object property is a non-writable, non-configurable own data
-	     * property.
-	     *
-	     * The value reported for a property must be undefined if the
-	     * corresponding target object property is a non-configurable own
-	     * accessor property that has undefined as its [[Get]] attribute.
-	     */
-
-	    return !isExtensible(target) || !isConfigurable(target, key, value) ? (mutable(value), value) : mutable(value);
+	    return isProxyValueReturnInvariant(target, key, value) ? (mutable(value), value) : mutable(value);
 	  }
 	  returnFunction(target, key, value, proxy) {
 	    /**
@@ -3391,6 +3381,10 @@
 	  // type = 'Array'
 
 	  get(target, key, proxy) {
+	    if (key === $isMutable) {
+	      return true;
+	    }
+
 	    /** To be able to track properties not yet set */
 	    if (!(key in target)) {
 	      this.track.isUndefinedRead(key, true);
@@ -3449,7 +3443,7 @@
 	    return (...args) => batch(() => mutable(key in arrayMethods ? arrayMethods[key](this, target, value, args, proxy) : reflectApply(value, target, args)));
 	  }
 
-	  /** special track methods for array */
+	  /** Special track methods for array */
 
 	  /** Dispatch read to specific key */
 	  trackKey(target, key) {
@@ -3785,6 +3779,10 @@
 	  // type = 'Object'
 
 	  get(target, key, proxy) {
+	    if (key === $isMutable) {
+	      return true;
+	    }
+
 	    /** To be able to track properties not yet set */
 	    if (!(key in target)) {
 	      this.track.isUndefinedRead(key, true);
@@ -3826,13 +3824,18 @@
 	    this.trackSlot = tracker(empty());
 	  }
 	  get(target, key, proxy) {
+	    if (key === $isMutable) {
+	      return true;
+	    }
+
 	    /** To be able to track properties not yet set */
 	    if (!(key in target)) {
 	      this.track.isUndefinedRead(key, true);
 	    }
 
-	    /** Tracking + value
-	     * For whatever reason `size` is special for `Map`
+	    /**
+	     * Tracking + value For whatever reason `size` is special for
+	     * `Map`
 	     */
 
 	    const value = key === 'size' ? this.track.valueRead(key, reflectGet(target, key, target)) : reflectGet(target, key, proxy);
@@ -3844,7 +3847,6 @@
 	     *    Set.prototype.add called on incompatible receiver #<Set>`
 	     * 2. Run in a batch to react to all changes at the same time.
 	     */
-
 	    return (...args) => batch(() => mutable(key in mapMethods ? mapMethods[key](this, this.trackSlot, target, value, args, proxy) : reflectApply(value, target, args)));
 	  }
 	}
@@ -3988,12 +3990,12 @@
 	  /**
 	   * Before mutating the content of it (for example calling
 	   * `signalifyObject` or making the content of an array mutable),
-	   * save it. In case the mutation triggers `mutable` on the same object, before we have a
-	   * chance to save it as a proxy. To avoid the posible situation of
-	   * having 2 different proxies for the same value.
+	   * save it. In case the mutation triggers `mutable` on the same
+	   * object, before we have a chance to save it as a proxy. To avoid
+	   * the posible situation of having 2 different proxies for the same
+	   * value.
 	   */
 	  setProxy(target, proxy);
-	  setProxy(proxy, proxy);
 	  return proxy;
 	}
 
@@ -4016,6 +4018,11 @@
 	  /** Make a copy to avoid modifying original data (optional) */
 	  value = clone ? copy(value) : value;
 
+	  /** Avoid unwrapping external proxies */
+	  if (value[$isMutable]) {
+	    return value;
+	  }
+
 	  /**
 	   * Return `proxy` if already exists for `value`. It could be
 	   * possible that `value` is a `proxy`, which is already saved, so it
@@ -4035,9 +4042,7 @@
 	    return value;
 	  }
 
-	  /**
-	   * Array methods are proxied by ProxyHandlerArray
-	   */
+	  /** Array methods are proxied by ProxyHandlerArray */
 	  if (isArray(value)) {
 	    proxy = createProxy(value, ProxyHandlerArray);
 
@@ -4048,9 +4053,7 @@
 	    return proxy;
 	  }
 
-	  /**
-	   * Map methods are proxied by ProxyHandlerMap
-	   */
+	  /** Map methods are proxied by ProxyHandlerMap */
 	  if (value instanceof Map) {
 	    proxy = createProxy(value, ProxyHandlerMap);
 
@@ -4159,6 +4162,63 @@
 	  }
 	}
 	const getKeys = (keys, id) => undefined;
+
+	/**
+	 * Returns a `isSelected` function that will return `true` when the
+	 * argument for it matches the original signal `value`.
+	 *
+	 * @param {SignalAccessor<any>} value - Signal with the current value
+	 */
+	function useSelector(value) {
+	  const map = new Map();
+	  let prev = [];
+	  syncEffect(() => {
+	    const val = value();
+	    const selected = isIterable(val) ? toArray(val.values()) : val === undefined ? [] : [val];
+
+	    // unselect
+	    for (const value of prev) {
+	      if (!selected.includes(value)) {
+	        const current = map.get(value);
+	        current && current.write(false);
+	      }
+	    }
+
+	    // select
+	    for (const value of selected) {
+	      if (!prev.includes(value)) {
+	        const current = map.get(value);
+	        current && current.write(true);
+	      }
+	    }
+	    prev = selected;
+	  });
+
+	  /**
+	   * Is selected function, it will return `true` when the value
+	   * matches the current signal.
+	   *
+	   * @template T
+	   * @param {T} item - Values to compare with current
+	   * @returns {SignalAccessor<T>} A signal with a boolean value
+	   */
+	  return function isSelected(item) {
+	    let selected = map.get(item);
+	    if (!selected) {
+	      selected = signal(prev.includes(item));
+	      selected.counter = 1;
+	      map.set(item, selected);
+	    } else {
+	      selected.counter++;
+	    }
+	    cleanup(() => {
+	      if (--selected.counter === 0) {
+	        map.delete(item);
+	      }
+	    });
+	    return selected.read;
+	  };
+	}
 
 	/**
 	 * Scrolls to an element
@@ -4588,6 +4648,7 @@
 	/**
 	 * Scroll to hash first, if doesnt, scroll to positions defined by the
 	 * Routes.
+	 *
 	 * @param {RouteContextValue} context
 	 */
 	function scroll(context) {
@@ -4911,63 +4972,6 @@
 	  return xml;
 	}
 	const xml = XML();
-
-	/**
-	 * Returns a `isSelected` function that will return `true` when the
-	 * argument for it matches the original signal `value`.
-	 *
-	 * @param {SignalAccessor<any>} value - Signal with the current value
-	 */
-	function useSelector(value) {
-	  const map = new Map();
-	  let prev = [];
-	  syncEffect(() => {
-	    const val = value();
-	    const selected = isIterable(val) ? toArray(val.values()) : val === undefined ? [] : [val];
-
-	    // unselect
-	    for (const value of prev) {
-	      if (!selected.includes(value)) {
-	        const current = map.get(value);
-	        current && current.write(false);
-	      }
-	    }
-
-	    // select
-	    for (const value of selected) {
-	      if (!prev.includes(value)) {
-	        const current = map.get(value);
-	        current && current.write(true);
-	      }
-	    }
-	    prev = selected;
-	  });
-
-	  /**
-	   * Is selected function, it will return `true` when the value
-	   * matches the current signal.
-	   *
-	   * @template T
-	   * @param {T} item - Values to compare with current
-	   * @returns {SignalAccessor<T>} A signal with a boolean value
-	   */
-	  return function isSelected(item) {
-	    let selected = map.get(item);
-	    if (!selected) {
-	      selected = signal(prev.includes(item));
-	      selected.counter = 1;
-	      map.set(item, selected);
-	    } else {
-	      selected.counter++;
-	    }
-	    cleanup(() => {
-	      if (--selected.counter === 0) {
-	        map.delete(item);
-	      }
-	    });
-	    return selected.read;
-	  };
-	}
 
 	let idCounter = 1;
 	const adjectives = ['pretty', 'large', 'big', 'small', 'tall', 'short', 'long', 'handsome', 'plain', 'quaint', 'clean', 'elegant', 'easy', 'angry', 'crazy', 'helpful', 'mushy', 'odd', 'unsightly', 'adorable', 'important', 'inexpensive', 'cheap', 'expensive', 'fancy'],

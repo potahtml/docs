@@ -77,44 +77,54 @@ const benchmarkTable = {}
 const doBenchmark = false
 
 // tests
-/*
-measure('solid', () =>
-  testMutable(
+if (!window.location.origin.includes('localhost')) {
+  measure(
     'solid',
-    test,
-    mutableSolid,
-    memoSolid,
-    batchSolid,
-    signalSolid,
-    rootSolid
+    () =>
+      testMutable(
+        'solid',
+        test,
+        mutableSolid,
+        memoSolid,
+        batchSolid,
+        signalSolid,
+        rootSolid,
+      ),
+    time => document.body.append(`solid ${time} ms\n`),
   )
-)
 
-measure('oby', () =>
-  testMutable(
+  measure(
     'oby',
-    test,
-    mutableOby,
-    memoOby,
-    batchOby,
-    signalOby,
-    rootOby
+    () =>
+      testMutable(
+        'oby',
+        test,
+        mutableOby,
+        memoOby,
+        batchOby,
+        signalOby,
+        rootOby,
+      ),
+    time => document.body.append(`oby ${time} ms\n`),
   )
-)
-*/
-measure('pota', () =>
-  testMutable(
-    'pota',
-    test,
-    mutablePota,
-    memoPota,
-    batchPota,
-    signalPota,
-    rootPota,
-  ),
+}
+
+measure(
+  'pota',
+  () =>
+    testMutable(
+      'pota',
+      test,
+      mutablePota,
+      memoPota,
+      batchPota,
+      signalPota,
+      rootPota,
+    ),
+  time => document.body.append(`pota ${time} ms\n`),
 )
 
-document.body.textContent = 'Done'
+document.body.append('Done')
 
 if (doBenchmark) console.table(benchmarkTable)
 
@@ -5811,13 +5821,13 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
     execute()
     expect(index).toBe(1)
     /*
-          console.log(
-            arr,
-            search,
-            arr[0],
-            search === arr[0],
-            search === arr[1],
-          )*/
+              console.log(
+                arr,
+                search,
+                arr[0],
+                search === arr[0],
+                search === arr[1],
+              )*/
   })
 
   test(
@@ -8940,7 +8950,7 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
       arr: [1, 2, 3, {}],
       arrfilled: new Array(10_000).fill(0).map((_, idx) => idx),
       /*arrBuf: new ArrayBuffer(12),
-            arrTyped: new Int8Array(new ArrayBuffer(24)),*/
+                  arrTyped: new Int8Array(new ArrayBuffer(24)),*/
       obj: {
         deep: {
           deeper: true,
@@ -8948,9 +8958,9 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
       },
       date: new Date(),
       /*map: new Map([
-            ['1', 1],
-            ['2', 2],
-          ]),*/
+                  ['1', 1],
+                  ['2', 2],
+                ]),*/
       set: new Set([1, 2, 3]),
     })
 
@@ -8958,12 +8968,12 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
       arr: new Array(100_000).fill(0).map((_, idx) => idx),
       date: new Date(),
       /*  map: new Map(
-            new Array(100_000)
-              .fill(0)
-              .map((_, idx) => idx)
-              .map(nr => [`${nr}`, nr]),
-          ),
-          set: new Set(new Array(100_000).fill(0).map((_, idx) => idx)),*/
+                  new Array(100_000)
+                    .fill(0)
+                    .map((_, idx) => idx)
+                    .map(nr => [`${nr}`, nr]),
+                ),
+                set: new Set(new Array(100_000).fill(0).map((_, idx) => idx)),*/
     })
 
     let superTotal = 0
@@ -9114,125 +9124,125 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
 
     /*
 
-        benchmark(
-        'set: array 2',
-        () => {
-          return mutable(OBJ())
-        },
-        ctx => {
-          ctx.arr.copyWithin(0, 1, 2)
-          ctx.arr.fill(0)
-          ctx.arr.pop()
-          ctx.arr.push(-1, -2, -3)
-          ctx.arr.reverse()
-          ctx.arr.shift()
-          ctx.arr.sort()
-          ctx.arr.splice(0, 1, 2)
-          ctx.arr.unshift(5)
-        },
-      )
-      benchmark(
-        'mutate array: copyWithin',
-        () => {
-          return mutable(OBJ())
-        },
-        ctx => {
-          ctx.arrfilled.copyWithin(0, 1, 2)
-        },
-      )
+            benchmark(
+            'set: array 2',
+            () => {
+              return mutable(OBJ())
+            },
+            ctx => {
+              ctx.arr.copyWithin(0, 1, 2)
+              ctx.arr.fill(0)
+              ctx.arr.pop()
+              ctx.arr.push(-1, -2, -3)
+              ctx.arr.reverse()
+              ctx.arr.shift()
+              ctx.arr.sort()
+              ctx.arr.splice(0, 1, 2)
+              ctx.arr.unshift(5)
+            },
+          )
+          benchmark(
+            'mutate array: copyWithin',
+            () => {
+              return mutable(OBJ())
+            },
+            ctx => {
+              ctx.arrfilled.copyWithin(0, 1, 2)
+            },
+          )
 
-      benchmark(
-        'mutate array: fill',
-        () => {
-          return mutable(OBJ())
-        },
-        ctx => {
-          ctx.arrfilled.fill(0)
-        },
-      )
+          benchmark(
+            'mutate array: fill',
+            () => {
+              return mutable(OBJ())
+            },
+            ctx => {
+              ctx.arrfilled.fill(0)
+            },
+          )
 
-      benchmark(
-        'mutate array: pop',
-        () => {
-          return mutable(OBJ())
-        },
-        ctx => {
-          ctx.arrfilled.pop()
-        },
-      )
-      benchmark(
-        'mutate array: push',
-        () => {
-          return mutable(OBJ())
-        },
-        ctx => {
-          ctx.arrfilled.push()
-        },
-      )
-      benchmark(
-        'mutate array: reverse ',
-        () => {
-          return mutable(OBJ())
-        },
-        ctx => {
-          ctx.arrfilled.reverse()
-        },
-      )
-      benchmark(
-        'mutate array: shift ',
-        () => {
-          return mutable(OBJ())
-        },
-        ctx => {
-          ctx.arrfilled.shift()
-        },
-      )
-      benchmark(
-        'mutate array: sort ',
-        () => {
-          return mutable(OBJ())
-        },
-        ctx => {
-          ctx.arrfilled.sort()
-        },
-      )
-      benchmark(
-        'mutate array: splice ',
-        () => {
-          return mutable(OBJ())
-        },
-        ctx => {
-          ctx.arrfilled.splice(0, 1, 2)
-        },
-      )
-      benchmark(
-        'mutate array: unshift ',
-        () => {
-          return mutable(OBJ())
-        },
-        ctx => {
-          ctx.arrfilled.unshift(5)
-        },
-      )
+          benchmark(
+            'mutate array: pop',
+            () => {
+              return mutable(OBJ())
+            },
+            ctx => {
+              ctx.arrfilled.pop()
+            },
+          )
+          benchmark(
+            'mutate array: push',
+            () => {
+              return mutable(OBJ())
+            },
+            ctx => {
+              ctx.arrfilled.push()
+            },
+          )
+          benchmark(
+            'mutate array: reverse ',
+            () => {
+              return mutable(OBJ())
+            },
+            ctx => {
+              ctx.arrfilled.reverse()
+            },
+          )
+          benchmark(
+            'mutate array: shift ',
+            () => {
+              return mutable(OBJ())
+            },
+            ctx => {
+              ctx.arrfilled.shift()
+            },
+          )
+          benchmark(
+            'mutate array: sort ',
+            () => {
+              return mutable(OBJ())
+            },
+            ctx => {
+              ctx.arrfilled.sort()
+            },
+          )
+          benchmark(
+            'mutate array: splice ',
+            () => {
+              return mutable(OBJ())
+            },
+            ctx => {
+              ctx.arrfilled.splice(0, 1, 2)
+            },
+          )
+          benchmark(
+            'mutate array: unshift ',
+            () => {
+              return mutable(OBJ())
+            },
+            ctx => {
+              ctx.arrfilled.unshift(5)
+            },
+          )
 
-      benchmark(
-        'delete: object:shallow ',
-        () => {
-          return mutable(OBJ())
-        },
-        ctx => {
-          delete ctx.arr
-        },
-      )
-      benchmark(
-        'delete: object:deep ',
-        () => {
-          return mutable(OBJ())
-        },
-        ctx => {
-          delete ctx.obj.deep.deeper
-        },
-      )*/
+          benchmark(
+            'delete: object:shallow ',
+            () => {
+              return mutable(OBJ())
+            },
+            ctx => {
+              delete ctx.arr
+            },
+          )
+          benchmark(
+            'delete: object:deep ',
+            () => {
+              return mutable(OBJ())
+            },
+            ctx => {
+              delete ctx.obj.deep.deeper
+            },
+          )*/
     // create
     benchmark(
       'create: number',
@@ -9256,19 +9266,19 @@ function testMutable(lib, _test, mutable, memo, batch, signal, root) {
       },
     )
     /*benchmark(
-        'create: small',
-        () => {},
-        () => {
-          mutable(OBJ())
-        },
-      )
-      benchmark(
-        'create: huge',
-        () => {},
-        () => {
-          mutable(OBJ_HUGE())
-        },
-      )*/
+            'create: small',
+            () => {},
+            () => {
+              mutable(OBJ())
+            },
+          )
+          benchmark(
+            'create: huge',
+            () => {},
+            () => {
+              mutable(OBJ_HUGE())
+            },
+          )*/
   }
 
   function testValues(expect, set, get) {

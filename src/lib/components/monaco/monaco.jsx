@@ -99,6 +99,10 @@ export function Monaco(props) {
 					wordWrap: props.language === 'json' ? 'on' : 'off',
 					smoothScrolling: false,
 					mouseWheelScrollSensitivity: 4,
+					// autoClosingDelete: 'never',
+					autoClosingBrackets: 'never',
+					autoClosingQuotes: 'never',
+					// autoClosingPairsOpen: 'never',
 				})
 
 				withValue(props.value, value => {

@@ -959,7 +959,6 @@
 	     * @overload Gets the context value
 	     * @returns {T} Context value
 	     */
-
 	    function useContext(newValue, fn) {
 	      if (newValue === undefined) {
 	        return Owner?.context && Owner.context[id] !== undefined ? Owner.context[id] : defaultValue;
@@ -980,7 +979,7 @@
 	     * Sets the `value` for the context
 	     *
 	     * @param {object} props
-	     * @param {T} props.value
+	     * @param {T} [props.value]
 	     * @param {Children} props.children
 	     * @returns {Children} Children
 	     * @url https://pota.quack.uy/Reactivity/Context
@@ -1137,18 +1136,6 @@
 	  node.removeEventListener(type, handler, !isFunction(handler) ? (/** @type {EventHandlerOptions} */handler) : undefined);
 	  return () => addEvent(node, type, handler);
 	}
-
-	/**
-	 * It gives a handler an owner, so stuff runs batched on it, and
-	 * things like context and cleanup work
-	 *
-	 * @template {EventHandler<Event, Element>} T
-	 * @param {T} handler
-	 */
-	const ownedEvent = handler => 'handleEvent' in handler ? {
-	  ...handler,
-	  handleEvent: owned(e => handler.handleEvent(e))
-	} : owned(handler);
 
 	const document = window.document;
 	const head = document?.head;
@@ -1342,7 +1329,6 @@
 	 * 	node: Element,
 	 * 	propName: string,
 	 * 	propValue: Function | any,
-	 * 	props: object,
 	 * ) => void} fn
 	 *   - Function to run when this prop is found on any Element
 	 *
@@ -1363,7 +1349,6 @@
 	 * 	node: Element,
 	 * 	propName: string,
 	 * 	propValue: Function | any,
-	 * 	props: object,
 	 * 	localName: string,
 	 * 	ns: string,
 	 * ) => void} fn
@@ -1397,11 +1382,10 @@
 	 * @param {Element} node
 	 * @param {string} name
 	 * @param {unknown} value
-	 * @param {object} props
 	 * @param {string} localName
 	 * @param {string} ns
 	 */
-	const setPropertyNS = (node, name, value, props, localName, ns) => {
+	const setPropertyNS = (node, name, value, localName, ns) => {
 	  setProperty(node, localName, value);
 	};
 
@@ -1434,13 +1418,23 @@
 	 * @param {T} node
 	 * @param {string} name
 	 * @param {EventHandler<Event, T>} value
-	 * @param {object} props
 	 * @param {string} localName
 	 * @param {string} ns
 	 */
-	const setEventNS = (node, name, value, props, localName, ns) => {
-	  // `value &&` because avoids crash when `on:click={prop.onClick}` and `prop.onClick === null`
-	  value && addEvent(node, localName, ownedEvent(value));
+	const setEventNS = (node, name, value, localName, ns) => {
+	  // `value &&` because avoids crash when `on:click={prop.onClick}` and `!prop.onClick`
+	  setEvent(node, localName, value);
+	};
+
+	/**
+	 * @template {Element} T
+	 * @param {T} node
+	 * @param {string} name
+	 * @param {EventHandler<Event, T>} value
+	 */
+	const setEvent = (node, name, value) => {
+	  // `value &&` because avoids crash when `on:click={prop.onClick}` and `!prop.onClick`
+	  value && addEvent(node, name, value); // ownedEvent
 	};
 
 	/** Returns true or false with a `chance` of getting `true` */
@@ -1450,9 +1444,8 @@
 	 * @param {Element} node
 	 * @param {string} name
 	 * @param {string} value
-	 * @param {object} props
 	 */
-	const setCSS = (node, name, value, props) => {
+	const setCSS = (node, name, value) => {
 	  setNodeCSS(node, value);
 	};
 
@@ -1472,9 +1465,8 @@
 	 * @param {Element} node
 	 * @param {string} name
 	 * @param {Function} value
-	 * @param {object} props
 	 */
-	const setRef = (node, name, value, props) => {
+	const setRef = (node, name, value) => {
 	  onRef(() => value(node));
 	};
 
@@ -1482,9 +1474,8 @@
 	 * @param {Element} node
 	 * @param {string} name
 	 * @param {Function} value
-	 * @param {object} props
 	 */
-	const setConnected = (node, name, value, props) => {
+	const setConnected = (node, name, value) => {
 	  onMount(() => value(node));
 	};
 
@@ -1492,9 +1483,8 @@
 	 * @param {Element} node
 	 * @param {string} name
 	 * @param {Function} value
-	 * @param {object} props
 	 */
-	const setDisconnected = (node, name, value, props) => {
+	const setDisconnected = (node, name, value) => {
 	  cleanup(() => value(node));
 	};
 
@@ -1505,10 +1495,9 @@
 	 * @param {DOMElement} node
 	 * @param {string} name
 	 * @param {StyleAttribute} value
-	 * @param {object} props
 	 * @url https://pota.quack.uy/props/setStyle
 	 */
-	const setStyle = (node, name, value, props) => {
+	const setStyle = (node, name, value) => {
 	  setNodeStyle(node.style, value);
 	};
 
@@ -1516,11 +1505,9 @@
 	 * @param {DOMElement} node
 	 * @param {string} name
 	 * @param {StyleAttribute} value
-	 * @param {object} props
 	 * @param {string} localName
-	 * @param {string} ns
 	 */
-	const setStyleNS = (node, name, value, props, localName, ns) => {
+	const setStyleNS = (node, name, value, localName) => {
 	  setNodeStyle(node.style, isObject(value) ? value : {
 	    [localName]: value
 	  });
@@ -1568,9 +1555,8 @@
 	 * @param {Element} node
 	 * @param {string} name
 	 * @param {object | string | ArrayLike<any>} value
-	 * @param {object} props
 	 */
-	const setClass = (node, name, value, props) => {
+	const setClass = (node, name, value) => {
 	  isString(value) ? node.setAttribute(name, value) : setClassList(node, value);
 	};
 
@@ -1578,11 +1564,10 @@
 	 * @param {Element} node
 	 * @param {string} name
 	 * @param {object | string | ArrayLike<any>} value
-	 * @param {object} props
 	 * @param {string} localName
-	 * @param {string} ns
+	 * @param {string} [ns]
 	 */
-	const setClassNS = (node, name, value, props, localName, ns) => {
+	const setClassNS = (node, name, value, localName, ns) => {
 	  isFunction(value) || !isObject(value) ? setElementClass(node, localName, value) : setClassList(node, value);
 	};
 
@@ -1627,31 +1612,48 @@
 	  !value ? removeClass(node, classNames(name)) : addClass(node, classNames(name));
 	};
 
+	// NODE ATTRIBUTES
+
 	/**
 	 * @param {Element} node
 	 * @param {string} name
 	 * @param {Accessor<string | boolean>} value
-	 * @param {string} [ns]
 	 * @url https://pota.quack.uy/props/setAttribute
 	 */
-	const setAttribute = (node, name, value, ns) => {
-	  withValue(value, value => _setAttribute(node, name, value, ns));
+	const setAttribute = (node, name, value) => {
+	  withValue(value, value => _setAttribute(node, name, value));
 	};
+
+	/**
+	 * @param {Element} node
+	 * @param {string} name
+	 * @param {Accessor<string | boolean>} value
+	 * @param {string} ns
+	 * @url https://pota.quack.uy/props/setAttribute
+	 */
+	const setAttributeNS = (node, name, value, ns) => {
+	  withValue(value, value => _setAttributeNS(node, name, value, ns));
+	};
+
 	/**
 	 * @param {Element} node
 	 * @param {string} name
 	 * @param {string | boolean} value
-	 * @param {string} [ns]
 	 */
-	function _setAttribute(node, name, value, ns) {
-	  // @ts-ignore
-
+	function _setAttribute(node, name, value) {
 	  // if the value is false/null/undefined it will be removed
-	  if (value === false || isNullUndefined(value)) {
-	    ns && NS[ns] ? node.removeAttributeNS(NS[ns], name) : node.removeAttribute(name);
-	  } else {
-	    ns && NS[ns] ? node.setAttributeNS(NS[ns], name, value === true ? '' : value) : node.setAttribute(name, value === true ? '' : value);
-	  }
+	  value === false || value == null ? node.removeAttribute(name) : node.setAttribute(name, value === true ? '' : value);
+	}
+
+	/**
+	 * @param {Element} node
+	 * @param {string} name
+	 * @param {string | boolean} value
+	 * @param {string} ns
+	 */
+	function _setAttributeNS(node, name, value, ns) {
+	  // if the value is false/null/undefined it will be removed
+	  value === false || value == null ? NS[ns] ? node.removeAttributeNS(NS[ns], name) : node.removeAttribute(name) : NS[ns] ? node.setAttributeNS(NS[ns], name, value === true ? '' : value) : node.setAttribute(name, value === true ? '' : value);
 	}
 
 	propsPluginNS('prop', setPropertyNS, false);
@@ -1670,33 +1672,6 @@
 	const propNS = empty();
 
 	/**
-	 * Assigns a prop to an Element
-	 *
-	 * @template T
-	 * @param {Element} node
-	 * @param {string} name
-	 * @param {any} value
-	 * @param {T} props
-	 */
-	function assignProp(node, name, value, props) {
-	  // run plugins
-	  let plugin = plugins.get(name);
-	  if (plugin) {
-	    plugin(node, name, value, props);
-	  } else if (propNS[name] || name.includes(':')) {
-	    // with ns
-	    propNS[name] = propNS[name] || name.split(':');
-
-	    // run plugins NS
-	    plugin = pluginsNS.get(propNS[name][0]);
-	    plugin ? plugin(node, name, value, props, propNS[name][1], propNS[name][0]) : setAttribute(node, name, value, propNS[name][0]);
-	  } else {
-	    // catch all
-	    setAttribute(node, name, value);
-	  }
-	}
-
-	/**
 	 * Assigns props to an Element
 	 *
 	 * @template T
@@ -1705,7 +1680,33 @@
 	 */
 	function assignProps(node, props) {
 	  for (const name in props) {
-	    assignProp(node, name, props[name], props);
+	    assignProp(node, name, props[name]);
+	  }
+	}
+
+	/**
+	 * Assigns a prop to an Element
+	 *
+	 * @template T
+	 * @param {Element} node
+	 * @param {string} name
+	 * @param {any} value
+	 */
+	function assignProp(node, name, value) {
+	  // run plugins
+	  let plugin = plugins.get(name);
+	  if (plugin) {
+	    plugin(node, name, value);
+	  } else if (propNS[name] || name.includes(':')) {
+	    // with ns
+	    propNS[name] = propNS[name] || name.split(':');
+
+	    // run plugins NS
+	    plugin = pluginsNS.get(propNS[name][0]);
+	    plugin ? plugin(node, name, value, propNS[name][1], propNS[name][0]) : setAttributeNS(node, propNS[name][1], value, propNS[name][0]);
+	  } else {
+	    // catch all
+	    setAttribute(node, name, value);
 	  }
 	}
 
@@ -1751,7 +1752,7 @@
 	/**
 	 * Creates a x/html element from a tagName
 	 *
-	 * @template {Props<{ xmlns?: string, is?: string }>} P
+	 * @template {Props<{ xmlns?: string; is?: string }>} P
 	 * @param {string} tagName
 	 * @param {P} props
 	 * @returns {Element} Element
@@ -1766,28 +1767,26 @@
 	    is: props?.is
 	  }) : createElement(tagName, {
 	    is: props?.is
-	  }), props), tagName);
+	  }), props));
 	}
+	let usedXML;
 
 	/**
 	 * @param {string} xmlns
 	 * @param {(xmlns: string) => Element} fn
-	 * @param {string} tagName
 	 * @returns {Element}
 	 */
-	function withXMLNS(xmlns, fn, tagName) {
+	function withXMLNS(xmlns, fn) {
+	  if (!usedXML) {
+	    if (!xmlns) {
+	      return fn(xmlns);
+	    }
+	    usedXML = true;
+	  }
 	  const nsContext = useXMLNS();
 	  if (xmlns && xmlns !== nsContext) {
 	    // the xmlns changed, use the new xmlns
 	    return useXMLNS(xmlns, () => fn(xmlns));
-	  }
-
-	  /**
-	   * `foreignObject` children are created with html xmlns (default
-	   * browser behaviour)
-	   */
-	  if (nsContext && tagName === 'foreignObject') {
-	    return useXMLNS(NS.html, () => fn(nsContext));
 	  }
 	  return fn(nsContext);
 	}
@@ -1836,7 +1835,7 @@
 	 * @param {T[]} props
 	 * @param {{
 	 * 	x?: string
-	 * 	i?: number
+	 * 	[i: number]: number
 	 * 	m?: number
 	 * } & Record<string, unknown>} propsData
 	 * @returns {Children}
@@ -1846,7 +1845,7 @@
 	    const nodes = walkElements(node, propsData.m);
 	    withXMLNS(propsData.x, xmlns => {
 	      for (let i = 0; i < props.length; i++) {
-	        assignProps(nodes[propsData[i] || i], props[i]);
+	        props[i](nodes[i in propsData ? propsData[i] : i]);
 	      }
 	    });
 	  }
@@ -1913,10 +1912,10 @@
 	        $isMap in child ? effect(() => {
 	          node = toDiff(node, flatToArray(child(child => {
 	            /**
-	             * Wrap the item with placeholders, for when stuff in
-	             * between moves. If a `Show` adds and removes nodes,
-	             * we dont have a reference to these nodes. By
-	             * delimiting with a shore, we can just handle
+	             * Wrap the item with placeholders, for when stuff
+	             * in between moves. If a `Show` adds and removes
+	             * nodes, we dont have a reference to these nodes.
+	             * By delimiting with a shore, we can just handle
 	             * anything in between as a group.
 	             */
 	            const begin = createPlaceholder(parent, true);
@@ -2066,7 +2065,7 @@
 	    // replace old node if there's any
 	    prev ? prev.replaceWith(node) : parent.appendChild(node);
 	  } else {
-	    relative ? parent.before(node) : parent.appendChild(node);
+	    relative ? parent.parentNode.insertBefore(node, parent) : parent.appendChild(node);
 	  }
 	  return node;
 	}
@@ -2200,9 +2199,27 @@
 	  return next;
 	}
 
-	var _div = createPartial("<div bla bla=true bla=false bla bla bla=0></div>");
-	render(_div([{
-	  bla: void 0
+	var _div = createPartial("<div><div data-true data-a0=0 data-aminus1=-1 data-adecimal1=0.00003 data-abigint1=1 data-empty data-emptytemplate='aloja from template' children=wth class class=opa class='opa opa' style=border:0 style=border:3></div><div>undefined - </div><div>null - </div><div>true - true</div><div>false - false</div><div>void 0 - </div><div>0 - 0</div><div>-10 - -10</div><div>0.0222 - 0.0222</div><div>1n - 1</div><div>&#39;&#39; - </div><div>&#39;&#39; - aloja from template</div><div>&#39;&#39; - </div><div>&#39;&#39; - </div><div>&#39; &#39;.trim() - </div><div>trim() - </div><div>() =&gt;  - </div><div>`asdasd` - asdasd</div><tm-textarea><iframe loading=lazy></iframe><kilo:svg xmlns:kilo=http://www.w3.org/2000/svg width=24 height=24 viewBox='0 0 24 24'><kilo:path d='M10 10.5h1.5v3H10zM19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7.5 15H6v-4.5H4.5V9h3v6zm5.5-1c0 .55-.45 1-1 1H9.5c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1H12c.55 0 1 .45 1 1v4zm6.5 1h-1.75L16 12.75V15h-1.5V9H16v2.25L17.75 9h1.75l-2.25 3 2.25 3z'></kilo:path></kilo:svg></tm-textarea></div>", {"0":1,"1":13,"2":15,"3":16,"4":17,"m":18,"i":1});
+	render(() => _div([_node => {
+	  setAttribute(_node, "data-emptytemplatefn", html` ${lala}`);
+	  setAttribute(_node, "data-emptytemplatefsn", ` ${lala}`);
+	  setAttribute(_node, "data-emptywithfuction", ' '.trim());
+	  setAttribute(_node, "data-call", trim());
+	  setEvent(_node, "click", () => {});
+	  setElementClass(_node, "mitrocondria", true);
+	  setStyleNS(_node, null, '0px', "border");
+	  setStyleNS(_node, null, "0px", "background");
+	  setConnected(_node, null, function connected(node) {});
+	  setDisconnected(_node, null, function disconnected(node) {});
+	  setCSS(_node, null, 'class {color:red}');
+	}, _node11 => {
+	  createChildren(_node11, `aloja ${hotaloja} template`);
+	}, _node13 => {
+	  createChildren(_node13, ' '.trim());
+	}, _node14 => {
+	  createChildren(_node14, trim());
+	}, _node15 => {
+	  createChildren(_node15, () => {});
 	}]));
 
 })();

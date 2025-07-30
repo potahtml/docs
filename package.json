@@ -31,7 +31,7 @@
 				"input": ["src/index.jsx"],
 				"output": "src/dist/",
 				"map": [["/src/node_modules", "/node_modules"]],
-				"minified": true,
+				"minified": false,
 				"treeshake": true,
 				"babel": {
 					"plugins": [

@@ -28,8 +28,8 @@ function buildData(count) {
 const Button = ({ id, text, fn }) => (
 	<div class="col-sm-6 smallpad">
 		<button
-			prop:textContent={text}
-			id={id}
+			prop:textContent={/** @static */ text}
+			id={/** @static */ id}
 			type="button"
 			class="btn btn-primary btn-block"
 			on:click={fn}
@@ -178,7 +178,7 @@ const App = () => {
 							return (
 								<tr>
 									<td
-										prop:textContent={row.id}
+										prop:textContent={/* @static */ row.id}
 										class="col-md-1"
 									/>
 									<td class="col-md-4">

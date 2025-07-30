@@ -4,8 +4,10 @@ import path from 'path'
 const read = name => fs.readFileSync(name, { encoding: 'utf8' })
 
 const write = (name, content) => {
-	if (!exists(name) || read(name) !== content) {
-		fs.writeFileSync(mkdir(name), content)
+	if (content.trim() !== '') {
+		if (!exists(name) || read(name) !== content) {
+			fs.writeFileSync(mkdir(name), content)
+		}
 	}
 }
 

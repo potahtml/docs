@@ -1,5 +1,7 @@
 globalThis.start = performance.now()
 
+import 'kompiler/autoreload'
+
 // css
 import styles from './index.module.css'
 import stylesMenu from './menu.module.css'

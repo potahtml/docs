@@ -974,7 +974,6 @@
 	     * @overload Gets the context value
 	     * @returns {T} Context value
 	     */
-
 	    function useContext(newValue, fn) {
 	      if (newValue === undefined) {
 	        return Owner?.context && Owner.context[id] !== undefined ? Owner.context[id] : defaultValue;
@@ -995,7 +994,7 @@
 	     * Sets the `value` for the context
 	     *
 	     * @param {object} props
-	     * @param {T} props.value
+	     * @param {T} [props.value]
 	     * @param {Children} props.children
 	     * @returns {Children} Children
 	     * @url https://pota.quack.uy/Reactivity/Context
@@ -1392,18 +1391,6 @@
 	  return () => addEvent(node, type, handler);
 	}
 
-	/**
-	 * It gives a handler an owner, so stuff runs batched on it, and
-	 * things like context and cleanup work
-	 *
-	 * @template {EventHandler<Event, Element>} T
-	 * @param {T} handler
-	 */
-	const ownedEvent = handler => 'handleEvent' in handler ? {
-	  ...handler,
-	  handleEvent: owned(e => handler.handleEvent(e))
-	} : owned(handler);
-
 	const document$1 = window.document;
 	const head = document$1?.head;
 	const isConnected = node => node.isConnected;
@@ -1598,7 +1585,6 @@
 	 * 	node: Element,
 	 * 	propName: string,
 	 * 	propValue: Function | any,
-	 * 	props: object,
 	 * ) => void} fn
 	 *   - Function to run when this prop is found on any Element
 	 *
@@ -1619,7 +1605,6 @@
 	 * 	node: Element,
 	 * 	propName: string,
 	 * 	propValue: Function | any,
-	 * 	props: object,
 	 * 	localName: string,
 	 * 	ns: string,
 	 * ) => void} fn
@@ -1653,11 +1638,10 @@
 	 * @param {Element} node
 	 * @param {string} name
 	 * @param {unknown} value
-	 * @param {object} props
 	 * @param {string} localName
 	 * @param {string} ns
 	 */
-	const setPropertyNS = (node, name, value, props, localName, ns) => {
+	const setPropertyNS = (node, name, value, localName, ns) => {
 	  setProperty(node, localName, value);
 	};
 
@@ -1690,13 +1674,23 @@
 	 * @param {T} node
 	 * @param {string} name
 	 * @param {EventHandler<Event, T>} value
-	 * @param {object} props
 	 * @param {string} localName
 	 * @param {string} ns
 	 */
-	const setEventNS = (node, name, value, props, localName, ns) => {
-	  // `value &&` because avoids crash when `on:click={prop.onClick}` and `prop.onClick === null`
-	  value && addEvent(node, localName, ownedEvent(value));
+	const setEventNS = (node, name, value, localName, ns) => {
+	  // `value &&` because avoids crash when `on:click={prop.onClick}` and `!prop.onClick`
+	  setEvent(node, localName, value);
+	};
+
+	/**
+	 * @template {Element} T
+	 * @param {T} node
+	 * @param {string} name
+	 * @param {EventHandler<Event, T>} value
+	 */
+	const setEvent = (node, name, value) => {
+	  // `value &&` because avoids crash when `on:click={prop.onClick}` and `!prop.onClick`
+	  value && addEvent(node, name, value); // ownedEvent
 	};
 
 	/** Returns true or false with a `chance` of getting `true` */
@@ -1706,9 +1700,8 @@
 	 * @param {Element} node
 	 * @param {string} name
 	 * @param {string} value
-	 * @param {object} props
 	 */
-	const setCSS = (node, name, value, props) => {
+	const setCSS = (node, name, value) => {
 	  setNodeCSS(node, value);
 	};
 
@@ -1728,9 +1721,8 @@
 	 * @param {Element} node
 	 * @param {string} name
 	 * @param {Function} value
-	 * @param {object} props
 	 */
-	const setRef = (node, name, value, props) => {
+	const setRef = (node, name, value) => {
 	  onRef(() => value(node));
 	};
 
@@ -1738,9 +1730,8 @@
 	 * @param {Element} node
 	 * @param {string} name
 	 * @param {Function} value
-	 * @param {object} props
 	 */
-	const setConnected = (node, name, value, props) => {
+	const setConnected = (node, name, value) => {
 	  onMount(() => value(node));
 	};
 
@@ -1748,9 +1739,8 @@
 	 * @param {Element} node
 	 * @param {string} name
 	 * @param {Function} value
-	 * @param {object} props
 	 */
-	const setDisconnected = (node, name, value, props) => {
+	const setDisconnected = (node, name, value) => {
 	  cleanup(() => value(node));
 	};
 
@@ -1761,10 +1751,9 @@
 	 * @param {DOMElement} node
 	 * @param {string} name
 	 * @param {StyleAttribute} value
-	 * @param {object} props
 	 * @url https://pota.quack.uy/props/setStyle
 	 */
-	const setStyle = (node, name, value, props) => {
+	const setStyle = (node, name, value) => {
 	  setNodeStyle(node.style, value);
 	};
 
@@ -1772,11 +1761,9 @@
 	 * @param {DOMElement} node
 	 * @param {string} name
 	 * @param {StyleAttribute} value
-	 * @param {object} props
 	 * @param {string} localName
-	 * @param {string} ns
 	 */
-	const setStyleNS = (node, name, value, props, localName, ns) => {
+	const setStyleNS = (node, name, value, localName) => {
 	  setNodeStyle(node.style, isObject(value) ? value : {
 	    [localName]: value
 	  });
@@ -1824,9 +1811,8 @@
 	 * @param {Element} node
 	 * @param {string} name
 	 * @param {object | string | ArrayLike<any>} value
-	 * @param {object} props
 	 */
-	const setClass = (node, name, value, props) => {
+	const setClass = (node, name, value) => {
 	  isString(value) ? node.setAttribute(name, value) : setClassList(node, value);
 	};
 
@@ -1834,11 +1820,10 @@
 	 * @param {Element} node
 	 * @param {string} name
 	 * @param {object | string | ArrayLike<any>} value
-	 * @param {object} props
 	 * @param {string} localName
-	 * @param {string} ns
+	 * @param {string} [ns]
 	 */
-	const setClassNS = (node, name, value, props, localName, ns) => {
+	const setClassNS = (node, name, value, localName, ns) => {
 	  isFunction(value) || !isObject(value) ? setElementClass(node, localName, value) : setClassList(node, value);
 	};
 
@@ -1883,31 +1868,48 @@
 	  !value ? removeClass(node, classNames(name)) : addClass(node, classNames(name));
 	};
 
+	// NODE ATTRIBUTES
+
 	/**
 	 * @param {Element} node
 	 * @param {string} name
 	 * @param {Accessor<string | boolean>} value
-	 * @param {string} [ns]
 	 * @url https://pota.quack.uy/props/setAttribute
 	 */
-	const setAttribute = (node, name, value, ns) => {
-	  withValue(value, value => _setAttribute(node, name, value, ns));
+	const setAttribute = (node, name, value) => {
+	  withValue(value, value => _setAttribute(node, name, value));
 	};
+
+	/**
+	 * @param {Element} node
+	 * @param {string} name
+	 * @param {Accessor<string | boolean>} value
+	 * @param {string} ns
+	 * @url https://pota.quack.uy/props/setAttribute
+	 */
+	const setAttributeNS = (node, name, value, ns) => {
+	  withValue(value, value => _setAttributeNS(node, name, value, ns));
+	};
+
 	/**
 	 * @param {Element} node
 	 * @param {string} name
 	 * @param {string | boolean} value
-	 * @param {string} [ns]
 	 */
-	function _setAttribute(node, name, value, ns) {
-	  // @ts-ignore
-
+	function _setAttribute(node, name, value) {
 	  // if the value is false/null/undefined it will be removed
-	  if (value === false || isNullUndefined(value)) {
-	    ns && NS[ns] ? node.removeAttributeNS(NS[ns], name) : node.removeAttribute(name);
-	  } else {
-	    ns && NS[ns] ? node.setAttributeNS(NS[ns], name, value === true ? '' : value) : node.setAttribute(name, value === true ? '' : value);
-	  }
+	  value === false || value == null ? node.removeAttribute(name) : node.setAttribute(name, value === true ? '' : value);
+	}
+
+	/**
+	 * @param {Element} node
+	 * @param {string} name
+	 * @param {string | boolean} value
+	 * @param {string} ns
+	 */
+	function _setAttributeNS(node, name, value, ns) {
+	  // if the value is false/null/undefined it will be removed
+	  value === false || value == null ? NS[ns] ? node.removeAttributeNS(NS[ns], name) : node.removeAttribute(name) : NS[ns] ? node.setAttributeNS(NS[ns], name, value === true ? '' : value) : node.setAttribute(name, value === true ? '' : value);
 	}
 
 	propsPluginNS('prop', setPropertyNS, false);
@@ -1926,33 +1928,6 @@
 	const propNS = empty();
 
 	/**
-	 * Assigns a prop to an Element
-	 *
-	 * @template T
-	 * @param {Element} node
-	 * @param {string} name
-	 * @param {any} value
-	 * @param {T} props
-	 */
-	function assignProp(node, name, value, props) {
-	  // run plugins
-	  let plugin = plugins.get(name);
-	  if (plugin) {
-	    plugin(node, name, value, props);
-	  } else if (propNS[name] || name.includes(':')) {
-	    // with ns
-	    propNS[name] = propNS[name] || name.split(':');
-
-	    // run plugins NS
-	    plugin = pluginsNS.get(propNS[name][0]);
-	    plugin ? plugin(node, name, value, props, propNS[name][1], propNS[name][0]) : setAttribute(node, name, value, propNS[name][0]);
-	  } else {
-	    // catch all
-	    setAttribute(node, name, value);
-	  }
-	}
-
-	/**
 	 * Assigns props to an Element
 	 *
 	 * @template T
@@ -1961,7 +1936,33 @@
 	 */
 	function assignProps(node, props) {
 	  for (const name in props) {
-	    assignProp(node, name, props[name], props);
+	    assignProp(node, name, props[name]);
+	  }
+	}
+
+	/**
+	 * Assigns a prop to an Element
+	 *
+	 * @template T
+	 * @param {Element} node
+	 * @param {string} name
+	 * @param {any} value
+	 */
+	function assignProp(node, name, value) {
+	  // run plugins
+	  let plugin = plugins.get(name);
+	  if (plugin) {
+	    plugin(node, name, value);
+	  } else if (propNS[name] || name.includes(':')) {
+	    // with ns
+	    propNS[name] = propNS[name] || name.split(':');
+
+	    // run plugins NS
+	    plugin = pluginsNS.get(propNS[name][0]);
+	    plugin ? plugin(node, name, value, propNS[name][1], propNS[name][0]) : setAttributeNS(node, propNS[name][1], value, propNS[name][0]);
+	  } else {
+	    // catch all
+	    setAttribute(node, name, value);
 	  }
 	}
 
@@ -2007,7 +2008,7 @@
 	/**
 	 * Creates a x/html element from a tagName
 	 *
-	 * @template {Props<{ xmlns?: string, is?: string }>} P
+	 * @template {Props<{ xmlns?: string; is?: string }>} P
 	 * @param {string} tagName
 	 * @param {P} props
 	 * @returns {Element} Element
@@ -2022,28 +2023,26 @@
 	    is: props?.is
 	  }) : createElement(tagName, {
 	    is: props?.is
-	  }), props), tagName);
+	  }), props));
 	}
+	let usedXML;
 
 	/**
 	 * @param {string} xmlns
 	 * @param {(xmlns: string) => Element} fn
-	 * @param {string} tagName
 	 * @returns {Element}
 	 */
-	function withXMLNS(xmlns, fn, tagName) {
+	function withXMLNS(xmlns, fn) {
+	  if (!usedXML) {
+	    if (!xmlns) {
+	      return fn(xmlns);
+	    }
+	    usedXML = true;
+	  }
 	  const nsContext = useXMLNS();
 	  if (xmlns && xmlns !== nsContext) {
 	    // the xmlns changed, use the new xmlns
 	    return useXMLNS(xmlns, () => fn(xmlns));
-	  }
-
-	  /**
-	   * `foreignObject` children are created with html xmlns (default
-	   * browser behaviour)
-	   */
-	  if (nsContext && tagName === 'foreignObject') {
-	    return useXMLNS(NS.html, () => fn(nsContext));
 	  }
 	  return fn(nsContext);
 	}
@@ -2102,7 +2101,7 @@
 	 * @param {T[]} props
 	 * @param {{
 	 * 	x?: string
-	 * 	i?: number
+	 * 	[i: number]: number
 	 * 	m?: number
 	 * } & Record<string, unknown>} propsData
 	 * @returns {Children}
@@ -2112,7 +2111,7 @@
 	    const nodes = walkElements(node, propsData.m);
 	    withXMLNS(propsData.x, xmlns => {
 	      for (let i = 0; i < props.length; i++) {
-	        assignProps(nodes[propsData[i] || i], props[i]);
+	        props[i](nodes[i in propsData ? propsData[i] : i]);
 	      }
 	    });
 	  }
@@ -2179,10 +2178,10 @@
 	        $isMap in child ? effect(() => {
 	          node = toDiff(node, flatToArray(child(child => {
 	            /**
-	             * Wrap the item with placeholders, for when stuff in
-	             * between moves. If a `Show` adds and removes nodes,
-	             * we dont have a reference to these nodes. By
-	             * delimiting with a shore, we can just handle
+	             * Wrap the item with placeholders, for when stuff
+	             * in between moves. If a `Show` adds and removes
+	             * nodes, we dont have a reference to these nodes.
+	             * By delimiting with a shore, we can just handle
 	             * anything in between as a group.
 	             */
 	            const begin = createPlaceholder(parent, true);
@@ -2332,7 +2331,7 @@
 	    // replace old node if there's any
 	    prev ? prev.replaceWith(node) : parent.appendChild(node);
 	  } else {
-	    relative ? parent.before(node) : parent.appendChild(node);
+	    relative ? parent.parentNode.insertBefore(node, parent) : parent.appendChild(node);
 	  }
 	  return node;
 	}
@@ -2475,7 +2474,8 @@
 	 * @param {Each<T>} props.each
 	 * @param {boolean} [props.restoreFocus] - If the focused element
 	 *   moves it may lose focus
-	 * @param {boolean} [props.reactiveIndex] - Make indices reactive signals
+	 * @param {boolean} [props.reactiveIndex] - Make indices reactive
+	 *   signals
 	 * @param {Children} [props.children]
 	 * @param {Children} [props.fallback]
 	 * @returns {Children}
@@ -2591,10 +2591,10 @@
 	  id,
 	  text,
 	  fn
-	}) => _div([{
-	  id: id,
-	  textContent: text,
-	  "on:click": fn
+	}) => _div([_node => {
+	  setAttribute(_node, "textContent", text);
+	  setAttribute(_node, "id", id);
+	  setEvent(_node, "click", fn);
 	}]);
 	const _Button = createComponent(Button);
 	const App = () => {
@@ -2634,8 +2634,8 @@
 	      });
 	    },
 	    isSelected = useSelector(selected);
-	  return _div2([{
-	    children: [_Button({
+	  return _div2([_node5 => {
+	    createChildren(_node5, [_Button({
 	      fn: run,
 	      id: "run",
 	      text: "Create 1,000 rows"
@@ -2659,36 +2659,36 @@
 	      fn: swapRows,
 	      id: "swaprows",
 	      text: "Swap Rows"
-	    })]
-	  }, {
-	    "on:click": e => {
+	    })]);
+	  }, _node16 => {
+	    setEvent(_node16, "click", e => {
 	      const element = e.target;
 	      if (element.selectRow !== undefined) {
 	        setSelected(element.selectRow);
 	      } else if (element.removeRow !== undefined) {
 	        remove(element.removeRow);
 	      }
-	    }
-	  }, {
-	    children: _For({
+	    });
+	  }, _node15 => {
+	    createChildren(_node15, _For({
 	      each: data,
 	      children: row => {
 	        const {
 	          id,
 	          label
 	        } = row;
-	        return _tr([{
-	          "class:danger": isSelected(id)
-	        }, {
-	          textContent: id
-	        }, {
-	          textContent: label,
-	          "prop:selectRow": id
-	        }, {
-	          "prop:removeRow": id
+	        return _tr([_node14 => {
+	          setElementClass(_node14, "danger", isSelected(id));
+	        }, _node9 => {
+	          setAttribute(_node9, "textContent", id);
+	        }, _node0 => {
+	          setAttribute(_node0, "textContent", label);
+	          setProperty(_node0, "selectRow", id);
+	        }, _node10 => {
+	          setProperty(_node10, "removeRow", id);
 	        }]);
 	      }
-	    })
+	    }));
 	  }]);
 	};
 	render(App, document.getElementById('main'));
