@@ -49,9 +49,8 @@ setProperty, // setProperty(node, 'hidden', signal)
 setStyle, // setStyle(node, 'color', signal)
 setClass, // setClass(node, 'selected', signal)
 
-propsPlugin, // propsPlugin('red', function(node, propName, propValue, props){node.style.color = 'red'}) <div red/>
-propsPluginNS, // propsPluginNS('color', function(node, propName, propValue, props){node.style.color = propValue}) <div color:red/>
-propsSplit, // const [newProps, children, divProps] = propsSplit(props, ['children'], ['id', 'class'])
+propsPlugin, // propsPlugin('red', function(node, propValue){node.style.color = 'red'}) <div red/>
+propsPluginNS, // propsPluginNS('color', function(node, localName, propValue){node.style.color = localName}) <div color:red/>
 
 // pota version
 version

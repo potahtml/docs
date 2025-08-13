@@ -63,6 +63,16 @@
 				}
 			},
 			{
+				"input": ["src/pages/benchmark/dev-swap/index.jsx"],
+				"output": "src/pages/benchmark/dev-swap/main.js",
+				"minified": false,
+				"treeshake": true,
+				"root": false,
+				"babel": {
+					"presets": [["pota/babel-preset"]]
+				}
+			},
+			{
 				"input": ["src/pages/benchmark/regular/index.jsx"],
 				"output": "src/pages/benchmark/regular/main.js",
 				"minified": false,

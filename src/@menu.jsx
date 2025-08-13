@@ -312,14 +312,6 @@ export default function Menu() {
 						<li>
 							<A
 								href="/props/:page"
-								params={{ page: 'propsSplit' }}
-							>
-								propsSplit
-							</A>
-						</li>
-						<li>
-							<A
-								href="/props/:page"
 								params={{ page: 'propsPlugin' }}
 							>
 								propsPlugin

@@ -8,7 +8,10 @@ const cacheBurst =
 export async function transform(code) {
 	return Promise.all([
 		import(
-			'https://esm.sh/pota/babel-preset?bundle=all' + cacheBurst
+			'https://esm.sh/pota@' +
+				version +
+				'/babel-preset?bundle=all' +
+				cacheBurst
 		),
 		import(
 			'https://esm.sh/@babel/preset-typescript?target=es2022&deps=@babel/helper-globals' +

@@ -7,9 +7,7 @@ function App() {
 		<main>
 			<section>
 				<div use:fullscreen>fullscreen body</div>
-				<div
-					use:fullscreen={(event, node) => console.log(event, node)}
-				>
+				<div use:fullscreen={(event, node) => node}>
 					fullscreen element
 				</div>
 			</section>

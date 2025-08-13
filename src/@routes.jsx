@@ -301,14 +301,6 @@ export default function Routes() {
 
 				<Route
 					path=":path$"
-					params={{ path: 'propsSplit' }}
-					children={load(
-						() => import('./pages/@props/props-split/index.jsx'),
-					)}
-				/>
-
-				<Route
-					path=":path$"
 					params={{ path: 'setAttribute' }}
 					children={load(
 						() => import('./pages/@props/set-attribute/index.jsx'),
