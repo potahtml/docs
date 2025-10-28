@@ -93,8 +93,8 @@
 				}
 			},
 			{
-				"input": ["src/pages/tests/transform-tests.jsx"],
-				"output": "src/pages/tests/transform-tests.js",
+				"input": ["src/pages/tests/transform.jsx"],
+				"output": "src/pages/tests/transform.js",
 				"minified": false,
 				"treeshake": true,
 				"root": false,

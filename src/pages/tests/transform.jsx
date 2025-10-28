@@ -1,7 +1,47 @@
 import { render } from 'pota'
 
-render(() => (
+const style = { style: '3', something: { value: 1 + 1 } }
+const spread1 = (
+	<div
+		style="1"
+		{...style}
+		style="2"
+	/>
+)
+const spread2 = <div {...style} />
+const spread3 = (
+	<div
+		{...style}
+		{...{ ...style, ...style2 }}
+		style="2"
+	/>
+)
+const spread4 = <div {...{ ...style, ...style2 }} />
+
+function Counter() {
+	const a = 50
+	const b = 60
+	const c = 70
+
+	return (
+		<div
+			style={{
+				'padding-left': `clamp(${a}px, ${b}px, ${c}px)`,
+				'padding-right': 'clamp(10px, 20px, 30px)',
+				'padding-top': 'calc(12*6px)',
+			}}
+			style2={`clamp(${a}px, ${b}px, ${c}px)`}
+		>
+			<p>abc</p> {`clamp(${a}px, ${b}px, ${c}px)`}
+		</div>
+	)
+}
+
+const lala2 = 2
+
+const component = (
 	<div>
+		<Counter />
 		<div
 			data-undefined={undefined}
 			data-null={null}
@@ -11,13 +51,15 @@ render(() => (
 			data-a0={0}
 			data-aminus1={-1}
 			data-adecimal1={0.00003}
+			data-adecimal10={1 + 1}
 			data-abigint1={1n}
 			data-empty={''}
 			data-emptytemplate={`aloja from template`}
 			data-emptytemplatefn={html` ${lala}`}
 			data-emptytemplatefsn={` ${lala}`}
+			data-emptytemplatefsn1={` ${lala2}`}
 			data-emptywithfuction={' '.trim()}
-			data-call={trim()}
+			data-call={fn()}
 			on:click={() => {}}
 			children="wth"
 			class:mitrocondria={true}
@@ -42,20 +84,24 @@ render(() => (
 		<div>0 - {0}</div>
 		<div>-10 - {-10}</div>
 		<div>0.0222 - {0.0222}</div>
+		<div>1+1 - {1 + 1}</div>
 		<div>1n - {1n}</div>
 		<div>'' - {''}</div>
 		<div>'' - {`aloja from template`}</div>
 		<div>'' - {`aloja ${hotaloja} template`}</div>
 		<div>'' - {``}</div>
 		<div>' '.trim() - {' '.trim()}</div>
-		<div>trim() - {trim()}</div>
+		<div>fn() - {fn()}</div>
 		<div>
 			() => {} - {() => {}}
 		</div>
 		<div>`asdasd` - {`asdasd`}</div>
 
 		<tm-textarea>
-			<iframe loading="lazy" />
+			<iframe
+				loading="lazy"
+				style={{ bla: !!2, something: { value: 1 + 1 } }}
+			/>
 
 			<kilo:svg
 				xmlns:kilo="http://www.w3.org/2000/svg"
@@ -67,4 +113,6 @@ render(() => (
 			</kilo:svg>
 		</tm-textarea>
 	</div>
-))
+)
+
+render(component)

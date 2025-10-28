@@ -1694,7 +1694,7 @@
 	 */
 	const setEvent = (node, name, value) => {
 	  // `value &&` because avoids crash when `on:click={prop.onClick}` and `!prop.onClick`
-	  value && addEvent(node, name, ownedEvent(value)); // ownedEvent
+	  value && addEvent(node, name, ownedEvent(value));
 	};
 
 	/**
@@ -2106,7 +2106,7 @@
 	function createPartial(content, propsData = nothing) {
 	  let clone = () => {
 	    const node = withXMLNS(propsData.x, xmlns => parseXML(content, xmlns));
-	    clone = propsData.i ? importNode.bind(null, node, true) : node.cloneNode.bind(node, true);
+	    clone = 'i' in propsData ? importNode.bind(null, node, true) : node.cloneNode.bind(node, true);
 	    return clone();
 	  };
 	  return props => markComponent(() => assignPartialProps(clone(), props, propsData));

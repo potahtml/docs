@@ -1424,7 +1424,7 @@
 	 */
 	const setEvent = (node, name, value) => {
 	  // `value &&` because avoids crash when `on:click={prop.onClick}` and `!prop.onClick`
-	  value && addEvent(node, name, ownedEvent(value)); // ownedEvent
+	  value && addEvent(node, name, ownedEvent(value));
 	};
 
 	/**
@@ -1813,6 +1813,16 @@
 	  return tlpContent.childNodes.length === 1 ? tlpContent.firstChild : tlpContent;
 	}
 
+	/** Used in transform in place of jsxs */
+	function createComponent(value) {
+	  const component = Factory(value);
+	  return props => {
+	    /** Freeze props so isnt directly writable */
+	    freeze(props);
+	    return markComponent(() => component(props));
+	  };
+	}
+
 	/**
 	 * @template T
 	 * @param {string} content
@@ -1826,7 +1836,7 @@
 	function createPartial(content, propsData = nothing) {
 	  let clone = () => {
 	    const node = withXMLNS(propsData.x, xmlns => parseXML(content, xmlns));
-	    clone = propsData.i ? importNode.bind(null, node, true) : node.cloneNode.bind(node, true);
+	    clone = 'i' in propsData ? importNode.bind(null, node, true) : node.cloneNode.bind(node, true);
 	    return clone();
 	  };
 	  return props => markComponent(() => assignPartialProps(clone(), props, propsData));
@@ -2195,28 +2205,79 @@
 	  return next;
 	}
 
-	var _div = createPartial("<div><div data-true data-a0=0 data-aminus1=-1 data-adecimal1=0.00003 data-abigint1=1 data-empty data-emptytemplate='aloja from template' children=wth class class=opa class='opa opa' style=border:0 style=border:3></div><div>undefined - </div><div>null - </div><div>true - true</div><div>false - false</div><div>void 0 - </div><div>0 - 0</div><div>-10 - -10</div><div>0.0222 - 0.0222</div><div>1n - 1</div><div>&#39;&#39; - </div><div>&#39;&#39; - aloja from template</div><div>&#39;&#39; - </div><div>&#39;&#39; - </div><div>&#39; &#39;.trim() - </div><div>trim() - </div><div>() =&gt;  - </div><div>`asdasd` - asdasd</div><tm-textarea><iframe loading=lazy></iframe><kilo:svg xmlns:kilo=http://www.w3.org/2000/svg width=24 height=24 viewBox='0 0 24 24'><kilo:path d='M10 10.5h1.5v3H10zM19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7.5 15H6v-4.5H4.5V9h3v6zm5.5-1c0 .55-.45 1-1 1H9.5c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1H12c.55 0 1 .45 1 1v4zm6.5 1h-1.75L16 12.75V15h-1.5V9H16v2.25L17.75 9h1.75l-2.25 3 2.25 3z'></kilo:path></kilo:svg></tm-textarea></div>", {"0":1,"1":13,"2":15,"3":16,"4":17,"m":18,"i":1});
-	render(() => _div([_node => {
-	  setAttribute(_node, "data-emptytemplatefn", html` ${lala}`);
-	  setAttribute(_node, "data-emptytemplatefsn", ` ${lala}`);
-	  setAttribute(_node, "data-emptywithfuction", ' '.trim());
-	  setAttribute(_node, "data-call", trim());
-	  setEvent(_node, "click", () => {});
-	  setElementClass(_node, "mitrocondria", true);
-	  setStyleNS(_node, "border", '0px');
-	  setStyleNS(_node, "background", "0px");
-	  setConnected(_node, function connected(node) {});
-	  setDisconnected(_node, function disconnected(node) {});
-	  setCSS(_node, 'class {color:red}');
-	}, _node11 => {
-	  createChildren(_node11, `aloja ${hotaloja} template`);
-	}, _node13 => {
-	  createChildren(_node13, ' '.trim());
-	}, _node14 => {
-	  createChildren(_node14, trim());
-	}, _node15 => {
-	  createChildren(_node15, () => {});
-	}]));
+	var _Counter = createComponent(Counter),
+	  _div = createPartial("<div></div>"),
+	  _div2 = createPartial("<div style2='clamp(50px, 60px, 70px)'><p>abc</p> clamp(50px, 60px, 70px)</div>"),
+	  _div3 = createPartial("<div data-true data-a0=0 data-aminus1=-1 data-adecimal1=0.00003 data-adecimal10=2 data-abigint1=1 data-empty data-emptytemplate='aloja from template' data-emptytemplatefsn1=' 2' data-emptywithfuction children=wth class class=opa class='opa opa' style=border:0 style=border:3></div><div>undefined - </div><div>null - </div><div>true - true</div><div>false - false</div><div>void 0 - </div><div>0 - 0</div><div>-10 - -10</div><div>0.0222 - 0.0222</div><div>1+1 - 2</div><div>1n - 1</div><div>&#39;&#39; - </div><div>&#39;&#39; - aloja from template</div><div>&#39;&#39; - </div><div>&#39;&#39; - </div><div>&#39; &#39;.trim() - </div><div>fn() - </div><div>() =&gt;  - </div><div>`asdasd` - asdasd</div><tm-textarea><iframe loading=lazy></iframe><kilo:svg xmlns:kilo=http://www.w3.org/2000/svg width=24 height=24 viewBox='0 0 24 24'><kilo:path d='M10 10.5h1.5v3H10zM19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7.5 15H6v-4.5H4.5V9h3v6zm5.5-1c0 .55-.45 1-1 1H9.5c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1H12c.55 0 1 .45 1 1v4zm6.5 1h-1.75L16 12.75V15h-1.5V9H16v2.25L17.75 9h1.75l-2.25 3 2.25 3z'></kilo:path></kilo:svg></tm-textarea>", {"1":13,"2":16,"3":17,"4":20,"m":21,"i":1});
+	const style = {
+	  style: '3',
+	  something: {
+	    value: 1 + 1
+	  }
+	};
+	_div([_node => {
+	  assignProps(_node, {
+	    style: "1",
+	    ...style,
+	    style: "2"
+	  });
+	}]);
+	_div([_node2 => {
+	  assignProps(_node2, style);
+	}]);
+	_div([_node3 => {
+	  assignProps(_node3, {
+	    ...style,
+	    ...{
+	      ...style,
+	      ...style2
+	    },
+	    style: "2"
+	  });
+	}]);
+	_div([_node4 => {
+	  assignProps(_node4, {
+	    ...style,
+	    ...style2
+	  });
+	}]);
+	function Counter() {
+	  return _div2([_node6 => {
+	    setStyle(_node6, {
+	      'padding-left': "clamp(50px, 60px, 70px)",
+	      'padding-right': 'clamp(10px, 20px, 30px)',
+	      'padding-top': 'calc(12*6px)'
+	    });
+	  }]);
+	}
+	const component = _div([_node28 => {
+	  createChildren(_node28, [_Counter(), _div3([_node7 => {
+	    setAttribute(_node7, "data-emptytemplatefn", html` ${lala}`);
+	    setAttribute(_node7, "data-emptytemplatefsn", ` ${lala}`);
+	    setAttribute(_node7, "data-call", fn());
+	    setEvent(_node7, "click", () => {});
+	    setElementClass(_node7, "mitrocondria", true);
+	    setStyleNS(_node7, "border", '0px');
+	    setStyleNS(_node7, "background", "0px");
+	    setConnected(_node7, function connected(node) {});
+	    setDisconnected(_node7, function disconnected(node) {});
+	    setCSS(_node7, 'class {color:red}');
+	  }, _node18 => {
+	    createChildren(_node18, `aloja ${hotaloja} template`);
+	  }, _node21 => {
+	    createChildren(_node21, fn());
+	  }, _node22 => {
+	    createChildren(_node22, () => {});
+	  }, _node24 => {
+	    setStyle(_node24, {
+	      bla: true,
+	      something: {
+	        value: 2
+	      }
+	    });
+	  }])]);
+	}]);
+	render(component);
 
 })();
-//# sourceMappingURL=transform-tests.js.map
+//# sourceMappingURL=transform.js.map

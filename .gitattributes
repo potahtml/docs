@@ -1,5 +1,3 @@
-src/pages/benchmark/dev/main.js binary
-src/pages/benchmark/dev/main.js.map binary
 
 src/pages/benchmark/xml/main.js binary
 src/pages/benchmark/xml/main.js.map
@@ -9,6 +7,3 @@ src/pages/benchmark/regular/main.js.map binary
 
 src/pages/benchmark/dev-v2/main.js binary
 src/pages/benchmark/dev-v2/main.js.map binary
-
-src/pages/tests/transform-tests.js binary
-src/pages/tests/transform-tests.js.map binary

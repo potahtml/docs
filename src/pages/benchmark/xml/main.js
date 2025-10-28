@@ -1939,7 +1939,7 @@
 	 */
 	const setEvent = (node, name, value) => {
 	  // `value &&` because avoids crash when `on:click={prop.onClick}` and `!prop.onClick`
-	  value && addEvent(node, name, ownedEvent(value)); // ownedEvent
+	  value && addEvent(node, name, ownedEvent(value));
 	};
 
 	/**
