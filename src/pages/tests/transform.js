@@ -1709,6 +1709,7 @@
 	// STATE
 
 	const useXMLNS = context();
+	const useSuspense = context(signal(0));
 
 	/**
 	 * Creates a component that could be called with a props object
@@ -1977,10 +1978,15 @@
 	          return undefined;
 	        }
 
-	        // async components
+	        // async values
 	        if ('then' in child) {
+	          const suspense = useSuspense();
+	          suspense.update(num => num + 1);
 	          const [value, setValue] = signal(undefined);
-	          const onResult = result => isConnected(parent) && setValue(result);
+	          const onResult = owned(result => {
+	            setValue(result);
+	            suspense.update(num => num - 1);
+	          });
 	          resolved(child, onResult);
 	          return createChildren(parent, value, relative);
 	        }
@@ -2217,9 +2223,9 @@
 	};
 	_div([_node => {
 	  assignProps(_node, {
-	    style: "1",
+	    "style": "1",
 	    ...style,
-	    style: "2"
+	    "style": "2"
 	  });
 	}]);
 	_div([_node2 => {
@@ -2232,7 +2238,8 @@
 	      ...style,
 	      ...style2
 	    },
-	    style: "2"
+	    "style": "2",
+	    "nada:nada": "test"
 	  });
 	}]);
 	_div([_node4 => {

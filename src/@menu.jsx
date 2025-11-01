@@ -99,6 +99,13 @@ export default function Menu() {
 						<li>
 							<A
 								href="/Components/:page"
+								params={{ page: 'Suspense' }}
+								children="<Suspense/>"
+							/>
+						</li>
+						<li>
+							<A
+								href="/Components/:page"
 								params={{ page: 'Switch' }}
 								children="<Switch/>"
 							/>

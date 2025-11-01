@@ -145,6 +145,13 @@ export default function Routes() {
 
 				<Route
 					path=":path$"
+					params={{ path: 'Suspense' }}
+					children={load(
+						() => import('./pages/@components/suspense/index.jsx'),
+					)}
+				/>
+				<Route
+					path=":path$"
 					params={{ path: 'Switch' }}
 					children={load(
 						() => import('./pages/@components/switch/index.jsx'),

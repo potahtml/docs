@@ -14,6 +14,7 @@ const spread3 = (
 		{...style}
 		{...{ ...style, ...style2 }}
 		style="2"
+		nada:nada="test"
 	/>
 )
 const spread4 = <div {...{ ...style, ...style2 }} />

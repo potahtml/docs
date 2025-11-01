@@ -1486,7 +1486,7 @@
 	 * reactivity on the inner memo doesnt trigger reactivity outside.
 	 *
 	 * @template {Children} T
-	 * @param {() => T} fn
+	 * @param {T | (() => T)} fn
 	 * @url https://pota.quack.uy/resolve
 	 */
 	function resolve(fn) {
@@ -2224,6 +2224,7 @@
 	// STATE
 
 	const useXMLNS = context();
+	const useSuspense = context(signal(0));
 
 	// COMPONENTS
 
@@ -2460,10 +2461,15 @@
 	          return undefined;
 	        }
 
-	        // async components
+	        // async values
 	        if ('then' in child) {
+	          const suspense = useSuspense();
+	          suspense.update(num => num + 1);
 	          const [value, setValue] = signal(undefined);
-	          const onResult = result => isConnected(parent) && setValue(result);
+	          const onResult = owned(result => {
+	            setValue(result);
+	            suspense.update(num => num - 1);
+	          });
 	          resolved(child, onResult);
 	          return createChildren(parent, value, relative);
 	        }
@@ -4808,6 +4814,25 @@
 	}
 
 	/**
+	 * Provides a fallback till children promises resolve (recursively)
+	 *
+	 * @template T
+	 * @param {object} props
+	 * @param {Children} [props.fallback]
+	 * @param {Children} [props.children]
+	 * @returns {Children}
+	 * @url https://pota.quack.uy/Components/Suspense
+	 */
+	function Suspense(props) {
+	  const s = signal(0);
+	  return useSuspense(s, () => {
+	    const children = resolve(props.children)();
+	    const result = memo(() => s.read() === 0 ? children : props.fallback);
+	    return new Promise(resolve => resolve(result));
+	  });
+	}
+
+	/**
 	 * Renders the first child that matches the given `when` condition, or
 	 * a fallback in case of no match
 	 *
@@ -4853,6 +4878,7 @@
 	  Range,
 	  Route,
 	  Show,
+	  Suspense,
 	  Switch
 	};
 
