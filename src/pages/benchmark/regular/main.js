@@ -1979,7 +1979,10 @@
 	// STATE
 
 	const useXMLNS = context();
-	const useSuspense = context(signal(0));
+	const useSuspense = context({
+	  c: 0,
+	  s: signal(false)
+	});
 
 	/**
 	 * Creates a component that could be called with a props object
@@ -2251,11 +2254,13 @@
 	        // async values
 	        if ('then' in child) {
 	          const suspense = useSuspense();
-	          suspense.update(num => num + 1);
+	          suspense.c++;
 	          const [value, setValue] = signal(undefined);
 	          const onResult = owned(result => {
 	            setValue(result);
-	            suspense.update(num => num - 1);
+	            if (--suspense.c === 0) {
+	              suspense.s.write(true);
+	            }
 	          });
 	          resolved(child, onResult);
 	          return createChildren(parent, value, relative);

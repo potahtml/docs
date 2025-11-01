@@ -2224,7 +2224,10 @@
 	// STATE
 
 	const useXMLNS = context();
-	const useSuspense = context(signal(0));
+	const useSuspense = context({
+	  c: 0,
+	  s: signal(false)
+	});
 
 	// COMPONENTS
 
@@ -2464,11 +2467,13 @@
 	        // async values
 	        if ('then' in child) {
 	          const suspense = useSuspense();
-	          suspense.update(num => num + 1);
+	          suspense.c++;
 	          const [value, setValue] = signal(undefined);
 	          const onResult = owned(result => {
 	            setValue(result);
-	            suspense.update(num => num - 1);
+	            if (--suspense.c === 0) {
+	              suspense.s.write(true);
+	            }
 	          });
 	          resolved(child, onResult);
 	          return createChildren(parent, value, relative);
@@ -4824,11 +4829,14 @@
 	 * @url https://pota.quack.uy/Components/Suspense
 	 */
 	function Suspense(props) {
-	  const s = signal(0);
-	  return useSuspense(s, () => {
-	    const children = resolve(props.children)();
-	    const result = memo(() => s.read() === 0 ? children : props.fallback);
-	    return new Promise(resolve => resolve(result));
+	  const s = signal(false);
+	  return useSuspense({
+	    c: 0,
+	    s
+	  }, () => {
+	    const children = toHTMLFragment(props.children);
+	    const result = memo(() => s.read() ? children : props.fallback);
+	    return Promise.resolve(result);
 	  });
 	}
 
