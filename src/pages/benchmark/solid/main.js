@@ -817,7 +817,7 @@
 					}),
 					null,
 				),
-				D(r, _(V, { id: 'clear', text: 'Clear', fn: v }), null),
+				D(r, _(V, { id: 'clear', text: 'Clear', fn: ()=>{debugger;v()} }), null),
 				D(
 					r,
 					_(V, { id: 'swaprows', text: 'Swap Rows', fn: h }),

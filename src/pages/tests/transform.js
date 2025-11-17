@@ -41,6 +41,17 @@
 	};
 
 	/**
+	 * Flats an array recursively and passes values to secondary function
+	 *
+	 * @template {unknown | unknown[]} T
+	 * @param {T} arr
+	 * @param {(value: T) => void} fn
+	 */
+	const flatForEach = (arr, fn) => {
+	  isArray(arr) ? arr.flat(Infinity).forEach(value => value && fn(value)) : arr ? fn(arr) : nothing;
+	};
+
+	/**
 	 * Returns an object without a prototype
 	 *
 	 * @type {Function}
@@ -226,9 +237,9 @@
 	 *
 	 * - Ported to Classes what does fit
 	 * - Signal has more options: `label` and `save` previous value
-	 * - Writing to a signal returns `bollean` to tell if the value changed
+	 * - Writing to a signal returns `boolean` to tell if the value changed
 	 * - Signal is an object that could be used as signal.read/write or
-	 *   destructured as an array
+	 *   destructuring
 	 * - Signals can save and won't run functions
 	 * - `update` function on Signal that could be used to use the old value
 	 *   to set a new value
@@ -245,9 +256,6 @@
 	 */
 
 	function createReactiveSystem() {
-	  const CLEAN = 0;
-	  const STALE = 1;
-	  const CHECK = 2;
 
 	  /** @type {Computation} */
 	  let Owner;
@@ -349,7 +357,8 @@
 	  // COMPUTATION
 
 	  class Computation extends Root {
-	    state = STALE;
+	    state = 1; /* STALE */
+
 	    updatedAt = 0;
 
 	    /** @type {Function | undefined} */
@@ -413,7 +422,7 @@
 	        }
 	      }
 	      super.dispose();
-	      this.state = CLEAN;
+	      this.state = 0; /* CLEAN */
 	    }
 	    queue() {
 	      Effects.push(this);
@@ -465,7 +474,7 @@
 	    }
 	    read = () => {
 	      if (this.state) {
-	        if (this.state === STALE) {
+	        if (this.state === 1 /* STALE */) {
 	          this.update();
 	        } else {
 	          const updates = Updates;
@@ -501,11 +510,11 @@
 	        if (this.observers && this.observers.length) {
 	          runUpdates(() => {
 	            for (const observer of this.observers) {
-	              if (observer.state === CLEAN) {
+	              if (observer.state === 0 /* CLEAN */) {
 	                observer.queue();
 	                observer.observers && downstream(observer);
 	              }
-	              observer.state = STALE;
+	              observer.state = 1; /* STALE */
 	            }
 	          });
 	        }
@@ -528,7 +537,7 @@
 	      try {
 	        nextValue = this.fn();
 	      } catch (err) {
-	        this.state = STALE;
+	        this.state = 1; /* STALE */
 	        this.disposeOwned();
 	        this.updatedAt = time + 1;
 	        throw err;
@@ -619,11 +628,11 @@
 	        if (this.observers && this.observers.length) {
 	          runUpdates(() => {
 	            for (const observer of this.observers) {
-	              if (observer.state === CLEAN) {
+	              if (observer.state === 0 /* CLEAN */) {
 	                observer.queue();
 	                observer.observers && downstream(observer);
 	              }
-	              observer.state = STALE;
+	              observer.state = 1; /* STALE */
 	            }
 	          });
 	        }
@@ -680,9 +689,7 @@
 	   */
 	  /* #__NO_SIDE_EFFECTS__ */
 	  function signal(initialValue, options) {
-	    /** @type {SignalObject<T>} */
-	    const s = new Signal(initialValue, options);
-	    return s;
+	    return /** @type {SignalObject<T>} */ /** @type {unknown} */new Signal(initialValue, options);
 	  }
 
 	  /**
@@ -732,9 +739,7 @@
 	   */
 	  /* #__NO_SIDE_EFFECTS__ */
 	  function memo(fn, options = undefined) {
-	    /** @type {SignalAccessor<T>} */
-	    const s = new Memo(Owner, fn, options);
-	    return s;
+	    return /** @type {SignalAccessor<T>} */ /** @type {unknown} */new Memo(Owner, fn, options);
 	  }
 
 	  /**
@@ -815,11 +820,11 @@
 
 	  function runTop(node) {
 	    switch (node.state) {
-	      case CLEAN:
+	      case 0 /* CLEAN */:
 	        {
 	          break;
 	        }
-	      case CHECK:
+	      case 2 /* CHECK */:
 	        {
 	          upstream(node);
 	          break;
@@ -834,12 +839,12 @@
 	          for (let i = ancestors.length - 1, updates; i >= 0; i--) {
 	            node = ancestors[i];
 	            switch (node.state) {
-	              case STALE:
+	              case 1 /* STALE */:
 	                {
 	                  node.update();
 	                  break;
 	                }
-	              case CHECK:
+	              case 2 /* CHECK */:
 	                {
 	                  updates = Updates;
 	                  Updates = null;
@@ -909,18 +914,19 @@
 	    }
 	  }
 	  function upstream(node, ignore) {
-	    node.state = CLEAN;
+	    node.state = 0; /* CLEAN */
+
 	    for (const source of node.sources) {
 	      if (source.sources) {
 	        switch (source.state) {
-	          case STALE:
+	          case 1 /* STALE */:
 	            {
 	              if (source !== ignore && source.updatedAt < Time) {
 	                runTop(source);
 	              }
 	              break;
 	            }
-	          case CHECK:
+	          case 2 /* CHECK */:
 	            {
 	              upstream(source, ignore);
 	              break;
@@ -931,8 +937,8 @@
 	  }
 	  function downstream(node) {
 	    for (const observer of node.observers) {
-	      if (observer.state === CLEAN) {
-	        observer.state = CHECK;
+	      if (observer.state === 0 /* CLEAN */) {
+	        observer.state = 2; /* CHECK */
 	        observer.queue();
 	        observer.observers && downstream(observer);
 	      }
@@ -979,7 +985,7 @@
 	     * Sets the `value` for the context
 	     *
 	     * @param {object} props
-	     * @param {T} [props.value]
+	     * @param {Partial<T>} props.value
 	     * @param {Children} props.children
 	     * @returns {Children} Children
 	     * @url https://pota.quack.uy/Reactivity/Context
@@ -1423,8 +1429,9 @@
 	 * @param {EventHandler<Event, T>} value
 	 */
 	const setEvent = (node, name, value) => {
-	  // `value &&` because avoids crash when `on:click={prop.onClick}` and `!prop.onClick`
-	  value && addEvent(node, name, ownedEvent(value));
+	  flatForEach(value, value => {
+	    addEvent(node, name, ownedEvent(value));
+	  });
 	};
 
 	/**
@@ -1434,7 +1441,9 @@
 	 * @param {EventHandler<Event, T>} value
 	 */
 	const setEventNS = (node, localName, value) => {
-	  setEvent(node, localName, value);
+	  flatForEach(value, value => {
+	    setEvent(node, localName, value);
+	  });
 	};
 
 	/** Returns true or false with a `chance` of getting `true` */
@@ -1466,7 +1475,7 @@
 	 * @param {Function} value
 	 */
 	const setRef = (node, value) => {
-	  value(node);
+	  flatForEach(value, fn => fn(node));
 	};
 
 	/**
@@ -1474,7 +1483,7 @@
 	 * @param {Function} value
 	 */
 	const setConnected = (node, value) => {
-	  onMount(() => value(node));
+	  onMount(() => flatForEach(value, fn => fn(node)));
 	};
 
 	/**
@@ -1482,7 +1491,7 @@
 	 * @param {Function} value
 	 */
 	const setDisconnected = (node, value) => {
-	  cleanup(() => value(node));
+	  cleanup(() => flatForEach(value, fn => fn(node)));
 	};
 
 	// node style
@@ -1700,6 +1709,27 @@
 	  } else {
 	    // catch all
 	    setAttribute(node, name, value);
+	  }
+	}
+
+	/**
+	 * Assigns a prop to an Element
+	 *
+	 * @template T
+	 * @param {Element} node
+	 * @param {string} name
+	 * @param {any} value
+	 * @param {string} localName
+	 * @param {string} ns
+	 */
+	function assignPropNS(node, name, value, localName, ns) {
+	  // run plugins NS
+	  let plugin = plugins.get(name);
+	  if (plugin) {
+	    plugin(node, value);
+	  } else {
+	    plugin = pluginsNS.get(ns);
+	    plugin ? plugin(node, localName, value) : setAttributeNS(node, name, value, ns);
 	  }
 	}
 
@@ -2219,7 +2249,7 @@
 	var _Counter = createComponent(Counter),
 	  _div = createPartial("<div></div>"),
 	  _div2 = createPartial("<div style2='clamp(50px, 60px, 70px)'><p>abc</p> clamp(50px, 60px, 70px)</div>"),
-	  _div3 = createPartial("<div data-true data-a0=0 data-aminus1=-1 data-adecimal1=0.00003 data-adecimal10=2 data-abigint1=1 data-empty data-emptytemplate='aloja from template' data-emptytemplatefsn1=' 2' data-emptywithfuction children=wth class class=opa class='opa opa' style=border:0 style=border:3></div><div>undefined - </div><div>null - </div><div>true - true</div><div>false - false</div><div>void 0 - </div><div>0 - 0</div><div>-10 - -10</div><div>0.0222 - 0.0222</div><div>1+1 - 2</div><div>1n - 1</div><div>&#39;&#39; - </div><div>&#39;&#39; - aloja from template</div><div>&#39;&#39; - </div><div>&#39;&#39; - </div><div>&#39; &#39;.trim() - </div><div>fn() - </div><div>() =&gt;  - </div><div>`asdasd` - asdasd</div><tm-textarea><iframe loading=lazy></iframe><kilo:svg xmlns:kilo=http://www.w3.org/2000/svg width=24 height=24 viewBox='0 0 24 24'><kilo:path d='M10 10.5h1.5v3H10zM19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7.5 15H6v-4.5H4.5V9h3v6zm5.5-1c0 .55-.45 1-1 1H9.5c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1H12c.55 0 1 .45 1 1v4zm6.5 1h-1.75L16 12.75V15h-1.5V9H16v2.25L17.75 9h1.75l-2.25 3 2.25 3z'></kilo:path></kilo:svg></tm-textarea>", {"1":13,"2":16,"3":17,"4":20,"m":21,"i":1});
+	  _div3 = createPartial("<div data-true data-a0=0 data-aminus1=-1 data-adecimal1=0.00003 data-adecimal10=2 data-abigint1=1 data-empty data-emptytemplate='aloja from template' data-emptytemplatefsn1=' 2' data-emptywithfuction children=wth class='opa opa' style=border:3></div><div>undefined - </div><div>null - </div><div>true - true</div><div>false - false</div><div>void 0 - </div><div>0 - 0</div><div>-10 - -10</div><div>0.0222 - 0.0222</div><div>1+1 - 2</div><div>1n - 1</div><div>&#39;&#39; - </div><div>&#39;&#39; - aloja from template</div><div>&#39;&#39; - </div><div>&#39;&#39; - </div><div>&#39; &#39;.trim() - </div><div>fn() - </div><div>() =&gt;  - </div><div>`asdasd` - asdasd</div><div children=1></div><tm-textarea><iframe loading=lazy></iframe><kilo:svg xmlns:kilo=http://www.w3.org/2000/svg width=24 height=24 viewBox='0 0 24 24'><kilo:path d='M10 10.5h1.5v3H10zM19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7.5 15H6v-4.5H4.5V9h3v6zm5.5-1c0 .55-.45 1-1 1H9.5c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1H12c.55 0 1 .45 1 1v4zm6.5 1h-1.75L16 12.75V15h-1.5V9H16v2.25L17.75 9h1.75l-2.25 3 2.25 3z'></kilo:path></kilo:svg></tm-textarea>", {"1":13,"2":16,"3":17,"4":19,"5":21,"m":22,"i":1});
 	const style = {
 	  style: '3',
 	  something: {
@@ -2230,7 +2260,8 @@
 	  assignProps(_node, {
 	    "style": "1",
 	    ...style,
-	    "style": "2"
+	    "style": "2",
+	    "prop:not-identifier": /* @static */""
 	  });
 	}]);
 	_div([_node2 => {
@@ -2262,8 +2293,9 @@
 	    });
 	  }]);
 	}
-	const component = _div([_node28 => {
-	  createChildren(_node28, [_Counter(), _div3([_node7 => {
+	const component = _div([_node29 => {
+	  createChildren(_node29, [_Counter(), _div3([_node7 => {
+	    _node7["not-identifier"] = /* @static  */"";
 	    setAttribute(_node7, "data-emptytemplatefn", html` ${lala}`);
 	    setAttribute(_node7, "data-emptytemplatefsn", ` ${lala}`);
 	    setAttribute(_node7, "data-call", fn());
@@ -2281,7 +2313,13 @@
 	  }, _node22 => {
 	    createChildren(_node22, () => {});
 	  }, _node24 => {
-	    setStyle(_node24, {
+	    fn1(_node24);
+	    setEvent(_node24, "click", [fn1, fn2]);
+	    assignPropNS(_node24, "use:bind", [fn1, fn2], "bind", "use");
+	    setConnected(_node24, [fn1, fn2]);
+	    setDisconnected(_node24, [fn1, fn2]);
+	  }, _node25 => {
+	    setStyle(_node25, {
 	      bla: true,
 	      something: {
 	        value: 2

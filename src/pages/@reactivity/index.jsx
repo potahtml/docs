@@ -85,7 +85,7 @@ export default function () {
 
 						<tr>
 							<td>writable</td>
-							<td>fn</td>
+							<td>(fn, initialValue?)</td>
 							<td>signal</td>
 							<td>
 								like a memo but the function wont run unless is used

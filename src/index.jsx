@@ -21,12 +21,33 @@ import { register as registerTmTextarea } from 'tm-textarea'
 import './lib/components/code/tm-textarea.css'
 
 // app
-import { render, setClass } from 'pota'
+import { render, setClass, signal, writable } from 'pota'
 
 import { onDocumentSize } from 'pota/use/resize'
 import { location } from 'pota/use/location'
 
 registerTmTextarea()
+
+/*function Lala() {
+	const [read, write, update] = signal(0)
+
+	const coso = writable(async function () {
+		console.log('running promise')
+		await 1
+		return await new Promise(r => r(read()))
+	})
+
+	setInterval(() => {
+		update(value => value + 1)
+	}, 1000)
+	setInterval(() => {
+		coso(Date.now())
+	}, 3000)
+
+	console.log(coso())
+
+	return <div>ACA{coso}ACA</div>
+}*/
 
 render(
 	() => {
@@ -35,6 +56,7 @@ render(
 				flair="row grow"
 				data-pathname={location.pathname}
 			>
+				{/*<Lala />*/}
 				{/*<Test />*/}
 				<Bench />
 

@@ -11,7 +11,7 @@ export default function () {
 				in places like effects. The ref will be set as soon as the
 				element is created, before childrens are created. Be aware
 				that properties like <mark>clientWidth</mark> may return 0.
-				See mounted ref example here.
+				See mounted ref example here. It also accepts arrays.
 			</Header>
 
 			<Section title="Snippet">

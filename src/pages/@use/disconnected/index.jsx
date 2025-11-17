@@ -8,6 +8,7 @@ export default function () {
 			<Header title="use:disconnected">
 				<mark>use:disconnected</mark> is for Elements that need to run
 				some cleanup tasks before these are removed from the document.
+				It also accepts arrays.
 			</Header>
 
 			<Section title="Arguments">

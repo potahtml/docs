@@ -6,6 +6,7 @@ const spread1 = (
 		style="1"
 		{...style}
 		style="2"
+		prop:not-identifier={/* @static */ ' '.trim()}
 	/>
 )
 const spread2 = <div {...style} />
@@ -44,6 +45,7 @@ const component = (
 	<div>
 		<Counter />
 		<div
+			prop:not-identifier={/* @static  */ ' '.trim()}
 			data-undefined={undefined}
 			data-null={null}
 			data-true={true}
@@ -97,6 +99,15 @@ const component = (
 			() => {} - {() => {}}
 		</div>
 		<div>`asdasd` - {`asdasd`}</div>
+		<div
+			children={1}
+			use:ref={[fn1, fn2]}
+			use:ref={fn1}
+			on:click={[fn1, fn2]}
+			use:bind={[fn1, fn2]}
+			use:connected={[fn1, fn2]}
+			use:disconnected={[fn1, fn2]}
+		/>
 
 		<tm-textarea>
 			<iframe

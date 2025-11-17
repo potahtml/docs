@@ -9,7 +9,7 @@ export default function () {
 				<mark>use:connected</mark> is for Elements that need to run
 				some initialization after these have been connected to the
 				document. Is available exclusively to Elements via an
-				attribute.
+				attribute. It also accepts arrays.
 			</Header>
 
 			<p>

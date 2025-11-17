@@ -49,6 +49,17 @@
 	};
 
 	/**
+	 * Flats an array recursively and passes values to secondary function
+	 *
+	 * @template {unknown | unknown[]} T
+	 * @param {T} arr
+	 * @param {(value: T) => void} fn
+	 */
+	const flatForEach = (arr, fn) => {
+	  isArray(arr) ? arr.flat(Infinity).forEach(value => value && fn(value)) : arr ? fn(arr) : nothing;
+	};
+
+	/**
 	 * Returns an object without a prototype
 	 *
 	 * @type {Function}
@@ -234,9 +245,9 @@
 	 *
 	 * - Ported to Classes what does fit
 	 * - Signal has more options: `label` and `save` previous value
-	 * - Writing to a signal returns `bollean` to tell if the value changed
+	 * - Writing to a signal returns `boolean` to tell if the value changed
 	 * - Signal is an object that could be used as signal.read/write or
-	 *   destructured as an array
+	 *   destructuring
 	 * - Signals can save and won't run functions
 	 * - `update` function on Signal that could be used to use the old value
 	 *   to set a new value
@@ -253,9 +264,6 @@
 	 */
 
 	function createReactiveSystem() {
-	  const CLEAN = 0;
-	  const STALE = 1;
-	  const CHECK = 2;
 
 	  /** @type {Computation} */
 	  let Owner;
@@ -357,7 +365,8 @@
 	  // COMPUTATION
 
 	  class Computation extends Root {
-	    state = STALE;
+	    state = 1; /* STALE */
+
 	    updatedAt = 0;
 
 	    /** @type {Function | undefined} */
@@ -421,7 +430,7 @@
 	        }
 	      }
 	      super.dispose();
-	      this.state = CLEAN;
+	      this.state = 0; /* CLEAN */
 	    }
 	    queue() {
 	      Effects.push(this);
@@ -473,7 +482,7 @@
 	    }
 	    read = () => {
 	      if (this.state) {
-	        if (this.state === STALE) {
+	        if (this.state === 1 /* STALE */) {
 	          this.update();
 	        } else {
 	          const updates = Updates;
@@ -509,11 +518,11 @@
 	        if (this.observers && this.observers.length) {
 	          runUpdates(() => {
 	            for (const observer of this.observers) {
-	              if (observer.state === CLEAN) {
+	              if (observer.state === 0 /* CLEAN */) {
 	                observer.queue();
 	                observer.observers && downstream(observer);
 	              }
-	              observer.state = STALE;
+	              observer.state = 1; /* STALE */
 	            }
 	          });
 	        }
@@ -536,7 +545,7 @@
 	      try {
 	        nextValue = this.fn();
 	      } catch (err) {
-	        this.state = STALE;
+	        this.state = 1; /* STALE */
 	        this.disposeOwned();
 	        this.updatedAt = time + 1;
 	        throw err;
@@ -627,11 +636,11 @@
 	        if (this.observers && this.observers.length) {
 	          runUpdates(() => {
 	            for (const observer of this.observers) {
-	              if (observer.state === CLEAN) {
+	              if (observer.state === 0 /* CLEAN */) {
 	                observer.queue();
 	                observer.observers && downstream(observer);
 	              }
-	              observer.state = STALE;
+	              observer.state = 1; /* STALE */
 	            }
 	          });
 	        }
@@ -688,9 +697,7 @@
 	   */
 	  /* #__NO_SIDE_EFFECTS__ */
 	  function signal(initialValue, options) {
-	    /** @type {SignalObject<T>} */
-	    const s = new Signal(initialValue, options);
-	    return s;
+	    return /** @type {SignalObject<T>} */ /** @type {unknown} */new Signal(initialValue, options);
 	  }
 
 	  /**
@@ -740,9 +747,7 @@
 	   */
 	  /* #__NO_SIDE_EFFECTS__ */
 	  function memo(fn, options = undefined) {
-	    /** @type {SignalAccessor<T>} */
-	    const s = new Memo(Owner, fn, options);
-	    return s;
+	    return /** @type {SignalAccessor<T>} */ /** @type {unknown} */new Memo(Owner, fn, options);
 	  }
 
 	  /**
@@ -823,11 +828,11 @@
 
 	  function runTop(node) {
 	    switch (node.state) {
-	      case CLEAN:
+	      case 0 /* CLEAN */:
 	        {
 	          break;
 	        }
-	      case CHECK:
+	      case 2 /* CHECK */:
 	        {
 	          upstream(node);
 	          break;
@@ -842,12 +847,12 @@
 	          for (let i = ancestors.length - 1, updates; i >= 0; i--) {
 	            node = ancestors[i];
 	            switch (node.state) {
-	              case STALE:
+	              case 1 /* STALE */:
 	                {
 	                  node.update();
 	                  break;
 	                }
-	              case CHECK:
+	              case 2 /* CHECK */:
 	                {
 	                  updates = Updates;
 	                  Updates = null;
@@ -917,18 +922,19 @@
 	    }
 	  }
 	  function upstream(node, ignore) {
-	    node.state = CLEAN;
+	    node.state = 0; /* CLEAN */
+
 	    for (const source of node.sources) {
 	      if (source.sources) {
 	        switch (source.state) {
-	          case STALE:
+	          case 1 /* STALE */:
 	            {
 	              if (source !== ignore && source.updatedAt < Time) {
 	                runTop(source);
 	              }
 	              break;
 	            }
-	          case CHECK:
+	          case 2 /* CHECK */:
 	            {
 	              upstream(source, ignore);
 	              break;
@@ -939,8 +945,8 @@
 	  }
 	  function downstream(node) {
 	    for (const observer of node.observers) {
-	      if (observer.state === CLEAN) {
-	        observer.state = CHECK;
+	      if (observer.state === 0 /* CLEAN */) {
+	        observer.state = 2; /* CHECK */
 	        observer.queue();
 	        observer.observers && downstream(observer);
 	      }
@@ -987,7 +993,7 @@
 	     * Sets the `value` for the context
 	     *
 	     * @param {object} props
-	     * @param {T} [props.value]
+	     * @param {Partial<T>} props.value
 	     * @param {Children} props.children
 	     * @returns {Children} Children
 	     * @url https://pota.quack.uy/Reactivity/Context
@@ -1693,8 +1699,9 @@
 	 * @param {EventHandler<Event, T>} value
 	 */
 	const setEvent = (node, name, value) => {
-	  // `value &&` because avoids crash when `on:click={prop.onClick}` and `!prop.onClick`
-	  value && addEvent(node, name, ownedEvent(value));
+	  flatForEach(value, value => {
+	    addEvent(node, name, ownedEvent(value));
+	  });
 	};
 
 	/**
@@ -1704,7 +1711,9 @@
 	 * @param {EventHandler<Event, T>} value
 	 */
 	const setEventNS = (node, localName, value) => {
-	  setEvent(node, localName, value);
+	  flatForEach(value, value => {
+	    setEvent(node, localName, value);
+	  });
 	};
 
 	/** Returns true or false with a `chance` of getting `true` */
@@ -1736,7 +1745,7 @@
 	 * @param {Function} value
 	 */
 	const setRef = (node, value) => {
-	  value(node);
+	  flatForEach(value, fn => fn(node));
 	};
 
 	/**
@@ -1744,7 +1753,7 @@
 	 * @param {Function} value
 	 */
 	const setConnected = (node, value) => {
-	  onMount(() => value(node));
+	  onMount(() => flatForEach(value, fn => fn(node)));
 	};
 
 	/**
@@ -1752,7 +1761,7 @@
 	 * @param {Function} value
 	 */
 	const setDisconnected = (node, value) => {
-	  cleanup(() => value(node));
+	  cleanup(() => flatForEach(value, fn => fn(node)));
 	};
 
 	// node style
@@ -2497,7 +2506,7 @@
 	 *   moves it may lose focus
 	 * @param {boolean} [props.reactiveIndex] - Make indices reactive
 	 *   signals
-	 * @param {Children} [props.children]
+	 * @param {(item: T, index: number) => Children} [props.children]
 	 * @param {Children} [props.fallback]
 	 * @returns {Children}
 	 * @url https://pota.quack.uy/Components/For

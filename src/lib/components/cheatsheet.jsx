@@ -13,7 +13,7 @@ on, // on(fnThatTracks, fnThatDoesntTrack)
 syncEffect, // syncEffect(fn)
 asyncEffect, // asyncEffect((previousEffect) => await previousEffect)
 memo, // memo(fn)
-writable, // const m = writable(fn); m(true) // now "m" is "true" till memo reruns
+writable, // const m = writable(fn, initialValue); m(true) // now "m" is "true" till fn reruns
 batch, // batch(fn)
 untrack, // untrack(fn)
 cleanup, // cleanup(fn)
@@ -77,6 +77,7 @@ Range, // <Range start={0} stop={10} step={2}>{item=>item}</Range>
 Route,// <Route path="/">Hola home</Route>
 A,// <A href="/">home</A>
 Navigate,// <Navigate path="/" replace={boolean} params={{}} delay={1000} scroll={boolean}>Redirecting..</Navigate>
+Suspense,// <Suspense fallback="loadinig">{promise}</Suspense>
 
 // custom element utils
 customElement, // customElement("fancy-element", class Fancy extends HTMLElement{})

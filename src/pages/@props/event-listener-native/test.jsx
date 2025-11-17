@@ -38,6 +38,14 @@ function App(props) {
         <li on:click={e => handler('meaw', e)}>meaw</li>
         <li on:click={e => handler('quack', e)}>quack</li>
         <li on:click={e => handler('bird', e)}>bird</li>
+        <li
+          on:click={[
+            e => handler('double', e),
+            e => handler('double', e),
+          ]}
+        >
+          double
+        </li>
       </ul>
     </main>
   )

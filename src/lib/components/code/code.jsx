@@ -19,8 +19,11 @@ window.addEventListener('message', function (e) {
 		if (message && message.messageKind === 'height') {
 			for (const frame of document.querySelectorAll('iframe')) {
 				if (e.source === frame.contentWindow) {
-					const size = message.height
-					frame.style.height = size + 'px'
+					frame.style.height = window.location.href.includes(
+						'playground',
+					)
+						? '100%'
+						: message.height + 'px'
 					break
 				}
 			}

@@ -7,7 +7,7 @@ export default function () {
 		<>
 			<Header title="use:bind">
 				<mark>use:bind</mark> is a plugin for binding the value of a
-				form field to a signal
+				form field to a signal. It also accepts arrays.
 			</Header>
 
 			<Section title="Snippet">

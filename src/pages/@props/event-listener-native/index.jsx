@@ -7,7 +7,8 @@ export default function () {
 		<>
 			<Header title="on:__">
 				<mark>on:__</mark> is for native and custom events such{' '}
-				<mark>on:click</mark>. Events <b>are</b> case-sensitive.
+				<mark>on:click</mark>. Events <b>are</b> case-sensitive. It
+				also accepts arrays of handlers.
 			</Header>
 
 			<Section title="Using Native Events">
