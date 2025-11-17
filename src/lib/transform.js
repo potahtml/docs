@@ -3,7 +3,7 @@ import { prettier } from './prettier.js'
 import { version } from 'pota'
 
 const cacheBurst =
-	'&server-do-not-do-that=' + window.location.hostname + version + 'b'
+	'&server-do-not-do-that=' + window.location.hostname + version + 'c'
 
 export async function transform(code) {
 	return Promise.all([
