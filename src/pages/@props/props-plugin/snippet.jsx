@@ -2,34 +2,24 @@ import { addEvent, propsPlugin, propsPluginNS, render } from 'pota'
 
 // when `clickoutside` is found on an element
 
-propsPlugin(
-  'plugin:clickoutside',
-  (node, propName, propValue, props) => {
-    // node = the element
-    // propName = 'clickoutside'
-    // propValue = fn
-    // props = props object
-    addEvent(document, 'pointerdown', event => {
-      if (!node.contains(event.target)) {
-        propValue(event, node)
-      }
-    })
-  },
-)
+propsPlugin('plugin:clickoutside', (node, propValue) => {
+  // node = the element
+  // propValue = fn
+  addEvent(document, 'pointerdown', event => {
+    if (!node.contains(event.target)) {
+      propValue(event, node)
+    }
+  })
+})
 
-propsPluginNS(
-  'myFancy',
-  (node, propName, propValue, props, localName, ns) => {
-    // node = the element
-    // propName = 'myFancy:click'
-    // propValue = fn
-    // props = props object
-    // localName = 'click'
-    // ns = 'myFancy'
+propsPluginNS('myFancy', (node, localName, propValue, ns) => {
+  // node = the element
+  // localName = 'click'
+  // propValue = fn
+  // ns = 'myFancy'
 
-    addEvent(node, localName, propValue)
-  },
-)
+  addEvent(node, localName, propValue)
+})
 
 // using our newly defined prop. It can be used anywhere
 

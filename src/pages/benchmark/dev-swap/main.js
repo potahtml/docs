@@ -1348,9 +1348,7 @@
 	   */
 	  // @ts-expect-error
 	  children = flatToArray(children);
-	  return markComponent((...args) =>
-	  // @ts-expect-error
-	  children.map(child => isFunction(child) ? child(...args) : child));
+	  return markComponent((...args) => children.map(child => isFunction(child) ? child(...args) : child));
 	}
 
 	/**
@@ -1610,8 +1608,8 @@
 	 *
 	 * @template T
 	 * @param {string} propName - Name of the prop
-	 * @param {(node: Element, propValue: T) => void} fn - Function to run
-	 *   when this prop is found on any Element
+	 * @param {(node: DOMElement, propValue: T) => void} fn - Function to
+	 *   run when this prop is found on any Element
 	 * @param {boolean} [onMicrotask=true] - To avoid the problem of
 	 *   needed props not being set, or children elements not created yet.
 	 *   Default is `true`
@@ -1627,7 +1625,7 @@
 	 * @template T
 	 * @param {string} NSName - Name of the namespace
 	 * @param {(
-	 * 	node: Element,
+	 * 	node: DOMElement,
 	 * 	localName: string,
 	 * 	propValue: T,
 	 * 	ns?: string,
@@ -2111,7 +2109,7 @@
 	 * @param {string} content
 	 * @param {{
 	 * 	x?: string
-	 * 	i?: number
+	 * 	[i: number]: number
 	 * 	m?: number
 	 * } & Record<string, unknown>} [propsData]
 	 * @returns {(props: T extends any[]) => Children}
@@ -2168,10 +2166,11 @@
 	 * @param {Element | DocumentFragment} parent
 	 * @param {Children | ((...unknonwn) => T)} child
 	 * @param {boolean} [relative]
-	 * @param {Text | undefined} [prev]
+	 * @param {Text} [prev]
+	 * @param {true} [isComponent]
 	 * @returns {Children}
 	 */
-	function createChildren(parent, child, relative = false, prev = undefined) {
+	function createChildren(parent, child, relative, prev, isComponent) {
 	  switch (typeof child) {
 	    // string/number
 	    case 'string':
@@ -2197,7 +2196,7 @@
 	      {
 	        // component
 	        if ($isComponent in child) {
-	          return createChildren(parent, untrack(/** @type {() => Children} */child), relative);
+	          return createChildren(parent, untrack(/** @type {() => Children} */child), relative, undefined, true);
 	        }
 	        let node = [];
 
@@ -2266,6 +2265,9 @@
 	          suspense.c++;
 	          const [value, setValue] = signal(undefined);
 	          const onResult = owned(result => {
+	            if (isComponent && isFunction(result)) {
+	              markComponent(result);
+	            }
 	            setValue(result);
 	            if (--suspense.c === 0) {
 	              suspense.s.write(true);

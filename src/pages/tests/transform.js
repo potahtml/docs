@@ -1,13 +1,38 @@
 (function () {
 	'use strict';
 
+	const version = '0.19.212';
+
 	const window = globalThis;
+	const requestAnimationFrame = window.requestAnimationFrame;
 	const queueMicrotask = window.queueMicrotask;
+	const history = window.history;
+	const navigator = window.navigator;
+	const location = window.location;
+	const origin = location?.origin;
 	const Object$1 = window.Object;
 	const Array = window.Array;
+	const Promise$1 = window.Promise;
 	const Symbol = window.Symbol;
 	const assign = Object$1.assign;
+	const create = Object$1.create;
+	const defineProperties = Object$1.defineProperties;
+	const defineProperty = Object$1.defineProperty;
+	const entries = Object$1.entries;
 	const freeze = Object$1.freeze;
+	const fromEntries = Object$1.fromEntries;
+	const getOwnPropertyDescriptor = Object$1.getOwnPropertyDescriptor;
+	const getOwnPropertyDescriptors = Object$1.getOwnPropertyDescriptors;
+	const getOwnPropertyNames = Object$1.getOwnPropertyNames;
+	const getOwnPropertySymbols = Object$1.getOwnPropertySymbols;
+	const getPrototypeOf = Object$1.getPrototypeOf;
+	const groupBy = Object$1.groupBy;
+	const hasOwn = Object$1.hasOwn;
+	const is = Object$1.is;
+	const isExtensible = Object$1.isExtensible;
+	const keys = Object$1.keys;
+	const values = Object$1.values;
+	const setPrototypeOf = Object$1.setPrototypeOf;
 	const toArray = Array.from;
 
 	/**
@@ -17,8 +42,48 @@
 	const toValues = value => isArray(value) ? value :
 	// @ts-expect-error
 	isObject(value) && 'values' in value ? /** @type {{ values(): IterableIterator<T> }} */value.values() : toArray(/** @type {Iterable<T> | ArrayLike<T>} */value);
+
+	/**
+	 * @template T
+	 * @param {T} value
+	 */
+	const toEntries = value =>
+	// @ts-expect-error
+	isObject(value) && 'entries' in value ? /** @type {{ entries(): IterableIterator<[string, T]> }} */value.entries() : toArray(/** @type {Iterable<T> | ArrayLike<T>} */value);
 	const iterator = Symbol.iterator;
+	const Iterator = window.Iterator;
 	const stringify = JSON.stringify;
+
+	/** @param {unknown} o */
+	const stringifyReadable = o => stringify(o, null, 2);
+
+	/** @param {unknown} o */
+	const stringifySorted = o => {
+	  function sort(o) {
+	    if (!isObject(o)) {
+	      return o;
+	    }
+	    const asArray = isArray(o);
+	    /** @type {unknown[] | { [key: string]: unknown }} */
+	    const tmp = asArray ? [] : {};
+	    keys(o).sort().map(k => tmp[k] = sort(o[k]));
+	    if (asArray) {
+	      // @ts-expect-error
+	      tmp.sort((a, b) => stringify(a).localeCompare(stringify(b)));
+	    }
+	    return tmp;
+	  }
+	  return stringifyReadable(sort(o));
+	};
+
+	/**
+	 * @param {(
+	 * 	resolve: (value: unknown) => void,
+	 * 	reject: (reason?: any) => void,
+	 * ) => void} fn
+	 */
+	const promise = fn => new Promise$1(fn);
+	const withResolvers = () => Promise$1.withResolvers();
 
 	/**
 	 * Given a promise it adds `onDone` to `then` and `catch`
@@ -52,6 +117,22 @@
 	};
 
 	/**
+	 * Object.defineProperty with `enumerable` and `configurable` set to
+	 * `true` unless overwriten by `descriptor` argument
+	 *
+	 * @template T
+	 * @param {T} target
+	 * @param {PropertyKey} key
+	 * @param {PropertyDescriptor} descriptor
+	 */
+	const redefineProperty = (target, key, descriptor) => defineProperty(target, key, assign(create(redefinePropertyDefailts), descriptor));
+	const redefinePropertyDefailts = {
+	  __proto__: null,
+	  configurable: true,
+	  enumerable: true
+	};
+
+	/**
 	 * Returns an object without a prototype
 	 *
 	 * @type {Function}
@@ -67,6 +148,74 @@
 
 	/** An empty frozen object */
 	const nothing = freeze(empty());
+	function* entriesIncludingSymbols(target) {
+	  for (const item of entries(target)) {
+	    yield item;
+	  }
+	  for (const item of getOwnPropertySymbols(target)) {
+	    yield [item, target[item]];
+	  }
+	}
+
+	/**
+	 * Compares two values for equality. Handles primitive types, objects,
+	 * and arrays recursively.
+	 *
+	 * @template T
+	 * @param {T} a - The first value to compare.
+	 * @param {T} b - The second value to compare.
+	 * @returns {boolean} True if the values are equal, false otherwise.
+	 * @url modified version of https://github.com/epoberezkin/fast-deep-equal
+	 */
+	function equals(a, b) {
+	  if (a === b) {
+	    return true;
+	  }
+	  if (a && b && typeof a == 'object' && typeof b == 'object') {
+	    if (a.constructor !== b.constructor) {
+	      return false;
+	    }
+	    let length, i, k;
+	    if (isArray(a)) {
+	      length = a.length;
+	      // @ts-expect-error
+	      if (length != b.length) {
+	        return false;
+	      }
+	      for (i = length; i-- !== 0;) {
+	        if (!equals(a[i], b[i])) {
+	          return false;
+	        }
+	      }
+	      return true;
+	    }
+	    if (a.constructor === RegExp)
+	      // @ts-expect-error
+	      return a.source === b.source && a.flags === b.flags;
+	    if (a.valueOf !== Object$1.prototype.valueOf) return a.valueOf() === b.valueOf();
+	    if (a.toString !== Object$1.prototype.toString) return a.toString() === b.toString();
+	    k = keys(a);
+	    length = k.length;
+	    if (length !== keys(b).length) {
+	      return false;
+	    }
+	    for (i = length; i-- !== 0;) {
+	      if (!Object$1.prototype.hasOwnProperty.call(b, k[i])) {
+	        return false;
+	      }
+	    }
+	    for (i = length; i-- !== 0;) {
+	      var key = k[i];
+	      if (!equals(a[key], b[key])) {
+	        return false;
+	      }
+	    }
+	    return true;
+	  }
+
+	  // true if both NaN, false otherwise
+	  return a !== a && b !== b;
+	}
 
 	/**
 	 * Unwraps an array/childNodes to the first item if the length is 1
@@ -99,6 +248,22 @@
 
 	/** Memoize functions with a map cache */
 	const withCache = fn => withState((cache, thing) => cache.get(thing, thing => fn(thing)), cacheStore);
+	/** Memoize functions with a weak cache */
+	const withWeakCache = fn => withState((cache, thing) => cache.get(thing, thing => fn(thing)), weakStore);
+	const getOwnValues = o => getOwnPropertyNames(o).map(key => {
+	  try {
+	    return o[key];
+	  } catch (e) {}
+	});
+	function getSetterNamesFromPrototype(object, set = new Set()) {
+	  const descriptors = getOwnPropertyDescriptors(object);
+	  for (const key in descriptors) {
+	    if (descriptors[key].set) {
+	      set.add(key);
+	    }
+	  }
+	  return set;
+	}
 
 	/**
 	 * Unwraps values. If the argument is a function then it runs it
@@ -112,6 +277,34 @@
 	  while (typeof value === 'function') value = /** @type {() => T} */value();
 	  return value;
 	}
+	const getValueWithArguments = (value, ...args) => typeof value === 'function' ? args.length ? getValue(value(...args)) : getValue(value()) : value;
+
+	/**
+	 * Identity function, given `x` returns `x`
+	 *
+	 * @template T
+	 * @param {T} x
+	 * @returns {T}
+	 */
+	const identity = x => x;
+
+	/**
+	 * When `value` is an object, it will check if the `key` on `target`
+	 * is `configurable`
+	 *
+	 * @param {object} target
+	 * @param {PropertyKey} key
+	 * @param {boolean | undefined} value
+	 */
+	const isConfigurable = (target, key, value) => {
+	  if (isObject(value)) {
+	    const descriptor = getOwnPropertyDescriptor(target, key);
+	    if (descriptor) {
+	      return descriptor.configurable;
+	    }
+	  }
+	  return true;
+	};
 
 	/**
 	 * Returns `true` when `typeof` of `value` is `function`
@@ -120,6 +313,23 @@
 	 * @returns {value is function}
 	 */
 	const isFunction = value => typeof value === 'function';
+	const isNaN = Number.isNaN;
+
+	/**
+	 * Returns `true` when value is Iterable
+	 *
+	 * @param {unknown} value
+	 * @returns {value is Iterable<unknown>}
+	 */
+	const isIterable = value => value?.[iterator];
+
+	/**
+	 * Returns `true` if the value is `null` or `undefined`
+	 *
+	 * @param {unknown} value
+	 * @returns {value is null | undefined}
+	 */
+	const isNullUndefined = value => value == null;
 
 	/**
 	 * Returns `true` when typeof of value is object and not null
@@ -139,6 +349,30 @@
 	const isString = value => typeof value === 'string';
 
 	/**
+	 * Returns `true` when `typeof` of `value` is `number`
+	 *
+	 * @param {unknown} value
+	 * @returns {value is number}
+	 */
+	const isNumber = value => typeof value === 'number';
+
+	/**
+	 * Returns `true` when `typeof` of `value` is `symbol`
+	 *
+	 * @param {unknown} value
+	 * @returns {value is symbol}
+	 */
+	const isSymbol = value => typeof value === 'symbol';
+
+	/**
+	 * Returns `true` when `typeof` of `value` is `boolean`
+	 *
+	 * @param {unknown} value
+	 * @returns {value is boolean}
+	 */
+	const isBoolean = value => typeof value === 'boolean';
+
+	/**
 	 * Returns `true` when `value` may be a promise
 	 *
 	 * @param {unknown} value
@@ -152,7 +386,71 @@
 	 * @returns {value is array}
 	 */
 	const isArray = Array.isArray;
+
+	/**
+	 * Returns `true` when object morphed between array/object
+	 *
+	 * @param {unknown} a
+	 * @param {unknown} b
+	 * @returns {boolean}
+	 */
+	const morphedBetweenArrayAndObject = (a, b) => isObject(a) && !isObject(b) || isObject(b) && !isObject(a) || isArray(a) && !isArray(b) || isArray(b) && !isArray(a);
+
+	/**
+	 * Returns `true` if the property is defined in the `prototype` and
+	 * absent in the `object`
+	 *
+	 * @param {object} target
+	 * @param {PropertyKey} key
+	 */
+	const isPrototypeProperty = (target, key) =>
+	// must do `key in target` to check that it DOES have it somewhere
+	// must do !hasOwnProperty to check that isnt an own property
+	key in target && !hasOwn(target, key);
+
+	// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/GeneratorFunction
+	const GeneratorFunction = function* () {}.constructor;
+
+	/** Returns `true` when is a generator function */
+	const isGeneratorFunction = target => target && (target.constructor === GeneratorFunction || target.constructor?.constructor === GeneratorFunction);
 	const noop = () => {};
+
+	// an optional value is `true` by default, so most of the time is undefined which means is `true`
+	// to avoid having conditions like `if(something.bla === undefined || something.bla)`
+	// this function will short it to `if(optional(something.bla))`
+	// additionally the value is resolved, for cases like `when={() => show() && optional(props.when)}`
+
+	/**
+	 * Returns `true` when value is `true` or `undefined`
+	 *
+	 * @template T
+	 * @param {T} value
+	 * @returns {true | T} True when value is true or undefined
+	 */
+	const optional = value => value === undefined || getValue(value);
+	function* range(start, stop, step) {
+	  if (step < 0) step = Math.abs(step);
+	  yield start;
+	  if (start < stop) {
+	    while (start < stop) {
+	      yield start += step;
+	    }
+	  } else {
+	    while (start > stop) {
+	      yield start -= step;
+	    }
+	  }
+	}
+	const {
+	  ownKeys: reflectOwnKeys,
+	  has: reflectHas,
+	  deleteProperty: reflectDeleteProperty,
+	  getOwnPropertyDescriptor: reflectGetOwnPropertyDescriptor,
+	  get: reflectGet,
+	  apply: reflectApply,
+	  set: reflectSet,
+	  isExtensible: reflectIsExtensible
+	} = Reflect;
 
 	/**
 	 * Removes a value from an array
@@ -165,6 +463,37 @@
 	  const index = array.indexOf(value);
 	  if (index !== -1) array.splice(index, 1);
 	}
+	/**
+	 * Removes values from an array based on a condition
+	 *
+	 * @template T
+	 * @param {T[]} array
+	 * @param {(index: number, value: T) => boolean} cb Function with
+	 *   condition
+	 */
+	function removeFromArrayConditionally(array, cb) {
+	  let i = array.length;
+	  while (i--) {
+	    if (cb(i, array[i])) {
+	      array.splice(i, 1);
+	    }
+	  }
+	}
+	/**
+	 * Removes values from an array based on a condition
+	 *
+	 * @template T
+	 * @param {Iterable<T>} iterable
+	 * @param {PropertyKey} key Function with condition
+	 */
+	function indexByKey(iterable, key) {
+	  const byKey = empty();
+	  for (const item of iterable) {
+	    byKey[item[key]] = item;
+	  }
+	  return byKey;
+	}
+	const typeString = obj => Object$1.prototype.toString.call(obj).slice(8, -1);
 	function walkParents(context, propertyName, cb) {
 	  while (context) {
 	    if (cb(context)) return true;
@@ -206,12 +535,32 @@
 	    yield this.delete;
 	  }
 	}
+	const weakStore = () => new DataStore(WeakMap);
 	const cacheStore = () => new DataStore(Map);
+	const warn = (...args) => console.warn(...args);
+	const error = (...args) => console.error(...args);
+
+	/**
+	 * 1. A non-extensible object must return the real object, but still its
+	 *    children properties could be tracked/proxied
+	 * 2. A non-configurable property must return the real value
+	 *
+	 * [[Get]] For proxy objects enforces the following invariants:
+	 *
+	 * - The value reported for a property must be the same as the value of
+	 *   the corresponding target object property if the target object
+	 *   property is a non-writable, non-configurable own data property.
+	 * - The value reported for a property must be undefined if the
+	 *   corresponding target object property is a non-configurable own
+	 *   accessor property that has undefined as its [[Get]] attribute.
+	 */
+	const isProxyValueReturnInvariant = (target, key, value) => !isObject(value) || !reflectIsExtensible(target) || reflectGetOwnPropertyDescriptor(target, key)?.configurable === false;
 
 	// symbols
 
 	const $isComponent = Symbol();
 	const $isMap = Symbol();
+	const $isMutable = Symbol();
 
 	// supported namespaces
 
@@ -256,6 +605,9 @@
 	 */
 
 	function createReactiveSystem() {
+	  const CLEAN = 0;
+	  const STALE = 1;
+	  const CHECK = 2;
 
 	  /** @type {Computation} */
 	  let Owner;
@@ -310,7 +662,7 @@
 	    }
 	    /** @param {Function} fn */
 	    removeCleanups(fn) {
-	      if (!this.cleanups) ; else if (this.cleanups === fn) {
+	      if (!this.cleanups) {} else if (this.cleanups === fn) {
 	        this.cleanups = null;
 	      } else {
 	        removeFromArray(/** @type Function[] */this.cleanups, fn);
@@ -331,7 +683,7 @@
 	      this.doCleanups();
 	    }
 	    disposeOwned() {
-	      if (!this.owned) ; else if (isArray(this.owned)) {
+	      if (!this.owned) {} else if (isArray(this.owned)) {
 	        for (let i = this.owned.length - 1; i >= 0; i--) {
 	          this.owned[i].dispose();
 	        }
@@ -342,7 +694,7 @@
 	      }
 	    }
 	    doCleanups() {
-	      if (!this.cleanups) ; else if (isArray(this.cleanups)) {
+	      if (!this.cleanups) {} else if (isArray(this.cleanups)) {
 	        for (let i = this.cleanups.length - 1; i >= 0; i--) {
 	          this.cleanups[i]();
 	        }
@@ -1039,14 +1391,43 @@
 	}
 
 	const {
+	  batch,
 	  cleanup,
+	  cleanupCancel,
 	  Context,
 	  effect,
+	  memo,
+	  on,
 	  owned,
+	  owner,
 	  root,
+	  runWithOwner,
 	  signal,
+	  syncEffect,
 	  untrack
 	} = createReactiveSystem();
+
+	/**
+	 * A self contained signal function, when an argument is present it
+	 * writes to the signal, when theres no argument it reads the signal.
+	 *
+	 * @template T
+	 * @param {T} [value] - Optional initial value
+	 * @returns {SignalFunction<T>}
+	 */
+	function signalFunction(value) {
+	  const [read, write] = signal(value);
+	  // @ts-expect-error
+	  return (...args) => args.length ? write(args[0]) : read();
+	}
+
+	/**
+	 * To set and read refs. To use in ref attribute.
+	 *
+	 * @template {DOMElement} T
+	 * @returns {SignalFunction<T>}
+	 */
+	const ref = () => signalFunction();
 
 	/**
 	 * Runs a function inside an effect if value is a function.
@@ -1083,6 +1464,437 @@
 	  } else {
 	    fn(value);
 	  }
+	}
+
+	/**
+	 * Lazy and writable version of `memo`, its writable and will run the
+	 * function only when used
+	 *
+	 * @template T
+	 * @param {() => T} fn - Function to re-run when dependencies change
+	 * @param {Accessed<T>} [initialValue] - Initial value for
+	 *   promise-like
+	 * @returns {SignalFunction<Accessed<T>> & { run: Function }}
+	 * @original ryansolid
+	 * @modified titoBouzout - unwraps and tracks functions and promises
+	 */
+	function writable(fn, initialValue = undefined) {
+	  const forceChange = signal(undefined, {
+	    equals: false
+	  });
+	  const result = memo(() => {
+	    forceChange.read();
+	    const value = getValue(fn);
+	    let s;
+	    if (isPromise(value)) {
+	      s = signal(initialValue);
+	      withValue(value, value => {
+	        s.write(value);
+	      });
+	    } else {
+	      s = signal(value);
+	    }
+	    return s;
+	  });
+	  function SignalLikeWithReRun(...args) {
+	    if (args.length) {
+	      const value = args[0];
+	      if (isFunction(value) || isPromise(value)) {
+	        withValue(value, value => {
+	          result().write(value);
+	        });
+	        return true;
+	      } else {
+	        return result().write(value);
+	      }
+	    } else {
+	      return result().read();
+	    }
+	  }
+	  SignalLikeWithReRun.run = () => {
+	    forceChange.write();
+	  };
+	  // @ts-expect-error non-sense
+	  return SignalLikeWithReRun;
+	}
+
+	/**
+	 * Creates an asynchronously effect
+	 *
+	 * @param {(currentRunningEffect: Promise<any>) => any} fn - A
+	 *   function that receives a `currentRunningEffect` that should be
+	 *   awaited for when wanting to run effects synchronously, that's it
+	 *   one effect after another.
+	 */
+	function asyncEffect(fn) {
+	  const queue = [];
+	  effect(() => {
+	    const {
+	      promise,
+	      resolve
+	    } = withResolvers();
+	    queue.push(promise);
+	    function onDone() {
+	      removeFromArray(queue, promise);
+	      resolve();
+	    }
+	    resolved(fn(queue.length === 1 ? undefined : queue[queue.length - 2]), onDone);
+	  });
+	}
+
+	/**
+	 * A Promise loader handler. Allows to display/run something or
+	 * nothing while a promise is resolving. Allows to run a callback when
+	 * the promise resolves. Allows to get notified of errors, and
+	 * display/run something or nothing, if wanted a `retry` function is
+	 * given for retrying the promise. All functions run with the original
+	 * owner, so it's `Context` friendly.
+	 *
+	 * @param {(() => Promise<any>) | Promise<any>} fn - Function that
+	 *   returns a promise
+	 * @param {{
+	 * 	onLoading?: any
+	 * 	onLoad?: () => unknown
+	 * 	onError?: ((e: Error, retry: Function) => any) | any
+	 * }} [options]
+	 *
+	 * @returns {Component}
+	 * @url https://pota.quack.uy/lazy
+	 */
+	const lazy = (fn, options = nothing) => markComponent(props => {
+	  const {
+	    onLoading,
+	    onLoad,
+	    onError
+	  } = options;
+	  const [value, setValue] = signal(onLoading);
+	  const onLoaded = owned(onLoad);
+	  const retry = () => Promise.resolve(isFunction(fn) ? fn() : fn).then(r => {
+	    setValue(markComponent(() => {
+	      r = isObject(r) && r.default ? r.default : r;
+	      return isFunction(r) ? r(props) : r;
+	    }));
+	    microtask(onLoaded);
+	  }).catch(e => onError ? setValue(markComponent(() => isFunction(onError) ? onError(e, retry) : onError)) : console.error(e));
+	  retry();
+	  return value;
+	});
+	const Lazy = props => lazy(props.children, props);
+
+	/** @param {() => unknown} fn */
+	const microtask = fn => queueMicrotask(owned(fn));
+
+	// MAP
+
+	class Row {
+	  runId;
+	  item;
+	  index;
+	  isDupe;
+	  disposer;
+	  nodes;
+	  indexSignal;
+	  _begin;
+	  _end;
+	  constructor(item, index, fn, isDupe, reactiveIndex) {
+	    this.item = item;
+	    this.index = index;
+	    this.isDupe = isDupe;
+	    root(disposer => {
+	      this.disposer = disposer;
+	      if (reactiveIndex) {
+	        this.indexSignal = signal(index);
+	        /** @type Children[] */
+	        this.nodes = fn(item, this.indexSignal.read);
+	      } else {
+	        /** @type Children[] */
+	        this.nodes = fn(item, index);
+	      }
+	    });
+	  }
+	  updateIndex(index) {
+	    if (this.index !== index) {
+	      this.index = index; // save sort order
+	      if (this.indexSignal) {
+	        this.indexSignal.write(index);
+	      }
+	    }
+	  }
+	  begin() {
+	    if (!this._begin) {
+	      this.getBegin(this.nodes);
+	    }
+	    return this._begin;
+	  }
+	  getBegin(nodes) {
+	    if (isArray(nodes)) {
+	      return this.getBegin(nodes[0]);
+	    }
+	    this._begin = nodes;
+	  }
+	  end() {
+	    if (!this._end) {
+	      this.getEnd(this.nodes);
+	    }
+	    return this._end;
+	  }
+	  getEnd(nodes) {
+	    if (isArray(nodes)) {
+	      return this.getEnd(nodes[nodes.length - 1]);
+	    }
+	    this._end = nodes;
+	  }
+	  nodesForRow() {
+	    const begin = this.begin();
+	    const end = this.end();
+	    const nodes = [begin];
+	    let nextSibling = begin;
+	    while (nextSibling !== end) {
+	      nextSibling = nextSibling.nextSibling;
+	      nodes.push(nextSibling);
+	    }
+	    return nodes;
+	  }
+	}
+
+	/**
+	 * Reactive Map
+	 *
+	 * @template T
+	 * @param {Each<T>} list
+	 * @param {(...unknoown) => Children} callback
+	 * @param {boolean} [noSort]
+	 * @param {Children} [fallback]
+	 * @param {boolean} [reactiveIndex] - Make indices reactive signals
+	 */
+	function map(list, callback, noSort, fallback, reactiveIndex) {
+	  const cache = new Map();
+	  const duplicates = new Map(); // for when caching by value is not possible [1, 2, 1, 1, 1]
+
+	  let runId = 0;
+
+	  /** @type Row[] */
+	  let rows = [];
+	  /** @type Row[] */
+	  let prev = [];
+	  function clear() {
+	    for (const row of prev) {
+	      row.disposer();
+	    }
+	    cache.clear();
+	    duplicates.clear();
+	    rows.length = 0;
+	    prev.length = 0;
+	  }
+
+	  // to get rid of all nodes when parent disposes
+	  cleanup(clear);
+	  function dispose(row) {
+	    // delete from cache
+	    if (!row.isDupe) {
+	      cache.delete(row.item);
+	    } else {
+	      const arr = duplicates.get(row.item);
+	      arr.length === 1 ? duplicates.delete(row.item) : removeFromArray(arr, row);
+	    }
+	    row.disposer();
+	  }
+
+	  /**
+	   * @param {Function} [fn]
+	   * @returns {Children}
+	   */
+	  function mapper(fn) {
+	    const cb = fn ? (item, index) => fn(callback(item, index), index) : callback;
+	    const value = getValue(list) || [];
+
+	    /** To allow iterate objects as if were an array with indexes */
+	    const items = toEntries(value);
+	    runId++;
+	    rows = [];
+	    const hasPrev = prev.length;
+	    for (const [index, item] of items) {
+	      let row = hasPrev ? cache.get(item) : undefined;
+	      if (row === undefined) {
+	        // if the item doesnt exists, create it
+	        row = new Row(item, index, cb, false, reactiveIndex);
+	        cache.set(item, row);
+	      } else if (row.runId === runId) {
+	        // a map will save only 1 of any primitive duplicates, say: [1, 1, 1, 1]
+	        // if the saved value was already used on this run, create a new one
+	        let dupes = duplicates.get(item);
+	        if (!dupes) {
+	          dupes = [];
+	          duplicates.set(item, dupes);
+	        }
+	        for (const dupe of dupes) {
+	          if (dupe.runId !== runId) {
+	            row = dupe;
+	            break;
+	          }
+	        }
+	        if (row.runId === runId) {
+	          row = new Row(item, index, cb, true, reactiveIndex);
+	          dupes.push(row);
+	        }
+	      }
+	      row.runId = runId; // mark used on this run
+	      row.updateIndex(index); // Update existing row's index (reactive if needed)
+	      rows.push(row);
+	    }
+
+	    // fast clear
+	    if (rows.length === 0) {
+	      hasPrev && clear();
+	      prev = rows;
+	      return fallback ? fn(fallback) : emptyArray;
+	    }
+
+	    // sort
+	    if (hasPrev) {
+	      // remove rows that arent present on the current run
+	      for (let i = 0; i < prev.length; i++) {
+	        if (prev[i].runId !== runId) {
+	          dispose(prev[i]);
+	          removeFromArray(prev, prev[i--]);
+	        }
+	      }
+
+	      // reorder elements
+	      // `rows.length > 1` because no need for sorting when there are no items
+	      // `prev.length > 0` to skip sorting on creation as its already sorted
+	      if (!noSort && rows.length > 1 && prev.length) {
+	        // when appending to already created it shouldnt sort
+	        // as its already sorted
+	        const unsort = [];
+	        for (let i = 0; i < prev.length && i < rows.length; i++) {
+	          if (prev[i] !== rows[i]) {
+	            unsort.push(rows[i]);
+	          }
+	        }
+	        if (unsort.length) {
+	          let unsorted = unsort.length;
+	          if (unsorted) {
+	            const sorted = [];
+
+	            // handle swap - unsorted rows should move only next to already sorted
+	            for (const usort of unsort) {
+	              if (rows[usort.index - 1] && (!unsort.includes(rows[usort.index - 1]) || sorted.includes(rows[usort.index - 1]))) {
+	                rows[usort.index - 1].end().after(...usort.nodesForRow());
+	                sorted.push(usort);
+	                unsorted--;
+	              } else if (rows[usort.index + 1] && (!unsort.includes(rows[usort.index + 1]) || sorted.includes(rows[usort.index - 1]))) {
+	                rows[usort.index + 1].begin().before(...usort.nodesForRow());
+	                sorted.push(usort);
+	                unsorted--;
+	              }
+	            }
+	            if (unsorted) {
+	              // handles all other cases
+	              // best for any combination of: push/pop/shift/unshift/insertion/deletion
+	              // must check in reverse as on creation stuff is added to the end
+
+	              let current = rows[rows.length - 1];
+	              for (let i = rows.length - 1; i > 0; i--) {
+	                const previous = rows[i - 1];
+	                if (current.begin().previousSibling !== previous.end()) {
+	                  current.begin().before(...previous.nodesForRow());
+	                }
+	                current = previous;
+	              }
+	            }
+	          }
+	        }
+	      }
+	    }
+
+	    // save sorted list
+	    prev = rows;
+
+	    // return external representation
+	    return rows.map(item => item.nodes);
+	  }
+	  mapper[$isMap] = undefined;
+	  return mapper;
+	}
+
+	/**
+	 * Resolves and returns `children` in a memo. A memo in a memo, so
+	 * reactivity on the inner memo doesnt trigger reactivity outside.
+	 *
+	 * @template {Children} T
+	 * @param {T | (() => T)} fn
+	 * @url https://pota.quack.uy/resolve
+	 */
+	function resolve(fn) {
+	  const children = isFunction(fn) ? memo(fn) : () => fn;
+	  return memo(() => unwrap(children()));
+	}
+
+	/**
+	 * Recursively unwrap children functions
+	 *
+	 * @param {Children} children
+	 */
+	function unwrap(children) {
+	  if (isFunction(children)) {
+	    return unwrap(children());
+	  }
+	  if (isArray(children)) {
+	    const childrens = [];
+	    for (let child of children) {
+	      child = unwrap(child);
+	      isArray(child) ? childrens.push(...child) : childrens.push(child);
+	    }
+	    return childrens;
+	  }
+	  return children;
+	}
+
+	/**
+	 * Returns true if the `value` is a `Component`
+	 *
+	 * @param {any} value
+	 * @returns {boolean}
+	 */
+	const isComponent = value => isFunction(value) && $isComponent in value;
+
+	/**
+	 * Makes of `children` a function. Reactive children will run as is,
+	 * non-reactive children will run untracked, regular children will
+	 * just return.
+	 *
+	 * @template {Children} T
+	 * @param {T} children
+	 * @returns {((...args: T[]) => T) | T}
+	 */
+	function makeCallback(children) {
+	  /** Shortcut the most used case */
+	  if (isFunction(children)) {
+	    return markComponent(children);
+	  }
+
+	  /**
+	   * When children is an array, as in >${[0, 1, 2]}< then children
+	   * will end as `[[0, 1, 2]]`, so flat it
+	   */
+	  // @ts-expect-error
+	  children = flatToArray(children);
+	  return markComponent((...args) => children.map(child => isFunction(child) ? child(...args) : child));
+	}
+
+	/**
+	 * Fakes `then` and `catch` in a function that returns promise
+	 *
+	 * @template P
+	 * @template {() => Promise<P>} T
+	 * @param {T} fn
+	 * @returns {(() => Promise<P>) & Promise<P>} T
+	 */
+	function makeAsync(fn) {
+	  fn.then = f => fn().then(f);
+	  fn.catch = f => fn().catch(f);
+	  return fn;
 	}
 
 	/**
@@ -1160,13 +1972,21 @@
 	const document = window.document;
 	const head = document?.head;
 	const isConnected = node => node.isConnected;
+	const activeElement = () => document.activeElement;
+	const documentElement = document?.documentElement;
 	const DocumentFragment = window.DocumentFragment;
 	const bind = /* #__NO_SIDE_EFFECTS__ */fn => document && document[fn].bind(document);
 	const createElement = bind('createElement');
 	const createElementNS = bind('createElementNS');
 	const createTextNode = bind('createTextNode');
+	const createComment = bind('createComment');
 	const importNode = bind('importNode');
 	const createTreeWalker = bind('createTreeWalker');
+
+	// part
+
+	const addPart = (node, partName) => node.part.add(partName);
+	const removePart = (node, partName) => node.part.remove(partName);
 
 	// tokenList
 
@@ -1174,9 +1994,16 @@
 	const addClass = (node, className) => className.length && node.classList.add(...(isArray(className) ? className : tokenList(className)));
 	const removeClass = (node, className) => className.length && node.classList.remove(...(isArray(className) ? className : tokenList(className)));
 
+	// attributes
+
+	const setAttribute$1 = (node, name, value) => node.setAttribute(name, value);
+	const hasAttribute = (node, name) => node.hasAttribute(name);
+	const removeAttribute = (node, name) => node.removeAttribute(name);
+
 	// selector
 
 	const querySelector = (node, query) => node.querySelector(query);
+	const querySelectorAll = (node, query) => node.querySelectorAll(query);
 
 	/**
 	 * Returns `document` for element. That could be a `shadowRoot`
@@ -1213,7 +2040,33 @@
 	  return nodes;
 	}.bind(null, createTreeWalker && createTreeWalker(document, 1 /*NodeFilter.SHOW_ELEMENT*/));
 
+	/**
+	 * Unwraps `value` and returns `element` if result is a `Node`, else
+	 * `undefined` in the case isn't a `Node`
+	 *
+	 * @template T
+	 * @param {T} value - Maybe function
+	 * @param {...unknown} args? - Arguments
+	 * @returns {Node | Element | T | undefined}
+	 */
+	function getValueElement(value, ...args) {
+	  const element = getValueWithArguments(value, ...args);
+	  return element instanceof Node ? element : undefined;
+	}
+
 	const CSSStyleSheet$1 = window.CSSStyleSheet;
+
+	/**
+	 * Creates tagged css and returns a CSSStyleSheet. Mostly for css
+	 * highlighting in js
+	 *
+	 * @param {TemplateStringsArray} template
+	 * @param {...any} values
+	 * @returns {CSSStyleSheet}
+	 */
+	const css = (template, ...values) => sheet(String.raw({
+	  raw: template
+	}, ...values));
 
 	/**
 	 * Creates a stylesheet from a css string
@@ -1237,6 +2090,7 @@
 	 * @param {Document | ShadowRoot} document
 	 */
 	const getAdoptedStyleSheets = document => document?.adoptedStyleSheets;
+	const adoptedStyleSheets = /* #__PURE__*/getAdoptedStyleSheets(document);
 
 	/**
 	 * Adds a style sheet to the document
@@ -1253,6 +2107,34 @@
 	 * @param {CSSStyleSheet} styleSheet
 	 */
 	const removeAdoptedStyleSheet = (document, styleSheet) => removeFromArray(getAdoptedStyleSheets(document), styleSheet);
+
+	/**
+	 * Adds multiple stylesheets to a document or shadow root.
+	 *
+	 * @param {Document | ShadowRoot} document - The document or shadow
+	 *   root to add the stylesheets to.
+	 * @param {(CSSStyleSheet | string)[]} styleSheets - Array of
+	 *   stylesheets or stylesheet URLs to add.
+	 */
+	function addStyleSheets(document, styleSheets = []) {
+	  for (const sheet of styleSheets) {
+	    if (sheet) {
+	      sheet instanceof CSSStyleSheet$1 ? addAdoptedStyleSheet(document, sheet) : addStyleSheetExternal(document, sheet);
+	    }
+	  }
+	}
+
+	/**
+	 * Adds the stylesheet from urls. It uses a cache, to avoid having to
+	 * fire a request for each external sheet when used in more than one
+	 * custom element. Also, all reference the same object.
+	 *
+	 * @param {Document | ShadowRoot} document
+	 * @param {string} text
+	 */
+	const addStyleSheetExternal = withState((state, document, text) => {
+	  state.get(text, text => text.startsWith('http') ? fetch(text).then(r => r.text()).then(css => sheet(css)) : promise(resolve => resolve(sheet(text)))).then(styleSheet => addAdoptedStyleSheet(document, styleSheet));
+	});
 
 	/**
 	 * The purpose of this file is to guarantee the timing of some
@@ -1320,6 +2202,21 @@
 	 */
 	const onMount = fn => add(2, fn);
 
+	/**
+	 * Queue a function to run on ready (after onMount)
+	 *
+	 * @param {() => void} fn
+	 * @url https://pota.quack.uy/ready
+	 */
+	const ready = fn => add(3, fn);
+
+	/**
+	 * Queue a function to run after all user defined processes
+	 *
+	 * @param {() => void} fn
+	 */
+	const onDone = fn => add(4, fn);
+
 	const plugins = cacheStore();
 	const pluginsNS = cacheStore();
 
@@ -1340,8 +2237,8 @@
 	 *
 	 * @template T
 	 * @param {string} propName - Name of the prop
-	 * @param {(node: Element, propValue: T) => void} fn - Function to run
-	 *   when this prop is found on any Element
+	 * @param {(node: DOMElement, propValue: T) => void} fn - Function to
+	 *   run when this prop is found on any Element
 	 * @param {boolean} [onMicrotask=true] - To avoid the problem of
 	 *   needed props not being set, or children elements not created yet.
 	 *   Default is `true`
@@ -1357,7 +2254,7 @@
 	 * @template T
 	 * @param {string} NSName - Name of the namespace
 	 * @param {(
-	 * 	node: Element,
+	 * 	node: DOMElement,
 	 * 	localName: string,
 	 * 	propValue: T,
 	 * 	ns?: string,
@@ -1447,7 +2344,27 @@
 	};
 
 	/** Returns true or false with a `chance` of getting `true` */
+	const chance = (chance = 50, generator = random) => {
+	  return generator() < chance / 100;
+	};
+
+	/** Returns random number between 0 and 1 */
+	const random = () => crypto.getRandomValues(new Uint32Array(1))[0] / (0xffffffff + 1);
+	const randomBetween = (min = 0, max = 100, generator = random) => Math.floor(generator() * (max - min + 1)) + min;
+	const randomColor = (min = 0, max = 255) => 'rgb(' + randomBetween(min, max) + ',' + randomBetween(min, max) + ',' + randomBetween(min, max) + ')';
 	const randomId = () => crypto.getRandomValues(new BigUint64Array(1))[0].toString(36);
+
+	/**
+	 * Returns a random number generator based on a seed that generates
+	 * numbers between 0 and 1
+	 *
+	 * @param {number} seed
+	 */
+	function randomSeeded(seed) {
+	  const m = 2 ** 35 - 31;
+	  let s = seed % m;
+	  return () => (s = s * 185852 % m) / m;
+	}
 
 	/**
 	 * @param {Element} node
@@ -1534,6 +2451,15 @@
 	}
 
 	/**
+	 * @param {DOMElement} node
+	 * @param {string} name
+	 * @param {unknown} value
+	 */
+	const setElementStyle = (node, name, value) => {
+	  setStyleValue(node.style, name, value);
+	};
+
+	/**
 	 * @param {CSSStyleDeclaration} style
 	 * @param {string} name
 	 * @param {unknown} value
@@ -1598,7 +2524,9 @@
 	 */
 	const setElementClass = (node, name, value) => {
 	  withPrevValue(value, (value, prev) => {
-	    if (!value && !prev) ; else {
+	    if (!value && !prev) {
+	      // on initialization do not remove whats not there
+	    } else {
 	      _setClassListValue(node, name, value);
 	    }
 	  });
@@ -1744,6 +2672,46 @@
 	  s: signal(false)
 	});
 
+	// COMPONENTS
+
+	/**
+	 * Used by the regular JSX transform, as `<>...</>` or
+	 * `<Fragment>...</Fragment>`.
+	 */
+	const Fragment = props => props.children;
+
+	/**
+	 * Creates components for things. When props argument is given, the
+	 * props become fixed. When props argument is ommited, it allows you
+	 * to keep calling the returned function with new props. Returns a
+	 * function because we need to render from parent to children instead
+	 * of from children to parent. This allows to properly set the
+	 * reactivity tree (think of nested effects that clear inner effects,
+	 * context, etc).
+	 *
+	 * @template T
+	 * @param {string | Function | Element | object | symbol} value -
+	 *   Component
+	 * @param {Props<T>} [props] - Props object
+	 * @returns {(props: Partial<Props<T>>) => Children}
+	 * @url https://pota.quack.uy/Component
+	 */
+	function Component(value, props) {
+	  if (value === Fragment) {
+	    return props.children;
+	  }
+
+	  /** Freeze props so isnt directly writable */
+	  freeze(props);
+
+	  /** Create a callable function to pass `props` */
+	  const component = Factory(value);
+	  return props === undefined ? component : markComponent(propsOverride => component(propsOverride ? freeze({
+	    ...props,
+	    ...propsOverride
+	  }) : props));
+	}
+
 	/**
 	 * Creates a component that could be called with a props object
 	 *
@@ -1862,7 +2830,7 @@
 	 * @param {string} content
 	 * @param {{
 	 * 	x?: string
-	 * 	i?: number
+	 * 	[i: number]: number
 	 * 	m?: number
 	 * } & Record<string, unknown>} [propsData]
 	 * @returns {(props: T extends any[]) => Children}
@@ -1919,10 +2887,11 @@
 	 * @param {Element | DocumentFragment} parent
 	 * @param {Children | ((...unknonwn) => T)} child
 	 * @param {boolean} [relative]
-	 * @param {Text | undefined} [prev]
+	 * @param {Text} [prev]
+	 * @param {true} [isComponent]
 	 * @returns {Children}
 	 */
-	function createChildren(parent, child, relative = false, prev = undefined) {
+	function createChildren(parent, child, relative, prev, isComponent) {
 	  switch (typeof child) {
 	    // string/number
 	    case 'string':
@@ -1948,7 +2917,7 @@
 	      {
 	        // component
 	        if ($isComponent in child) {
-	          return createChildren(parent, untrack(/** @type {() => Children} */child), relative);
+	          return createChildren(parent, untrack(/** @type {() => Children} */child), relative, undefined, true);
 	        }
 	        let node = [];
 
@@ -2017,6 +2986,9 @@
 	          suspense.c++;
 	          const [value, setValue] = signal(undefined);
 	          const onResult = owned(result => {
+	            if (isComponent && isFunction(result)) {
+	              markComponent(result);
+	            }
 	            setValue(result);
 	            if (--suspense.c === 0) {
 	              suspense.s.write(true);
@@ -2246,6 +3218,8 @@
 	  return next;
 	}
 
+	// VERSION
+
 	var _Counter = createComponent(Counter),
 	  _div = createPartial("<div></div>"),
 	  _div2 = createPartial("<div style2='clamp(50px, 60px, 70px)'><p>abc</p> clamp(50px, 60px, 70px)</div>"),
@@ -2256,7 +3230,7 @@
 	    value: 1 + 1
 	  }
 	};
-	_div([_node => {
+	const spread1 = _div([_node => {
 	  assignProps(_node, {
 	    "style": "1",
 	    ...style,
@@ -2264,10 +3238,10 @@
 	    "prop:not-identifier": /* @static */""
 	  });
 	}]);
-	_div([_node2 => {
+	const spread2 = _div([_node2 => {
 	  assignProps(_node2, style);
 	}]);
-	_div([_node3 => {
+	const spread3 = _div([_node3 => {
 	  assignProps(_node3, {
 	    ...style,
 	    ...{
@@ -2278,13 +3252,16 @@
 	    "nada:nada": "test"
 	  });
 	}]);
-	_div([_node4 => {
+	const spread4 = _div([_node4 => {
 	  assignProps(_node4, {
 	    ...style,
 	    ...style2
 	  });
 	}]);
 	function Counter() {
+	  const a = 50;
+	  const b = 60;
+	  const c = 70;
 	  return _div2([_node6 => {
 	    setStyle(_node6, {
 	      'padding-left': "clamp(50px, 60px, 70px)",
@@ -2293,8 +3270,233 @@
 	    });
 	  }]);
 	}
+
+	// async
+
+	// empty
+	{
+	  const bña = async function () {};
+	  async function asyncTest1() {}
+	  const asyncTest2 = async () => {};
+	  async () => {};
+	  (async function () {})();
+	  (async () => {})();
+	}
+	// return
+	{
+	  const bña2 = async function () {
+	    return;
+	  };
+	  async function asyncTest12() {
+	    return;
+	  }
+	  const asyncTest22 = async () => {
+	    return;
+	  };
+	  async () => {
+	    return undefined;
+	  };
+	  async () => {
+	    return;
+	  };
+	  (async function () {
+	    return;
+	  })();
+	}
+
+	// await
+	{
+	  const bña = async function () {
+	    const _await = await 1;
+	    return makeAsync(async () => {
+	      return _await;
+	    });
+	  };
+	  async function asyncTest1() {
+	    const _await2 = await 1;
+	    return makeAsync(async () => {
+	      return _await2;
+	    });
+	  }
+	  const asyncTest2 = async () => {
+	    const _await3 = await 1;
+	    return makeAsync(async () => {
+	      return _await3;
+	    });
+	  };
+	  async () => {
+	    const _await4 = await 1;
+	    return makeAsync(async () => {
+	      return _await4;
+	    });
+	  };
+	  (async function () {
+	    const _await5 = await 1;
+	    return makeAsync(async () => {
+	      return _await5;
+	    });
+	  })();
+	}
+
+	// await x 2
+	{
+	  const bña = async function () {
+	    const _await6 = await 1;
+	    return makeAsync(async () => {
+	      _await6;
+	      return makeAsync(async () => {
+	        const _await7 = await 2;
+	        return makeAsync(async () => {
+	          return _await7;
+	        });
+	      });
+	    });
+	  };
+	  async function asyncTest1() {
+	    const _await8 = await 1;
+	    return makeAsync(async () => {
+	      _await8;
+	      return makeAsync(async () => {
+	        const _await9 = await 2;
+	        return makeAsync(async () => {
+	          return _await9;
+	        });
+	      });
+	    });
+	  }
+	  const asyncTest2 = async () => {
+	    const _await0 = await 1;
+	    return makeAsync(async () => {
+	      _await0;
+	      return makeAsync(async () => {
+	        const _await1 = await 2;
+	        return makeAsync(async () => {
+	          return _await1;
+	        });
+	      });
+	    });
+	  };
+	  async () => {
+	    const _await10 = await 1;
+	    return makeAsync(async () => {
+	      _await10;
+	      return makeAsync(async () => {
+	        const _await11 = await 2;
+	        return makeAsync(async () => {
+	          return _await11;
+	        });
+	      });
+	    });
+	  };
+	  (async function () {
+	    const _await12 = await 1;
+	    return makeAsync(async () => {
+	      _await12;
+	      return makeAsync(async () => {
+	        const _await13 = await 2;
+	        return makeAsync(async () => {
+	          return _await13;
+	        });
+	      });
+	    });
+	  })();
+	}
+
+	// await x 2
+	{
+	  const bña = async function () {
+	    const _await14 = await 1;
+	    return makeAsync(async () => {
+	      _await14;
+	      return makeAsync(async () => {
+	        const _await15 = await name();
+	        return makeAsync(async () => {
+	          return _await15 + '-' + name();
+	        });
+	      });
+	    });
+	  };
+	  async function asyncTest1LALA() {
+	    const _await16 = await 1;
+	    return makeAsync(async () => {
+	      _await16;
+	      return makeAsync(async () => {
+	        {
+	          {
+	            ;
+	            const _await17 = await name();
+	            _await17 + '-' + name();
+	          }
+	        }
+	        return makeAsync(async () => {
+	          const _await18 = await name();
+	          return makeAsync(async () => {
+	            return _await18 + '-' + name();
+	          });
+	        });
+	      });
+	    });
+	  }
+	  const asyncTest2 = async () => {
+	    const _await19 = await 1;
+	    return makeAsync(async () => {
+	      _await19;
+	      return makeAsync(async () => {
+	        const _await20 = await name();
+	        return makeAsync(async () => {
+	          return _await20 + '-' + name();
+	        });
+	      });
+	    });
+	  };
+	  async () => {
+	    const _await21 = await 1;
+	    return makeAsync(async () => {
+	      _await21;
+	      return makeAsync(async () => {
+	        const _await22 = await name();
+	        return makeAsync(async () => {
+	          return _await22 + '-' + name();
+	        });
+	      });
+	    });
+	  };
+	  (async function () {
+	    const _await23 = await 1;
+	    return makeAsync(async () => {
+	      _await23;
+	      return makeAsync(async () => {
+	        const _await24 = await name();
+	        return makeAsync(async () => {
+	          return _await24 + '-' + name();
+	        });
+	      });
+	    });
+	  })();
+	}
+	{
+	  async function lala() {
+	    console.log(1);
+	    return makeAsync(async () => {
+	      console.log(2);
+	      return makeAsync(async () => {
+	        const _await25 = await 1;
+	        return makeAsync(async () => {
+	          const _await26 = await 2;
+	          return makeAsync(async () => {
+	            const x = name(_await25, _await26);
+	            return makeAsync(async () => {
+	              return x + '-' + x;
+	            });
+	          });
+	        });
+	      });
+	    });
+	  }
+	}
+	const lala2 = 2;
 	const component = _div([_node29 => {
-	  createChildren(_node29, [_Counter(), _div3([_node7 => {
+	  createChildren(_node29, [_Counter(), asyncTest, _div3([_node7 => {
 	    _node7["not-identifier"] = /* @static  */"";
 	    setAttribute(_node7, "data-emptytemplatefn", html` ${lala}`);
 	    setAttribute(_node7, "data-emptytemplatefsn", ` ${lala}`);
@@ -2303,6 +3505,7 @@
 	    setElementClass(_node7, "mitrocondria", true);
 	    setStyleNS(_node7, "border", '0px');
 	    setStyleNS(_node7, "background", "0px");
+	    (function hola(node) {})(_node7);
 	    setConnected(_node7, function connected(node) {});
 	    setDisconnected(_node7, function disconnected(node) {});
 	    setCSS(_node7, 'class {color:red}');

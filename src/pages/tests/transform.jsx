@@ -39,11 +39,122 @@ function Counter() {
 	)
 }
 
+// async
+
+// empty
+{
+	const bña = async function () {}
+	async function asyncTest1() {}
+	const asyncTest2 = async () => {}
+	;async () => {}
+	;(async function () {})()
+	;(async () => {})()
+}
+// return
+{
+	const bña2 = async function () {
+		return
+	}
+	async function asyncTest12() {
+		return
+	}
+	const asyncTest22 = async () => {
+		return
+	}
+	;async () => undefined
+	;async () => {
+		return
+	}
+	;(async function () {
+		return
+	})()
+}
+
+// await
+{
+	const bña = async function () {
+		return await 1
+	}
+	async function asyncTest1() {
+		return await 1
+	}
+	const asyncTest2 = async () => {
+		return await 1
+	}
+	;async () => await 1
+	;(async function () {
+		return await 1
+	})()
+}
+
+// await x 2
+{
+	const bña = async function () {
+		await 1
+		return await 2
+	}
+	async function asyncTest1() {
+		await 1
+		return await 2
+	}
+	const asyncTest2 = async () => {
+		await 1
+		return await 2
+	}
+	;async () => {
+		await 1
+		return await 2
+	}
+	;(async function () {
+		await 1
+		return await 2
+	})()
+}
+
+// await x 2
+{
+	const bña = async function () {
+		await 1
+		return (await name()) + '-' + name()
+	}
+	async function asyncTest1LALA() {
+		await 1
+		{
+			{
+				;(await name()) + '-' + name()
+			}
+		}
+		return (await name()) + '-' + name()
+	}
+	const asyncTest2 = async () => {
+		await 1
+		return (await name()) + '-' + name()
+	}
+	;async () => {
+		await 1
+		return (await name()) + '-' + name()
+	}
+	;(async function () {
+		await 1
+		return (await name()) + '-' + name()
+	})()
+}
+
+{
+	async function lala() {
+		console.log(1)
+		console.log(2)
+		const x = name(await 1, await 2)
+		return x + '-' + x
+	}
+}
+
 const lala2 = 2
 
 const component = (
 	<div>
 		<Counter />
+		{asyncTest}
 		<div
 			prop:not-identifier={/* @static  */ ' '.trim()}
 			data-undefined={undefined}

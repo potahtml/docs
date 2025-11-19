@@ -96,7 +96,7 @@
 				"input": ["src/pages/tests/transform.jsx"],
 				"output": "src/pages/tests/transform.js",
 				"minified": false,
-				"treeshake": true,
+				"treeshake": false,
 				"root": false,
 				"babel": {
 					"presets": [["pota/babel-preset"]]

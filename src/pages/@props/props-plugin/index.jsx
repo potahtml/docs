@@ -16,6 +16,24 @@ export default function () {
 			<Section title="Snippet">
 				<Code url="/pages/@props/props-plugin/snippet.jsx"></Code>
 			</Section>
+			<Section title="Type">
+				<Code
+					render={false}
+					code={`
+import type { JSX } from "pota";
+
+declare module "pota" {
+  namespace JSX {
+    interface ElementAttributes<Element> {
+      "use:tooltip"?: {
+        position: { x: number; y: number };
+      };
+    }
+  }
+}
+`}
+				></Code>
+			</Section>
 		</>
 	)
 }
