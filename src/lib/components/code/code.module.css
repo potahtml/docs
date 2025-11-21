@@ -16,6 +16,7 @@
 .frame {
 	background: #0d1117;
 	padding: 15px;
+	flex: 1;
 }
 
 .frameContainer {

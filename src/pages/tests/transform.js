@@ -1,7 +1,7 @@
 (function () {
 	'use strict';
 
-	const version = '0.19.212';
+	const version = '0.19.213';
 
 	const window = globalThis;
 	const requestAnimationFrame = window.requestAnimationFrame;
@@ -1474,48 +1474,86 @@
 	 * @param {() => T} fn - Function to re-run when dependencies change
 	 * @param {Accessed<T>} [initialValue] - Initial value for
 	 *   promise-like
-	 * @returns {SignalFunction<Accessed<T>> & { run: Function }}
+	 * @returns {DerivedWritable<Accessed<T>>}
 	 * @original ryansolid
 	 * @modified titoBouzout - unwraps and tracks functions and promises
 	 */
 	function writable(fn, initialValue = undefined) {
-	  const forceChange = signal(undefined, {
+	  const force = signal(undefined, {
 	    equals: false
 	  });
+	  const resolved = signal(false);
 	  const result = memo(() => {
-	    forceChange.read();
+	    force.read();
+	    resolved.write(false);
 	    const value = getValue(fn);
 	    let s;
 	    if (isPromise(value)) {
 	      s = signal(initialValue);
 	      withValue(value, value => {
+	        resolved.write(true);
 	        s.write(value);
 	      });
 	    } else {
 	      s = signal(value);
+	      resolved.write(true);
 	    }
 	    return s;
 	  });
-	  function SignalLikeWithReRun(...args) {
+	  function SignalLikeWithRun(...args) {
 	    if (args.length) {
 	      const value = args[0];
 	      if (isFunction(value) || isPromise(value)) {
+	        resolved.write(false);
 	        withValue(value, value => {
+	          resolved.write(true);
 	          result().write(value);
 	        });
 	        return true;
 	      } else {
+	        resolved.write(true);
 	        return result().write(value);
 	      }
 	    } else {
 	      return result().read();
 	    }
 	  }
-	  SignalLikeWithReRun.run = () => {
-	    forceChange.write();
-	  };
+	  SignalLikeWithRun.resolved = resolved.read;
+	  SignalLikeWithRun.run = force.write;
+
 	  // @ts-expect-error non-sense
-	  return SignalLikeWithReRun;
+	  return SignalLikeWithRun;
+	}
+
+	/**
+	 * A `memo` that recursively tracks promises and functions
+	 *
+	 * @template T
+	 * @param {() => T} fn - Function to re-run when dependencies change
+	 * @param {Accessed<T>} [initialValue] - Initial value for
+	 *   promise-like
+	 * @returns {Derived<Accessed<T>>}
+	 */
+	function derived(fn, initialValue = undefined) {
+	  const result = writable(fn, initialValue);
+	  function SignalLikeWithRun() {
+	    return result();
+	  }
+	  SignalLikeWithRun.resolved = result.resolved;
+	  SignalLikeWithRun.run = result.run;
+	  untrack(SignalLikeWithRun);
+	  return SignalLikeWithRun;
+	}
+
+	/**
+	 * Returns `true` when all derived resolved or resolved
+	 *
+	 * @template {Derived<unknown>} T
+	 * @param {T | T[]} a
+	 * @returns {boolean}
+	 */
+	function isResolved(a) {
+	  return ![a].flat(Infinity).some(x => !x.resolved());
 	}
 
 	/**
@@ -1881,20 +1919,6 @@
 	  // @ts-expect-error
 	  children = flatToArray(children);
 	  return markComponent((...args) => children.map(child => isFunction(child) ? child(...args) : child));
-	}
-
-	/**
-	 * Fakes `then` and `catch` in a function that returns promise
-	 *
-	 * @template P
-	 * @template {() => Promise<P>} T
-	 * @param {T} fn
-	 * @returns {(() => Promise<P>) & Promise<P>} T
-	 */
-	function makeAsync(fn) {
-	  fn.then = f => fn().then(f);
-	  fn.catch = f => fn().catch(f);
-	  return fn;
 	}
 
 	/**
@@ -3307,191 +3331,131 @@
 	// await
 	{
 	  const bña = async function () {
-	    const _await = await 1;
-	    return makeAsync(async () => {
-	      return _await;
-	    });
+	    return await 1;
 	  };
 	  async function asyncTest1() {
-	    const _await2 = await 1;
-	    return makeAsync(async () => {
-	      return _await2;
-	    });
+	    return await 1;
 	  }
 	  const asyncTest2 = async () => {
-	    const _await3 = await 1;
-	    return makeAsync(async () => {
-	      return _await3;
-	    });
+	    return await 1;
 	  };
 	  async () => {
-	    const _await4 = await 1;
-	    return makeAsync(async () => {
-	      return _await4;
-	    });
+	    return await 1;
 	  };
 	  (async function () {
-	    const _await5 = await 1;
-	    return makeAsync(async () => {
-	      return _await5;
-	    });
+	    return await 1;
 	  })();
 	}
 
 	// await x 2
 	{
 	  const bña = async function () {
-	    const _await6 = await 1;
-	    return makeAsync(async () => {
-	      _await6;
-	      return makeAsync(async () => {
-	        const _await7 = await 2;
-	        return makeAsync(async () => {
-	          return _await7;
-	        });
-	      });
-	    });
+	    await 1;
+	    return async () => {
+	      return await 2;
+	    };
 	  };
 	  async function asyncTest1() {
-	    const _await8 = await 1;
-	    return makeAsync(async () => {
-	      _await8;
-	      return makeAsync(async () => {
-	        const _await9 = await 2;
-	        return makeAsync(async () => {
-	          return _await9;
-	        });
-	      });
-	    });
+	    await 1;
+	    return async () => {
+	      return await 2;
+	    };
 	  }
 	  const asyncTest2 = async () => {
-	    const _await0 = await 1;
-	    return makeAsync(async () => {
-	      _await0;
-	      return makeAsync(async () => {
-	        const _await1 = await 2;
-	        return makeAsync(async () => {
-	          return _await1;
-	        });
-	      });
-	    });
+	    await 1;
+	    return async () => {
+	      return await 2;
+	    };
 	  };
 	  async () => {
-	    const _await10 = await 1;
-	    return makeAsync(async () => {
-	      _await10;
-	      return makeAsync(async () => {
-	        const _await11 = await 2;
-	        return makeAsync(async () => {
-	          return _await11;
-	        });
-	      });
-	    });
+	    await 1;
+	    return async () => {
+	      return await 2;
+	    };
 	  };
 	  (async function () {
-	    const _await12 = await 1;
-	    return makeAsync(async () => {
-	      _await12;
-	      return makeAsync(async () => {
-	        const _await13 = await 2;
-	        return makeAsync(async () => {
-	          return _await13;
-	        });
-	      });
-	    });
+	    await 1;
+	    return async () => {
+	      return await 2;
+	    };
 	  })();
 	}
 
 	// await x 2
 	{
 	  const bña = async function () {
-	    const _await14 = await 1;
-	    return makeAsync(async () => {
-	      _await14;
-	      return makeAsync(async () => {
-	        const _await15 = await name();
-	        return makeAsync(async () => {
-	          return _await15 + '-' + name();
-	        });
-	      });
-	    });
+	    await 1;
+	    return async () => {
+	      const _await = await name();
+	      return async () => {
+	        return _await + '-' + name();
+	      };
+	    };
 	  };
 	  async function asyncTest1LALA() {
-	    const _await16 = await 1;
-	    return makeAsync(async () => {
-	      _await16;
-	      return makeAsync(async () => {
+	    await 1;
+	    return async () => {
+	      {
 	        {
-	          {
-	            ;
-	            const _await17 = await name();
-	            _await17 + '-' + name();
-	          }
+	          ;
+	          const _await2 = await name();
+	          _await2 + '-' + name();
 	        }
-	        return makeAsync(async () => {
-	          const _await18 = await name();
-	          return makeAsync(async () => {
-	            return _await18 + '-' + name();
-	          });
-	        });
-	      });
-	    });
+	      }
+	      return async () => {
+	        const _await3 = await name();
+	        return async () => {
+	          return _await3 + '-' + name();
+	        };
+	      };
+	    };
 	  }
 	  const asyncTest2 = async () => {
-	    const _await19 = await 1;
-	    return makeAsync(async () => {
-	      _await19;
-	      return makeAsync(async () => {
-	        const _await20 = await name();
-	        return makeAsync(async () => {
-	          return _await20 + '-' + name();
-	        });
-	      });
-	    });
+	    await 1;
+	    return async () => {
+	      const _await4 = await name();
+	      return async () => {
+	        return _await4 + '-' + name();
+	      };
+	    };
 	  };
 	  async () => {
-	    const _await21 = await 1;
-	    return makeAsync(async () => {
-	      _await21;
-	      return makeAsync(async () => {
-	        const _await22 = await name();
-	        return makeAsync(async () => {
-	          return _await22 + '-' + name();
-	        });
-	      });
-	    });
+	    await 1;
+	    return async () => {
+	      const _await5 = await name();
+	      return async () => {
+	        return _await5 + '-' + name();
+	      };
+	    };
 	  };
 	  (async function () {
-	    const _await23 = await 1;
-	    return makeAsync(async () => {
-	      _await23;
-	      return makeAsync(async () => {
-	        const _await24 = await name();
-	        return makeAsync(async () => {
-	          return _await24 + '-' + name();
-	        });
-	      });
-	    });
+	    await 1;
+	    return async () => {
+	      const _await6 = await name();
+	      return async () => {
+	        return _await6 + '-' + name();
+	      };
+	    };
 	  })();
 	}
 	{
 	  async function lala() {
 	    console.log(1);
-	    return makeAsync(async () => {
+	    return async () => {
 	      console.log(2);
-	      return makeAsync(async () => {
-	        const _await25 = await 1;
-	        return makeAsync(async () => {
-	          const _await26 = await 2;
-	          return makeAsync(async () => {
-	            const x = name(_await25, _await26);
-	            return makeAsync(async () => {
+	      return async () => {
+	        const _await7 = await 1;
+	        return async () => {
+	          const _await8 = await 2;
+	          return async () => {
+	            const x = name(_await7, _await8);
+	            return async () => {
 	              return x + '-' + x;
-	            });
-	          });
-	        });
-	      });
-	    });
+	            };
+	          };
+	        };
+	      };
+	    };
 	  }
 	}
 	const lala2 = 2;
