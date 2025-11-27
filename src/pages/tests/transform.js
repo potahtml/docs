@@ -1,7 +1,7 @@
 (function () {
 	'use strict';
 
-	const version = '0.20.214';
+	const version = '0.20.215';
 
 	const window = globalThis;
 	const requestAnimationFrame = window.requestAnimationFrame;
@@ -3757,17 +3757,11 @@
 	      return async () => {
 	        const _await7 = await 1;
 	        return async () => {
-	          const _arg = _await7;
+	          const _await8 = await 2;
 	          return async () => {
-	            const _await8 = await 2;
+	            const x = name(_await7, _await8);
 	            return async () => {
-	              const _arg2 = _await8;
-	              return async () => {
-	                const x = name(_arg, _arg2);
-	                return async () => {
-	                  return x + '-' + x;
-	                };
-	              };
+	              return x + '-' + x;
 	            };
 	          };
 	        };

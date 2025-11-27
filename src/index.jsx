@@ -28,33 +28,31 @@ import { location } from 'pota/use/location'
 
 registerTmTextarea()
 
-/*
 // node_modules/package/lala
 async function packageProvided() {
-  await 1
-  readSignal() // this
+	await 1
+	readSignal() // this
 }
 
 // my jsx
 async function getCities(state) {
-  await sleep(1000);
-  return async () => {
-    return packageProvided()
-  }
+	await sleep(1000)
+	return async () => {
+		return packageProvided()
+	}
 }
 
-
-globalThis.lala = async function getCities(state) {
+globalThis.fn = async state => {
+	const r = read()
 	await sleep(500)
-	lala('lala')
-	lala(1 + 1)
-	quack(state)
-	quack(quack(), uno, dos)
-	await await lala()
-	quack(`lal${uno.dos}ala${1 + 1}`, uno, dos)
-	return stateCitites[state] ?? []
+	doSomething(r) // ok
+	untrack(async () => {
+		await sleep(500)
+		doSomething(r) // NOT ok
+		return 1
+	})
 }
-*/
+
 render(
 	() => {
 		return (
