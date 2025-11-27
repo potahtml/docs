@@ -1,9 +1,8 @@
 
 src/pages/benchmark/xml/main.js binary
-src/pages/benchmark/xml/main.js.map
-
 src/pages/benchmark/regular/main.js binary
-src/pages/benchmark/regular/main.js.map binary
-
 src/pages/benchmark/dev-v2/main.js binary
-src/pages/benchmark/dev-v2/main.js.map binary
+src/pages/benchmark/dev-swap/main.js binary
+src/pages/benchmark/dev/main.js binary
+
+*.map binary

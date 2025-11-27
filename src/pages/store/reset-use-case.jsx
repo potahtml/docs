@@ -13,8 +13,7 @@ const defaultState = {
 	toRemove: [],
 	/** @type number[] */
 	forcedKeyframes: [],
-	/** @type boolean */
-	result: false,
+	result: '',
 	sidebarExpanded: true,
 	timeline: {},
 }

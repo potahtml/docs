@@ -94,6 +94,16 @@
 	const flatToArray = arr => isArray(arr) ? arr.flat(Infinity) : [arr];
 
 	/**
+	 * Flats an array/childNodes recursively if its an array else it
+	 * returns
+	 *
+	 * @template {unknown | unknown[]} T
+	 * @param {T} arr
+	 * @returns {T[] | T}
+	 */
+	const flatNoArray = arr => isArray(arr) ? arr.flat(Infinity) : arr;
+
+	/**
 	 * Keeps state in the function as the first param
 	 *
 	 * @template {(...args: any[]) => any} T
@@ -105,7 +115,13 @@
 	 */
 	const withState = /* #__NO_SIDE_EFFECTS__ */(fn, state = cacheStore) => fn.bind(null, state());
 
-	/** Memoize functions with a map cache */
+	/**
+	 * Memoizes a unary function using a strong Map-backed cache.
+	 *
+	 * @template T, R
+	 * @param {(value: T) => R} fn
+	 * @returns {(value: T) => R}
+	 */
 	const withCache = fn => withState((cache, thing) => cache.get(thing, thing => fn(thing)), cacheStore);
 
 	/**
@@ -124,8 +140,9 @@
 	/**
 	 * Returns `true` when `typeof` of `value` is `function`
 	 *
-	 * @param {unknown} value
-	 * @returns {value is function}
+	 * @template T
+	 * @param {T} value
+	 * @returns {value is ((...args:unknown[])=>T)}
 	 */
 	const isFunction = value => typeof value === 'function';
 
@@ -149,8 +166,9 @@
 	/**
 	 * Returns `true` when `value` may be a promise
 	 *
-	 * @param {unknown} value
-	 * @returns {value is Promise<unknown>}
+	 * @template T
+	 * @param {T} value
+	 * @returns {value is Promise<T>}
 	 */
 	const isPromise = value => isFunction(/** @type {any} */value?.then);
 
@@ -160,6 +178,8 @@
 	 * @returns {value is array}
 	 */
 	const isArray = Array$1.isArray;
+
+	/** Function that intentionally performs no operation. */
 	const noop = () => {};
 
 	/**
@@ -173,6 +193,16 @@
 	  const index = array.indexOf(value);
 	  if (index !== -1) array.splice(index, 1);
 	}
+
+	/**
+	 * Walks up a linked structure invoking `cb` for each parent until
+	 * `cb` returns `true`.
+	 *
+	 * @param {object} context
+	 * @param {PropertyKey} propertyName
+	 * @param {(value: any) => boolean | void} cb
+	 * @returns {boolean} Whether the callback succeeded.
+	 */
 	function walkParents(context, propertyName, cb) {
 	  while (context) {
 	    if (cb(context)) return true;
@@ -214,6 +244,11 @@
 	    yield this.delete;
 	  }
 	}
+	/**
+	 * Creates a Map-backed `DataStore` instance.
+	 *
+	 * @returns {DataStore<Map<any, any>>}
+	 */
 	const cacheStore = () => new DataStore(Map);
 
 	// symbols
@@ -238,13 +273,128 @@
 	};
 
 	/**
+	 * The purpose of this file is to guarantee the timing of some
+	 * callbacks. It queues a microtask, then the callbacks are added to a
+	 * position in the array. These are run with a priority.
+	 */
+
+	/** @type boolean */
+	let added;
+
+	/** @type (()=>void)[][] */
+	let queue$1;
+
+	/** Initializes the priority queue buckets and clears the pending flag. */
+	function reset() {
+	  queue$1 = [[], [], [], [], [], []];
+	  added = false;
+	}
+
+	// initialization
+	reset();
+
+	/**
+	 * Queues a callback at a priority
+	 *
+	 * @param {PropertyKey} priority - Priority
+	 * @param {() => void} fn - Function to run once the callbacks at this
+	 *   priority run
+	 */
+	function add(priority, fn) {
+	  if (!added) {
+	    added = true;
+	    queueMicrotask(run);
+	  }
+	  queue$1[priority].push(owned(fn));
+	}
+
+	/** Runs and clears the current queue batch. */
+	function run() {
+	  const q = queue$1;
+	  reset();
+	  for (const fns of q) {
+	    fns.length && call(fns);
+	  }
+	}
+
+	/**
+	 * Queue a function to run before everything else (onProps, onRef,
+	 * onMount, ready) ex focus restoration
+	 *
+	 * @param {() => void} fn
+	 */
+	const onFixes = fn => add(0, fn);
+
+	/**
+	 * Queue a function to run before (onRef, onMount, ready) ex running
+	 * user functions on elements via plugins
+	 *
+	 * @param {() => void} fn
+	 */
+	const onProps = fn => add(1, fn);
+
+	/**
+	 * Queue a function to run onMount (before ready, after onRef)
+	 *
+	 * @param {() => void} fn
+	 */
+	const onMount = fn => add(2, fn);
+
+	// async readiness tracking
+
+	/**
+	 * Schedules work that must wait for async tasks to flush.
+	 *
+	 * @param {() => void} fn
+	 */
+	const onAsync = fn => add(5, fn);
+	const asyncCounter = {
+	  added: false,
+	  fns: [],
+	  c: 0,
+	  add() {
+	    this.c++;
+	  },
+	  remove() {
+	    --this.c === 0 && this.queue();
+	  },
+	  isEmpty() {
+	    return this.c === 0;
+	  },
+	  readyAsync(fn) {
+	    this.fns.push(owned(fn));
+	    this.queue();
+	  },
+	  queue() {
+	    if (!this.added && this.fns.length) {
+	      this.added = true;
+	      onAsync(() => this.run());
+	    }
+	  },
+	  run() {
+	    this.added = false;
+	    if (this.isEmpty()) {
+	      const fns = this.fns.slice();
+	      this.fns = [];
+	      call(fns);
+	    }
+	  }
+	};
+
+	/** Utilities exposed for tracking async work from userland. */
+	const asyncTracking = {
+	  add: () => asyncCounter.add(),
+	  remove: () => asyncCounter.remove()
+	};
+
+	/**
 	 * This is so far the core of Solid JS 1.x Reactivity, but ported to
 	 * classes and adapted to my taste.
 	 *
 	 * Adaptation for potas needs include:
 	 *
 	 * - Ported to Classes what does fit
-	 * - Signal has more options: `label` and `save` previous value
+	 * - Signal has any options
 	 * - Writing to a signal returns `boolean` to tell if the value changed
 	 * - Signal is an object that could be used as signal.read/write or
 	 *   destructuring
@@ -265,36 +415,36 @@
 
 	function createReactiveSystem() {
 
-	  /** @type {Computation} */
+	  /** @type {undefined | Computation} */
 	  let Owner;
 
-	  /** @type {Computation | undefined} */
+	  /** @type {undefined | Computation} */
 	  let Listener;
 
-	  /** @type {Memo[]} */
-	  let Updates = null;
+	  /** @type {undefined | Memo[]} */
+	  let Updates;
 
-	  /** @type {undefined | null | any[]} */
-	  let Effects = null;
+	  /** @type {undefined | any[]} */
+	  let Effects;
 	  let Time = 0;
 
 	  // ROOT
 
 	  class Root {
-	    /** @type {Root | undefined} */
+	    /** @type {undefined | Root} */
 	    owner;
 
 	    /** @type {Computation | Computation[]} */
 	    owned;
 
-	    /** @type {Function | Function[]} */
+	    /** @type {undefined | Function | Function[]} */
 	    cleanups;
 
 	    /** @type {Record<symbol, unknown>} */
 	    context;
 
 	    /**
-	     * @param {Root} owner
+	     * @param {Computation} owner
 	     * @param {object} [options]
 	     */
 	    constructor(owner, options) {
@@ -319,7 +469,7 @@
 	    /** @param {Function} fn */
 	    removeCleanups(fn) {
 	      if (!this.cleanups) ; else if (this.cleanups === fn) {
-	        this.cleanups = null;
+	        this.cleanups = undefined;
 	      } else {
 	        removeFromArray(/** @type Function[] */this.cleanups, fn);
 	      }
@@ -343,10 +493,10 @@
 	        for (let i = this.owned.length - 1; i >= 0; i--) {
 	          this.owned[i].dispose();
 	        }
-	        this.owned = null;
+	        this.owned = undefined;
 	      } else {
 	        this.owned.dispose();
-	        this.owned = null;
+	        this.owned = undefined;
 	      }
 	    }
 	    doCleanups() {
@@ -354,10 +504,10 @@
 	        for (let i = this.cleanups.length - 1; i >= 0; i--) {
 	          this.cleanups[i]();
 	        }
-	        this.cleanups = null;
+	        this.cleanups = undefined;
 	      } else {
 	        this.cleanups();
-	        this.cleanups = null;
+	        this.cleanups = undefined;
 	      }
 	    }
 	  }
@@ -375,8 +525,8 @@
 	    sourceSlots;
 
 	    /**
-	     * @param {Root} [owner]
-	     * @param {Function} [fn]
+	     * @param {Computation} owner
+	     * @param {Function} fn
 	     * @param {object} [options]
 	     */
 	    constructor(owner, fn, options) {
@@ -387,37 +537,27 @@
 	    update() {
 	      this.dispose();
 	      const time = Time;
-	      const prevOwner = Owner;
-	      const prevListener = Listener;
-	      Listener = Owner = this;
-	      try {
-	        this.fn();
-	      } catch (err) {
-	        this.updatedAt = time + 1;
-	        throw err;
-	      } finally {
-	        Owner = prevOwner;
-	        Listener = prevListener;
-	      }
+	      runWith(this.fn, this, this);
+
+	      /*} catch (err) {
+	      	this.updatedAt = time + 1
+	      }*/
+
 	      if (this.updatedAt < time) {
 	        this.updatedAt = time;
 	      }
 	    }
 	    dispose() {
-	      const {
-	        sources,
-	        sourceSlots
-	      } = this;
-	      if (sources && sources.length) {
+	      if (this.sources && this.sources.length) {
 	        let source;
 	        let observers;
 	        let index;
 	        let observer;
 	        let slot;
-	        while (sources.length) {
-	          source = sources.pop();
+	        while (this.sources.length) {
+	          source = this.sources.pop();
 	          observers = source.observers;
-	          index = sourceSlots.pop();
+	          index = this.sourceSlots.pop();
 	          if (observers && observers.length) {
 	            observer = observers.pop();
 	            slot = source.observerSlots.pop();
@@ -440,8 +580,8 @@
 	    user = true;
 
 	    /**
-	     * @param {Root} [owner]
-	     * @param {Function} [fn]
+	     * @param {Computation} owner
+	     * @param {Function} fn
 	     * @param {object} [options]
 	     */
 	    constructor(owner, fn, options) {
@@ -451,8 +591,8 @@
 	  }
 	  class SyncEffect extends Computation {
 	    /**
-	     * @param {Root} [owner]
-	     * @param {Function} [fn]
+	     * @param {Computation} owner
+	     * @param {Function} fn
 	     * @param {object} [options]
 	     */
 	    constructor(owner, fn, options) {
@@ -471,25 +611,29 @@
 	    // options:
 	    // equals
 	    /**
-	     * @param {Root} [owner]
-	     * @param {Function} [fn]
+	     * @param {Computation} owner
+	     * @param {Function} fn
 	     * @param {object} [options]
 	     */
 	    constructor(owner, fn, options) {
 	      super(owner, fn, options);
+	      if (options) {
+	        assign(this, options);
+	        if (options.equals === false) {
+	          this.equals = this.equalsFalse;
+	        }
+	      }
 	      // @ts-expect-error
 	      return this.read;
 	    }
 	    read = () => {
-	      if (this.state) {
-	        if (this.state === 1 /* STALE */) {
-	          this.update();
-	        } else {
-	          const updates = Updates;
-	          Updates = null;
-	          runUpdates(() => upstream(this));
-	          Updates = updates;
-	        }
+	      if (this.state === 1 /* STALE */) {
+	        this.update();
+	      } else if (this.state === 2 /* CHECK */) {
+	        const updates = Updates;
+	        Updates = undefined;
+	        runUpdates(() => upstream(this));
+	        Updates = updates;
 	      }
 	      if (Listener) {
 	        const sourceSlot = this.observers ? this.observers.length : 0;
@@ -512,8 +656,7 @@
 	      return this.value;
 	    };
 	    write(value) {
-	      // @ts-expect-error
-	      if (this.equals === false || !this.equals(this.value, value)) {
+	      if (!this.equals(this.value, value)) {
 	        this.value = value;
 	        if (this.observers && this.observers.length) {
 	          runUpdates(() => {
@@ -529,30 +672,33 @@
 	      }
 	    }
 	    /**
-	     * @param {unknown} a
-	     * @param {unknown} b
+	     * @private
+	     * @param {T} a
+	     * @param {T} b
 	     */
 	    equals(a, b) {
 	      return a === b;
 	    }
+	    /**
+	     * @private
+	     * @param {T} a
+	     * @param {T} b
+	     */
+	    equalsFalse(a, b) {
+	      return false;
+	    }
 	    update() {
 	      this.dispose();
-	      let nextValue;
 	      const time = Time;
-	      const prevOwner = Owner;
-	      const prevListener = Listener;
-	      Listener = Owner = this;
-	      try {
-	        nextValue = this.fn();
-	      } catch (err) {
-	        this.state = 1; /* STALE */
-	        this.disposeOwned();
-	        this.updatedAt = time + 1;
-	        throw err;
-	      } finally {
-	        Owner = prevOwner;
-	        Listener = prevListener;
-	      }
+	      const nextValue = runWith(this.fn, this, this);
+
+	      /*} catch (err) {
+	      	this.state = 1 // STALE
+	      	this.disposeOwned()
+	      		this.updatedAt = time + 1
+	      		throw err
+	      } */
+
 	      if (this.updatedAt <= time) {
 	        this.write(nextValue);
 	        this.updatedAt = time;
@@ -579,28 +725,22 @@
 
 	    // options:
 	    // equals
-	    // save
 
-	    // `prev` if option save was given
 	    /**
 	     * @param {T} [value]
-	     * @param {SignalOptions} [options]
+	     * @param {SignalOptions<T>} [options]
 	     */
 	    constructor(value, options) {
 	      this.value = value;
 	      if (options) {
 	        assign(this, options);
-	        // @ts-expect-error
-	        if (this.save) {
-	          /** @private */
-	          this.prev = value;
+	        if (options.equals === false) {
+	          this.equals = this.equalsFalse;
 	        }
 	      }
 	    }
 	    /** @returns SignalAccessor<T> */
 	    read = () => {
-	      // checkReadForbidden()
-
 	      if (Listener) {
 	        const sourceSlot = this.observers ? this.observers.length : 0;
 	        if (Listener.sources) {
@@ -626,12 +766,7 @@
 	     * @returns SignalSetter<T>
 	     */
 	    write = value => {
-	      // @ts-expect-error
-	      if (this.equals === false || !this.equals(this.value, value)) {
-	        // @ts-expect-error
-	        if (this.save) {
-	          this.prev = this.value;
-	        }
+	      if (!this.equals(this.value, value)) {
 	        this.value = value;
 	        if (this.observers && this.observers.length) {
 	          runUpdates(() => {
@@ -652,16 +787,24 @@
 	     * @type SignalUpdate<T>
 	     * @returns SignalUpdate<T>
 	     */
-	    update = value => {
-	      return this.write(value(this.value));
-	    };
+	    update = value => this.write(value(this.value));
 
 	    /**
 	     * @private
-	     * @type {(a, b) => boolean}
+	     * @param {T} a
+	     * @param {T} b
 	     */
 	    equals(a, b) {
 	      return a === b;
+	    }
+
+	    /**
+	     * @private
+	     * @param {T} a
+	     * @param {T} b
+	     */
+	    equalsFalse(a, b) {
+	      return false;
 	    }
 	    *[Symbol.iterator]() {
 	      /** @type SignalAccessor<T> */
@@ -693,7 +836,7 @@
 	   *
 	   * @template T
 	   * @param {T} [initialValue] - Initial value of the signal
-	   * @param {SignalOptions} [options] - Signal options
+	   * @param {SignalOptions<T>} [options] - Signal options
 	   */
 	  /* #__NO_SIDE_EFFECTS__ */
 	  function signal(initialValue, options) {
@@ -712,6 +855,18 @@
 	  }
 
 	  /**
+	   * Creates a syncEffect
+	   *
+	   * @template T
+	   * @param {() => T} fn
+	   * @param {object} [options]
+	   * @returns T
+	   */
+	  function syncEffect(fn, options) {
+	    new SyncEffect(Owner, fn, options);
+	  }
+
+	  /**
 	   * Creates an effect with explicit dependencies
 	   *
 	   * @template T
@@ -727,22 +882,12 @@
 	  }
 
 	  /**
-	   * Creates a syncEffect
-	   *
-	   * @param {Function} fn
-	   * @param {object} [options]
-	   */
-	  function syncEffect(fn, options) {
-	    return new SyncEffect(Owner, fn, options);
-	  }
-
-	  /**
 	   * Creates a read-only signal from the return value of a function
 	   * that automatically updates
 	   *
 	   * @template T
 	   * @param {() => T} fn - Function to re-run when dependencies change
-	   * @param {SignalOptions} [options]
+	   * @param {SignalOptions<T>} [options]
 	   * @returns {SignalAccessor<T>}
 	   */
 	  /* #__NO_SIDE_EFFECTS__ */
@@ -753,7 +898,8 @@
 	  /**
 	   * Batches changes to signals
 	   *
-	   * @param {Function} fn
+	   * @template T
+	   * @param {() => T} fn
 	   */
 	  const batch = runUpdates;
 
@@ -765,19 +911,31 @@
 	  function owner() {
 	    return Owner;
 	  }
-	  function runWithOwner(owner, fn) {
+
+	  /**
+	   * Runs a function with owner and listener
+	   *
+	   * @param {Function} fn
+	   * @param {Computation} owner
+	   * @param {Listener} [listener]
+	   */
+	  function runWith(fn, owner, listener = undefined) {
+	    if (listener === Listener && owner === Owner) {
+	      return fn();
+	    }
 	    const prevOwner = Owner;
 	    const prevListener = Listener;
 	    Owner = owner;
-	    Listener = undefined;
+	    Listener = listener;
 	    try {
-	      return runUpdates(fn, true);
-	    } catch (err) {
-	      throw err;
+	      return fn();
 	    } finally {
 	      Owner = prevOwner;
 	      Listener = prevListener;
 	    }
+	  }
+	  function runWithOwner(owner, fn) {
+	    return runWith(() => runUpdates(fn, true), owner);
 	  }
 
 	  /**
@@ -791,13 +949,7 @@
 	    if (Listener === undefined) {
 	      return fn();
 	    }
-	    const prevListener = Listener;
-	    Listener = undefined;
-	    try {
-	      return fn();
-	    } finally {
-	      Listener = prevListener;
-	    }
+	    return runWith(fn, Owner);
 	  }
 
 	  /**
@@ -855,7 +1007,7 @@
 	              case 2 /* CHECK */:
 	                {
 	                  updates = Updates;
-	                  Updates = null;
+	                  Updates = undefined;
 	                  runUpdates(() => upstream(node, ancestors[0]));
 	                  Updates = updates;
 	                  break;
@@ -893,18 +1045,18 @@
 	          runTop(update);
 	        }
 	      }
-	      Updates = null;
+	      Updates = undefined;
 	      if (!wait) {
 	        const effects = Effects;
-	        Effects = null;
+	        Effects = undefined;
 	        effects.length && runUpdates(() => runEffects(effects));
 	      }
 	      return res;
 	    } catch (err) {
 	      if (!wait) {
-	        Effects = null;
+	        Effects = undefined;
 	      }
-	      Updates = null;
+	      Updates = undefined;
 	      throw err;
 	    }
 	  }
@@ -959,7 +1111,8 @@
 	   * @template T
 	   * @param {T} [defaultValue] - Default value for the context
 	   */
-	  function Context(defaultValue = undefined) {
+	  /* #__NO_SIDE_EFFECTS__ */
+	  function context(defaultValue = undefined) {
 	    const id = Symbol();
 
 	    /**
@@ -977,15 +1130,15 @@
 	      if (newValue === undefined) {
 	        return Owner?.context && Owner.context[id] !== undefined ? Owner.context[id] : defaultValue;
 	      } else {
-	        let res;
+	        let ret;
 	        syncEffect(() => {
 	          Owner.context = {
 	            ...Owner.context,
 	            [id]: newValue
 	          };
-	          res = untrack(fn);
+	          ret = untrack(fn);
 	        });
-	        return res;
+	        return ret;
 	      }
 	    }
 
@@ -1000,7 +1153,7 @@
 	     */
 	    useContext.Provider = props =>
 	    // @ts-expect-error
-	    useContext(props.value, () => useContext.toHTML(props.children));
+	    useContext(props.value, () => context.toHTML(props.children));
 
 	    /**
 	     * Maps context following `parent` property (if any). When `true`
@@ -1019,11 +1172,22 @@
 	   * @template T
 	   * @template A
 	   * @param {(...args: A[]) => T} cb
-	   * @returns {() => T | void}
+	   * @param {() => void} [onCancel]
 	   */
-	  const owned = cb => {
-	    const o = Owner;
-	    return cb ? (...args) => runWithOwner(o, () => cb(...args)) : noop;
+	  const owned = (cb, onCancel) => {
+	    if (cb) {
+	      let cleaned = false;
+	      const clean = cleanup(() => {
+	        cleaned = true;
+	        onCancel && onCancel();
+	      });
+	      const o = Owner;
+	      return (...args) => {
+	        cleanupCancel(clean);
+	        return !cleaned && runWithOwner(o, () => cb(...args));
+	      };
+	    }
+	    return noop;
 	  };
 
 	  // export
@@ -1032,7 +1196,7 @@
 	    batch,
 	    cleanup,
 	    cleanupCancel,
-	    Context,
+	    context,
 	    effect,
 	    memo,
 	    on,
@@ -1048,7 +1212,7 @@
 
 	const {
 	  cleanup,
-	  Context,
+	  context,
 	  effect,
 	  owned,
 	  root,
@@ -1062,7 +1226,7 @@
 	 *
 	 * @template T
 	 * @param {Accessor<T> | Promise<T>} value
-	 * @param {(value: Accessed<T> | T) => void} fn
+	 * @param {(value: T) => void} fn
 	 */
 	function withValue(value, fn) {
 	  if (isFunction(value)) {
@@ -1332,9 +1496,9 @@
 	 * non-reactive children will run untracked, regular children will
 	 * just return.
 	 *
-	 * @template {Children} T
+	 * @template {Children | Children[]} T
 	 * @param {T} children
-	 * @returns {((...args: T[]) => T) | T}
+	 * @returns {(...args: unknown[]) => T}
 	 */
 	function makeCallback(children) {
 	  /** Shortcut the most used case */
@@ -1343,12 +1507,11 @@
 	  }
 
 	  /**
-	   * When children is an array, as in >${[0, 1, 2]}< then children
+	   * When children is an array, as in `>${[0, 1, 2]}<` then children
 	   * will end as `[[0, 1, 2]]`, so flat it
 	   */
-	  // @ts-expect-error
-	  children = flatToArray(children);
-	  return markComponent((...args) => children.map(child => isFunction(child) ? child(...args) : child));
+	  const childrenMaybeArray = flatNoArray(children);
+	  return isArray(childrenMaybeArray) ? markComponent((...args) => childrenMaybeArray.map(child => isFunction(child) ? child(...args) : child)) : markComponent((...args) => isFunction(childrenMaybeArray) ? childrenMaybeArray(...args) : childrenMaybeArray);
 	}
 
 	/**
@@ -1358,9 +1521,6 @@
 	 * Signals and user functions go in effects, for reactivity.
 	 * Components and callbacks are untracked and wont go in effects to
 	 * avoid re-rendering if signals are used in the components body
-	 *
-	 * @template T
-	 * @param {T} fn - Function to mark as a `Component`
 	 */
 	function markComponent(fn) {
 	  fn[$isComponent] = undefined;
@@ -1370,9 +1530,9 @@
 	/**
 	 * Adds an event listener to a node
 	 *
-	 * @template {Element | Document | typeof window} TargetElement
+	 * @template {Document | typeof window | DOMElement} TargetElement
 	 * @param {TargetElement} node - Element to add the event listener
-	 * @param {EventType} type - The name of the event listener
+	 * @param {EventName} type - The name of the event listener
 	 * @param {EventHandler<Event, TargetElement>} handler - Function to
 	 *   handle the event
 	 * @returns {Function} - An `off` function for removing the event
@@ -1380,7 +1540,8 @@
 	 * @url https://pota.quack.uy/props/EventListener
 	 */
 	function addEvent(node, type, handler) {
-	  node.addEventListener(type, handler, !isFunction(handler) ? (/** @type {EventHandlerOptions} */handler) : undefined);
+	  node.addEventListener(type, /** @type {EventListenerOrEventListenerObject} */
+	  /** @type unknown */handler, !isFunction(handler) ? (/** @type {EventHandlerOptions} */handler) : undefined);
 
 	  /**
 	   * Removes event on tracking scope disposal.
@@ -1397,9 +1558,9 @@
 	/**
 	 * Removes an event listener from a node
 	 *
-	 * @template {Element | Document | typeof window} TargetElement
+	 * @template {Document | typeof window | DOMElement} TargetElement
 	 * @param {TargetElement} node - Element to add the event listener
-	 * @param {EventType} type - The name of the event listener
+	 * @param {EventName} type - The name of the event listener
 	 * @param {EventHandler<Event, TargetElement>} handler - Function to
 	 *   handle the event
 	 * @returns {Function} - An `on` function for adding back the event
@@ -1407,7 +1568,8 @@
 	 * @url https://pota.quack.uy/props/EventListener
 	 */
 	function removeEvent(node, type, handler) {
-	  node.removeEventListener(type, handler, !isFunction(handler) ? (/** @type {EventHandlerOptions} */handler) : undefined);
+	  node.removeEventListener(type, /** @type {EventListenerOrEventListenerObject} */
+	  /** @type unknown */handler, !isFunction(handler) ? (/** @type {EventHandlerOptions} */handler) : undefined);
 	  return () => addEvent(node, type, handler);
 	}
 
@@ -1422,34 +1584,103 @@
 	  ...handler,
 	  handleEvent: owned(e => handler.handleEvent(e))
 	} : owned(handler);
+	class createSuspenseContext {
+	  s = signal(false);
+	  c = 0;
+	  add() {
+	    this.c++;
+	    asyncTracking.add();
+	  }
+	  remove() {
+	    if (--this.c === 0) this.s.write(true);
+	    asyncTracking.remove();
+	  }
+	  isEmpty() {
+	    return this.c === 0;
+	  }
+	}
+	const useSuspense = context(new createSuspenseContext());
 
 	const document$1 = window.document;
 	const head = document$1?.head;
+
+	/**
+	 * Checks whether a node is connected to a document tree.
+	 *
+	 * @param {Node} node
+	 * @returns {boolean}
+	 */
 	const isConnected = node => node.isConnected;
+
+	/** @returns {Element | null} The currently focused element. */
 	const activeElement = () => document$1.activeElement;
+
+	/**
+	 * @returns {Element | undefined} The root `<html>` element if
+	 *   available.
+	 */
 	const documentElement = document$1?.documentElement;
+
+	/** DocumentFragment constructor exposed for convenience. */
 	const DocumentFragment = window.DocumentFragment;
-	const bind = /* #__NO_SIDE_EFFECTS__ */fn => document$1 && document$1[fn].bind(document$1);
+
+	/**
+	 * Safely binds a document method so it can be called later.
+	 *
+	 * @param {string} fn
+	 * @returns {Function | undefined}
+	 */
+	const bind = fn => document$1 && document$1[fn].bind(document$1);
 	const createElement = bind('createElement');
 	const createElementNS = bind('createElementNS');
 	const createTextNode = bind('createTextNode');
+	bind('createComment');
 	const importNode = bind('importNode');
 	const createTreeWalker = bind('createTreeWalker');
 
 	// tokenList
 
-	const tokenList = s => s ? s.trim().split(/\s+/) : emptyArray;
+	/**
+	 * Splits a string by whitespace into tokens; returns `emptyArray` for
+	 * falsy input.
+	 *
+	 * @param {string | undefined | null} s
+	 * @returns {string[]}
+	 */
+	const tokenList = s => s ? s.trim().split(/\s+/) : (/** @type string[] */ /** @type unknown */emptyArray);
+
+	/**
+	 * Adds CSS classes to an element using either a string or an array.
+	 *
+	 * @param {Element} node
+	 * @param {string | string[]} className
+	 */
 	const addClass = (node, className) => className.length && node.classList.add(...(isArray(className) ? className : tokenList(className)));
+
+	/**
+	 * Removes CSS classes from an element using either a string or an
+	 * array.
+	 *
+	 * @param {Element} node
+	 * @param {string | string[]} className
+	 */
 	const removeClass = (node, className) => className.length && node.classList.remove(...(isArray(className) ? className : tokenList(className)));
 
 	// selector
 
+	/**
+	 * Finds the first matching descendant of `node` using a CSS selector.
+	 *
+	 * @param {ParentNode} node
+	 * @param {string} query
+	 * @returns {Element | null}
+	 */
 	const querySelector = (node, query) => node.querySelector(query);
 
 	/**
 	 * Returns `document` for element. That could be a `shadowRoot`
 	 *
-	 * @template {Element} T
+	 * @template {Element | DocumentFragment} T
 	 * @param {T} node
 	 * @returns {Document | ShadowRoot}
 	 */
@@ -1467,6 +1698,16 @@
 	  // always return a Document-like
 	  return nodeType === 11 /* DOCUMENT_FRAGMENT_NODE (11) */ || nodeType === 9 /* DOCUMENT_NODE (9)*/ ? document : node.ownerDocument;
 	};
+
+	/**
+	 * Traverses element nodes depth-first collecting up to `max` results.
+	 *
+	 * @param {TreeWalker} walk
+	 * @param {Node} node
+	 * @param {number} [max=Infinity] Default is `Infinity`
+	 * @param {Node[]} [nodes=[]] Default is `[]`
+	 * @returns {Node[]}
+	 */
 	const walkElements = function (walk, node, max = Infinity, nodes = []) {
 	  /**
 	   * The first node is not walked by the walker.
@@ -1521,72 +1762,6 @@
 	 * @param {CSSStyleSheet} styleSheet
 	 */
 	const removeAdoptedStyleSheet = (document, styleSheet) => removeFromArray(getAdoptedStyleSheets(document), styleSheet);
-
-	/**
-	 * The purpose of this file is to guarantee the timing of some
-	 * callbacks. It queues a microtask, then the callbacks are added to a
-	 * position in the array. These are run with a priority.
-	 */
-
-	/** @type boolean */
-	let added;
-
-	/** @type (()=>void)[][] */
-	let queue$1;
-	function reset() {
-	  queue$1 = [[], [], [], [], []];
-	  added = false;
-	}
-
-	// initialization
-	reset();
-
-	/**
-	 * Queues a callback at a priority
-	 *
-	 * @param {PropertyKey} priority - Priority
-	 * @param {() => void} fn - Function to run once the callbacks at this
-	 *   priority run
-	 */
-	function add(priority, fn) {
-	  if (!added) {
-	    added = true;
-	    queueMicrotask(run);
-	  }
-	  queue$1[priority].push(owned(fn));
-	}
-
-	/** Runs all queued callbacks */
-	function run() {
-	  const q = queue$1;
-	  reset();
-	  for (const fns of q) {
-	    fns.length && call(fns);
-	  }
-	}
-
-	/**
-	 * Queue a function to run before everything else (onProps, onRef,
-	 * onMount, ready) ex focus restoration
-	 *
-	 * @param {() => void} fn
-	 */
-	const onFixes = fn => add(0, fn);
-
-	/**
-	 * Queue a function to run before (onRef, onMount, ready) ex running
-	 * user functions on elements via plugins
-	 *
-	 * @param {() => void} fn
-	 */
-	const onProps = fn => add(1, fn);
-
-	/**
-	 * Queue a function to run onMount (before ready, after onRef)
-	 *
-	 * @param {() => void} fn
-	 */
-	const onMount = fn => add(2, fn);
 
 	const plugins = cacheStore();
 	const pluginsNS = cacheStore();
@@ -1657,6 +1832,8 @@
 	};
 
 	/**
+	 * Sets DOM properties while unwrapping reactive accessors.
+	 *
 	 * @param {Element} node
 	 * @param {string} name
 	 * @param {unknown} value
@@ -1667,6 +1844,9 @@
 	};
 
 	/**
+	 * Sets Namespace-awareDOM properties while unwrapping reactive
+	 * accessors.
+	 *
 	 * @param {Element} node
 	 * @param {string} localName
 	 * @param {unknown} value
@@ -1676,6 +1856,8 @@
 	};
 
 	/**
+	 * Writes raw values to DOM properties.
+	 *
 	 * @param {Element} node
 	 * @param {string} name
 	 * @param {unknown} value
@@ -1691,22 +1873,27 @@
 	}
 
 	/**
-	 * @template {Element} T
+	 * Attaches event handlers (singular or array) to an element.
+	 *
+	 * @template {DOMElement} T
 	 * @param {T} node
 	 * @param {string} name
-	 * @param {EventHandler<Event, T>} value
+	 * @param {EventHandlers<Event, T>} value
 	 */
 	const setEvent = (node, name, value) => {
 	  flatForEach(value, value => {
-	    addEvent(node, name, ownedEvent(value));
+	    addEvent(node, name, ownedEvent(/** @type EventHandler<Event, Element> */value));
 	  });
 	};
 
 	/**
-	 * @template {Element} T
+	 * Attaches namespaced event handlers, (singular or array) to an
+	 * element.
+	 *
+	 * @template {DOMElement} T
 	 * @param {T} node
 	 * @param {string} localName
-	 * @param {EventHandler<Event, T>} value
+	 * @param {EventHandlers<Event, T>} value
 	 */
 	const setEventNS = (node, localName, value) => {
 	  flatForEach(value, value => {
@@ -1715,6 +1902,12 @@
 	};
 
 	/** Returns true or false with a `chance` of getting `true` */
+
+	/**
+	 * Generates a base36 id string by reading 64 bits from `crypto`.
+	 *
+	 * @returns {string}
+	 */
 	const randomId = () => crypto.getRandomValues(new BigUint64Array(1))[0].toString(36);
 
 	/**
@@ -1739,6 +1932,8 @@
 	});
 
 	/**
+	 * Invokes `ref` callbacks immediately with the element instance.
+	 *
 	 * @param {Element} node
 	 * @param {Function} value
 	 */
@@ -1747,6 +1942,8 @@
 	};
 
 	/**
+	 * Runs callbacks once the node is connected (after mount).
+	 *
 	 * @param {Element} node
 	 * @param {Function} value
 	 */
@@ -1755,6 +1952,8 @@
 	};
 
 	/**
+	 * Registers cleanup callbacks that fire when the scope disposes.
+	 *
 	 * @param {Element} node
 	 * @param {Function} value
 	 */
@@ -1766,6 +1965,8 @@
 
 
 	/**
+	 * Applies style attributes (string/object/function) to an element.
+	 *
 	 * @param {DOMElement} node
 	 * @param {StyleAttribute} value
 	 * @url https://pota.quack.uy/props/setStyle
@@ -1775,6 +1976,8 @@
 	};
 
 	/**
+	 * Applies styles within a namespace (e.g. `style:color` bindings).
+	 *
 	 * @param {DOMElement} node
 	 * @param {string} localName
 	 * @param {StyleAttribute} value
@@ -1786,6 +1989,9 @@
 	};
 
 	/**
+	 * Normalizes strings/functions/objects into concrete style
+	 * assignments.
+	 *
 	 * @param {CSSStyleDeclaration} style
 	 * @param {StyleAttribute} value
 	 */
@@ -1802,6 +2008,8 @@
 	}
 
 	/**
+	 * Resolves a possibly reactive style binding before delegating.
+	 *
 	 * @param {CSSStyleDeclaration} style
 	 * @param {string} name
 	 * @param {unknown} value
@@ -1811,6 +2019,8 @@
 	};
 
 	/**
+	 * Writes raw styles, removing properties for falsy/nullish values.
+	 *
 	 * @param {CSSStyleDeclaration} style
 	 * @param {string} name
 	 * @param {unknown} value
@@ -1986,10 +2196,6 @@
 	// STATE
 
 	const useXMLNS = context();
-	const useSuspense = context({
-	  c: 0,
-	  s: signal(false)
-	});
 
 	/**
 	 * Creates a component that could be called with a props object
@@ -2046,10 +2252,13 @@
 	let usedXML;
 
 	/**
+	 * Ensures children inherit the right namespace as elements are
+	 * created.
+	 *
+	 * @template T
 	 * @param {string} xmlns
-	 * @param {(xmlns: string) => Element} fn
+	 * @param {(xmlns: string) => T} fn
 	 * @param {string} [tagName]
-	 * @returns {Element}
 	 */
 	function withXMLNS(xmlns, fn, tagName) {
 	  if (!usedXML) {
@@ -2076,6 +2285,13 @@
 
 	// PARTIALS
 
+	/**
+	 * Turns string markup into DOM nodes using the provided namespace.
+	 *
+	 * @param {string} content
+	 * @param {string} [xmlns]
+	 * @returns {Element | DocumentFragment}
+	 */
 	function parseXML(content, xmlns) {
 	  const template = xmlns ? createElementNS(xmlns, 'template') : createElement('template');
 	  template.innerHTML = content;
@@ -2094,7 +2310,14 @@
 	  return tlpContent.childNodes.length === 1 ? tlpContent.firstChild : tlpContent;
 	}
 
-	/** Used in transform in place of jsxs */
+	/**
+	 * Wraps values for JSX runtime helpers, ensuring we always return a
+	 * component function.
+	 *
+	 * @template T
+	 * @param {string | Function | Element | object | symbol} value
+	 * @returns {(props?: Props<T>) => Children}
+	 */
 	function createComponent(value) {
 	  const component = Factory(value);
 	  return props => {
@@ -2112,7 +2335,7 @@
 	 * 	[i: number]: number
 	 * 	m?: number
 	 * } & Record<string, unknown>} [propsData]
-	 * @returns {(props: T extends any[]) => Children}
+	 * @returns {(props: T[]) => Children}
 	 */
 	function createPartial(content, propsData = nothing) {
 	  let clone = () => {
@@ -2126,7 +2349,7 @@
 	/**
 	 * @template T
 	 * @param {Element} node
-	 * @param {T[]} props
+	 * @param {Children[]} props
 	 * @param {{
 	 * 	x?: string
 	 * 	[i: number]: number
@@ -2209,9 +2432,7 @@
 	          node = toDiff(node, flatToArray(child(child => createChildren(parent, child, true))), true);
 	        }) : effect(() => {
 	          // maybe a signal (at least a function) so needs an effect
-	          node = toDiff(node,
-	          // @ts-expect-error
-	          flatToArray(createChildren(parent, child(), true, node[0])), true);
+	          node = toDiff(node, flatToArray(createChildren(parent, child(), true, node[0])), true);
 	        });
 	        cleanup(() => {
 	          toDiff(node);
@@ -2262,17 +2483,15 @@
 	        // async values
 	        if ('then' in child) {
 	          const suspense = useSuspense();
-	          suspense.c++;
+	          suspense.add();
 	          const [value, setValue] = signal(undefined);
 	          const onResult = owned(result => {
 	            if (isComponent && isFunction(result)) {
 	              markComponent(result);
 	            }
 	            setValue(result);
-	            if (--suspense.c === 0) {
-	              suspense.s.write(true);
-	            }
-	          });
+	            suspense.remove();
+	          }, () => suspense.remove());
 	          resolved(child, onResult);
 	          return createChildren(parent, value, relative);
 	        }
@@ -2407,8 +2626,6 @@
 	function insert(children, parent = document$1.body, options = nothing) {
 	  if (options.clear && parent) parent.textContent = '';
 	  const node = createChildren(parent, Factory(isFunction(children) ? children : () => children), options.relative);
-
-	  // @ts-expect-error
 	  cleanup(() => toDiff(flatToArray(node)));
 	  return node;
 	}
@@ -2430,6 +2647,8 @@
 
 	  return unwrapArray(toHTMLFragment(children).childNodes);
 	}
+	// @ts-ignore-next.error
+	context.toHTML = toHTML;
 
 	/**
 	 * Creates and returns a DocumentFragment for `children`
@@ -2445,30 +2664,15 @@
 	}
 
 	/**
-	 * Creates a context and returns a function to get or set the value
-	 *
-	 * @template T
-	 * @param {T} [defaultValue] - Default value for the context
-	 * @url https://pota.quack.uy/Reactivity/Context
-	 */
-	/* #__NO_SIDE_EFFECTS__ */
-	function context(defaultValue = undefined) {
-	  const ctx = Context(defaultValue);
-	  // @ts-expect-error
-	  ctx.toHTML = toHTML;
-	  return ctx;
-	}
-
-	/**
 	 * Removes from the DOM `prev` elements not found in `next`
 	 *
-	 * @param {Element[]} [prev=[]] - Array with previous elements.
+	 * @param {DOMElement[]} [prev=[]] - Array with previous elements.
 	 *   Default is `[]`
-	 * @param {Element[]} [next=[]] - Array with next elements. Default is
-	 *   `[]`
+	 * @param {DOMElement[]} [next=[]] - Array with next elements. Default
+	 *   is `[]`
 	 * @param {boolean} [short=false] - Whether to use fast clear. Default
 	 *   is `false`
-	 * @returns {Element[]} The next array of elements
+	 * @returns {DOMElement[]} The next array of elements
 	 */
 	function toDiff(prev = [], next = [], short = false) {
 	  // if theres something to remove

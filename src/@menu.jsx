@@ -61,9 +61,6 @@ export default function Menu() {
 						<li>
 							<a href="/Component">Component</a>
 						</li>
-						<li>
-							<a href="/lazy">lazy</a>
-						</li>
 					</ul>
 				</li>
 				<ul>

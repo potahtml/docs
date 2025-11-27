@@ -2,7 +2,7 @@ import { prettier } from './prettier.js'
 
 import { version } from 'pota'
 
-const cacheBurst = '&' + version + 'e'
+const cacheBurst = '&' + version + 'a'
 
 export async function transform(code) {
 	return Promise.all([

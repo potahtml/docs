@@ -1,4 +1,3 @@
-import { Code } from '../../lib/components/code/code.jsx'
 import { Header } from '../../lib/components/header.jsx'
 import { Section } from '../../lib/components/section.jsx'
 
@@ -10,34 +9,6 @@ export default function () {
 				and abstracted API. It currently leverages a customized
 				version of the SolidJS Core, refactored to classes.
 			</Header>
-
-			<Section title="Snippet">
-				<Code
-					code={`
-						import {
-							asyncEffect,
-							batch,
-							cleanup,
-							effect,
-							Lazy,
-							lazy,
-							map,
-							memo,
-							on,
-							owned,
-							ref,
-							resolve,
-							root,
-							signal,
-							syncEffect,
-							untrack,
-							withValue,
-							writable,
-						} from 'pota'
-					`}
-					render={false}
-				></Code>
-			</Section>
 
 			<Section title="Reactive Functions">
 				<table>

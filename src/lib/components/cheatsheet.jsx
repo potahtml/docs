@@ -13,13 +13,15 @@ on, // on(fnThatTracks, fnThatDoesntTrack)
 syncEffect, // syncEffect(fn)
 asyncEffect, // asyncEffect((previousEffect) => await previousEffect)
 memo, // memo(fn)
-writable, // const m = writable(fn, initialValue); m(true) // now "m" is "true" till fn reruns
+derived, // const m = derived(fn, initialValue); m(true) // now "m" is "true" till fn reruns
+isDerived, // isDerived(derived(fn), derived(fn)); // once all derived resolves
 batch, // batch(fn)
 untrack, // untrack(fn)
 cleanup, // cleanup(fn)
 cancelCleanup, // cancelCleanup(fn)
 ready, // ready(fn)
-context, // const use = Context({}); const value = use(); use({newValue}, fn)
+readyAsync, // readyAsync(fn, () => console.log('cleaned ran')) // after promises/derived
+context, // const use = context({}); const value = use(); use({newValue}, fn)
 map, // map([1, 2, 3], (item, index) => [item, index])
 owned, // const ownedFn = owned(fn); ownedFn({foo:"bar"})
 withValue, // withValue(signal, value => console.log(value))
@@ -30,7 +32,6 @@ removeEvent, // const on = removeEvent(el, 'click', fn)
 
 // components
 Pota, // class MyC extends Pota { constructor(props){} ready(){} cleanup(){} render(){} }
-lazy, // const Com = lazy(()=>import('yey.jsx'), fallback) <Comp some={true} fallback="oops"/>
 resolve, // const cache = resolve(() => props.children)
 toHTML, // const nodes = toHTML(props.children) // node|node[]
 

@@ -21,7 +21,6 @@ https://pota.quack.uy/Reactivity/memo
 https://pota.quack.uy/Store
 https://pota.quack.uy/Usage
 https://pota.quack.uy/cleanup
-https://pota.quack.uy/lazy
 https://pota.quack.uy/playground
 https://pota.quack.uy/use/bind
 https://pota.quack.uy/use/clickoutside

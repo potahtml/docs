@@ -102,6 +102,7 @@ export function Monaco(props) {
 					// autoClosingDelete: 'never',
 					autoClosingBrackets: 'never',
 					autoClosingQuotes: 'never',
+					fontLigatures: '',
 					// autoClosingPairsOpen: 'never',
 				})
 
@@ -164,7 +165,14 @@ export function Monaco(props) {
 					}
 				})
 			}}
-		></div>
+		>
+			<link
+				rel="stylesheet"
+				data-name="vs/editor/editor.main"
+				crossorigin="anonymous"
+				href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.46.0/min/vs/editor/editor.main.min.css"
+			/>
+		</div>
 	)
 }
 

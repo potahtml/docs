@@ -415,11 +415,6 @@ http://localhost:37808/playground#H4sIAPRChGgAA+x9CXccx5HmXymPvW6QAhsEQB3mjGbWY8
 			/>
 			<Route
 				path=":path$"
-				params={{ path: 'lazy' }}
-				children={load(() => import('./pages/lazy/index.jsx'))}
-			/>
-			<Route
-				path=":path$"
 				params={{ path: 'cleanup' }}
 				children={load(() => import('./pages/cleanup/index.jsx'))}
 			/>
