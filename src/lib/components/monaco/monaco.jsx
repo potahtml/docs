@@ -75,12 +75,12 @@ export function Monaco(props) {
 	return (
 		<div
 			class={styles.container}
-			use:ref={async container => {
+			use:ref={container => {
 				/** @type import('monaco-editor').editor.IStandaloneCodeEditor */
 				const editor = monaco.editor.create(container, {
 					model,
 					language: props.language || 'typescript',
-					fontSize: 17,
+					fontSize: 18,
 					roundedSelection: false,
 					scrollbar: {
 						useShadows: false,
@@ -96,14 +96,15 @@ export function Monaco(props) {
 					automaticLayout: true,
 					minimap: { enabled: false },
 					scrollBeyondLastLine: false,
-					wordWrap: props.language === 'json' ? 'on' : 'off',
+					wordWrap: 'bounded',
 					smoothScrolling: false,
 					mouseWheelScrollSensitivity: 4,
 					// autoClosingDelete: 'never',
 					autoClosingBrackets: 'never',
 					autoClosingQuotes: 'never',
 					fontLigatures: '',
-					// autoClosingPairsOpen: 'never',
+					autoSurround: 'never',
+					wordWrapColumn: 70,
 				})
 
 				withValue(props.value, value => {

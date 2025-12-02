@@ -59,7 +59,10 @@
 	 * promise.then(onDone).catch(onDone)
 	 * ```
 	 */
-	const resolved = (promise, onDone) => promise.then(onDone).catch(onDone);
+	const resolved = (promise, onDone) => promise.then(onDone).catch(e => {
+	  error(e);
+	  onDone(e.toString());
+	});
 
 	/**
 	 * Runs an array of functions
@@ -472,128 +475,6 @@
 	};
 
 	/**
-	 * The purpose of this file is to guarantee the timing of some
-	 * callbacks. It queues a microtask, then the callbacks are added to a
-	 * position in the array. These are run with a priority.
-	 */
-
-	/** @type boolean */
-	let added;
-
-	/** @type (()=>void)[][] */
-	let queue$1;
-
-	/** Initializes the priority queue buckets and clears the pending flag. */
-	function reset() {
-	  queue$1 = [[], [], [], [], [], []];
-	  added = false;
-	}
-
-	// initialization
-	reset();
-
-	/**
-	 * Queues a callback at a priority
-	 *
-	 * @param {PropertyKey} priority - Priority
-	 * @param {() => void} fn - Function to run once the callbacks at this
-	 *   priority run
-	 */
-	function add(priority, fn) {
-	  if (!added) {
-	    added = true;
-	    queueMicrotask(run);
-	  }
-	  queue$1[priority].push(owned(fn));
-	}
-
-	/** Runs and clears the current queue batch. */
-	function run() {
-	  const q = queue$1;
-	  reset();
-	  for (const fns of q) {
-	    fns.length && call(fns);
-	  }
-	}
-
-	/**
-	 * Queue a function to run before everything else (onProps, onRef,
-	 * onMount, ready) ex focus restoration
-	 *
-	 * @param {() => void} fn
-	 */
-	const onFixes = fn => add(0, fn);
-
-	/**
-	 * Queue a function to run before (onRef, onMount, ready) ex running
-	 * user functions on elements via plugins
-	 *
-	 * @param {() => void} fn
-	 */
-	const onProps = fn => add(1, fn);
-
-	/**
-	 * Queue a function to run onMount (before ready, after onRef)
-	 *
-	 * @param {() => void} fn
-	 */
-	const onMount = fn => add(2, fn);
-
-	/**
-	 * Queue a function to run after all user defined processes
-	 *
-	 * @param {() => void} fn
-	 */
-	const onDone = fn => add(4, fn);
-
-	// async readiness tracking
-
-	/**
-	 * Schedules work that must wait for async tasks to flush.
-	 *
-	 * @param {() => void} fn
-	 */
-	const onAsync = fn => add(5, fn);
-	const asyncCounter = {
-	  added: false,
-	  fns: [],
-	  c: 0,
-	  add() {
-	    this.c++;
-	  },
-	  remove() {
-	    --this.c === 0 && this.queue();
-	  },
-	  isEmpty() {
-	    return this.c === 0;
-	  },
-	  readyAsync(fn) {
-	    this.fns.push(owned(fn));
-	    this.queue();
-	  },
-	  queue() {
-	    if (!this.added && this.fns.length) {
-	      this.added = true;
-	      onAsync(() => this.run());
-	    }
-	  },
-	  run() {
-	    this.added = false;
-	    if (this.isEmpty()) {
-	      const fns = this.fns.slice();
-	      this.fns = [];
-	      call(fns);
-	    }
-	  }
-	};
-
-	/** Utilities exposed for tracking async work from userland. */
-	const asyncTracking = {
-	  add: () => asyncCounter.add(),
-	  remove: () => asyncCounter.remove()
-	};
-
-	/**
 	 * This is so far the core of Solid JS 1.x Reactivity, but ported to
 	 * classes and adapted to my taste.
 	 *
@@ -673,11 +554,11 @@
 	      }
 	    }
 	    /** @param {Function} fn */
-	    removeCleanups(fn) {
+	    cleanupCancel(fn) {
 	      if (!this.cleanups) ; else if (this.cleanups === fn) {
 	        this.cleanups = undefined;
-	      } else {
-	        removeFromArray(/** @type Function[] */this.cleanups, fn);
+	      } else if (isArray(this.cleanups)) {
+	        removeFromArray(this.cleanups, fn);
 	      }
 	    }
 	    /** @param {Computation} value */
@@ -809,6 +690,7 @@
 
 	  // SIGNALS
 
+	  /** @template in T */
 	  class Memo extends Computation {
 	    value;
 	    observers;
@@ -829,8 +711,6 @@
 	          this.equals = this.equalsFalse;
 	        }
 	      }
-	      // @ts-expect-error
-	      return this.read;
 	    }
 	    read = () => {
 	      if (this.state === 1 /* STALE */) {
@@ -878,7 +758,6 @@
 	      }
 	    }
 	    /**
-	     * @private
 	     * @param {T} a
 	     * @param {T} b
 	     */
@@ -886,7 +765,6 @@
 	      return a === b;
 	    }
 	    /**
-	     * @private
 	     * @param {T} a
 	     * @param {T} b
 	     */
@@ -912,6 +790,108 @@
 	    }
 	    queue() {
 	      Updates.push(this);
+	    }
+	  }
+
+	  /** @template in T */
+	  class Derived extends Memo {
+	    isResolved;
+
+	    /**
+	     * @param {Computation} owner
+	     * @param {() => T} fn
+	     * @param {unknown} [initialValue]
+	     */
+	    constructor(owner, fn, initialValue) {
+	      super(owner, fn);
+	      this.value = this.initialValue = initialValue;
+	      return this.self();
+	    }
+	    self() {
+	      return assign(/** @type {SignalFunction<Accessed<T>>} */
+	      /** @type {unknown} */(...args) => {
+	        return args.length ? this.write(args[0]) : this.read();
+	      }, this);
+	    }
+	    resolved = () => {
+	      this.read(); // tracking
+	      return this.isResolved === null;
+	    };
+	    run = () => {
+	      this.update();
+	    };
+	    update() {
+	      this.dispose();
+	      runWith(() => {
+	        this.write(this.fn());
+	      }, this, this);
+	      /*
+	      	} catch (err) {
+	      		this.state = 1 // STALE
+	      		this.disposeOwned()
+	      			this.updatedAt = time + 1
+	      			throw err
+	      	}
+	      */
+	    }
+	    write(nextValue) {
+	      const time = Time;
+	      if (this.updatedAt <= time) {
+	        this.isResolved = undefined;
+	        withValue(nextValue, nextValue => {
+	          if (this.updatedAt <= time) {
+	            this.isResolved = null;
+	            this.writeNextValue(nextValue);
+	            this.updatedAt = time;
+	            this.resolve && this.resolve(this);
+	          }
+	        }, () => {
+	          // is a promise so restore `then`
+	          this.thenRestore();
+	          // remove the old value while the promise is resolving
+	          this.writeNextValue(this.initialValue);
+	        });
+	      }
+	    }
+	    writeNextValue(value) {
+	      if (!this.equals(this.value, value)) {
+	        this.value = value;
+	        if (this.observers && this.observers.length) {
+	          runUpdates(() => {
+	            for (const observer of this.observers) {
+	              if (observer.state === 0 /* CLEAN */) {
+	                observer.queue();
+	                observer.observers && downstream(observer);
+	              }
+	              observer.state = 1; /* STALE */
+	            }
+	          });
+	        }
+	      }
+	    }
+
+	    /**
+	     * Thenable stuff. It has to be a property so assign works
+	     * properly
+	     */
+	    then = (resolve, reject) => {
+	      this._then(resolve, reject);
+	    };
+	    _then(resolve, reject) {
+	      this.resolve = () => {
+	        this.then = undefined;
+	        this.resolve = undefined;
+	        resolve(this.self());
+	      };
+	      if (this.resolved()) {
+	        this.resolve();
+	      }
+	    }
+	    thenRestore() {
+	      if (!this.then) {
+	        // TODO: unsure if has to be restored
+	        this.then = this._then;
+	      }
 	    }
 	  }
 
@@ -996,7 +976,6 @@
 	    update = value => this.write(value(this.value));
 
 	    /**
-	     * @private
 	     * @param {T} a
 	     * @param {T} b
 	     */
@@ -1005,7 +984,6 @@
 	    }
 
 	    /**
-	     * @private
 	     * @param {T} a
 	     * @param {T} b
 	     */
@@ -1061,6 +1039,23 @@
 	  }
 
 	  /**
+	   * Creates an run once effect
+	   *
+	   * @template T
+	   * @param {() => T} fn
+	   * @param {object} [options]
+	   */
+	  function track(fn, options) {
+	    let ran;
+	    new Effect(Owner, () => {
+	      if (ran === undefined) {
+	        ran = null;
+	        fn();
+	      }
+	    }, options);
+	  }
+
+	  /**
 	   * Creates a syncEffect
 	   *
 	   * @template T
@@ -1098,7 +1093,20 @@
 	   */
 	  /* #__NO_SIDE_EFFECTS__ */
 	  function memo(fn, options = undefined) {
-	    return /** @type {SignalAccessor<T>} */ /** @type {unknown} */new Memo(Owner, fn, options);
+	    return /** @type {SignalAccessor<T>} */ /** @type {unknown} */new Memo(Owner, fn, options).read;
+	  }
+	  /**
+	   * Lazy and writable version of `memo` that unwraps and tracks
+	   * functions and promises recursively
+	   *
+	   * @template T
+	   * @param {() => T} fn - Function to re-run when dependencies change
+	   * @param {Partial<Accessed<T>>} [initialValue]
+	   * @returns {import('../../pota.d.ts').Derived<Accessed<T>>}
+	   */
+	  /* #__NO_SIDE_EFFECTS__ */
+	  function derived(fn, initialValue = nothing) {
+	    return /** @type {import('../../pota.d.ts').Derived<Accessed<T>>} */ /** @type {unknown} */new Derived(Owner, fn, initialValue);
 	  }
 
 	  /**
@@ -1167,18 +1175,6 @@
 	   */
 	  function cleanup(fn) {
 	    Owner?.addCleanups(fn);
-	    return fn;
-	  }
-
-	  /**
-	   * Cancels a cleanup
-	   *
-	   * @template {Function} T
-	   * @param {T} fn
-	   * @returns {T}
-	   */
-	  function cleanupCancel(fn) {
-	    Owner?.removeCleanups(fn);
 	    return fn;
 	  }
 
@@ -1373,36 +1369,154 @@
 	  }
 
 	  /**
-	   * Returns an owned function
+	   * Returns an owned function, that will only run if the owner wasnt
+	   * dispose already. `onCancel` will run if the owner of the owned
+	   * function is disposed, and wont run if the owned function runs.
 	   *
 	   * @template T
 	   * @template A
-	   * @param {(...args: A[]) => T} cb
+	   * @param {((...args: A[]) => T) | Function} cb
 	   * @param {() => void} [onCancel]
 	   */
 	  const owned = (cb, onCancel) => {
 	    if (cb) {
-	      let cleaned = false;
+	      const o = Owner;
+
+	      /**
+	       * Canceling prevent the callback from running and runs
+	       * `onCancel` if provided.
+	       */
+	      let cleaned;
 	      const clean = cleanup(() => {
-	        cleaned = true;
+	        cleaned = null;
 	        onCancel && onCancel();
 	      });
-	      const o = Owner;
 	      return (...args) => {
-	        cleanupCancel(clean);
-	        return !cleaned && runWithOwner(o, () => cb(...args));
+	        o?.cleanupCancel(clean);
+	        return cleaned !== null && runWithOwner(o, () => cb(...args));
 	      };
 	    }
 	    return noop;
 	  };
 
+	  /**
+	   * Unwraps and tracks functions and promises recursively providing
+	   * the result to a callback
+	   *
+	   * @template T
+	   * @param {Accessor<T> | Promise<T>} value
+	   * @param {(value: T) => void} fn
+	   */
+	  function withValue(value, fn, writeDefaultValue = noop) {
+	    if (isFunction(value)) {
+	      // TODO maybe change this to be a memo
+	      effect(() => withValue(value(), fn, writeDefaultValue));
+	    } else if (isPromise(value)) {
+	      asyncTracking.add();
+	      /**
+	       * WriteDefaultValue is used to avoid a double write. If the
+	       * value has no promises, then it will be a native value or a
+	       * function, which will resolve without having to wait.
+	       *
+	       * In case of promises, the value is resolved at a later point
+	       * in time, so we need an intermediate default
+	       */
+	      writeDefaultValue();
+	      value.then(owned(value => {
+	        asyncTracking.remove();
+	        withValue(value, fn, noop);
+	      }, () => asyncTracking.remove()));
+	    } else {
+	      fn(value);
+	    }
+	  }
+
+	  /**
+	   * Unwraps functions and promises recursively canceling if owner
+	   * gets disposed
+	   *
+	   * @template T
+	   * @param {Accessor<T> | Promise<T>} value
+	   * @returns {T | Promise<T> | void}
+	   */
+	  const resolve = value => isFunction(value) ? track(() => resolve(getValue(value))) : isPromise(value) ? value.then(owned(resolve)) : value;
+	  /**
+	   * Unwraps functions and promises recursively canceling if owner
+	   * gets disposed
+	   *
+	   * @template T
+	   * @template A
+	   * @param {((...args: A[]) => T) | Function} cb
+	   */
+	  const action = cb => owned((...args) => resolve(cb(...args)));
+
+	  /** Utilities exposed for tracking async work from user-land. */
+
+	  const asyncTracking = (() => {
+	    let added = false;
+	    let fns = [];
+	    let count = 0;
+	    function add() {
+	      count++;
+	    }
+	    function remove() {
+	      --count === 0 && queue();
+	    }
+	    function ready(fn) {
+	      fns.push(owned(fn));
+	      queue();
+	    }
+	    function queue() {
+	      if (!added && fns.length) {
+	        added = true;
+	        queueMicrotask(() => queueMicrotask(() => run()));
+	      }
+	    }
+	    function run() {
+	      added = false;
+	      if (count === 0) {
+	        const cbs = fns.slice();
+	        fns.length = 0;
+	        call(cbs);
+	      }
+	    }
+	    return {
+	      add,
+	      remove,
+	      ready
+	    };
+	  })();
+
+	  /** Suspense */
+	  class createSuspenseContext {
+	    s = signal(false);
+	    c = 0;
+	    add() {
+	      this.c++;
+	      asyncTracking.add();
+	    }
+	    remove() {
+	      if (--this.c === 0) {
+	        this.s.write(true);
+	      }
+	      asyncTracking.remove();
+	    }
+	    isEmpty() {
+	      return this.c === 0;
+	    }
+	  }
+	  const useSuspense = context(new createSuspenseContext());
+
 	  // export
 
 	  return {
+	    action,
+	    asyncTracking,
 	    batch,
 	    cleanup,
-	    cleanupCancel,
 	    context,
+	    createSuspenseContext,
+	    derived,
 	    effect,
 	    memo,
 	    on,
@@ -1412,7 +1526,9 @@
 	    runWithOwner,
 	    signal,
 	    syncEffect,
-	    untrack
+	    untrack,
+	    useSuspense,
+	    withValue
 	  };
 	}
 
@@ -1420,32 +1536,17 @@
 	  batch,
 	  cleanup,
 	  context,
+	  createSuspenseContext,
 	  effect,
 	  memo,
 	  owned,
 	  root,
 	  signal,
 	  syncEffect,
-	  untrack
+	  untrack,
+	  useSuspense,
+	  withValue
 	} = createReactiveSystem();
-
-	/**
-	 * Runs a function inside an effect if value is a function.
-	 * Aditionally unwraps promises.
-	 *
-	 * @template T
-	 * @param {Accessor<T> | Promise<T>} value
-	 * @param {(value: T) => void} fn
-	 */
-	function withValue(value, fn) {
-	  if (isFunction(value)) {
-	    effect(() => withValue(getValue(value), fn));
-	  } else if (isPromise(value)) {
-	    value.then(owned(value => withValue(value, fn)));
-	  } else {
-	    fn(value);
-	  }
-	}
 
 	/**
 	 * Runs a function inside an effect if value is a function
@@ -1544,7 +1645,7 @@
 	 *
 	 * @template T
 	 * @param {Each<T>} list
-	 * @param {(...unknoown) => Children} callback
+	 * @param {(...args: unknown[]) => Children} callback
 	 * @param {boolean} [noSort]
 	 * @param {Children} [fallback]
 	 * @param {boolean} [reactiveIndex] - Make indices reactive signals
@@ -1588,7 +1689,7 @@
 	   */
 	  function mapper(fn) {
 	    const cb = fn ? (item, index) => fn(callback(item, index), index) : callback;
-	    const value = getValue(list) || [];
+	    const value = getValue(list) || emptyArray;
 
 	    /** To allow iterate objects as if were an array with indexes */
 	    const items = toEntries(value);
@@ -1826,22 +1927,6 @@
 	  ...handler,
 	  handleEvent: owned(e => handler.handleEvent(e))
 	} : owned(handler);
-	class createSuspenseContext {
-	  s = signal(false);
-	  c = 0;
-	  add() {
-	    this.c++;
-	    asyncTracking.add();
-	  }
-	  remove() {
-	    if (--this.c === 0) this.s.write(true);
-	    asyncTracking.remove();
-	  }
-	  isEmpty() {
-	    return this.c === 0;
-	  }
-	}
-	const useSuspense = context(new createSuspenseContext());
 
 	const document$1 = window.document;
 	const head = document$1?.head;
@@ -2063,6 +2148,81 @@
 	const addStyleSheetExternal = withState((state, document, text) => {
 	  state.get(text, text => text.startsWith('http') ? fetch(text).then(r => r.text()).then(css => sheet(css)) : promise(resolve => resolve(sheet(text)))).then(styleSheet => addAdoptedStyleSheet(document, styleSheet));
 	});
+
+	/**
+	 * The purpose of this file is to guarantee the timing of some
+	 * callbacks. It queues a microtask, then the callbacks are added to a
+	 * position in the array. These are run with a priority.
+	 */
+
+	/** @type boolean */
+	let added;
+
+	/** @type (()=>void)[][] */
+	let queue$1;
+
+	/** Initializes the priority queue buckets and clears the pending flag. */
+	function reset() {
+	  queue$1 = [[], [], [], [], [], []];
+	  added = false;
+	}
+
+	// initialization
+	reset();
+
+	/**
+	 * Queues a callback at a priority
+	 *
+	 * @param {PropertyKey} priority - Priority
+	 * @param {() => void} fn - Function to run once the callbacks at this
+	 *   priority run
+	 */
+	function add(priority, fn) {
+	  if (!added) {
+	    added = true;
+	    queueMicrotask(run);
+	  }
+	  queue$1[priority].push(owned(fn));
+	}
+
+	/** Runs and clears the current queue batch. */
+	function run() {
+	  const q = queue$1;
+	  reset();
+	  for (const fns of q) {
+	    fns.length && call(fns);
+	  }
+	}
+
+	/**
+	 * Queue a function to run before everything else (onProps, onRef,
+	 * onMount, ready) ex focus restoration
+	 *
+	 * @param {() => void} fn
+	 */
+	const onFixes = fn => add(0, fn);
+
+	/**
+	 * Queue a function to run before (onRef, onMount, ready) ex running
+	 * user functions on elements via plugins
+	 *
+	 * @param {() => void} fn
+	 */
+	const onProps = fn => add(1, fn);
+
+	/**
+	 * Queue a function to run onMount (before ready, after onRef)
+	 *
+	 * @param {() => void} fn
+	 */
+	const onMount = fn => add(2, fn);
+
+	/**
+	 * Queue a function to run after all user defined processes
+	 *
+	 * @param {() => void} fn
+	 */
+	const onDone = fn => add(4, fn);
 
 	const plugins = cacheStore();
 	const pluginsNS = cacheStore();
@@ -2731,7 +2891,7 @@
 	         * The value is `null`, as in {null} or like a show returning
 	         * `null` on the falsy case
 	         */
-	        if (child === null) {
+	        if (child === null || child === nothing) {
 	          return undefined;
 	        }
 
