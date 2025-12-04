@@ -795,16 +795,16 @@
 
 	  /** @template in T */
 	  class Derived extends Memo {
+	    value = nothing;
 	    isResolved;
 
 	    /**
 	     * @param {Computation} owner
-	     * @param {() => T} fn
-	     * @param {unknown} [initialValue]
+	     * @param {ChainedCallbacks<unknown>[]} fn
 	     */
-	    constructor(owner, fn, initialValue) {
+	    constructor(owner, fn) {
+	      // @ts-ignore-error
 	      super(owner, fn);
-	      this.value = this.initialValue = initialValue;
 	      return this.self();
 	    }
 	    self() {
@@ -823,7 +823,8 @@
 	    update() {
 	      this.dispose();
 	      runWith(() => {
-	        this.write(this.fn());
+	        // @ts-ignore-error
+	        this.write(this.fn[0](), this.fn.slice(1));
 	      }, this, this);
 	      /*
 	      	} catch (err) {
@@ -834,22 +835,29 @@
 	      	}
 	      */
 	    }
-	    write(nextValue) {
+	    write(nextValue, fns) {
 	      const time = Time;
 	      if (this.updatedAt <= time) {
 	        this.isResolved = undefined;
 	        withValue(nextValue, nextValue => {
 	          if (this.updatedAt <= time) {
-	            this.isResolved = null;
-	            this.writeNextValue(nextValue);
-	            this.updatedAt = time;
-	            this.resolve && this.resolve(this);
+	            if (fns && fns.length) {
+	              const fn = fns.shift();
+	              this.write(() => fn(nextValue), fns);
+	            } else {
+	              this.isResolved = null;
+	              this.writeNextValue(nextValue);
+	              this.updatedAt = time;
+	              this.resolve && this.resolve(this);
+	            }
 	          }
 	        }, () => {
 	          // is a promise so restore `then`
 	          this.thenRestore();
+
 	          // remove the old value while the promise is resolving
-	          this.writeNextValue(this.initialValue);
+	          // to avoid the "Florida - New York City" problem
+	          this.writeNextValue(nothing);
 	        });
 	      }
 	    }
@@ -1095,32 +1103,19 @@
 	  function memo(fn, options = undefined) {
 	    return /** @type {SignalAccessor<T>} */ /** @type {unknown} */new Memo(Owner, fn, options).read;
 	  }
+
 	  /**
 	   * Lazy and writable version of `memo` that unwraps and tracks
 	   * functions and promises recursively
 	   *
 	   * @template T
-	   * @param {() => T} fn - Function to re-run when dependencies change
-	   * @param {Partial<Accessed<T>>} [initialValue]
+	   * @param {...ChainedCallbacks<unknown>} fn - Function(s) to re-run
+	   *   when dependencies change
 	   * @returns {import('../../pota.d.ts').Derived<Accessed<T>>}
 	   */
 	  /* #__NO_SIDE_EFFECTS__ */
-	  function derived(fn, initialValue = nothing) {
-	    return /** @type {import('../../pota.d.ts').Derived<Accessed<T>>} */ /** @type {unknown} */new Derived(Owner, fn, initialValue);
-	  }
-
-	  /**
-	   * Awaitable, lazy and writable version of `memo` that unwraps and
-	   * tracks functions and promises recursively
-	   *
-	   * @template T
-	   * @param {() => T} fn - Function to re-run when dependencies change
-	   * @param {Partial<Accessed<T>>} [initialValue]
-	   * @returns {import('../../pota.d.ts').DerivedAsync<Accessed<T>>}
-	   */
-	  /* #__NO_SIDE_EFFECTS__ */
-	  function derivedAsync(fn, initialValue = nothing) {
-	    return /** @type {import('../../pota.d.ts').DerivedAsync<Accessed<T>>} */ /** @type {unknown} */new Derived(Owner, fn, initialValue);
+	  function derived(...fn) {
+	    return /** @type {import('../../pota.d.ts').Derived<Accessed<T>>} */ /** @type {unknown} */new Derived(Owner, fn);
 	  }
 
 	  /**
@@ -1451,18 +1446,18 @@
 	   *
 	   * @template T
 	   * @param {Accessor<T> | Promise<T>} value
-	   * @returns {T | Promise<T> | void}
+	   * @param {ChainedCallbacks<T>[]} cbs
 	   */
-	  const resolve = value => isFunction(value) ? track(() => resolve(getValue(value))) : isPromise(value) ? value.then(owned(resolve)) : value;
+	  const resolve = (value, cbs) => isFunction(value) ? track(() => resolve(getValue(value), cbs)) : isPromise(value) ? value.then(owned(value => resolve(value, cbs))) : cbs.length ? resolve(() => cbs[0](value), cbs.slice(1)) : value;
+
 	  /**
 	   * Unwraps functions and promises recursively canceling if owner
 	   * gets disposed
 	   *
 	   * @template T
-	   * @template A
-	   * @param {((...args: A[]) => T) | Function} cb
+	   * @param {...ChainedCallbacks<T>} cbs
 	   */
-	  const action = cb => owned((...args) => resolve(() => cb(...args)));
+	  const action = (...cbs) => owned((...args) => resolve(() => cbs[0](...args), cbs.slice(1)));
 
 	  /** Utilities exposed for tracking async work from user-land. */
 
@@ -1531,7 +1526,6 @@
 	    context,
 	    createSuspenseContext,
 	    derived,
-	    derivedAsync,
 	    effect,
 	    memo,
 	    on,
