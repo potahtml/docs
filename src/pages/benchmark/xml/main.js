@@ -800,10 +800,10 @@
 
 	    /**
 	     * @param {Computation} owner
-	     * @param {ChainedCallbacks<unknown>[]} fn
+	     * @param {unknown[]} fn
 	     */
 	    constructor(owner, fn) {
-	      // @ts-ignore-error
+	      // @ts-expect-error
 	      super(owner, fn);
 	      return this.self();
 	    }
@@ -823,7 +823,7 @@
 	    update() {
 	      this.dispose();
 	      runWith(() => {
-	        // @ts-ignore-error
+	        // @ts-expect-error
 	        this.write(this.fn[0](), this.fn.slice(1));
 	      }, this, this);
 	      /*
@@ -1107,16 +1107,11 @@
 	  /**
 	   * Lazy and writable version of `memo` that unwraps and tracks
 	   * functions and promises recursively
-	   *
-	   * @template T
-	   * @param {...ChainedCallbacks<unknown>} fn - Function(s) to re-run
-	   *   when dependencies change
-	   * @returns {import('../../pota.d.ts').Derived<Accessed<T>>}
 	   */
 	  /* #__NO_SIDE_EFFECTS__ */
-	  function derived(...fn) {
-	    return /** @type {import('../../pota.d.ts').Derived<Accessed<T>>} */ /** @type {unknown} */new Derived(Owner, fn);
-	  }
+	  const derived = /** @type {import('./derived.d.ts').derived} */
+	  /** @type {unknown} */(...fn) => (/** @type {import('./derived.d.ts').derived} */
+	  /** @type {unknown} */new Derived(Owner, fn));
 
 	  /**
 	   * Batches changes to signals
@@ -1443,10 +1438,6 @@
 	  /**
 	   * Unwraps functions and promises recursively canceling if owner
 	   * gets disposed
-	   *
-	   * @template T
-	   * @param {Accessor<T> | Promise<T>} value
-	   * @param {ChainedCallbacks<T>[]} cbs
 	   */
 	  const resolve = (value, cbs) => isFunction(value) ? track(() => resolve(getValue(value), cbs)) : isPromise(value) ? value.then(owned(value => resolve(value, cbs))) : cbs.length ? resolve(() => cbs[0](value), cbs.slice(1)) : value;
 
@@ -1454,10 +1445,11 @@
 	   * Unwraps functions and promises recursively canceling if owner
 	   * gets disposed
 	   *
-	   * @template T
-	   * @param {...ChainedCallbacks<T>} cbs
+	   * @type {import('./action.d.ts').action}
 	   */
-	  const action = (...cbs) => owned((...args) => resolve(() => cbs[0](...args), cbs.slice(1)));
+	  const action = (...cbs) => owned((...args) => {
+	    resolve(() => cbs[0](...args), cbs.slice(1));
+	  });
 
 	  /** Utilities exposed for tracking async work from user-land. */
 
@@ -3362,9 +3354,9 @@
 	 * Renders children based on the `range` function arguments
 	 *
 	 * @param {object} props
-	 * @param {number} props.start
-	 * @param {number} props.stop
-	 * @param {number} props.step
+	 * @param {number} [props.start]
+	 * @param {number} [props.stop]
+	 * @param {number} [props.step]
 	 * @param {Children} [props.children]
 	 * @returns {Children}
 	 */
@@ -3401,7 +3393,7 @@
 	 */
 	const isKeyBlacklisted = key => keyBlacklist.has(key);
 	/** @type {Set<PropertyKey>} */
-	const keyBlacklist = new Set(['constructor', '__proto__', /** @ts-ignore-error non-sense */
+	const keyBlacklist = new Set(['constructor', '__proto__', /** @ts-expect-error non-sense */
 	...getOwnValues(Symbol).filter(isSymbol)]);
 
 	/**
