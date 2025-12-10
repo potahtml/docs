@@ -1,6 +1,8 @@
 (function () {
 	'use strict';
 
+	const version = '0.20.224';
+
 	const window = globalThis;
 	const queueMicrotask = window.queueMicrotask;
 	const Object$1 = window.Object;
@@ -14,17 +16,13 @@
 	 * @template T
 	 * @param {T} value
 	 */
-	const toValues = value => isArray(value) ? value :
-	// @ts-expect-error
-	isObject(value) && 'values' in value ? /** @type {{ values(): IterableIterator<T> }} */value.values() : toArray(/** @type {Iterable<T> | ArrayLike<T>} */value);
+	const toValues = value => isArray(value) ? value : isObject(value) && 'values' in (/** @type {object} */value) ? /** @type {{ values(): IterableIterator<T> }} */value.values() : toArray(/** @type {Iterable<T> | ArrayLike<T>} */value);
 
 	/**
 	 * @template T
 	 * @param {T} value
 	 */
-	const toEntries = value =>
-	// @ts-expect-error
-	isObject(value) && 'entries' in value ? /** @type {{ entries(): IterableIterator<[string, T]> }} */value.entries() : toArray(/** @type {Iterable<T> | ArrayLike<T>} */value);
+	const toEntries = value => isObject(value) && 'entries' in (/** @type {object} */value) ? /** @type {{ entries(): IterableIterator<[string, T]> }} */value.entries() : toArray(/** @type {Iterable<T> | ArrayLike<T>} */value);
 	const iterator = Symbol.iterator;
 	const stringify = JSON.stringify;
 
@@ -109,12 +107,12 @@
 	/**
 	 * Keeps state in the function as the first param
 	 *
-	 * @template {(...args: any[]) => any} T
+	 * @template {((...args: any[]) => void) & Function} T
 	 * @param {T} fn - Function to which add state to it
-	 * @param {() => DataStore<Map<unknown, unknown>>} [state] - Passed to
-	 *   `fn` as first param
-	 * @returns {(...args: Parameters<T>) => ReturnType<T>} A copy of the
-	 *   function with the state
+	 * @param {() => DataStore<Map<unknown, unknown>>} [state]
+	 * @returns {(
+	 * 	...args: Parameters<T> extends [any, ...infer P] ? P : never
+	 * ) => ReturnType<T>}
 	 */
 	const withState = /* #__NO_SIDE_EFFECTS__ */(fn, state = cacheStore) => fn.bind(null, state());
 
@@ -273,6 +271,7 @@
 
 	// when a tag/attribute is missing the namespace this puts it back in
 
+	/** @type {Record<string, string>} */
 	const NS = {
 	  __proto__: null,
 	  svg: prefix + '2000/svg',
@@ -790,7 +789,7 @@
 	     * @type SignalUpdate<T>
 	     * @returns SignalUpdate<T>
 	     */
-	    update = value => this.write(value(this.value));
+	    update = value => this.write(untrack(() => value(this.value)));
 
 	    /**
 	     * @param {T} a
@@ -1701,7 +1700,7 @@
 	  handleEvent: owned(e => handler.handleEvent(e))
 	} : owned(handler);
 
-	const document$1 = window.document;
+	const document$1 = /** @type {Document} */window.document;
 	const head = document$1?.head;
 
 	/**
@@ -2417,6 +2416,8 @@
 	    is: props?.is
 	  }), props), tagName);
 	}
+
+	/** @type {boolean} */
 	let usedXML;
 
 	/**
@@ -2815,7 +2816,8 @@
 
 	  return unwrapArray(toHTMLFragment(children).childNodes);
 	}
-	// @ts-ignore-next.error
+
+	/** @ts-expect-error freaking typescript */
 	context.toHTML = toHTML;
 
 	/**
@@ -2992,18 +2994,18 @@
 	        createLarge += timing(() => setData(buildData(10000)));
 	        clearLarge += timing(() => setData([]));
 	        results.push(`
-					createLarge ${createLarge / (k + 1)} clearLarge ${clearLarge / (k + 1)}
+					createLarge ${(createLarge / (k + 1)).toFixed(2)} clearLarge ${(clearLarge / (k + 1)).toFixed(2)}
 				`);
 	      }
 	      for (let k = 0; k < 10; k++) {
 	        createSmall += timing(() => setData(buildData(1000)));
 	        clearSmall += timing(() => setData([]));
 	        results.push(`
-					createSmall ${createSmall / (k + 1)} clearSmall ${clearSmall / (k + 1)}
+					createSmall ${(createSmall / (k + 1)).toFixed(2)} clearSmall ${(clearSmall / (k + 1)).toFixed(2)}
 				`);
 	      }
 	      for (const item of results) console.log(item.trim());
-	      console.log('------------');
+	      console.log('------------', version);
 	    },
 	    add = () => {
 	      updateData(d => [...d, ...buildData(1000)]);

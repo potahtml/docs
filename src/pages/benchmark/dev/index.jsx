@@ -1,4 +1,4 @@
-import { render, signal } from 'pota'
+import { render, signal, version } from 'pota'
 import { For } from 'pota/components'
 
 import { usePrevious } from 'pota/use/selector'
@@ -64,18 +64,18 @@ const App = () => {
 				createLarge += timing(() => setData(buildData(10000)))
 				clearLarge += timing(() => setData([]))
 				results.push(`
-					createLarge ${createLarge / (k + 1)} clearLarge ${clearLarge / (k + 1)}
+					createLarge ${(createLarge / (k + 1)).toFixed(2)} clearLarge ${(clearLarge / (k + 1)).toFixed(2)}
 				`)
 			}
 			for (let k = 0; k < 10; k++) {
 				createSmall += timing(() => setData(buildData(1000)))
 				clearSmall += timing(() => setData([]))
 				results.push(`
-					createSmall ${createSmall / (k + 1)} clearSmall ${clearSmall / (k + 1)}
+					createSmall ${(createSmall / (k + 1)).toFixed(2)} clearSmall ${(clearSmall / (k + 1)).toFixed(2)}
 				`)
 			}
 			for (const item of results) console.log(item.trim())
-			console.log('------------')
+			console.log('------------', version)
 		},
 		add = () => {
 			updateData(d => [...d, ...buildData(1000)])

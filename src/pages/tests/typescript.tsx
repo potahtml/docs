@@ -1,4 +1,4 @@
-import { For } from 'pota/components'
+import { Dynamic, For } from 'pota/components'
 import { signal } from 'pota'
 import type { JSX } from 'pota'
 import type { SignalAccessor, SignalSetter } from 'pota'
@@ -201,6 +201,14 @@ function typescript(props) {
 				></span>
 				<dialog tabindex="-1" />
 				<div tabindex="-1" />
+				<Dynamic
+					component="h2"
+					hola=""
+				/>
+				<Dynamic
+					component={Card}
+					hola=""
+				/>
 			</span>
 		</span>
 	)

@@ -34,9 +34,7 @@ export default function Routes() {
 					}}
 					children={load(
 						() =>
-							import(
-								'./pages/@articles/anatomy/anatomy-of-a-signals-based-reactive-renderer.jsx'
-							),
+							import('./pages/@articles/anatomy/anatomy-of-a-signals-based-reactive-renderer.jsx'),
 					)}
 				/>
 			</Route>
@@ -52,9 +50,7 @@ export default function Routes() {
 					}}
 					children={load(
 						() =>
-							import(
-								'./pages/@articles/anatomy/anatomy-of-a-signals-based-reactive-renderer.jsx'
-							),
+							import('./pages/@articles/anatomy/anatomy-of-a-signals-based-reactive-renderer.jsx'),
 					)}
 				/>
 			</Route>
@@ -155,6 +151,13 @@ export default function Routes() {
 					params={{ path: 'Switch' }}
 					children={load(
 						() => import('./pages/@components/switch/index.jsx'),
+					)}
+				/>
+				<Route
+					path=":path$"
+					params={{ path: 'Tabs' }}
+					children={load(
+						() => import('./pages/@components/tabs/index.jsx'),
 					)}
 				/>
 			</Route>
@@ -261,9 +264,7 @@ export default function Routes() {
 					params={{ path: 'attributes-properties' }}
 					children={load(
 						() =>
-							import(
-								'./pages/@props/attributes-properties/index.jsx'
-							),
+							import('./pages/@props/attributes-properties/index.jsx'),
 					)}
 				/>
 				<Route
@@ -278,9 +279,7 @@ export default function Routes() {
 					params={{ path: 'on:__' }}
 					children={load(
 						() =>
-							import(
-								'./pages/@props/event-listener-native/index.jsx'
-							),
+							import('./pages/@props/event-listener-native/index.jsx'),
 					)}
 				/>
 				<Route

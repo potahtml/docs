@@ -142,6 +142,13 @@ export default function Menu() {
 								children="<Dynamic/>"
 							/>
 						</li>
+						<li>
+							<A
+								href="/Components/:page"
+								params={{ page: 'Tabs' }}
+								children="<Tabs/>"
+							/>
+						</li>
 					</ul>
 					<h4>Route</h4>
 					<ul>

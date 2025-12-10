@@ -1,7 +1,7 @@
 (function () {
 	'use strict';
 
-	const version = '0.20.221';
+	const version = '0.20.224';
 
 	const window = globalThis;
 	const requestAnimationFrame = window.requestAnimationFrame;
@@ -39,17 +39,13 @@
 	 * @template T
 	 * @param {T} value
 	 */
-	const toValues = value => isArray(value) ? value :
-	// @ts-expect-error
-	isObject(value) && 'values' in value ? /** @type {{ values(): IterableIterator<T> }} */value.values() : toArray(/** @type {Iterable<T> | ArrayLike<T>} */value);
+	const toValues = value => isArray(value) ? value : isObject(value) && 'values' in (/** @type {object} */value) ? /** @type {{ values(): IterableIterator<T> }} */value.values() : toArray(/** @type {Iterable<T> | ArrayLike<T>} */value);
 
 	/**
 	 * @template T
 	 * @param {T} value
 	 */
-	const toEntries = value =>
-	// @ts-expect-error
-	isObject(value) && 'entries' in value ? /** @type {{ entries(): IterableIterator<[string, T]> }} */value.entries() : toArray(/** @type {Iterable<T> | ArrayLike<T>} */value);
+	const toEntries = value => isObject(value) && 'entries' in (/** @type {object} */value) ? /** @type {{ entries(): IterableIterator<[string, T]> }} */value.entries() : toArray(/** @type {Iterable<T> | ArrayLike<T>} */value);
 	const iterator = Symbol.iterator;
 	const Iterator = window.Iterator;
 	const stringify = JSON.stringify;
@@ -59,6 +55,7 @@
 
 	/** @param {unknown} o */
 	const stringifySorted = o => {
+	  /** @param {any} o */
 	  function sort(o) {
 	    if (!isObject(o)) {
 	      return o;
@@ -269,12 +266,12 @@
 	/**
 	 * Keeps state in the function as the first param
 	 *
-	 * @template {(...args: any[]) => any} T
+	 * @template {((...args: any[]) => void) & Function} T
 	 * @param {T} fn - Function to which add state to it
-	 * @param {() => DataStore<Map<unknown, unknown>>} [state] - Passed to
-	 *   `fn` as first param
-	 * @returns {(...args: Parameters<T>) => ReturnType<T>} A copy of the
-	 *   function with the state
+	 * @param {() => DataStore<Map<unknown, unknown>>} [state]
+	 * @returns {(
+	 * 	...args: Parameters<T> extends [any, ...infer P] ? P : never
+	 * ) => ReturnType<T>}
 	 */
 	const withState = /* #__NO_SIDE_EFFECTS__ */(fn, state = cacheStore) => fn.bind(null, state());
 
@@ -685,6 +682,7 @@
 
 	// when a tag/attribute is missing the namespace this puts it back in
 
+	/** @type {Record<string, string>} */
 	const NS = {
 	  __proto__: null,
 	  svg: prefix + '2000/svg',
@@ -1205,7 +1203,7 @@
 	     * @type SignalUpdate<T>
 	     * @returns SignalUpdate<T>
 	     */
-	    update = value => this.write(value(this.value));
+	    update = value => this.write(untrack(() => value(this.value)));
 
 	    /**
 	     * @param {T} a
@@ -1840,6 +1838,7 @@
 	 *   one effect after another.
 	 */
 	function asyncEffect(fn) {
+	  /** @type {Promise<any>[]} */
 	  const queue = [];
 	  effect(() => {
 	    const {
@@ -2227,7 +2226,7 @@
 	  handleEvent: owned(e => handler.handleEvent(e))
 	} : owned(handler);
 
-	const document = window.document;
+	const document = /** @type {Document} */window.document;
 	const head = document?.head;
 
 	/**
@@ -3117,16 +3116,16 @@
 	 * reactivity tree (think of nested effects that clear inner effects,
 	 * context, etc).
 	 *
-	 * @template T
-	 * @param {string | Function | Element | object | symbol} value -
-	 *   Component
-	 * @param {Props<T>} [props] - Props object
-	 * @returns {(props: Partial<Props<T>>) => Children}
+	 * @template {string | Function | Element | object | symbol} T
+	 * @template {ComponentProps<T>} P
+	 * @param {T} value
+	 * @param {P} [props]
+	 * @returns {(props?: P) => Children}
 	 * @url https://pota.quack.uy/Component
 	 */
 	function Component(value, props) {
 	  if (value === Fragment) {
-	    return props.children;
+	    return /** @type P & {children: Children} */(/** @type {unkonwn} */props).children;
 	  }
 
 	  /** Freeze props so isnt directly writable */
@@ -3135,6 +3134,7 @@
 	  /** Create a callable function to pass `props` */
 	  const component = Factory(value);
 	  return props === undefined ? component : markComponent(propsOverride => component(propsOverride ? freeze({
+	    /** @ts-expect-error freaking typescript */
 	    ...props,
 	    ...propsOverride
 	  }) : props));
@@ -3192,6 +3192,8 @@
 	    is: props?.is
 	  }), props), tagName);
 	}
+
+	/** @type {boolean} */
 	let usedXML;
 
 	/**
@@ -3590,7 +3592,8 @@
 
 	  return unwrapArray(toHTMLFragment(children).childNodes);
 	}
-	// @ts-ignore-next.error
+
+	/** @ts-expect-error freaking typescript */
 	context.toHTML = toHTML;
 
 	/**

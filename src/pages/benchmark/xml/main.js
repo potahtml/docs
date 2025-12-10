@@ -28,17 +28,13 @@
 	 * @template T
 	 * @param {T} value
 	 */
-	const toValues = value => isArray(value) ? value :
-	// @ts-expect-error
-	isObject(value) && 'values' in value ? /** @type {{ values(): IterableIterator<T> }} */value.values() : toArray(/** @type {Iterable<T> | ArrayLike<T>} */value);
+	const toValues = value => isArray(value) ? value : isObject(value) && 'values' in (/** @type {object} */value) ? /** @type {{ values(): IterableIterator<T> }} */value.values() : toArray(/** @type {Iterable<T> | ArrayLike<T>} */value);
 
 	/**
 	 * @template T
 	 * @param {T} value
 	 */
-	const toEntries = value =>
-	// @ts-expect-error
-	isObject(value) && 'entries' in value ? /** @type {{ entries(): IterableIterator<[string, T]> }} */value.entries() : toArray(/** @type {Iterable<T> | ArrayLike<T>} */value);
+	const toEntries = value => isObject(value) && 'entries' in (/** @type {object} */value) ? /** @type {{ entries(): IterableIterator<[string, T]> }} */value.entries() : toArray(/** @type {Iterable<T> | ArrayLike<T>} */value);
 	const iterator = Symbol.iterator;
 	const stringify = JSON.stringify;
 
@@ -162,12 +158,12 @@
 	/**
 	 * Keeps state in the function as the first param
 	 *
-	 * @template {(...args: any[]) => any} T
+	 * @template {((...args: any[]) => void) & Function} T
 	 * @param {T} fn - Function to which add state to it
-	 * @param {() => DataStore<Map<unknown, unknown>>} [state] - Passed to
-	 *   `fn` as first param
-	 * @returns {(...args: Parameters<T>) => ReturnType<T>} A copy of the
-	 *   function with the state
+	 * @param {() => DataStore<Map<unknown, unknown>>} [state]
+	 * @returns {(
+	 * 	...args: Parameters<T> extends [any, ...infer P] ? P : never
+	 * ) => ReturnType<T>}
 	 */
 	const withState = /* #__NO_SIDE_EFFECTS__ */(fn, state = cacheStore) => fn.bind(null, state());
 
@@ -464,6 +460,7 @@
 
 	// when a tag/attribute is missing the namespace this puts it back in
 
+	/** @type {Record<string, string>} */
 	const NS = {
 	  __proto__: null,
 	  svg: prefix + '2000/svg',
@@ -981,7 +978,7 @@
 	     * @type SignalUpdate<T>
 	     * @returns SignalUpdate<T>
 	     */
-	    update = value => this.write(value(this.value));
+	    update = value => this.write(untrack(() => value(this.value)));
 
 	    /**
 	     * @param {T} a
@@ -1929,7 +1926,7 @@
 	  handleEvent: owned(e => handler.handleEvent(e))
 	} : owned(handler);
 
-	const document$1 = window.document;
+	const document$1 = /** @type {Document} */window.document;
 	const head = document$1?.head;
 
 	/**
@@ -2676,16 +2673,16 @@
 	 * reactivity tree (think of nested effects that clear inner effects,
 	 * context, etc).
 	 *
-	 * @template T
-	 * @param {string | Function | Element | object | symbol} value -
-	 *   Component
-	 * @param {Props<T>} [props] - Props object
-	 * @returns {(props: Partial<Props<T>>) => Children}
+	 * @template {string | Function | Element | object | symbol} T
+	 * @template {ComponentProps<T>} P
+	 * @param {T} value
+	 * @param {P} [props]
+	 * @returns {(props?: P) => Children}
 	 * @url https://pota.quack.uy/Component
 	 */
 	function Component(value, props) {
 	  if (value === Fragment) {
-	    return props.children;
+	    return /** @type P & {children: Children} */(/** @type {unkonwn} */props).children;
 	  }
 
 	  /** Freeze props so isnt directly writable */
@@ -2694,6 +2691,7 @@
 	  /** Create a callable function to pass `props` */
 	  const component = Factory(value);
 	  return props === undefined ? component : markComponent(propsOverride => component(propsOverride ? freeze({
+	    /** @ts-expect-error freaking typescript */
 	    ...props,
 	    ...propsOverride
 	  }) : props));
@@ -2751,6 +2749,8 @@
 	    is: props?.is
 	  }), props), tagName);
 	}
+
+	/** @type {boolean} */
 	let usedXML;
 
 	/**
@@ -3063,7 +3063,8 @@
 
 	  return unwrapArray(toHTMLFragment(children).childNodes);
 	}
-	// @ts-ignore-next.error
+
+	/** @ts-expect-error freaking typescript */
 	context.toHTML = toHTML;
 
 	/**
@@ -3222,6 +3223,9 @@
 
 	  /* SLOTS API */
 
+	  /**
+	   * @param {string} name
+	   */
 	  hasSlot(name) {
 	    return this.query(`:scope [slot="${name}"]`);
 	  }
@@ -3272,14 +3276,15 @@
 	/**
 	 * Creates components dynamically
 	 *
-	 * @template T
+	 * @template {{ component: any }} T
 	 * @param {Dynamic<T>} props
 	 * @url https://pota.quack.uy/Components/Dynamic
 	 */
 
 	const Dynamic = props =>
 	// `component` needs to be deleted else it will end in the tag as an attribute
-	Component(props.component, {
+	Component(/** @type {string | ((props: ComponentProps<T>) => Children)} */
+	props.component, {
 	  ...props,
 	  component: undefined
 	});
@@ -5303,6 +5308,195 @@
 	 */
 	const Match = identity;
 
+	const Context = context({
+	  selected: signal({
+	    id: 0,
+	    name: ''
+	  }),
+	  group: 0
+	});
+
+	/**
+	 * Renders a list of tabs
+	 *
+	 * @param {Merge<
+	 * 	Elements['nav'],
+	 * 	{
+	 * 		children: import('./labels.js').Label[]
+	 * 	}
+	 * >} props
+	 * @url https://pota.quack.uy/Components/Tabs
+	 */
+	function Labels(props) {
+	  const context = Context();
+	  const group = context.group;
+	  const [selected, setSelected] = context.selected;
+	  function onTabClick(event, group, id, name, props) {
+	    setSelected({
+	      id,
+	      name
+	    });
+	    props.onClick && props.onClick({
+	      event,
+	      group,
+	      id,
+	      props
+	    });
+	  }
+	  const {
+	    children,
+	    ...rest
+	  } = props;
+	  return Component('nav', {
+	    role: 'tablist',
+	    ...rest,
+	    children: Component(For, {
+	      each: () => [children].flat(),
+	      children: (props, id) => {
+	        // @ts-ignore
+	        props = props();
+	        const {
+	          // @ts-ignore
+	          children,
+	          // @ts-ignore
+	          onClick,
+	          // @ts-ignore
+	          selected: defaultSelected,
+	          // @ts-ignore
+	          hidden,
+	          // @ts-ignore
+	          name,
+	          // @ts-ignore
+	          ...rest
+	        } = props;
+	        if (defaultSelected || selected().id === id) setSelected({
+	          id,
+	          name
+	        });
+	        return Component(Show, {
+	          when: () => !getValue(hidden),
+	          children: Component('button', {
+	            id: `tab-${group}-${id}`,
+	            role: 'tab',
+	            'aria-selected': () => selected().id === id ? 'true' : 'false',
+	            'aria-controls': `tab-panel-${group}-${id}`,
+	            'on:click': e => onTabClick(e, group, id, name, props),
+	            ...rest,
+	            children
+	          })
+	        });
+	      }
+	    })
+	  });
+	}
+
+	/**
+	 * Passthrough for label in TabList
+	 *
+	 * @param {Merge<
+	 * 	Elements['button'],
+	 * 	{
+	 * 		selected?: boolean
+	 * 		name?: string
+	 * 		hidden?: Accessor<boolean>
+	 * 		onClick?: (
+	 * 			event: Event,
+	 * 			group: number,
+	 * 			index: number,
+	 * 			props: object,
+	 * 		) => void
+	 * 	}
+	 * >} props
+	 * @url https://pota.quack.uy/Components/Tabs
+	 */
+	function Label(props) {
+	  return props;
+	}
+
+	/**
+	 * Renders a tab panel with contents
+	 *
+	 * @param {object} props
+	 * @param {import('./panels.js').Panel[]} [props.children]
+	 * @returns {Children}
+	 * @url https://pota.quack.uy/Components/Tabs
+	 */
+	function Panels(props) {
+	  const context = Context();
+	  const {
+	    selected,
+	    group
+	  } = context;
+	  return Component(For, {
+	    each: () => [props.children].flat(),
+	    children: (props, id) => {
+	      // @ts-ignore
+	      const {
+	        collapse,
+	        children,
+	        ...rest
+	      } = props();
+	      return Component(Dynamic, {
+	        component: collapse ? Collapse : Show,
+	        when: () => selected.read().id === id,
+	        children: Component('section', {
+	          id: `tab-panel-${group}-${id}`,
+	          'aria-labelledby': `tab-${group}-${id}`,
+	          ...rest,
+	          children
+	        })
+	      });
+	    }
+	  });
+	}
+
+	/**
+	 * Passthrough for content in TabPanel
+	 *
+	 * @param {Merge<
+	 * 	Elements['section'],
+	 * 	{
+	 * 		collapse?: boolean
+	 * 	}
+	 * >} props
+	 *   - Leftover props are passed to the section container
+	 *
+	 * @url https://pota.quack.uy/Components/Tabs
+	 */
+	function Panel(props) {
+	  return props;
+	}
+
+	let group = 0;
+
+	/**
+	 * Context wrapper for tabs
+	 *
+	 * @param {object} props
+	 * @param {number} [props.selected] - Which tab index to select by
+	 *   default
+	 * @param {Children} [props.children]
+	 * @returns {Children}
+	 * @url https://pota.quack.uy/Components/Tabs
+	 */
+	function Tabs(props) {
+	  return Component(Context.Provider, {
+	    value: {
+	      selected: signal({
+	        id: props.selected || 0,
+	        name: ''
+	      }),
+	      group: group++
+	    },
+	    children: props.children
+	  });
+	}
+	Tabs.Labels = Labels;
+	Tabs.Label = Label;
+	Tabs.Panels = Panels;
+	Tabs.Panel = Panel;
+	Tabs.selected = () => Context().selected;
+
 	/** @type {Record<string, Component>} */
 	const defaultRegistry = {
 	  A,
@@ -5317,7 +5511,8 @@
 	  Route,
 	  Show,
 	  Suspense,
-	  Switch
+	  Switch,
+	  Tabs
 	};
 
 	// parseXML

@@ -5,7 +5,7 @@ import { Code } from '../../lib/components/code/code.jsx'
 import { Header } from '../../lib/components/header.jsx'
 
 import { addEvent, effect, memo, signal } from 'pota'
-import { Collapse, For, Show } from 'pota/components'
+import { For, Show, Tabs } from 'pota/components'
 
 import { compress, uncompress } from '../../lib/compress.js'
 import example from './default-example.js'
@@ -116,8 +116,6 @@ export default function () {
 
 	// ui
 
-	const [tab, setTab] = signal('code')
-
 	return (
 		<>
 			<Header title="Pota's Playground"></Header>
@@ -127,165 +125,158 @@ export default function () {
 				flair="col grow"
 				style="padding-top:0px;"
 			>
-				<section
-					flair="vertical"
-					class={styles.toolbar}
-				>
-					<span>
-						<a
-							href="javascript://"
-							on:click={() => setTab('code')}
-						>
-							Code
-						</a>
-					</span>
-					<span>
-						<a
-							href="javascript://"
-							on:click={() => setTab('pota-jsx')}
-						>
-							Transformed
-						</a>
-					</span>
-					<span>
-						<a
-							href="javascript://"
-							on:click={() => setTab('cheatsheet')}
-						>
-							Cheat Sheet
-						</a>
-					</span>
-					<span>
-						<label
-							flair="selection-none"
-							style="vertical-align: middle;"
-						>
-							Autorun{' '}
-							<input
-								name="autorun"
-								type="checkbox"
-								checked={autorun()}
-								on:click={() => updateAutorun(checked => !checked)}
-							/>
-						</label>
-					</span>
-					<span>
-						<Show
-							when={() =>
-								tab() === 'pota-jsx' || tab() === 'cheatsheet'
-							}
-						>
-							<select
-								class={styles.themeSelector}
-								on:change={e => {
-									const value = e.currentTarget.value
-									setTMTheme(value)
-									localStorage.themeTM = value
-								}}
-							>
-								<For each={themesTM}>
-									{item => (
-										<option
-											selected={themeTM() === item}
-											value={item}
-										>
-											{item.replace(/-/g, ' ')}
-										</option>
-									)}
-								</For>
-							</select>
-						</Show>
-						<Show when={() => tab() === 'code'}>
-							<select
-								class={styles.themeSelector}
-								on:change={e => {
-									const value = e.currentTarget.value
-									setMonacoTheme(value)
-									localStorage.themeMonaco = value
-								}}
-							>
-								<For each={themesMonaco}>
-									{item => (
-										<option
-											selected={themeMonaco() === item}
-											value={item}
-										>
-											{item.replace(/-/g, ' ')}
-										</option>
-									)}
-								</For>
-							</select>
-						</Show>
-					</span>
-
-					<span title="Restore Default Example">
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							height="24px"
-							viewBox="0 -960 960 960"
-							width="24px"
-							fill="#e3e3e3"
-							on:click={e => {
-								setCode(example)
-								localStorage.playground = example
-								emit(window, 'monacoCodeChanged', { detail: example })
-							}}
-						>
-							<path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z" />
-						</svg>
-					</span>
-				</section>
-				<section
-					id="container"
-					flair="row grow"
-					style="padding-top:0px;"
-				>
+				<Tabs>
 					<section
-						id="left"
-						flair="col grow"
+						flair="vertical"
+						class={styles.toolbar}
 					>
-						<form id="form-playground">
-							<Collapse when={() => tab() === 'code'}>
-								<Monaco
-									value={prettier(code(), true).catch(x => code())}
-									on:change={value => setCode(value)}
-									on:format={code => prettier(code, true)}
-									theme={themeMonaco}
+						<Tabs.Labels>
+							<Tabs.Label name="code">Code</Tabs.Label>
+							<Tabs.Label name="transformed">Transformed</Tabs.Label>
+							<Tabs.Label name="cheatsheet">Cheat Sheet</Tabs.Label>
+						</Tabs.Labels>
+						<span>
+							<label
+								flair="selection-none"
+								style="vertical-align: middle;"
+							>
+								Autorun{' '}
+								<input
+									name="autorun"
+									type="checkbox"
+									checked={autorun()}
+									on:click={() => updateAutorun(checked => !checked)}
 								/>
-							</Collapse>
-							<Show when={() => tab() === 'pota-jsx'}>
-								<tm-textarea
-									class="playground line-numbers"
-									grammar="tsx"
-									theme={themeTM}
-									value={() => transform(code())}
-									prop:editable={false}
-								/>
+							</label>
+						</span>
+						<span>
+							<Show
+								when={() =>
+									Tabs.selected().read().name == 'transformed' ||
+									Tabs.selected().read().name === 'cheatsheet'
+								}
+							>
+								<select
+									class={styles.themeSelector}
+									on:change={e => {
+										const value = e.currentTarget.value
+										setTMTheme(value)
+										localStorage.themeTM = value
+									}}
+								>
+									<For each={themesTM}>
+										{item => (
+											<option
+												selected={themeTM() === item}
+												value={item}
+											>
+												{item.replace(/-/g, ' ')}
+											</option>
+										)}
+									</For>
+								</select>
 							</Show>
-							<Collapse when={() => tab() === 'cheatsheet'}>
-								<tm-textarea
-									class="playground"
-									value={prettier(CheatSheetText)}
-									grammar="tsx"
-									theme={themeTM}
-									prop:editable={false}
-								/>
-							</Collapse>
-						</form>
+							<Show
+								when={() => Tabs.selected().read().name === 'code'}
+							>
+								<select
+									class={styles.themeSelector}
+									on:change={e => {
+										const value = e.currentTarget.value
+										setMonacoTheme(value)
+										localStorage.themeMonaco = value
+									}}
+								>
+									<For each={themesMonaco}>
+										{item => (
+											<option
+												selected={themeMonaco() === item}
+												value={item}
+											>
+												{item.replace(/-/g, ' ')}
+											</option>
+										)}
+									</For>
+								</select>
+							</Show>
+						</span>
+						<Show when={() => Tabs.selected().read().name === 'code'}>
+							<span title="Restore Default Example">
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									height="24px"
+									viewBox="0 -960 960 960"
+									width="24px"
+									fill="#e3e3e3"
+									on:click={e => {
+										setCode(example)
+										localStorage.playground = example
+										emit(window, 'monacoCodeChanged', {
+											detail: example,
+										})
+									}}
+								>
+									<path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z" />
+								</svg>
+							</span>
+						</Show>
 					</section>
 					<section
-						id="right"
-						flair="col grow"
+						id="container"
+						flair="row grow"
+						style="padding-top:0px;"
 					>
-						<section flair="row grow">
-							<Code
-								code={() => autorun() && code()}
-								render={true}
-								preview={false}
-							/>
+						<section
+							id="left"
+							flair="col grow"
+						>
+							<form id="form-playground">
+								<Tabs.Panels>
+									<Tabs.Panel flair="col grow">
+										<Monaco
+											value={prettier(code(), true).catch(x =>
+												code(),
+											)}
+											on:change={value => setCode(value)}
+											on:format={code => prettier(code, true)}
+											theme={themeMonaco}
+										/>
+									</Tabs.Panel>
+									<Tabs.Panel flair="col grow">
+										<tm-textarea
+											class="playground line-numbers"
+											grammar="tsx"
+											theme={themeTM}
+											value={() => transform(code())}
+											prop:editable={false}
+										/>
+									</Tabs.Panel>
+									<Tabs.Panel flair="col grow">
+										<tm-textarea
+											class="playground"
+											value={prettier(CheatSheetText)}
+											grammar="tsx"
+											theme={themeTM}
+											prop:editable={false}
+										/>
+									</Tabs.Panel>
+								</Tabs.Panels>
+							</form>
+						</section>
+						<section
+							id="right"
+							flair="col grow"
+						>
+							<section flair="row grow">
+								<Code
+									code={() => autorun() && code()}
+									render={true}
+									preview={false}
+								/>
+							</section>
 						</section>
 					</section>
-				</section>
+				</Tabs>
 			</section>
 		</>
 	)

@@ -22,7 +22,9 @@ function Example() {
       <Dynamic
         component={List}
         list={[1, 2, 3]}
-      />
+      >
+        asdasd
+      </Dynamic>
       <hr />
       <Dynamic
         component={Even}
