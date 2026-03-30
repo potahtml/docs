@@ -1,4 +1,5 @@
 import './index.css'
+import 'dom-flair'
 
 import { uncompress } from '../../../lib/compress.js'
 

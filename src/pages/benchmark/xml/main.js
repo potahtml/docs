@@ -89,8 +89,8 @@
 	 * @param {PropertyKey} key
 	 * @param {PropertyDescriptor} descriptor
 	 */
-	const redefineProperty = (target, key, descriptor) => defineProperty(target, key, assign(create$1(redefinePropertyDefailts), descriptor));
-	const redefinePropertyDefailts = {
+	const redefineProperty = (target, key, descriptor) => defineProperty(target, key, assign(create$1(redefinePropertyDefaults), descriptor));
+	const redefinePropertyDefaults = {
 	  __proto__: null,
 	  configurable: true,
 	  enumerable: true
@@ -139,11 +139,11 @@
 	/**
 	 * Flats an array/childNodes recursively
 	 *
-	 * @template {unknown | unknown[]} T
-	 * @param {T} arr
+	 * @template T
+	 * @param {T | T[]} arr
 	 * @returns {T[]}
 	 */
-	const flatToArray = arr => isArray(arr) ? arr.flat(Infinity) : [arr];
+	const flatToArray = arr => (/** @type {T[]} */isArray(arr) ? arr.flat(Infinity) : [arr]);
 
 	/**
 	 * Flats an array/childNodes recursively if its an array else it
@@ -452,6 +452,7 @@
 
 	const $isComponent = Symbol();
 	const $isMap = Symbol();
+	const $isClass = Symbol();
 	const $isMutable = Symbol();
 
 	// supported namespaces
@@ -511,6 +512,39 @@
 	  /** @type {undefined | any[]} */
 	  let Effects;
 	  let Time = 0;
+	  function doRead(o) {
+	    if (Listener) {
+	      const sourceSlot = o.observers ? o.observers.length : 0;
+	      if (Listener.sources) {
+	        Listener.sources.push(o);
+	        Listener.sourceSlots.push(sourceSlot);
+	      } else {
+	        Listener.sources = [o];
+	        Listener.sourceSlots = [sourceSlot];
+	      }
+	      const observerSlot = Listener.sources.length - 1;
+	      if (sourceSlot) {
+	        o.observers.push(Listener);
+	        o.observerSlots.push(observerSlot);
+	      } else {
+	        o.observers = [Listener];
+	        o.observerSlots = [observerSlot];
+	      }
+	    }
+	  }
+	  function doWrite(o) {
+	    if (o.observers && o.observers.length) {
+	      runUpdates(() => {
+	        for (const observer of o.observers) {
+	          if (observer.state === 0 /* CLEAN */) {
+	            observer.queue();
+	            observer.observers && downstream(observer);
+	          }
+	          observer.state = 1; /* STALE */
+	        }
+	      });
+	    }
+	  }
 
 	  // ROOT
 
@@ -718,40 +752,13 @@
 	        runUpdates(() => upstream(this));
 	        Updates = updates;
 	      }
-	      if (Listener) {
-	        const sourceSlot = this.observers ? this.observers.length : 0;
-	        if (Listener.sources) {
-	          Listener.sources.push(this);
-	          Listener.sourceSlots.push(sourceSlot);
-	        } else {
-	          Listener.sources = [this];
-	          Listener.sourceSlots = [sourceSlot];
-	        }
-	        const observerSlot = Listener.sources.length - 1;
-	        if (sourceSlot) {
-	          this.observers.push(Listener);
-	          this.observerSlots.push(observerSlot);
-	        } else {
-	          this.observers = [Listener];
-	          this.observerSlots = [observerSlot];
-	        }
-	      }
+	      doRead(this);
 	      return this.value;
 	    };
 	    write(value) {
 	      if (!this.equals(this.value, value)) {
 	        this.value = value;
-	        if (this.observers && this.observers.length) {
-	          runUpdates(() => {
-	            for (const observer of this.observers) {
-	              if (observer.state === 0 /* CLEAN */) {
-	                observer.queue();
-	                observer.observers && downstream(observer);
-	              }
-	              observer.state = 1; /* STALE */
-	            }
-	          });
-	        }
+	        doWrite(this);
 	      }
 	    }
 	    /**
@@ -861,17 +868,7 @@
 	    writeNextValue(value) {
 	      if (!this.equals(this.value, value)) {
 	        this.value = value;
-	        if (this.observers && this.observers.length) {
-	          runUpdates(() => {
-	            for (const observer of this.observers) {
-	              if (observer.state === 0 /* CLEAN */) {
-	                observer.queue();
-	                observer.observers && downstream(observer);
-	              }
-	              observer.state = 1; /* STALE */
-	            }
-	          });
-	        }
+	        doWrite(this);
 	      }
 	    }
 
@@ -900,111 +897,6 @@
 	    }
 	  }
 
-	  // SIGNAL
-
-	  /**
-	   * @template in T
-	   * @type SignalObject<T>
-	   */
-	  class Signal {
-	    value;
-
-	    /** @private */
-	    observers;
-	    /** @private */
-	    observerSlots;
-
-	    // options:
-	    // equals
-
-	    /**
-	     * @param {T} [value]
-	     * @param {SignalOptions<T>} [options]
-	     */
-	    constructor(value, options) {
-	      this.value = value;
-	      if (options) {
-	        assign(this, options);
-	        if (options.equals === false) {
-	          this.equals = this.equalsFalse;
-	        }
-	      }
-	    }
-	    /** @returns SignalAccessor<T> */
-	    read = () => {
-	      if (Listener) {
-	        const sourceSlot = this.observers ? this.observers.length : 0;
-	        if (Listener.sources) {
-	          Listener.sources.push(this);
-	          Listener.sourceSlots.push(sourceSlot);
-	        } else {
-	          Listener.sources = [this];
-	          Listener.sourceSlots = [sourceSlot];
-	        }
-	        const observerSlot = Listener.sources.length - 1;
-	        if (sourceSlot) {
-	          this.observers.push(Listener);
-	          this.observerSlots.push(observerSlot);
-	        } else {
-	          this.observers = [Listener];
-	          this.observerSlots = [observerSlot];
-	        }
-	      }
-	      return this.value;
-	    };
-	    /**
-	     * @param {T} [value]
-	     * @returns SignalSetter<T>
-	     */
-	    write = value => {
-	      if (!this.equals(this.value, value)) {
-	        this.value = value;
-	        if (this.observers && this.observers.length) {
-	          runUpdates(() => {
-	            for (const observer of this.observers) {
-	              if (observer.state === 0 /* CLEAN */) {
-	                observer.queue();
-	                observer.observers && downstream(observer);
-	              }
-	              observer.state = 1; /* STALE */
-	            }
-	          });
-	        }
-	        return true;
-	      }
-	      return false;
-	    };
-	    /**
-	     * @type SignalUpdate<T>
-	     * @returns SignalUpdate<T>
-	     */
-	    update = value => this.write(untrack(() => value(this.value)));
-
-	    /**
-	     * @param {T} a
-	     * @param {T} b
-	     */
-	    equals(a, b) {
-	      return a === b;
-	    }
-
-	    /**
-	     * @param {T} a
-	     * @param {T} b
-	     */
-	    equalsFalse(a, b) {
-	      return false;
-	    }
-	    *[Symbol.iterator]() {
-	      /** @type SignalAccessor<T> */
-	      yield this.read;
-	      /** @type SignalSetter<T> */
-	      yield this.write;
-	      /** @type SignalUpdate<T> */
-	      yield this.update;
-	    }
-	  }
-
 	  // API
 
 	  /**
@@ -1020,16 +912,77 @@
 	    return runWithOwner(root, () => fn(() => root.dispose()));
 	  }
 
+	  // SIGNAL
+
+	  /**
+	   * @param {T} a
+	   * @param {T} b
+	   */
+	  function equalsFalse(a, b) {
+	    return false;
+	  }
+
+	  /**
+	   * @param {T} a
+	   * @param {T} b
+	   */
+	  function equals(a, b) {
+	    return a === b;
+	  }
+
 	  /**
 	   * Creates a signal
 	   *
 	   * @template T
-	   * @param {T} [initialValue] - Initial value of the signal
+	   * @param {T} [value] - Initial value of the signal
 	   * @param {SignalOptions<T>} [options] - Signal options
+	   * @returns {SignalObject<T>}
 	   */
 	  /* #__NO_SIDE_EFFECTS__ */
-	  function signal(initialValue, options) {
-	    return /** @type {SignalObject<T>} */ /** @type {unknown} */new Signal(initialValue, options);
+	  function signal(value, options) {
+	    const o = {
+	      observers: undefined,
+	      observerSlots: undefined
+	    };
+	    let _equals;
+	    function read() {
+	      if (Listener) {
+	        doRead(o);
+	      }
+	      return value;
+	    }
+	    function write(val) {
+	      if (!_equals(value, val)) {
+	        value = val;
+	        doWrite(o);
+	        return true;
+	      }
+	      return false;
+	    }
+	    function update(val) {
+	      return write(untrack(() => val(value)));
+	    }
+	    const s = [read, write, update];
+
+	    // @ts-ignore
+	    s.read = read;
+	    // @ts-ignore
+	    s.write = write;
+	    // @ts-ignore
+	    s.update = update;
+	    if (options) {
+	      assign(s, options);
+	      if (options.equals === false) {
+	        _equals = equalsFalse;
+	      } else {
+	        _equals = equals;
+	      }
+	    } else {
+	      _equals = equals;
+	    }
+
+	    // @ts-ignore
+	    return s;
 	  }
 
 	  /**
@@ -1530,402 +1483,6 @@
 	  };
 	}
 
-	const {
-	  batch,
-	  cleanup,
-	  context,
-	  createSuspenseContext,
-	  effect,
-	  memo,
-	  owned,
-	  root,
-	  signal,
-	  syncEffect,
-	  untrack,
-	  useSuspense,
-	  withValue
-	} = createReactiveSystem();
-
-	/**
-	 * Runs a function inside an effect if value is a function
-	 *
-	 * @param {unknown} value
-	 * @param {(value: unknown, prev?: unknown) => unknown} fn
-	 */
-	function withPrevValue(value, fn) {
-	  if (isFunction(value)) {
-	    let prev;
-	    effect(() => {
-	      const val = getValue(value);
-	      fn(val, prev);
-	      prev = val;
-	    });
-	  } else {
-	    fn(value);
-	  }
-	}
-
-	// MAP
-
-	class Row {
-	  runId;
-	  item;
-	  index;
-	  isDupe;
-	  disposer;
-	  nodes;
-	  indexSignal;
-	  _begin;
-	  _end;
-	  constructor(item, index, fn, isDupe, reactiveIndex) {
-	    this.item = item;
-	    this.index = index;
-	    this.isDupe = isDupe;
-	    root(disposer => {
-	      this.disposer = disposer;
-	      if (reactiveIndex) {
-	        this.indexSignal = signal(index);
-	        /** @type Children[] */
-	        this.nodes = fn(item, this.indexSignal.read);
-	      } else {
-	        /** @type Children[] */
-	        this.nodes = fn(item, index);
-	      }
-	    });
-	  }
-	  updateIndex(index) {
-	    if (this.index !== index) {
-	      this.index = index; // save sort order
-	      if (this.indexSignal) {
-	        this.indexSignal.write(index);
-	      }
-	    }
-	  }
-	  begin() {
-	    if (!this._begin) {
-	      this.getBegin(this.nodes);
-	    }
-	    return this._begin;
-	  }
-	  getBegin(nodes) {
-	    if (isArray(nodes)) {
-	      return this.getBegin(nodes[0]);
-	    }
-	    this._begin = nodes;
-	  }
-	  end() {
-	    if (!this._end) {
-	      this.getEnd(this.nodes);
-	    }
-	    return this._end;
-	  }
-	  getEnd(nodes) {
-	    if (isArray(nodes)) {
-	      return this.getEnd(nodes[nodes.length - 1]);
-	    }
-	    this._end = nodes;
-	  }
-	  nodesForRow() {
-	    const begin = this.begin();
-	    const end = this.end();
-	    const nodes = [begin];
-	    let nextSibling = begin;
-	    while (nextSibling !== end) {
-	      nextSibling = nextSibling.nextSibling;
-	      nodes.push(nextSibling);
-	    }
-	    return nodes;
-	  }
-	}
-
-	/**
-	 * Reactive Map
-	 *
-	 * @template T
-	 * @param {Each<T>} list
-	 * @param {(...args: unknown[]) => Children} callback
-	 * @param {boolean} [noSort]
-	 * @param {Children} [fallback]
-	 * @param {boolean} [reactiveIndex] - Make indices reactive signals
-	 */
-	function map(list, callback, noSort, fallback, reactiveIndex) {
-	  const cache = new Map();
-	  const duplicates = new Map(); // for when caching by value is not possible [1, 2, 1, 1, 1]
-
-	  let runId = 0;
-
-	  /** @type Row[] */
-	  let rows = [];
-	  /** @type Row[] */
-	  let prev = [];
-	  function clear() {
-	    for (const row of prev) {
-	      row.disposer();
-	    }
-	    cache.clear();
-	    duplicates.clear();
-	    rows.length = 0;
-	    prev.length = 0;
-	  }
-
-	  // to get rid of all nodes when parent disposes
-	  cleanup(clear);
-	  function dispose(row) {
-	    // delete from cache
-	    if (!row.isDupe) {
-	      cache.delete(row.item);
-	    } else {
-	      const arr = duplicates.get(row.item);
-	      arr.length === 1 ? duplicates.delete(row.item) : removeFromArray(arr, row);
-	    }
-	    row.disposer();
-	  }
-
-	  /**
-	   * @param {Function} [fn]
-	   * @returns {Children}
-	   */
-	  function mapper(fn) {
-	    const cb = fn ? (item, index) => fn(callback(item, index), index) : callback;
-	    const value = getValue(list) || emptyArray;
-
-	    /** To allow iterate objects as if were an array with indexes */
-	    const items = toEntries(value);
-	    runId++;
-	    rows = [];
-	    const hasPrev = prev.length;
-	    for (const [index, item] of items) {
-	      let row = hasPrev ? cache.get(item) : undefined;
-	      if (row === undefined) {
-	        // if the item doesnt exists, create it
-	        row = new Row(item, index, cb, false, reactiveIndex);
-	        cache.set(item, row);
-	      } else if (row.runId === runId) {
-	        // a map will save only 1 of any primitive duplicates, say: [1, 1, 1, 1]
-	        // if the saved value was already used on this run, create a new one
-	        let dupes = duplicates.get(item);
-	        if (!dupes) {
-	          dupes = [];
-	          duplicates.set(item, dupes);
-	        }
-	        for (const dupe of dupes) {
-	          if (dupe.runId !== runId) {
-	            row = dupe;
-	            break;
-	          }
-	        }
-	        if (row.runId === runId) {
-	          row = new Row(item, index, cb, true, reactiveIndex);
-	          dupes.push(row);
-	        }
-	      }
-	      row.runId = runId; // mark used on this run
-	      row.updateIndex(index); // Update existing row's index (reactive if needed)
-	      rows.push(row);
-	    }
-
-	    // fast clear
-	    if (rows.length === 0) {
-	      hasPrev && clear();
-	      prev = rows;
-	      return fallback ? fn(fallback) : emptyArray;
-	    }
-
-	    // sort
-	    if (hasPrev) {
-	      // remove rows that arent present on the current run
-	      for (let i = 0; i < prev.length; i++) {
-	        if (prev[i].runId !== runId) {
-	          dispose(prev[i]);
-	          removeFromArray(prev, prev[i--]);
-	        }
-	      }
-
-	      // reorder elements
-	      // `rows.length > 1` because no need for sorting when there are no items
-	      // `prev.length > 0` to skip sorting on creation as its already sorted
-	      if (rows.length > 1 && prev.length) {
-	        // when appending to already created it shouldnt sort
-	        // as its already sorted
-	        const unsort = [];
-	        for (let i = 0; i < prev.length && i < rows.length; i++) {
-	          if (prev[i] !== rows[i]) {
-	            unsort.push(rows[i]);
-	          }
-	        }
-	        if (unsort.length) {
-	          let unsorted = unsort.length;
-	          if (unsorted) {
-	            const sorted = [];
-
-	            // handle swap - unsorted rows should move only next to already sorted
-	            for (const usort of unsort) {
-	              if (rows[usort.index - 1] && (!unsort.includes(rows[usort.index - 1]) || sorted.includes(rows[usort.index - 1]))) {
-	                rows[usort.index - 1].end().after(...usort.nodesForRow());
-	                sorted.push(usort);
-	                unsorted--;
-	              } else if (rows[usort.index + 1] && (!unsort.includes(rows[usort.index + 1]) || sorted.includes(rows[usort.index - 1]))) {
-	                rows[usort.index + 1].begin().before(...usort.nodesForRow());
-	                sorted.push(usort);
-	                unsorted--;
-	              }
-	            }
-	            if (unsorted) {
-	              // handles all other cases
-	              // best for any combination of: push/pop/shift/unshift/insertion/deletion
-	              // must check in reverse as on creation stuff is added to the end
-
-	              let current = rows[rows.length - 1];
-	              for (let i = rows.length - 1; i > 0; i--) {
-	                const previous = rows[i - 1];
-	                if (current.begin().previousSibling !== previous.end()) {
-	                  current.begin().before(...previous.nodesForRow());
-	                }
-	                current = previous;
-	              }
-	            }
-	          }
-	        }
-	      }
-	    }
-
-	    // save sorted list
-	    prev = rows;
-
-	    // return external representation
-	    return rows.map(item => item.nodes);
-	  }
-	  mapper[$isMap] = undefined;
-	  return mapper;
-	}
-
-	/**
-	 * Resolves and returns `children` in a memo. A memo in a memo, so
-	 * reactivity on the inner memo doesnt trigger reactivity outside.
-	 *
-	 * @template {Children} T
-	 * @param {T | (() => T)} fn
-	 * @url https://pota.quack.uy/resolve
-	 */
-	function resolve(fn) {
-	  const children = isFunction(fn) ? memo(fn) : () => fn;
-	  return memo(() => unwrap(children()));
-	}
-
-	/**
-	 * Recursively unwrap children functions
-	 *
-	 * @param {Children} children
-	 */
-	function unwrap(children) {
-	  if (isFunction(children)) {
-	    return unwrap(children());
-	  }
-	  if (isArray(children)) {
-	    const childrens = [];
-	    for (let child of children) {
-	      child = unwrap(child);
-	      isArray(child) ? childrens.push(...child) : childrens.push(child);
-	    }
-	    return childrens;
-	  }
-	  return children;
-	}
-
-	/**
-	 * Makes of `children` a function. Reactive children will run as is,
-	 * non-reactive children will run untracked, regular children will
-	 * just return.
-	 *
-	 * @template {Children | Children[]} T
-	 * @param {T} children
-	 * @returns {(...args: unknown[]) => T}
-	 */
-	function makeCallback(children) {
-	  /** Shortcut the most used case */
-	  if (isFunction(children)) {
-	    return markComponent(children);
-	  }
-
-	  /**
-	   * When children is an array, as in `>${[0, 1, 2]}<` then children
-	   * will end as `[[0, 1, 2]]`, so flat it
-	   */
-	  const childrenMaybeArray = flatNoArray(children);
-	  return isArray(childrenMaybeArray) ? markComponent((...args) => childrenMaybeArray.map(child => isFunction(child) ? child(...args) : child)) : markComponent((...args) => isFunction(childrenMaybeArray) ? childrenMaybeArray(...args) : childrenMaybeArray);
-	}
-
-	/**
-	 * Marks a function as a `Component`.
-	 *
-	 * Allows to tell a `signal function` from a `component function`.
-	 * Signals and user functions go in effects, for reactivity.
-	 * Components and callbacks are untracked and wont go in effects to
-	 * avoid re-rendering if signals are used in the components body
-	 */
-	function markComponent(fn) {
-	  fn[$isComponent] = undefined;
-	  return fn;
-	}
-
-	/**
-	 * Adds an event listener to a node
-	 *
-	 * @template {Document | typeof window | DOMElement} TargetElement
-	 * @param {TargetElement} node - Element to add the event listener
-	 * @param {EventName} type - The name of the event listener
-	 * @param {EventHandler<Event, TargetElement>} handler - Function to
-	 *   handle the event
-	 * @returns {Function} - An `off` function for removing the event
-	 *   listener
-	 * @url https://pota.quack.uy/props/EventListener
-	 */
-	function addEvent(node, type, handler) {
-	  node.addEventListener(type, /** @type {EventListenerOrEventListenerObject} */
-	  /** @type unknown */handler, !isFunction(handler) ? (/** @type {EventHandlerOptions} */handler) : undefined);
-
-	  /**
-	   * Removes event on tracking scope disposal.
-	   *
-	   * Situation: the event was added to the `document` or `window`
-	   * manually using `addEvent`, say to listen for clicks as a "click
-	   * outside". The event needs to be removed when the component that
-	   * added it is disposed.
-	   */
-
-	  return cleanup(() => removeEvent(node, type, handler));
-	}
-
-	/**
-	 * Removes an event listener from a node
-	 *
-	 * @template {Document | typeof window | DOMElement} TargetElement
-	 * @param {TargetElement} node - Element to add the event listener
-	 * @param {EventName} type - The name of the event listener
-	 * @param {EventHandler<Event, TargetElement>} handler - Function to
-	 *   handle the event
-	 * @returns {Function} - An `on` function for adding back the event
-	 *   listener
-	 * @url https://pota.quack.uy/props/EventListener
-	 */
-	function removeEvent(node, type, handler) {
-	  node.removeEventListener(type, /** @type {EventListenerOrEventListenerObject} */
-	  /** @type unknown */handler, !isFunction(handler) ? (/** @type {EventHandlerOptions} */handler) : undefined);
-	  return () => addEvent(node, type, handler);
-	}
-
-	/**
-	 * It gives a handler an owner, so stuff runs batched on it, and
-	 * things like context and cleanup work
-	 *
-	 * @template {EventHandler<Event, Element>} T
-	 * @param {T} handler
-	 */
-	const ownedEvent = handler => 'handleEvent' in handler ? {
-	  ...handler,
-	  handleEvent: owned(e => handler.handleEvent(e))
-	} : owned(handler);
-
 	const document$1 = /** @type {Document} */window.document;
 	const head = document$1?.head;
 
@@ -2065,6 +1622,492 @@
 	  }
 	  return nodes;
 	}).bind(null, createTreeWalker && createTreeWalker(document$1, 1 /*NodeFilter.SHOW_ELEMENT*/));
+
+	/**
+	 * Removes from the DOM `prev` elements not found in `next`
+	 *
+	 * @param {DOMElement[]} [prev=[]] - Array with previous elements.
+	 *   Default is `[]`
+	 * @param {DOMElement[]} [next=[]] - Array with next elements. Default
+	 *   is `[]`
+	 * @param {boolean} [short=false] - Whether to use fast clear. Default
+	 *   is `false`
+	 * @returns {DOMElement[]} The next array of elements
+	 */
+	function toDiff(prev = [], next = [], short = false) {
+	  // if theres something to remove
+	  if (prev.length) {
+	    // fast clear
+	    if (short && next.length === 0) {
+	      const parent = prev[0] && prev[0].parentNode;
+	      if (parent) {
+	        // + 1 because of the original placeholder
+	        if (prev.length + 1 === parent.childNodes.length) {
+	          // console.log('fast clear')
+	          // save the placeholder
+	          const lastChild = parent.lastChild;
+	          parent.textContent = '';
+	          parent.appendChild(lastChild);
+	          return next;
+	        }
+	      } else {
+	        // console.log('parent gone already')
+	        return next;
+	      }
+	    }
+	    if (next.length === 0) {
+	      // console.log('removing each separately')
+	      for (const item of prev) {
+	        item && item.remove();
+	      }
+	      return next;
+	    }
+	    for (const item of prev) {
+	      // console.log('removing some')
+	      if (item && !next.includes(item)) {
+	        item.remove();
+	      }
+	    }
+	  }
+	  return next;
+	}
+
+	const {
+	  batch,
+	  cleanup,
+	  context,
+	  createSuspenseContext,
+	  effect,
+	  memo,
+	  owned,
+	  root,
+	  signal,
+	  syncEffect,
+	  untrack,
+	  useSuspense,
+	  withValue
+	} = createReactiveSystem();
+
+	/**
+	 * Runs a function inside an effect if value is a function
+	 *
+	 * @param {unknown} value
+	 * @param {(value: unknown, prev?: unknown) => unknown} fn
+	 */
+	function withPrevValue(value, fn) {
+	  if (isFunction(value)) {
+	    let prev;
+	    effect(() => {
+	      const val = getValue(value);
+	      fn(val, prev);
+	      prev = val;
+	    });
+	  } else {
+	    fn(value);
+	  }
+	}
+
+	// MAP
+
+	class Row {
+	  runId;
+	  item;
+	  index;
+	  isDupe;
+	  disposer;
+	  nodes;
+	  indexSignal;
+	  _begin;
+	  _end;
+	  constructor(item, index, fn, isDupe, reactiveIndex) {
+	    this.item = item;
+	    this.index = index;
+	    this.isDupe = isDupe;
+	    root(disposer => {
+	      this.disposer = clearing => {
+	        if (!clearing) {
+	          // console.log('removing row from Row')
+	          // if the row has a wrapper, remove it first to skip children removal
+	          this.remove();
+	        }
+	        disposer();
+	      };
+	      if (reactiveIndex) {
+	        this.indexSignal = signal(index);
+	        /** @type Children[] */
+	        this.nodes = fn(item, this.indexSignal.read);
+	      } else {
+	        /** @type Children[] */
+	        this.nodes = fn(item, index);
+	      }
+	    });
+	  }
+	  updateIndex(index) {
+	    if (this.index !== index) {
+	      this.index = index; // save sort order
+	      if (this.indexSignal) {
+	        this.indexSignal.write(index);
+	      }
+	    }
+	  }
+	  begin() {
+	    if (!this._begin) {
+	      this.getBegin(this.nodes);
+	    }
+	    return this._begin;
+	  }
+	  getBegin(nodes) {
+	    if (isArray(nodes)) {
+	      return this.getBegin(nodes[0]);
+	    }
+	    this._begin = nodes;
+	  }
+	  end() {
+	    if (!this._end) {
+	      this.getEnd(this.nodes);
+	    }
+	    return this._end;
+	  }
+	  getEnd(nodes) {
+	    if (isArray(nodes)) {
+	      return this.getEnd(nodes[nodes.length - 1]);
+	    }
+	    this._end = nodes;
+	  }
+	  /** @returns {DOMElement[]} */
+	  nodesForRow() {
+	    const begin = this.begin();
+	    const end = this.end();
+	    const nodes = [begin];
+	    let nextSibling = begin;
+	    while (nextSibling !== end) {
+	      nextSibling = nextSibling.nextSibling;
+	      nodes.push(nextSibling);
+	    }
+	    return nodes;
+	  }
+	  remove() {
+	    this.nodesForRow().forEach(node => node.remove());
+	  }
+	}
+
+	/**
+	 * Reactive Map
+	 *
+	 * @template T
+	 * @param {Each<T>} list
+	 * @param {(...args: unknown[]) => Children} callback
+	 * @param {boolean} [noSort]
+	 * @param {Children} [fallback]
+	 * @param {boolean} [reactiveIndex] - Make indices reactive signals
+	 */
+	function map(list, callback, noSort, fallback, reactiveIndex) {
+	  const cache = new Map();
+	  const duplicates = new Map(); // for when caching by value is not possible [1, 2, 1, 1, 1]
+
+	  let runId = 0;
+
+	  /** @type Row[] */
+	  let rows = [];
+	  /** @type Row[] */
+	  let prev = [];
+	  function clear() {
+	    toDiff(flatToArray(prev.map(item => item.nodes)), [], true);
+	    for (const row of prev) {
+	      row.disposer(true);
+	    }
+	    cache.clear();
+	    duplicates.clear();
+	    rows.length = 0;
+	    prev.length = 0;
+	  }
+
+	  // to get rid of all nodes when parent disposes
+	  cleanup(clear);
+	  function dispose(row) {
+	    // delete from cache
+	    if (!row.isDupe) {
+	      cache.delete(row.item);
+	    } else {
+	      const arr = duplicates.get(row.item);
+	      arr.length === 1 ? duplicates.delete(row.item) : removeFromArray(arr, row);
+	    }
+	    row.disposer();
+	  }
+
+	  /**
+	   * @param {Function} [fn]
+	   * @returns {Children}
+	   */
+	  function mapper(fn) {
+	    const cb = fn ? (item, index) => fn(callback(item, index), index) : callback;
+	    const value = getValue(list) || emptyArray;
+	    runId++;
+	    rows = [];
+
+	    /** `toEntries` To allow iterate objects as if were an array */
+
+	    // all has been replaced?
+	    if (prev.length) {
+	      let clearit = true;
+	      for (const [index, item] of toEntries(value)) {
+	        if (cache.get(item)) {
+	          clearit = false;
+	          break;
+	        }
+	      }
+	      if (clearit) {
+	        clear();
+	      }
+	    }
+	    const hasPrev = prev.length;
+	    for (const [index, item] of toEntries(value)) {
+	      let row = hasPrev ? cache.get(item) : undefined;
+	      if (row === undefined) {
+	        // if the item doesnt exists, create it
+	        row = new Row(item, index, cb, false, reactiveIndex);
+	        cache.set(item, row);
+	      } else if (row.runId === runId) {
+	        // a map will save only 1 of any primitive duplicates, say: [1, 1, 1, 1]
+	        // if the saved value was already used on this run, create a new one
+	        let dupes = duplicates.get(item);
+	        if (!dupes) {
+	          dupes = [];
+	          duplicates.set(item, dupes);
+	        }
+	        for (const dupe of dupes) {
+	          if (dupe.runId !== runId) {
+	            row = dupe;
+	            break;
+	          }
+	        }
+	        if (row.runId === runId) {
+	          row = new Row(item, index, cb, true, reactiveIndex);
+	          dupes.push(row);
+	        }
+	      }
+	      row.runId = runId; // mark used on this run
+	      row.updateIndex(index); // Update existing row's index (reactive if needed)
+	      rows.push(row);
+	    }
+
+	    // fast clear
+	    if (rows.length === 0) {
+	      hasPrev && clear();
+	      prev = rows;
+	      return fallback ? fn(fallback) : emptyArray;
+	    }
+
+	    // sort
+	    if (hasPrev) {
+	      // remove rows that arent present on the current run
+	      for (let i = 0; i < prev.length; i++) {
+	        if (prev[i].runId !== runId) {
+	          dispose(prev[i]);
+	          removeFromArray(prev, prev[i--]);
+	        }
+	      }
+
+	      // reorder elements
+	      // `rows.length > 1` because no need for sorting when there are no items
+	      // `prev.length > 0` to skip sorting on creation as its already sorted
+	      if (rows.length > 1 && prev.length) {
+	        const unsort = [];
+	        const sorted = [];
+
+	        // handles append/prepend/insert in middle/swap
+	        for (let i = 0; i < prev.length && i < rows.length; i++) {
+	          if (prev[i] !== rows[i]) {
+	            unsort.push(rows[i]);
+	            for (let i2 = 1; rows.length - i2 > i; i2++) {
+	              const k = rows.length - i2;
+	              if (prev[prev.length - i2] !== rows[k]) {
+	                unsort.push(rows[k]);
+	              } else {
+	                sorted.push(rows[k]);
+	              }
+	            }
+	            break;
+	          } else {
+	            sorted.push(rows[i]);
+	          }
+	        }
+	        if (unsort.length) {
+	          let unsorted = unsort.length;
+	          if (unsorted) {
+	            // handle swap - unsorted rows should move only next to already sorted
+	            for (const usort of unsort) {
+	              if (rows[usort.index - 1] && (unsorted === 1 || !unsort.includes(rows[usort.index - 1]) || sorted.includes(rows[usort.index - 1]))) {
+	                rows[usort.index - 1].end().after(...usort.nodesForRow());
+	                sorted.push(usort);
+	                unsorted--;
+	              } else if (rows[usort.index + 1] && (unsorted === 1 || !unsort.includes(rows[usort.index + 1]) || sorted.includes(rows[usort.index - 1]))) {
+	                rows[usort.index + 1].begin().before(...usort.nodesForRow());
+	                sorted.push(usort);
+	                unsorted--;
+	              }
+	            }
+	            if (unsorted) {
+	              // handles all other cases
+	              // best for any combination of: push/pop/shift/unshift/insertion/deletion
+	              // must check in reverse as on creation stuff is added to the end
+
+	              let current = rows[rows.length - 1];
+	              for (let i = rows.length - 1; i > 0; i--) {
+	                const previous = rows[i - 1];
+	                if (current.begin().previousSibling !== previous.end()) {
+	                  current.begin().before(...previous.nodesForRow());
+	                }
+	                current = previous;
+	              }
+	            }
+	          }
+	        }
+	      }
+	    }
+
+	    // save sorted list
+	    prev = rows;
+
+	    // return external representation
+	    return rows.map(item => item.nodes);
+	  }
+	  mapper[$isMap] = undefined;
+	  return mapper;
+	}
+
+	/**
+	 * Resolves and returns `children` in a memo. A memo in a memo, so
+	 * reactivity on the inner memo doesnt trigger reactivity outside.
+	 *
+	 * @template {Children} T
+	 * @param {T | (() => T)} fn
+	 * @url https://pota.quack.uy/resolve
+	 */
+	function resolve(fn) {
+	  const children = isFunction(fn) ? memo(fn) : () => fn;
+	  return memo(() => unwrap(children()));
+	}
+
+	/**
+	 * Recursively unwrap children functions
+	 *
+	 * @param {Children} children
+	 */
+	function unwrap(children) {
+	  if (isFunction(children)) {
+	    return unwrap(children());
+	  }
+	  if (isArray(children)) {
+	    const childrens = [];
+	    for (let child of children) {
+	      child = unwrap(child);
+	      isArray(child) ? childrens.push(...child) : childrens.push(child);
+	    }
+	    return childrens;
+	  }
+	  return children;
+	}
+
+	/**
+	 * Makes of `children` a function. Reactive children will run as is,
+	 * non-reactive children will run untracked, regular children will
+	 * just return.
+	 *
+	 * @template {Children | Children[]} T
+	 * @param {T} children
+	 * @returns {(...args: unknown[]) => T}
+	 */
+	function makeCallback(children) {
+	  /** Shortcut the most used case */
+	  if (isFunction(children)) {
+	    return markComponent(children);
+	  }
+
+	  /**
+	   * When children is an array, as in `>${[0, 1, 2]}<` then children
+	   * will end as `[[0, 1, 2]]`, so flat it
+	   */
+	  const childrenMaybeArray = flatNoArray(children);
+	  return isArray(childrenMaybeArray) ? markComponent((...args) => childrenMaybeArray.map(child => isFunction(child) ? child(...args) : child)) : markComponent((...args) => isFunction(childrenMaybeArray) ? childrenMaybeArray(...args) : childrenMaybeArray);
+	}
+
+	/**
+	 * Marks a function as a `Component`.
+	 *
+	 * Allows to tell a `signal function` from a `component function`.
+	 * Signals and user functions go in effects, for reactivity.
+	 * Components and callbacks are untracked and wont go in effects to
+	 * avoid re-rendering if signals are used in the components body
+	 */
+	function markComponent(fn) {
+	  fn[$isComponent] = undefined;
+	  return fn;
+	}
+
+	/**
+	 * Adds an event listener to a node
+	 *
+	 * @template {Document | typeof window | DOMElement} TargetElement
+	 * @template {keyof EventType} Name
+	 * @param {TargetElement} node - Element to add the event listener
+	 * @param {Name} type - The name of the event listener
+	 * @param {EventHandler<EventType[Name], TargetElement>} handler
+	 *
+	 *   - Function to handle the event
+	 *
+	 * @returns {Function} - An `off` function for removing the event
+	 *   listener
+	 * @url https://pota.quack.uy/props/EventListener
+	 */
+	function addEvent(node, type, handler) {
+	  node.addEventListener(type, /** @type {EventListenerOrEventListenerObject} */
+	  /** @type unknown */handler, !isFunction(handler) ? (/** @type {EventHandlerOptions} */handler) : undefined);
+
+	  /**
+	   * Removes event on tracking scope disposal.
+	   *
+	   * Situation: the event was added to the `document` or `window`
+	   * manually using `addEvent`, say to listen for clicks as a "click
+	   * outside". The event needs to be removed when the component that
+	   * added it is disposed.
+	   */
+
+	  return cleanup(() => removeEvent(node, type, handler));
+	}
+
+	/**
+	 * Removes an event listener from a node
+	 *
+	 * @template {Document | typeof window | DOMElement} TargetElement
+	 * @template {keyof EventType} Name
+	 * @param {TargetElement} node - Element to add the event listener
+	 * @param {Name} type - The name of the event listener
+	 * @param {EventHandler<EventType[Name], TargetElement>} handler
+	 *
+	 *   - Function to handle the event
+	 *
+	 * @returns {Function} - An `on` function for adding back the event
+	 *   listener
+	 * @url https://pota.quack.uy/props/EventListener
+	 */
+	function removeEvent(node, type, handler) {
+	  node.removeEventListener(type, /** @type {EventListenerOrEventListenerObject} */
+	  /** @type unknown */handler, !isFunction(handler) ? (/** @type {EventHandlerOptions} */handler) : undefined);
+	  return () => addEvent(node, type, handler);
+	}
+
+	/**
+	 * It gives a handler an owner, so stuff runs batched on it, and
+	 * things like context and cleanup work
+	 *
+	 * @template {EventHandler<Event, Element>} T
+	 * @param {T} handler
+	 */
+	const ownedEvent = handler => 'handleEvent' in handler ? {
+	  ...handler,
+	  handleEvent: owned(e => handler.handleEvent(e))
+	} : owned(handler);
 
 	const CSSStyleSheet$1 = window.CSSStyleSheet;
 
@@ -2216,6 +2259,14 @@
 	const onMount = fn => add(2, fn);
 
 	/**
+	 * Queue a function to run on ready (after onMount)
+	 *
+	 * @param {() => void} fn
+	 * @url https://pota.quack.uy/ready
+	 */
+	const ready = fn => add(3, fn);
+
+	/**
 	 * Queue a function to run after all user defined processes
 	 *
 	 * @param {() => void} fn
@@ -2256,16 +2307,16 @@
 	/**
 	 * Defines a namespaced prop that can be used on any Element
 	 *
-	 * @template T
-	 * @param {string} NSName - Name of the namespace
-	 * @param {(
+	 * @template {(
 	 * 	node: DOMElement,
-	 * 	localName: string,
-	 * 	propValue: T,
+	 * 	localName: any,
+	 * 	propValue: any,
 	 * 	ns?: string,
-	 * ) => void} fn
-	 *   - Function to run when this prop is found on any Element
+	 * ) => void} F
 	 *
+	 * @param {string} NSName - Name of the namespace
+	 * @param {F} fn - Function to run when this prop is found on any
+	 *   Element
 	 * @param {boolean} [onMicrotask=true] - Set to run on a microtask to
 	 *   avoid the problem of needed props not being set, or children
 	 *   elements not being created yet. Default is `true`
@@ -2334,10 +2385,11 @@
 	/**
 	 * Attaches event handlers (singular or array) to an element.
 	 *
-	 * @template {DOMElement} T
-	 * @param {T} node
-	 * @param {string} name
-	 * @param {EventHandlers<Event, T>} value
+	 * @template {DOMElement} TargetElement
+	 * @template {keyof EventType} Name
+	 * @param {TargetElement} node
+	 * @param {Name} name
+	 * @param {EventHandlers<EventType[Name], TargetElement>} value
 	 */
 	const setEvent = (node, name, value) => {
 	  flatForEach(value, value => {
@@ -2349,10 +2401,11 @@
 	 * Attaches namespaced event handlers, (singular or array) to an
 	 * element.
 	 *
-	 * @template {DOMElement} T
-	 * @param {T} node
-	 * @param {string} localName
-	 * @param {EventHandlers<Event, T>} value
+	 * @template {DOMElement} TargetElement
+	 * @template {keyof EventType} Name
+	 * @param {TargetElement} node
+	 * @param {Name} localName
+	 * @param {EventHandlers<EventType[Name], TargetElement>} value
 	 */
 	const setEventNS = (node, localName, value) => {
 	  flatForEach(value, value => {
@@ -2714,7 +2767,7 @@
 	      }
 	    case 'function':
 	      {
-	        return $isComponent in value ? value : markComponent(value);
+	        return $isComponent in value ? value : $isClass in value ? markComponent(props => createClass(value, props)) : markComponent(value);
 	      }
 	    default:
 	      {
@@ -2786,6 +2839,23 @@
 	}
 
 	/**
+	 * Creates an instance of a class component and handles lifecycle
+	 * methods
+	 *
+	 * @param {{ new (props: any): ElementClass }} value - The class
+	 *   constructor
+	 * @param {Props<unknown>} props - Props to pass to the class
+	 *   constructor
+	 * @returns {Children} The rendered output
+	 */
+	function createClass(value, props) {
+	  const i = new value(props);
+	  i.ready && ready(() => i.ready());
+	  i.cleanup && cleanup(() => i.cleanup());
+	  return i.render(props);
+	}
+
+	/**
 	 * Assigns props to an element and creates its children
 	 *
 	 * @template T
@@ -2837,24 +2907,31 @@
 	        if ($isComponent in child) {
 	          return createChildren(parent, untrack(/** @type {() => Children} */child), relative, undefined, true);
 	        }
-	        let node = [];
 
 	        // signal/memo/external/user provided function
 	        // needs placeholder to stay in position
 	        parent = createPlaceholder(parent, relative);
 
 	        // For - TODO move this to the `For` component
-	        $isMap in child ? effect(() => {
-	          node = toDiff(node, flatToArray(child(child => createChildren(parent, child, true))), true);
-	        }) : effect(() => {
-	          // maybe a signal (at least a function) so needs an effect
-	          node = toDiff(node, flatToArray(createChildren(parent, child(), true, node[0])), true);
-	        });
-	        cleanup(() => {
-	          toDiff(node);
-	          // @ts-expect-error
-	          parent.remove();
-	        });
+	        if ($isMap in child) {
+	          effect(() => {
+	            child(child => createChildren(parent, child, true));
+	          });
+	          // map has own dom removal
+	        } else {
+	          let node = [];
+	          effect(() => {
+	            // maybe a signal (at least a function) so needs an effect
+	            node = toDiff(node, flatToArray(createChildren(parent, child(), true, node[0])), true);
+	          });
+	          cleanup(() => {
+	            if (parent.isConnected) {
+	              toDiff(node);
+	              // @ts-expect-error
+	              parent.remove();
+	            }
+	          });
+	        }
 
 	        /**
 	         * A placeholder is created and added to the document but doesnt
@@ -2955,7 +3032,7 @@
 	      {
 	        // boolean/bigint/symbol/catch all
 	        // toString() is needed for `Symbol`
-	        return insertNode(parent, createTextNode(child.toString()), relative);
+	        return createChildren(parent, child.toString(), relative);
 	      }
 	  }
 	}
@@ -3078,44 +3155,6 @@
 	  const fragment = new DocumentFragment();
 	  createChildren(fragment, children);
 	  return fragment;
-	}
-
-	/**
-	 * Removes from the DOM `prev` elements not found in `next`
-	 *
-	 * @param {DOMElement[]} [prev=[]] - Array with previous elements.
-	 *   Default is `[]`
-	 * @param {DOMElement[]} [next=[]] - Array with next elements. Default
-	 *   is `[]`
-	 * @param {boolean} [short=false] - Whether to use fast clear. Default
-	 *   is `false`
-	 * @returns {DOMElement[]} The next array of elements
-	 */
-	function toDiff(prev = [], next = [], short = false) {
-	  // if theres something to remove
-	  if (prev.length) {
-	    // fast clear
-	    if (short && next.length === 0 &&
-	    // + 1 because of the original placeholder
-	    prev.length + 1 === prev[0].parentNode.childNodes.length) {
-	      const parent = prev[0].parentNode;
-	      // save the placeholder
-	      const lastChild = parent.lastChild;
-	      parent.textContent = '';
-	      parent.appendChild(lastChild);
-	    } else if (next.length === 0) {
-	      for (const item of prev) {
-	        item && item.remove();
-	      }
-	    } else {
-	      for (const item of prev) {
-	        if (item && !next.includes(item)) {
-	          item.remove();
-	        }
-	      }
-	    }
-	  }
-	  return next;
 	}
 
 	/**
@@ -3359,15 +3398,15 @@
 	 * Renders children based on the `range` function arguments
 	 *
 	 * @param {object} props
-	 * @param {number} [props.start]
-	 * @param {number} [props.stop]
-	 * @param {number} [props.step]
+	 * @param {Accessor<number>} [props.start]
+	 * @param {Accessor<number>} [props.stop]
+	 * @param {Accessor<number>} [props.step]
 	 * @param {Children} [props.children]
 	 * @returns {Children}
 	 */
 
 	const Range = props => Component(For, {
-	  each: toArray(range(props.start ?? 0, props.stop ?? 0, props.step ?? 1)),
+	  each: () => toArray(range(getValue(props.start) ?? 0, getValue(props.stop) ?? 0, getValue(props.step) ?? 1)),
 	  children: props.children
 	});
 

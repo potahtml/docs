@@ -1,7 +1,8 @@
+/** @jsxImportSource pota */
+
 import { Dynamic, For } from 'pota/components'
-import { signal } from 'pota'
+import { Pota, signal } from 'pota'
 import type { JSX } from 'pota'
-import type { SignalAccessor, SignalSetter } from 'pota'
 
 declare module 'pota' {
 	namespace JSX {
@@ -9,6 +10,10 @@ declare module 'pota' {
 			lala: {
 				testing: boolean
 			}
+			'some-element': HTMLAttributes<HTMLElement>
+			'my-component': {
+				lala?: string
+			} & HTMLAttributes<HTMLElement>
 		}
 	}
 }
@@ -63,7 +68,7 @@ function Card({ title, children }: CardProps) {
 
 // spread
 
-type ButtonProps = JSX.IntrinsicElements['button']
+type ButtonProps = JSX.Elements['button']
 
 function Button({ ...allProps }: ButtonProps) {
 	return <button {...allProps} />
@@ -71,7 +76,7 @@ function Button({ ...allProps }: ButtonProps) {
 
 // disallowing a type
 
-type ButtonProps2 = Omit<JSX.IntrinsicElements['button'], 'type'>
+type ButtonProps2 = Omit<JSX.Elements['button'], 'type'>
 
 function Button2({ ...allProps }: ButtonProps2) {
 	return (
@@ -82,7 +87,7 @@ function Button2({ ...allProps }: ButtonProps2) {
 	)
 }
 
-// 💥 This works, we omitted type so its a type error
+// 💥 This works, we omitted `type` so its a type error
 const z = <Button2 type="button">Hi</Button2>
 
 // required
@@ -90,10 +95,7 @@ const z = <Button2 type="button">Hi</Button2>
 type MakeRequired<T, K extends keyof T> = Omit<T, K> &
 	Required<{ [P in K]: T[P] }>
 
-type ImgProps = MakeRequired<
-	JSX.IntrinsicElements['img'],
-	'alt' | 'src'
->
+type ImgProps = MakeRequired<JSX.Elements['img'], 'alt' | 'src'>
 
 export function Img({ alt, ...allProps }: ImgProps) {
 	return (
@@ -110,10 +112,7 @@ const zz = <Img src="..." />
 
 // re-writes a prop
 
-type ControlledProps = Omit<
-	JSX.IntrinsicElements['input'],
-	'value'
-> & {
+type ControlledProps = Omit<JSX.Elements['input'], 'value'> & {
 	value?: string
 }
 
@@ -122,10 +121,7 @@ const Div2 = <div />
 
 declare module 'pota' {
 	namespace JSX {
-		interface IntrinsicElements {
-			'some-element': HTMLAttributes<HTMLElement>
-		}
-		interface NSAttributes<Element> {
+		interface HTMLSpanElementAttributes<Element> {
 			'prop:bla'?: boolean
 		}
 	}
@@ -134,6 +130,27 @@ declare module 'pota' {
 function Test() {
 	return <some-element on:error={e => console.log(e)} />
 }
+
+// classes
+
+class MyComponent extends Pota {
+	props = { some: 'lala' }
+
+	ready() {
+		// render(<div>ready callback!</div>)
+	}
+	cleanup() {
+		// render(<div>cleanup callback!</div>)
+	}
+	render(props) {
+		return (
+			<main>
+				{props.children} {props.some}
+			</main>
+		)
+	}
+}
+
 function typescript(props) {
 	return (
 		<span
@@ -149,13 +166,18 @@ function typescript(props) {
 			}}
 			use:connected={e => {}}
 		>
-			<lala></lala>
+			<lala testing={true}></lala>
+			<data
+				value="asd"
+				prop:value="good"
+			/>
 			<Button style:stroke="antiquewhite" />
 			<Card title="lala">lala</Card>
 			<LoginMsg name="name" />
 			<Div />
 			{Div2}
 			<span
+				use:bind={signal}
 				use:ref={element => {
 					console.log(element)
 				}}
@@ -169,7 +191,7 @@ function typescript(props) {
 				{/*<StringObject />*/}
 				<MyFactoryFunction lala="true" />
 				<MyComponent
-					what="content"
+					some="content"
 					javier="243"
 				/>
 
@@ -199,8 +221,9 @@ function typescript(props) {
 						console.log(e)
 					}}
 				></span>
-				<dialog tabindex="-1" />
+				<dialog tabindex="should error" />
 				<div tabindex="-1" />
+				<div use:clickoutside={(e, node) => {}} />
 				<Dynamic
 					component="h2"
 					hola=""

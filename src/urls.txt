@@ -69,7 +69,6 @@
 /node_modules/pota/src/use/time.js
 /node_modules/pota/src/use/time.js
 /node_modules/pota/src/use/url.js
-/node_modules/pota/src/lib/experiments.js
 /node_modules/pota/src/lib/reactive.js
 /node_modules/pota/src/lib/std.js
 /node_modules/pota/src/lib/store.js

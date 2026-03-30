@@ -6,6 +6,9 @@
     "allowJs": true,
     "checkJs": true,
     "strict": true,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "skipLibCheck": true,
 
     "module": "NodeNext",
     "target": "ESNext",
@@ -19,7 +22,13 @@
 
     "sourceMap": true,
 
-    "types": ["pota", "dom-flair", "tm-textarea", "node"]
+    "types": [
+      "pota",
+      "dom-flair",
+      "tm-textarea",
+      "node",
+      "@types/css-modules"
+    ]
   },
   "exclude": ["./src/dist/*", "node_modules"]
 }

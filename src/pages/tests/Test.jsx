@@ -6,7 +6,6 @@ export const Test = () => {
 		import('pota/xml'),
 		import('pota/components'),
 
-		import('pota/experiments'),
 		import('pota/store'),
 
 		import('pota/use/animate'),

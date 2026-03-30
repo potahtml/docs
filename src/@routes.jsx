@@ -409,6 +409,11 @@ http://localhost:37808/playground#H4sIAPRChGgAA+x9CXccx5HmXymPvW6QAhsEQB3mjGbWY8
 			/>
 			<Route
 				path=":path$"
+				params={{ path: 'Classes' }}
+				children={load(() => import('./pages/classes/index.jsx'))}
+			/>
+			<Route
+				path=":path$"
 				params={{ path: 'XML' }}
 				children={load(() => import('./pages/xml/index.jsx'))}
 			/>

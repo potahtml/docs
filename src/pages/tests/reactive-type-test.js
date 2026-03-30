@@ -1,4 +1,4 @@
-import { signal, memo, writable } from 'pota'
+import { signal, memo, derived } from 'pota'
 
 {
 	/**
@@ -7,7 +7,7 @@ import { signal, memo, writable } from 'pota'
 	 * @param {T} lala
 	 * @returns {SignalFunction<T>}
 	 */
-	function testing(lala) {}
+	function testing(lala) {} // error
 
 	const n = testing(11)
 	const r = n()
@@ -15,7 +15,7 @@ import { signal, memo, writable } from 'pota'
 }
 
 {
-	const s = writable(() => 1)
+	const s = derived(() => 1)
 
 	const r = s()
 	s(33)

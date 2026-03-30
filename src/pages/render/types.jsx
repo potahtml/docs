@@ -41,6 +41,11 @@ const toRender = [
       return 'can I render too?'
     }
   })(),
+  class Something extends Pota {
+    render(props) {
+      return 'do we render classes too!?'
+    }
+  },
   async function () {
     return 'no way, really?!'
   },
@@ -56,6 +61,7 @@ const toRender = [
       return 'Im back baby -- ' + this.name
     },
   },
+  { hola: 'mundo', javier: 123 },
   css`
     body {
       background-color: rgba(255, 0, 0, 0.1);

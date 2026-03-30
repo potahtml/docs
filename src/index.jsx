@@ -1,6 +1,7 @@
 globalThis.start = performance.now()
 
 import 'kompiler/autoreload'
+import 'dom-flair'
 
 // css
 import styles from './index.module.css'

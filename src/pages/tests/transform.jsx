@@ -1,8 +1,12 @@
+/** @jsxImportSource pota */
+
+
 import { render } from 'pota'
 
 const style = { style: '3', something: { value: 1 + 1 } }
 const spread1 = (
 	<div
+
 		style="1"
 		{...style}
 		style="2"
@@ -12,6 +16,7 @@ const spread1 = (
 const spread2 = <div {...style} />
 const spread3 = (
 	<div
+
 		{...style}
 		{...{ ...style, ...style2 }}
 		style="2"
@@ -27,6 +32,7 @@ function Counter() {
 
 	return (
 		<div
+
 			style={{
 				'padding-left': `clamp(${a}px, ${b}px, ${c}px)`,
 				'padding-right': 'clamp(10px, 20px, 30px)',

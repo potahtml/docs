@@ -61,6 +61,9 @@ export default function Menu() {
 						<li>
 							<a href="/Component">Component</a>
 						</li>
+						<li>
+							<a href="/Classes">Classes</a>
+						</li>
 					</ul>
 				</li>
 				<ul>

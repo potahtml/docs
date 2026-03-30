@@ -11,7 +11,7 @@ export default function App() {
 		<main>
 			<section>
 				<input
-					name="email"
+					prop:name="email"
 					use:bind={input}
 				/>{' '}
 				email: {input}
@@ -21,7 +21,7 @@ export default function App() {
 			</section>
 			<section>
 				<select use:bind={select}>
-					<option>0</option>
+					<option prop:textContent={''}>0</option>
 					<option>1</option>
 					<option>2</option>
 					<option>3</option>
@@ -62,6 +62,10 @@ export default function App() {
 			</section>
 			<section>
 				<label>
+					<video
+						prop:poster={'asd'}
+						poster={'asd'}
+					/>
 					<span
 						contenteditable="true"
 						use:bind={contentEditable}

@@ -12,6 +12,7 @@ https://pota.quack.uy/Components/Route/A
 https://pota.quack.uy/Components/Route/Route
 https://pota.quack.uy/Components/Show
 https://pota.quack.uy/Components/Switch
+https://pota.quack.uy/Components/Tabs
 https://pota.quack.uy/Context
 https://pota.quack.uy/Directory
 https://pota.quack.uy/HTML
