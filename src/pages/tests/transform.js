@@ -1,7 +1,7 @@
 (function () {
 	'use strict';
 
-	const version = '0.20.226';
+	const version = '0.20.227';
 
 	const window = globalThis;
 	const requestAnimationFrame = window.requestAnimationFrame;

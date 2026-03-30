@@ -2,7 +2,7 @@ import { prettier } from './prettier.js'
 
 import { version } from 'pota'
 
-const cacheBurst = '&' + version + 'bb'
+const cacheBurst = '&' + version + 'bbc'
 
 const versions = {
 	pota: version,
