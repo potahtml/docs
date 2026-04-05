@@ -166,6 +166,11 @@ function typescript(props) {
 			}}
 			use:connected={e => {}}
 		>
+			<div
+				prop:bla="should error"
+				prop:contentEditable={'true'}
+			/>
+
 			<lala testing={true}></lala>
 			<data
 				value="asd"
@@ -188,7 +193,7 @@ function typescript(props) {
 				}}
 			>
 				<TestArrow />
-				{/*<StringObject />*/}
+				<StringObject />
 				<MyFactoryFunction lala="true" />
 				<MyComponent
 					some="content"

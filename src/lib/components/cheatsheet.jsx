@@ -31,7 +31,7 @@ addEvent, // const off = addEvent(el, 'click', fn)
 removeEvent, // const on = removeEvent(el, 'click', fn)
 
 // components
-Pota, // class MyC extends Pota { constructor(props){} ready(){} cleanup(){} render(){} }
+Pota, // class Component extends Pota { constructor(props){} ready(){} cleanup(){} render(props){} }
 resolve, // const cache = resolve(() => props.children)
 toHTML, // const nodes = toHTML(props.children) // node|node[]
 

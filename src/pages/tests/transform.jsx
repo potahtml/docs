@@ -157,6 +157,10 @@ function Counter() {
 
 const lala2 = 2
 
+const ref = ()=>{
+
+}
+
 const component = (
 	<div>
 		<Counter />
@@ -218,12 +222,13 @@ const component = (
 		<div>`asdasd` - {`asdasd`}</div>
 		<div
 			children={1}
-			use:ref={[fn1, fn2]}
-			use:ref={fn1}
-			on:click={[fn1, fn2]}
-			use:bind={[fn1, fn2]}
-			use:connected={[fn1, fn2]}
-			use:disconnected={[fn1, fn2]}
+			use:ref={[ref, ref, (node)=>{}]}
+			use:ref={ref}
+			use:ref={(node)=>{}}
+			on:click={[(e)=>{}, ()=>{}]}
+			use:bind={[(e)=>{}, ()=>{}]}
+			use:connected={[(e)=>{}, ()=>{}]}
+			use:disconnected={[(e)=>{}, ()=>{}]}
 		/>
 
 		<tm-textarea>

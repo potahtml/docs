@@ -19,7 +19,7 @@ import { signal, memo, derived } from 'pota'
 
 	const r = s()
 	s(33)
-	s('asdasd')
+	s('asdasd') // error
 	const r1 = s()
 }
 

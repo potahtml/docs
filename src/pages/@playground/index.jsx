@@ -232,7 +232,10 @@ export default function () {
 						>
 							<form id="form-playground">
 								<Tabs.Panels>
-									<Tabs.Panel flair="col grow">
+									<Tabs.Panel
+										flair="col grow"
+										collapse
+									>
 										<Monaco
 											value={prettier(code(), true).catch(x =>
 												code(),

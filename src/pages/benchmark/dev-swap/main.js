@@ -3105,8 +3105,8 @@
 	      id: "bench",
 	      text: "bench"
 	    })]);
-	  }, _node15 => {
-	    setEvent(_node15, "click", e => {
+	  }, _node17 => {
+	    setEvent(_node17, "click", e => {
 	      const element = e.target;
 	      if ('remove' in element.dataset) {
 	        remove(+element.parentNode.parentNode.parentNode.firstChild.textContent);
@@ -3114,13 +3114,13 @@
 	        danger(element.parentNode.parentNode);
 	      }
 	    });
-	    createChildren(_node15, _For({
+	    createChildren(_node17, _For({
 	      each: data,
 	      children: row => {
 	        return _tr([_node9 => {
 	          _node9.textContent = getValue(/* @static */row.id);
-	        }, _node0 => {
-	          setProperty(_node0, "textContent", row.label);
+	        }, _node10 => {
+	          setProperty(_node10, "textContent", row.label);
 	        }]);
 	      }
 	    }));
