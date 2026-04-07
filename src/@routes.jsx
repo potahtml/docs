@@ -449,8 +449,8 @@ http://localhost:37808/playground#H4sIAPRChGgAA+x9CXccx5HmXymPvW6QAhsEQB3mjGbWY8
 			/>
 			<Route
 				path=":path$"
-				params={{ path: 'Test' }}
-				children={load(() => import('./pages/tests/index.jsx'))}
+				params={{ path: 'test' }}
+				children={load(() => import('./pages/tests/test.jsx'))}
 			/>
 		</Route>
 	)

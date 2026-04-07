@@ -222,9 +222,8 @@
 	/**
 	 * Returns `true` when `typeof` of `value` is `function`
 	 *
-	 * @template T
-	 * @param {T} value
-	 * @returns {value is ((...args:unknown[])=>T)}
+	 * @param {unknown} value
+	 * @returns {value is (...args: unknown[]) => unknown}
 	 */
 	const isFunction = value => typeof value === 'function';
 
@@ -247,8 +246,7 @@
 	/**
 	 * Returns `true` when typeof of value is object and not null
 	 *
-	 * @template T
-	 * @param {T} value
+	 * @param {unknown} value
 	 * @returns {value is object}
 	 */
 	const isObject = value => value !== null && typeof value === 'object';
@@ -272,9 +270,8 @@
 	/**
 	 * Returns `true` when `value` may be a promise
 	 *
-	 * @template T
-	 * @param {T} value
-	 * @returns {value is Promise<T>}
+	 * @param {unknown} value
+	 * @returns {value is Promise<unknown>}
 	 */
 	const isPromise = value => isFunction(/** @type {any} */value?.then);
 
@@ -1895,7 +1892,12 @@
 	    if (rows.length === 0) {
 	      hasPrev && clear();
 	      prev = rows;
-	      return fallback ? fn(fallback) : emptyArray;
+	      if (fallback) {
+	        const f = fn(fallback);
+	        cleanup(() => toDiff(flatToArray(f)));
+	        return f;
+	      }
+	      return emptyArray;
 	    }
 
 	    // sort
@@ -2744,7 +2746,6 @@
 	  /** Create a callable function to pass `props` */
 	  const component = Factory(value);
 	  return props === undefined ? component : markComponent(propsOverride => component(propsOverride ? freeze({
-	    /** @ts-expect-error freaking typescript */
 	    ...props,
 	    ...propsOverride
 	  }) : props));
@@ -2848,11 +2849,15 @@
 	 *   constructor
 	 * @returns {Children} The rendered output
 	 */
-	function createClass(value, props) {
+	function createClass(value, props = nothing) {
 	  const i = new value(props);
+	  i.props = freeze({
+	    ...(i.props || nothing),
+	    ...props
+	  });
 	  i.ready && ready(() => i.ready());
 	  i.cleanup && cleanup(() => i.cleanup());
-	  return i.render(props);
+	  return i.render(i.props);
 	}
 
 	/**
@@ -2925,7 +2930,7 @@
 	            node = toDiff(node, flatToArray(createChildren(parent, child(), true, node[0])), true);
 	          });
 	          cleanup(() => {
-	            if (parent.isConnected) {
+	            if (parent.isConnected || node[0]?.isConnected) {
 	              toDiff(node);
 	              // @ts-expect-error
 	              parent.remove();
@@ -3100,7 +3105,7 @@
 	 */
 	function render(children, parent, options = nothing) {
 	  const dispose = root(dispose => {
-	    insert(children, parent, options);
+	    insert(() => children, parent, options);
 	    return dispose;
 	  });
 
@@ -3118,7 +3123,7 @@
 	 */
 	function insert(children, parent = document$1.body, options = nothing) {
 	  if (options.clear && parent) parent.textContent = '';
-	  const node = createChildren(parent, Factory(isFunction(children) ? children : () => children), options.relative);
+	  const node = createChildren(parent, children, options.relative);
 	  cleanup(() => toDiff(flatToArray(node)));
 	  return node;
 	}
@@ -3262,9 +3267,7 @@
 
 	  /* SLOTS API */
 
-	  /**
-	   * @param {string} name
-	   */
+	  /** @param {string} name */
 	  hasSlot(name) {
 	    return this.query(`:scope [slot="${name}"]`);
 	  }
@@ -3315,18 +3318,18 @@
 	/**
 	 * Creates components dynamically
 	 *
-	 * @template {{ component: any }} T
-	 * @param {Dynamic<T>} props
+	 * @param {{ component: ValidComponent } & Record<string, unknown>} props
+	 * @returns {Children}
 	 * @url https://pota.quack.uy/Components/Dynamic
 	 */
 
-	const Dynamic = props =>
-	// `component` needs to be deleted else it will end in the tag as an attribute
-	Component(/** @type {string | ((props: ComponentProps<T>) => Children)} */
-	props.component, {
-	  ...props,
-	  component: undefined
-	});
+	function Dynamic(props) {
+	  // `component` needs to be deleted else it will end in the tag as an attribute
+	  return Component(/** @type {ValidComponent} */props.component, {
+	    ...props,
+	    component: undefined
+	  });
+	}
 
 	/**
 	 * Renders reactive values from an signal that returns an Iterable
@@ -3339,16 +3342,18 @@
 	 *   moves it may lose focus
 	 * @param {boolean} [props.reactiveIndex] - Make indices reactive
 	 *   signals
-	 * @param {(item: T, index: number) => Children} [props.children]
+	 * @param {Children | ((item: T, index: number | SignalAccessor<number>) => Children)} [props.children]
 	 * @param {Children} [props.fallback]
 	 * @returns {Children}
 	 * @url https://pota.quack.uy/Components/For
 	 */
 
-	const For = props => map(() => {
-	  props.restoreFocus && queue();
-	  return props.each;
-	}, makeCallback(props.children), false, props.fallback, props.reactiveIndex);
+	function For(props) {
+	  return map(() => {
+	    props.restoreFocus && queue();
+	    return props.each;
+	  }, makeCallback(props.children), false, props.fallback, props.reactiveIndex);
+	}
 
 	/** @type {boolean} */
 	let queued;
@@ -3387,6 +3392,7 @@
 	 * Mounts children on `document.head`
 	 *
 	 * @param {Props} props
+	 * @returns {Children}
 	 * @url https://pota.quack.uy/Components/Head
 	 */
 	const Head = props => Component(Portal, {
@@ -3401,7 +3407,7 @@
 	 * @param {Accessor<number>} [props.start]
 	 * @param {Accessor<number>} [props.stop]
 	 * @param {Accessor<number>} [props.step]
-	 * @param {Children} [props.children]
+	 * @param {Children | ((item: number, index: number) => Children)} [props.children]
 	 * @returns {Children}
 	 */
 
@@ -5123,7 +5129,7 @@
 	 * @param {object} props
 	 * @param {When<T>} props.when
 	 * @param {Children} [props.fallback]
-	 * @param {(arg: T) => Children} [props.children]
+	 * @param {Children | ((arg: SignalAccessor<Accessed<T>>) => Children)} [props.children]
 	 * @returns {Children}
 	 * @url https://pota.quack.uy/Components/Show
 	 */
@@ -5340,12 +5346,18 @@
 	 * Renders the content if the `when` condition is true
 	 *
 	 * @template T
-	 * @param {object} props
-	 * @param {When<any>} props.when
-	 * @param {Children} [props.children]
-	 * @returns {Children}
+	 * @param {{
+	 * 	when: When<T>
+	 * 	children?: Children | ((arg: SignalAccessor<Accessed<T>>) => Children)
+	 * }} props
+	 * @returns {{
+	 * 	when: When<T>
+	 * 	children?: Children | ((arg: SignalAccessor<Accessed<T>>) => Children)
+	 * }}
 	 */
-	const Match = identity;
+	function Match(props) {
+	  return identity(props);
+	}
 
 	const Context = context({
 	  selected: signal({

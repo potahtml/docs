@@ -139,17 +139,15 @@
 	/**
 	 * Returns `true` when `typeof` of `value` is `function`
 	 *
-	 * @template T
-	 * @param {T} value
-	 * @returns {value is ((...args:unknown[])=>T)}
+	 * @param {unknown} value
+	 * @returns {value is (...args: unknown[]) => unknown}
 	 */
 	const isFunction = value => typeof value === 'function';
 
 	/**
 	 * Returns `true` when typeof of value is object and not null
 	 *
-	 * @template T
-	 * @param {T} value
+	 * @param {unknown} value
 	 * @returns {value is object}
 	 */
 	const isObject = value => value !== null && typeof value === 'object';
@@ -165,9 +163,8 @@
 	/**
 	 * Returns `true` when `value` may be a promise
 	 *
-	 * @template T
-	 * @param {T} value
-	 * @returns {value is Promise<T>}
+	 * @param {unknown} value
+	 * @returns {value is Promise<unknown>}
 	 */
 	const isPromise = value => isFunction(/** @type {any} */value?.then);
 
@@ -1681,7 +1678,12 @@
 	    if (rows.length === 0) {
 	      hasPrev && clear();
 	      prev = rows;
-	      return fallback ? fn(fallback) : emptyArray;
+	      if (fallback) {
+	        const f = fn(fallback);
+	        cleanup(() => toDiff(flatToArray(f)));
+	        return f;
+	      }
+	      return emptyArray;
 	    }
 
 	    // sort
@@ -2540,11 +2542,15 @@
 	 *   constructor
 	 * @returns {Children} The rendered output
 	 */
-	function createClass(value, props) {
+	function createClass(value, props = nothing) {
 	  const i = new value(props);
+	  i.props = freeze({
+	    ...(i.props || nothing),
+	    ...props
+	  });
 	  i.ready && ready(() => i.ready());
 	  i.cleanup && cleanup(() => i.cleanup());
-	  return i.render(props);
+	  return i.render(i.props);
 	}
 
 	/**
@@ -2676,7 +2682,7 @@
 	            node = toDiff(node, flatToArray(createChildren(parent, child(), true, node[0])), true);
 	          });
 	          cleanup(() => {
-	            if (parent.isConnected) {
+	            if (parent.isConnected || node[0]?.isConnected) {
 	              toDiff(node);
 	              // @ts-expect-error
 	              parent.remove();
@@ -2851,7 +2857,7 @@
 	 */
 	function render(children, parent, options = nothing) {
 	  const dispose = root(dispose => {
-	    insert(children, parent, options);
+	    insert(() => children, parent, options);
 	    return dispose;
 	  });
 
@@ -2869,7 +2875,7 @@
 	 */
 	function insert(children, parent = document$1.body, options = nothing) {
 	  if (options.clear && parent) parent.textContent = '';
-	  const node = createChildren(parent, Factory(isFunction(children) ? children : () => children), options.relative);
+	  const node = createChildren(parent, children, options.relative);
 	  cleanup(() => toDiff(flatToArray(node)));
 	  return node;
 	}
@@ -2919,16 +2925,18 @@
 	 *   moves it may lose focus
 	 * @param {boolean} [props.reactiveIndex] - Make indices reactive
 	 *   signals
-	 * @param {(item: T, index: number) => Children} [props.children]
+	 * @param {Children | ((item: T, index: number | SignalAccessor<number>) => Children)} [props.children]
 	 * @param {Children} [props.fallback]
 	 * @returns {Children}
 	 * @url https://pota.quack.uy/Components/For
 	 */
 
-	const For = props => map(() => {
-	  props.restoreFocus && queue();
-	  return props.each;
-	}, makeCallback(props.children), false, props.fallback, props.reactiveIndex);
+	function For(props) {
+	  return map(() => {
+	    props.restoreFocus && queue();
+	    return props.each;
+	  }, makeCallback(props.children), false, props.fallback, props.reactiveIndex);
+	}
 
 	/** @type {boolean} */
 	let queued;
@@ -2981,7 +2989,7 @@
 	var _div = createPartial("<div class='col-sm-6 smallpad'><button type=button class='btn btn-primary btn-block'></button></div>", {"0":1,"m":2}),
 	  _div2 = createPartial("<div class=container><div class=jumbotron><div class=row><div class=col-md-6><h1>pota Keyed</h1></div><div class=col-md-6><div class=row></div></div></div></div><table class='table table-hover table-striped test-data'><tbody></tbody></table><span aria-hidden=true class='preloadicon glyphicon glyphicon-remove'></span></div>", {"0":6,"1":8,"m":9}),
 	  _tr = createPartial("<tr><td class=col-md-1></td><td class=col-md-4><a data-select></a></td><td class=col-md-1><a><span data-remove aria-hidden=true class='glyphicon glyphicon-remove'></span></a></td><td class=col-md-6></td></tr>", {"0":1,"1":3,"m":4});
-	const _For = createComponent(For);
+	var _For = createComponent(For);
 	let idCounter = 1;
 	function buildData(count) {
 	  const data = new Array(count);
@@ -3004,7 +3012,7 @@
 	  _node.setAttribute("id", getValue(/** @static */id));
 	  setEvent(_node, "click", fn);
 	}]);
-	const _Button = createComponent(Button);
+	var _Button = createComponent(Button);
 	const App = () => {
 	  const [data, setData, updateData] = signal([]),
 	    run = () => {
