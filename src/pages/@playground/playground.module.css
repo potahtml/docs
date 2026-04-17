@@ -84,3 +84,11 @@ main[data-pathname^='/playground'] article:before {
 	margin-left: 5px;
 	text-transform: capitalize;
 }
+
+.no-animations,
+.no-animations *,
+.no-animations *::before,
+.no-animations *::after {
+	animation: none !important;
+	transition: none !important;
+}

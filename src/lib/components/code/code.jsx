@@ -63,10 +63,39 @@ export function Code(props) {
 	const [transformedURL, setTransformedURL] = signal('')
 
 	effect(() => {
-		props.render !== false &&
+		if (props.render === false) return
+
+		if (props.files) {
+			// Multi-file mode: transform each, send a packaged object.
+			// The iframe creates blob URLs and rewrites imports.
+			// CSS files are passed through raw — the iframe builds the
+			// classmap module and injects the <style>.
+			const list = props.files()
+			if (!Array.isArray(list) || list.length === 0) return
+			const entry =
+				(typeof props.entry === 'function'
+					? props.entry()
+					: props.entry) ||
+				(list[0] && list[0].name)
+			Promise.all(
+				list.map(f =>
+					f.name.endsWith('.css')
+						? Promise.resolve([f.name, f.content])
+						: transform(f.content).then(c => [f.name, c]),
+				),
+			).then(pairs =>
+				setTransformedURL(
+					compress({
+						entry,
+						modules: Object.fromEntries(pairs),
+					}),
+				),
+			)
+		} else {
 			transform(code()).then(code =>
 				setTransformedURL(compress(code)),
 			)
+		}
 	})
 
 	return (

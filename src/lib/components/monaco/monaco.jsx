@@ -6,29 +6,11 @@ import { onDocumentSize } from 'pota/use/resize'
 
 import types from '../../../../node_modules/pota/generated/docs/types.json' with { type: 'json' }
 
-function loadScriptInOrder(...scripts) {
-	return new Promise(async resolve => {
-		for (const script of scripts) {
-			await loadScript(script)
-		}
-		setTimeout(resolve)
-	})
-}
-function loadScript(src) {
-	return new Promise(resolve => {
-		const script = document.createElement('script')
-		script.onload = () => {
-			setTimeout(resolve)
-		}
-		script.crossOrigin = 'anonymous'
-		script.src = src
-		document.head.append(script)
-	})
-}
-
 /** @type import('monaco-editor') */
 const monaco = globalThis.monaco
 
+// Register bundled ambient types once. These attach to Monaco's global
+// TS service and are visible to every model we create.
 for (const type of types) {
 	monaco.languages.typescript.typescriptDefaults.addExtraLib(
 		type.c,
@@ -36,7 +18,6 @@ for (const type of types) {
 	)
 }
 
-// compiler options
 monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
 	allowNonTsExtensions: true,
 	jsxImportSource: 'pota',
@@ -52,23 +33,30 @@ monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
 	noSyntaxValidation: false,
 })
 
-/** @type import('monaco-editor').editor.ITextModel */
-const model = monaco.editor.createModel(
-	``,
-	'',
-	monaco.Uri.parse('file:///project/main.tsx'),
-)
+const uriFor = name => monaco.Uri.parse('file:///project/' + name)
+
+const languageFor = name => {
+	if (name.endsWith('.css')) return 'css'
+	if (name.endsWith('.json')) return 'json'
+	if (name.endsWith('.html')) return 'html'
+	if (name.endsWith('.md') || name.endsWith('.markdown'))
+		return 'markdown'
+	return 'typescript'
+}
 
 /**
- * Create a Monaco editor
+ * Multi-file Monaco editor.
  *
  * @param {{
- * 	value?: Accessor<string>
- * 	'on:change'?: Function
- * 	language?: string
- * 	delay?: number
- * 	'on:format'?: Function
- * 	theme?: Accessor<string>
+ *   files:       () => { name: string, content: string }[],
+ *   activeFile:  () => string,
+ *   cursor?:     () => { file: string, offset: number } | null,
+ *   'on:change'?:(name: string, content: string) => void,
+ *   'on:cursorChange'?:(file: string, offset: number) => void,
+ *   'on:format'?:(code: string) => Promise<string>,
+ *   language?:   string,
+ *   delay?:      number,
+ *   theme?:      () => string,
  * }} props
  */
 export function Monaco(props) {
@@ -76,10 +64,89 @@ export function Monaco(props) {
 		<div
 			class={styles.container}
 			use:ref={container => {
-				/** @type import('monaco-editor').editor.IStandaloneCodeEditor */
-				const editor = monaco.editor.create(container, {
-					model,
-					language: props.language || 'typescript',
+				/** @type {Map<string, import('monaco-editor').editor.ITextModel>} */
+				const modelMap = new Map()
+				/** Per-model cursor/scroll so tab-swap restores where the
+				 * user was. Monaco doesn't do this automatically. */
+				const viewStateMap = new Map()
+				/** Last content we pushed out to the parent — used to
+				 * ignore the echo on files-prop updates. */
+				const lastSentContent = new Map()
+
+				let editor
+				let currentName = null
+				let codeChangeTimeout = null
+				let contentSubscription = null
+
+				const makeModel = (name, content) => {
+					// If a model with this URI already exists (e.g. after
+					// rename or across remounts), reuse/overwrite it.
+					const uri = uriFor(name)
+					const existing = monaco.editor.getModel(uri)
+					if (existing) {
+						if (existing.getValue() !== (content || '')) {
+							existing.setValue(content || '')
+						}
+						return existing
+					}
+					return monaco.editor.createModel(
+						content || '',
+						props.language || languageFor(name),
+						uri,
+					)
+				}
+
+				const scheduleSave = () => {
+					if (!currentName) return
+					clearTimeout(codeChangeTimeout)
+					const name = currentName
+					codeChangeTimeout = setTimeout(() => {
+						const m = modelMap.get(name)
+						if (!m) return
+						const content = m.getValue()
+						lastSentContent.set(name, content)
+						if (props['on:change']) {
+							props['on:change'](name, content)
+						}
+						if (props['on:cursorChange']) {
+							const pos = editor.getPosition()
+							if (pos) {
+								props['on:cursorChange'](
+									name,
+									m.getOffsetAt(pos),
+								)
+							}
+						}
+					}, props.delay || 200)
+				}
+
+				let cursorSubscription = null
+				const bindChanges = model => {
+					if (contentSubscription) {
+						contentSubscription.dispose()
+						contentSubscription = null
+					}
+					contentSubscription = model.onDidChangeContent(() =>
+						scheduleSave(),
+					)
+				}
+
+				// ---- bootstrap ----
+
+				for (const f of props.files()) {
+					modelMap.set(f.name, makeModel(f.name, f.content))
+				}
+
+				const initialName =
+					props.activeFile() || props.files()[0]?.name || ''
+				const initialModel =
+					modelMap.get(initialName) || makeModel(initialName, '')
+				modelMap.set(initialName, initialModel)
+				currentName = initialName
+
+				/** @type {import('monaco-editor').editor.IStandaloneCodeEditor} */
+				editor = monaco.editor.create(container, {
+					model: initialModel,
 					fontSize: 18,
 					roundedSelection: false,
 					scrollbar: {
@@ -99,7 +166,6 @@ export function Monaco(props) {
 					wordWrap: 'bounded',
 					smoothScrolling: false,
 					mouseWheelScrollSensitivity: 4,
-					// autoClosingDelete: 'never',
 					autoClosingBrackets: 'never',
 					autoClosingQuotes: 'never',
 					fontLigatures: '',
@@ -107,67 +173,134 @@ export function Monaco(props) {
 					wordWrapColumn: 70,
 				})
 
-				withValue(props.value, value => {
-					editor.setValue(value)
-				})
-				withValue(props.theme, value => {
-					monaco.editor.setTheme(value || 'vs-dark')
-				})
+				bindChanges(initialModel)
 
-				// on code change
-				let codeChangeTimeout
-				editor.getModel().onDidChangeContent(event => {
-					if (props['on:change']) {
-						clearTimeout(codeChangeTimeout)
-						codeChangeTimeout = setTimeout(
-							() => props['on:change'](editor.getValue()),
-							props.delay || 200,
+				// Cursor tracking — piggy-back on the content debounce so
+				// we save on keystrokes and clicks without waiting for
+				// focusout.
+				cursorSubscription = editor.onDidChangeCursorPosition(() =>
+					scheduleSave(),
+				)
+
+				// Restore cursor after focus so monaco doesn't reset the
+				// position when focus lands on its default location.
+				const initialCursor = props.cursor ? props.cursor() : null
+				setTimeout(() => {
+					editor.focus()
+					if (
+						initialCursor &&
+						initialCursor.file === currentName &&
+						typeof initialCursor.offset === 'number'
+					) {
+						const pos = initialModel.getPositionAt(
+							initialCursor.offset,
 						)
+						editor.setPosition(pos)
+						editor.revealPositionInCenter(pos)
 					}
-				})
+				}, 0)
 
-				// flush pending debounced change when focus leaves the
-				// editor, so switching editors commits the latest value to
-				// the parent signal before the switch unmounts us.
-				// Uses DOM focusout (bubbles, synchronous) instead of
-				// monaco's onDidBlurEditorWidget which is delayed via
-				// setTimeout and fires AFTER the select's change event.
+				// ---- focusout flush ----
+
 				const flush = () => {
 					if (codeChangeTimeout) {
 						clearTimeout(codeChangeTimeout)
 						codeChangeTimeout = null
-						if (props['on:change']) {
-							props['on:change'](editor.getValue())
+						if (props['on:change'] && currentName) {
+							const m = modelMap.get(currentName)
+							if (m) props['on:change'](currentName, m.getValue())
+						}
+					}
+					if (props['on:cursorChange'] && currentName) {
+						const m = modelMap.get(currentName)
+						const pos = editor.getPosition()
+						if (m && pos) {
+							props['on:cursorChange'](
+								currentName,
+								m.getOffsetAt(pos),
+							)
 						}
 					}
 				}
 				container.addEventListener('focusout', flush)
 
-				// cleanup: flush any pending debounced change before disposing,
-				// otherwise switching editors within the debounce window drops
-				// the last edits.
-				cleanup(() => {
-					flush()
-					editor.dispose()
-				})
+				// ---- reactive: file list ----
 
-				// resize
-				onDocumentSize(() => editor.layout())
+				withValue(props.files, files => {
+					if (!Array.isArray(files)) return
+					const nextNames = new Set(files.map(f => f.name))
 
-				// code change
+					// Removed files
+					for (const name of [...modelMap.keys()]) {
+						if (!nextNames.has(name)) {
+							const m = modelMap.get(name)
+							if (m) m.dispose()
+							modelMap.delete(name)
+							viewStateMap.delete(name)
+							lastSentContent.delete(name)
+						}
+					}
 
-				addEvent(window, 'monacoCodeChanged', e => {
-					if (e.detail) {
-						editor.setValue(e.detail.trim())
+					// Added / content-synced files (skip echoes of our own
+					// writes to avoid clobbering in-progress typing/cursor).
+					for (const f of files) {
+						if (!modelMap.has(f.name)) {
+							modelMap.set(f.name, makeModel(f.name, f.content))
+							continue
+						}
+						if (lastSentContent.get(f.name) === f.content) {
+							continue
+						}
+						const m = modelMap.get(f.name)
+						if (m.getValue() !== (f.content || '')) {
+							m.setValue(f.content || '')
+						}
 					}
 				})
-				// shorcuts
+
+				// ---- reactive: active file ----
+
+				withValue(props.activeFile, name => {
+					if (!name || name === currentName) return
+					// Save current model's view state so returning to it
+					// restores cursor + scroll.
+					if (currentName) {
+						const snap = editor.saveViewState()
+						if (snap) viewStateMap.set(currentName, snap)
+					}
+					let model = modelMap.get(name)
+					if (!model) {
+						const f = props.files().find(x => x.name === name)
+						model = makeModel(name, f?.content || '')
+						modelMap.set(name, model)
+					}
+					editor.setModel(model)
+					currentName = name
+					bindChanges(model)
+					const snap = viewStateMap.get(name)
+					if (snap) editor.restoreViewState(snap)
+					editor.focus()
+				})
+
+				// ---- reactive: theme ----
+
+				withValue(props.theme, value => {
+					monaco.editor.setTheme(value || 'vs-dark')
+				})
+
+				// External "replace current tab's content" event.
+				addEvent(window, 'monacoCodeChanged', e => {
+					if (e.detail) {
+						const m = modelMap.get(currentName)
+						if (m) m.setValue(e.detail.trim())
+					}
+				})
+
+				// Format shortcut
 				editor.onKeyDown(e => {
 					if (
-						// CTRL + S
-						(e.keyCode === 49 && e.ctrlKey) ||
-						// SHIFT + ALT + F
-						(e.keyCode === 36 && e.altKey && e.shiftKey)
+						(e.keyCode === 49 && e.ctrlKey) || // CTRL + S
+						(e.keyCode === 36 && e.altKey && e.shiftKey) // SHIFT+ALT+F
 					) {
 						e.preventDefault()
 						if (props['on:format']) {
@@ -177,7 +310,7 @@ export function Monaco(props) {
 									editor.setValue(code)
 									if (position) editor.setPosition(position)
 								})
-								.catch(e => {
+								.catch(() => {
 									editor
 										.getAction('editor.action.formatDocument')
 										.run()
@@ -186,6 +319,16 @@ export function Monaco(props) {
 							editor.getAction('editor.action.formatDocument').run()
 						}
 					}
+				})
+
+				onDocumentSize(() => editor.layout())
+
+				cleanup(() => {
+					flush()
+					if (contentSubscription) contentSubscription.dispose()
+					if (cursorSubscription) cursorSubscription.dispose()
+					editor.dispose()
+					for (const m of modelMap.values()) m.dispose()
 				})
 			}}
 		>

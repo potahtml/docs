@@ -8,7 +8,7 @@ import { autocompletion } from '@codemirror/autocomplete'
 import { linter } from '@codemirror/lint'
 import { hoverTooltip, EditorView } from '@codemirror/view'
 
-const ENTRY = '/main.tsx'
+const toPath = name => (name.startsWith('/') ? name : '/' + name)
 
 const kindToCmType = {
 	'var': 'variable',
@@ -27,7 +27,18 @@ const kindToCmType = {
 	'parameter': 'variable',
 }
 
-export async function createTsExtensions(types) {
+/**
+ * Builds a multi-file TypeScript language-service for CodeMirror.
+ *
+ * @param {{f: string, c: string}[]} types  bundled ambient types (types.json)
+ * @param {{name: string, content: string}[]} initialFiles  user-authored files
+ * @param {string} initialActive  filename currently being edited
+ */
+export async function createTsExtensions(
+	types,
+	initialFiles,
+	initialActive,
+) {
 	const ts = globalThis.ts
 	if (!ts) {
 		throw new Error(
@@ -54,13 +65,20 @@ export async function createTsExtensions(types) {
 		ts,
 	)
 
-	const rootFiles = [ENTRY]
+	// Bundled types are treated as addExtraLib-style ambient roots.
+	const rootFiles = []
 	for (const t of types) {
 		const path = '/node_modules/' + t.f
 		fsMap.set(path, t.c)
 		rootFiles.push(path)
 	}
-	fsMap.set(ENTRY, ' ')
+
+	// Seed user files into the vfs so createVirtualTypeScriptEnvironment
+	// can build sourceFiles for them from the very start.
+	for (const f of initialFiles) {
+		fsMap.set(toPath(f.name), f.content || ' ')
+		rootFiles.push(toPath(f.name))
+	}
 
 	const system = createSystem(fsMap)
 	const env = createVirtualTypeScriptEnvironment(
@@ -70,9 +88,17 @@ export async function createTsExtensions(types) {
 		compilerOptions,
 	)
 
+	let activePath = toPath(
+		initialActive ||
+			(initialFiles[0] && initialFiles[0].name) ||
+			'main.tsx',
+	)
+
+	// ---- editor extensions (driven by activePath) ----
+
 	const syncDoc = EditorView.updateListener.of(update => {
 		if (update.docChanged) {
-			env.updateFile(ENTRY, update.state.doc.toString() || ' ')
+			env.updateFile(activePath, update.state.doc.toString() || ' ')
 		}
 	})
 
@@ -81,7 +107,7 @@ export async function createTsExtensions(types) {
 			ctx => {
 				const before = ctx.matchBefore(/[\w$.'"/@]*/)
 				const info = env.languageService.getCompletionsAtPosition(
-					ENTRY,
+					activePath,
 					ctx.pos,
 					{},
 				)
@@ -101,7 +127,7 @@ export async function createTsExtensions(types) {
 
 	const hover = hoverTooltip((view, pos) => {
 		const info = env.languageService.getQuickInfoAtPosition(
-			ENTRY,
+			activePath,
 			pos,
 		)
 		if (!info) return null
@@ -123,8 +149,8 @@ export async function createTsExtensions(types) {
 
 	const diagnostics = linter(view => {
 		const all = [
-			...env.languageService.getSemanticDiagnostics(ENTRY),
-			...env.languageService.getSyntacticDiagnostics(ENTRY),
+			...env.languageService.getSemanticDiagnostics(activePath),
+			...env.languageService.getSyntacticDiagnostics(activePath),
 		]
 		const doc = view.state.doc
 		return all
@@ -149,10 +175,39 @@ export async function createTsExtensions(types) {
 			})
 	})
 
+	// ---- public file-management API ----
+
 	return {
 		extensions: [syncDoc, completion, hover, diagnostics],
-		setDoc(value) {
-			env.updateFile(ENTRY, value || ' ')
+
+		setActivePath(name) {
+			activePath = toPath(name)
+		},
+
+		createFile(name, content) {
+			const path = toPath(name)
+			try {
+				env.createFile(path, content || ' ')
+			} catch (err) {
+				// file already existed — update instead
+				env.updateFile(path, content || ' ')
+			}
+		},
+
+		updateFile(name, content) {
+			const path = toPath(name)
+			try {
+				env.updateFile(path, content || ' ')
+			} catch {
+				env.createFile(path, content || ' ')
+			}
+		},
+
+		removeFile(name) {
+			const path = toPath(name)
+			try {
+				env.deleteFile(path)
+			} catch {}
 		},
 	}
 }

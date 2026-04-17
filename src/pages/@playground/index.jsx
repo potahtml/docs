@@ -4,10 +4,9 @@ import { CheatSheetText } from '../../lib/components/cheatsheet.jsx'
 import { Code } from '../../lib/components/code/code.jsx'
 import { Header } from '../../lib/components/header.jsx'
 
-import { addEvent, effect, memo, signal } from 'pota'
+import { addEvent, memo, signal } from 'pota'
 import { For, Show, Tabs } from 'pota/components'
 
-import { compress, uncompress } from '../../lib/compress.js'
 import example from './default-example.js'
 import { prettier } from '../../lib/prettier.js'
 import { transform } from '../../lib/transform.js'
@@ -16,7 +15,23 @@ import 'pota/use/clipboard'
 
 import { Monaco } from '../../lib/components/monaco/monaco.jsx'
 import { CodeMirror } from '../../lib/components/codemirror/codemirror.jsx'
-import { emit } from 'pota/use/event'
+import { TabsBar } from '../../lib/components/tabs-bar/tabs-bar.jsx'
+import { createPlaygroundState } from '../../lib/playground-state.js'
+
+const playgroundState = createPlaygroundState(example)
+const {
+	files: pgFiles,
+	active: pgActive,
+	cursor: pgCursor,
+	updateFileContent,
+	addFile,
+	removeFile,
+	renameFile,
+	setActive,
+	setFiles,
+	setCursor,
+	persist,
+} = playgroundState
 
 const themesMonaco = [
 	//'vs',
@@ -94,44 +109,36 @@ const [activeEditor, setActiveEditor] = signal(
 export default function () {
 	const [autorun, setAutorun, updateAutorun] = signal(true)
 
-	const initialValue =
-		window.location.hash !== ''
-			? uncompress(
-					decodeURIComponent(window.location.hash.substring(1)),
-				)
-			: localStorage.playground || example
+	// The preview pipeline works on a single entry file — pick the
+	// active tab's content. Other files are for type-checking / editor
+	// convenience only (no bundler on the preview side).
+	const activeCode = memo(() => {
+		const name = pgActive()
+		const f = pgFiles().find(x => x.name === name)
+		return f ? f.content : ''
+	})
 
-	// somehow backwards compatible
-	const [code, setCode] = signal(
-		initialValue.code ? initialValue.code : initialValue,
-	)
-
-	const codeURL = memo(() => compress(code()))
-
-	// Read the latest code from the URL at mount time — the URL is
-	// the single source of truth across editor swaps, kept in sync by
-	// the effect below. Reading from the URL (and not from code())
-	// sidesteps any reactive-timing questions about when code() is
-	// "fresh" relative to the new editor mounting.
-	const valueFromURL = () => {
-		const hash = window.location.hash.substring(1)
-		let raw = hash ? uncompress(decodeURIComponent(hash)) : code()
-		raw = raw && raw.code ? raw.code : raw
-		return raw
+	// Editors flush their latest debounced value via this handler on
+	// focusout. Writes both URL and localStorage synchronously.
+	const handleChange = (name, content) => {
+		updateFileContent(name, content)
+		persist()
 	}
 
-	effect(() => {
-		window.location.hash = '#' + codeURL()
-	})
+	const handleCursorChange = (file, offset) => {
+		setCursor({ file, offset })
+		persist()
+	}
 
-	addEvent(window, 'message', function (e) {
-		if (e.data && typeof e.data === 'string') {
-			const message = JSON.parse(e.data)
-			if (message.messageKind === 'done') {
-				localStorage.playground = code()
-			}
-		}
-	})
+	// Save on unload so state survives a full reload even if the
+	// editor never fired a focusout / debounce flush first.
+	addEvent(window, 'beforeunload', () => persist())
+
+	const restoreDefault = () => {
+		setFiles([{ name: 'main.tsx', content: example }])
+		setActive('main.tsx')
+		persist()
+	}
 
 	// ui
 
@@ -143,6 +150,7 @@ export default function () {
 				id="container"
 				flair="col grow"
 				style="padding-top:0px;"
+				class={styles['no-animations']}
 			>
 				<Tabs>
 					<section flair="vertical" class={styles.toolbar}>
@@ -273,13 +281,7 @@ export default function () {
 									viewBox="0 -960 960 960"
 									width="24px"
 									fill="#e3e3e3"
-									on:click={e => {
-										setCode(example)
-										localStorage.playground = example
-										emit(window, 'monacoCodeChanged', {
-											detail: example,
-										})
-									}}
+									on:click={restoreDefault}
 								>
 									<path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z" />
 								</svg>
@@ -295,13 +297,33 @@ export default function () {
 							<form id="form-playground">
 								<Tabs.Panels>
 									<Tabs.Panel flair="col grow" collapse>
+										<TabsBar
+											files={pgFiles}
+											activeFile={pgActive}
+											on:select={name => {
+												setActive(name)
+												persist()
+											}}
+											on:rename={(oldName, newName) => {
+												if (renameFile(oldName, newName)) {
+													persist()
+												}
+											}}
+											on:delete={name => {
+												if (removeFile(name)) persist()
+											}}
+											on:add={() => {
+												addFile('untitled.ts')
+												persist()
+											}}
+										/>
 										<Show when={() => activeEditor() === 'monaco'}>
 											<Monaco
-												value={valueFromURL}
-												on:change={value => {
-													setCode(value)
-													window.location.hash = '#' + compress(value)
-												}}
+												files={pgFiles}
+												activeFile={pgActive}
+												cursor={pgCursor}
+												on:change={handleChange}
+												on:cursorChange={handleCursorChange}
 												on:format={code => prettier(code, true)}
 												theme={themeMonaco}
 											/>
@@ -310,11 +332,11 @@ export default function () {
 											when={() => activeEditor() === 'codemirror'}
 										>
 											<CodeMirror
-												value={valueFromURL}
-												on:change={value => {
-													setCode(value)
-													window.location.hash = '#' + compress(value)
-												}}
+												files={pgFiles}
+												activeFile={pgActive}
+												cursor={pgCursor}
+												on:change={handleChange}
+												on:cursorChange={handleCursorChange}
 												on:format={code => prettier(code, true)}
 												theme={themeCM}
 											/>
@@ -325,7 +347,7 @@ export default function () {
 											class="playground line-numbers"
 											grammar="tsx"
 											theme={themeTM}
-											value={() => transform(code())}
+											value={() => transform(activeCode())}
 											prop:editable={false}
 										/>
 									</Tabs.Panel>
@@ -344,7 +366,8 @@ export default function () {
 						<section id="right" flair="col grow">
 							<section flair="row grow">
 								<Code
-									code={() => autorun() && code()}
+									files={() => (autorun() ? pgFiles() : [])}
+									entry="main.tsx"
 									render={true}
 									preview={false}
 								/>
