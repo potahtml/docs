@@ -8,10 +8,9 @@ export default function () {
 			<Header title="TypeScript">
 				<p>
 					pota ships a set of ambient component-utility types in{' '}
-					<mark>pota/typescript/jsx/components.d.ts</mark>. Once
-					your tsconfig has <mark>"jsxImportSource": "pota"</mark>
-					, these types are globally available — no import line
-					needed.
+					<mark>pota/typescript/jsx/components.d.ts</mark>. Once your
+					tsconfig has <mark>"jsxImportSource": "pota"</mark>, these
+					types are globally available — no import line needed.
 				</p>
 			</Header>
 
@@ -55,9 +54,7 @@ export default function () {
 							<td>
 								<mark>FlowComponent&lt;P, C&gt;</mark>
 							</td>
-							<td>
-								Component&lt;P &amp; {'{ children?: C }'}&gt;
-							</td>
+							<td>Component&lt;P &amp; {'{ children?: C }'}&gt;</td>
 							<td>
 								flow-control component (Show, For, Switch) where{' '}
 								<mark>C</mark> is a render-callback type
@@ -82,21 +79,18 @@ export default function () {
 							</td>
 							<td>C | (C | JSX.Element)[]</td>
 							<td>
-								mixed list of render callbacks and elements —
-								useful for callback-style children (Show, For)
+								mixed list of render callbacks and elements — useful
+								for callback-style children (Show, For)
 							</td>
 						</tr>
 						<tr>
 							<td>
 								<mark>ComponentProps&lt;T&gt;</mark>
 							</td>
+							<td>props of a component function or intrinsic tag</td>
 							<td>
-								props of a component function or intrinsic tag
-							</td>
-							<td>
-								extracts props from a component reference or tag
-								name (<mark>'button'</mark>,{' '}
-								<mark>typeof MyButton</mark>)
+								extracts props from a component reference or tag name
+								(<mark>'button'</mark>, <mark>typeof MyButton</mark>)
 							</td>
 						</tr>
 					</tbody>
@@ -105,11 +99,10 @@ export default function () {
 
 			<Section title="Typing props">
 				<p>
-					The simplest component is a function that receives a
-					typed <mark>props</mark> object. You don't need any of
-					the utility types for this — an inline object type is
-					enough. Any prop you omit with a default is still
-					available to callers.
+					The simplest component is a function that receives a typed{' '}
+					<mark>props</mark> object. You don't need any of the utility
+					types for this — an inline object type is enough. Any prop
+					you omit with a default is still available to callers.
 				</p>
 				<Code
 					code={`
@@ -127,13 +120,13 @@ render(<Greeting />)
 			<Section title="Component">
 				<p>
 					<mark>Component&lt;P&gt;</mark> is an alias for{' '}
-					<mark>(props: P) =&gt; JSX.Element</mark>. Reach for it
-					when you want the component's type to be visible at the
+					<mark>(props: P) =&gt; JSX.Element</mark>. Reach for it when
+					you want the component's type to be visible at the
 					declaration (useful for reassignment, overriding{' '}
-					<mark>defaultProps</mark> patterns, or handing the
-					component to a higher-order function). The annotation
-					also forces the return type to be a JSX element, which
-					catches accidental <mark>void</mark> returns early.
+					<mark>defaultProps</mark> patterns, or handing the component
+					to a higher-order function). The annotation also forces the
+					return type to be a JSX element, which catches accidental{' '}
+					<mark>void</mark> returns early.
 				</p>
 				<Code
 					code={`
@@ -152,13 +145,13 @@ render(<Greeting name="world" />)
 
 			<Section title="ParentComponent">
 				<p>
-					A <em>parent</em> component is one that renders
-					children inside itself — cards, layouts, providers.{' '}
+					A <em>parent</em> component is one that renders children
+					inside itself — cards, layouts, providers.{' '}
 					<mark>ParentComponent&lt;P&gt;</mark> adds a{' '}
 					<mark>children?: JSX.Element</mark> prop on top of{' '}
 					<mark>P</mark> so you don't have to type it yourself.
-					Callers get autocomplete for <mark>children</mark>{' '}
-					without the component author having to reach for{' '}
+					Callers get autocomplete for <mark>children</mark> without
+					the component author having to reach for{' '}
 					<mark>JSX.Element</mark> explicitly.
 				</p>
 				<Code
@@ -184,11 +177,11 @@ render(
 			<Section title="VoidComponent">
 				<p>
 					The opposite of <mark>ParentComponent</mark>:{' '}
-					<mark>VoidComponent&lt;P&gt;</mark> is a component that
-					must not be passed children. Useful for self-closing
-					leaf elements like icons, avatars, or form primitives —
-					catching stray children at compile time prevents bugs
-					where passed content would be silently ignored.
+					<mark>VoidComponent&lt;P&gt;</mark> is a component that must
+					not be passed children. Useful for self-closing leaf
+					elements like icons, avatars, or form primitives — catching
+					stray children at compile time prevents bugs where passed
+					content would be silently ignored.
 				</p>
 				<Code
 					code={`
@@ -200,7 +193,7 @@ const Avatar: VoidComponent<{ src: string; alt: string }> = props => (
 
 render(
 	<Avatar
-		src="https://pota.quack.uy/assets/logo-small.png"
+		src="/assets/logo-small.png"
 		alt="pota logo"
 	/>,
 )
@@ -212,15 +205,14 @@ render(
 
 			<Section title="FlowComponent">
 				<p>
-					Flow-control components receive children as a function
-					(or array of functions) that are invoked with a value —
-					the pattern <mark>&lt;Show/&gt;</mark>,{' '}
-					<mark>&lt;For/&gt;</mark>, <mark>&lt;Switch/&gt;</mark>{' '}
-					use internally.{' '}
-					<mark>FlowComponent&lt;P, C&gt;</mark> lets you type the
-					callback shape explicitly, so callers get parameter
-					inference on their render function and can't pass plain
-					JSX where a callback is expected.
+					Flow-control components receive children as a function (or
+					array of functions) that are invoked with a value — the
+					pattern <mark>&lt;Show/&gt;</mark>,{' '}
+					<mark>&lt;For/&gt;</mark>, <mark>&lt;Switch/&gt;</mark> use
+					internally. <mark>FlowComponent&lt;P, C&gt;</mark> lets you
+					type the callback shape explicitly, so callers get parameter
+					inference on their render function and can't pass plain JSX
+					where a callback is expected.
 				</p>
 				<Code
 					code={`
@@ -251,11 +243,10 @@ render(
 			<Section title="ComponentType">
 				<p>
 					<mark>ComponentType&lt;P&gt;</mark> is the union of a
-					function component and a component class — anything
-					pota knows how to render. Use it for generic code that
-					works with either flavour: higher-order components, or
-					prop types that take "a component" without caring which
-					kind.
+					function component and a component class — anything pota
+					knows how to render. Use it for generic code that works with
+					either flavour: higher-order components, or prop types that
+					take "a component" without caring which kind.
 				</p>
 				<Code
 					code={`
@@ -282,13 +273,13 @@ render(<Bordered name="world" />)
 
 			<Section title="Children">
 				<p>
-					<mark>Children&lt;C&gt;</mark> widens a single callback
-					type <mark>C</mark> into "either one <mark>C</mark>, or
-					a mixed array of <mark>C</mark> and plain JSX elements".
-					It's the shape <mark>&lt;Show/&gt;</mark> and{' '}
-					<mark>&lt;Switch/&gt;</mark> accept for their children,
-					so users can interleave render callbacks with
-					straightforward JSX without extra wrappers.
+					<mark>Children&lt;C&gt;</mark> widens a single callback type{' '}
+					<mark>C</mark> into "either one <mark>C</mark>, or a mixed
+					array of <mark>C</mark> and plain JSX elements". It's the
+					shape <mark>&lt;Show/&gt;</mark> and{' '}
+					<mark>&lt;Switch/&gt;</mark> accept for their children, so
+					users can interleave render callbacks with straightforward
+					JSX without extra wrappers.
 				</p>
 				<Code
 					code={`
@@ -319,13 +310,12 @@ render(
 
 			<Section title="ComponentProps">
 				<p>
-					<mark>ComponentProps&lt;T&gt;</mark> pulls the props
-					type out of any function component (<mark>typeof Foo</mark>
-					) or intrinsic tag (<mark>'button'</mark>,{' '}
-					<mark>'a'</mark>, …). It's how you build a wrapper that
-					forwards every prop the wrapped thing accepts, without
-					having to maintain a parallel prop list as the
-					underlying type changes.
+					<mark>ComponentProps&lt;T&gt;</mark> pulls the props type
+					out of any function component (<mark>typeof Foo</mark>) or
+					intrinsic tag (<mark>'button'</mark>, <mark>'a'</mark>, …).
+					It's how you build a wrapper that forwards every prop the
+					wrapped thing accepts, without having to maintain a parallel
+					prop list as the underlying type changes.
 				</p>
 				<Code
 					code={`
@@ -334,7 +324,6 @@ import { render } from 'pota'
 const PrimaryButton: Component<ComponentProps<'button'>> = props => (
 	<button
 		{...props}
-		style="background:#2563eb;color:#fff;padding:.3em .7em"
 	/>
 )
 
@@ -349,11 +338,11 @@ render(
 
 			<Section title="Disallowing a prop">
 				<p>
-					Wrap the underlying props with{' '}
-					<mark>Omit&lt;T, K&gt;</mark> when you want the wrapper
-					to control a particular prop itself. Callers that try
-					to pass the omitted key get a compile error, making the
-					intended usage visible at the type level.
+					Wrap the underlying props with <mark>Omit&lt;T, K&gt;</mark>{' '}
+					when you want the wrapper to control a particular prop
+					itself. Callers that try to pass the omitted key get a
+					compile error, making the intended usage visible at the type
+					level.
 				</p>
 				<Code
 					code={`
@@ -375,9 +364,9 @@ render(<SafeButton>Safe</SafeButton>)
 			<Section title="Requiring a prop">
 				<p>
 					Most DOM props are optional by default. To force one
-					required, subtract it with <mark>Omit</mark> and add it
-					back through <mark>Required&lt;Pick&lt;…&gt;&gt;</mark>.
-					Handy for accessibility-critical props like an{' '}
+					required, subtract it with <mark>Omit</mark> and add it back
+					through <mark>Required&lt;Pick&lt;…&gt;&gt;</mark>. Handy
+					for accessibility-critical props like an{' '}
 					<mark>&lt;img&gt;</mark>'s <mark>alt</mark> text.
 				</p>
 				<Code
@@ -391,7 +380,7 @@ const Img: Component<ImgProps> = props => <img {...props} />
 
 render(
 	<Img
-		src="https://pota.quack.uy/assets/logo-small.png"
+		src="/assets/logo-small.png"
 		alt="pota logo"
 		width="64"
 		height="64"
@@ -406,15 +395,14 @@ render(
 			<Section title="use:* plugin props">
 				<p>
 					Plugins registered with{' '}
-					<a href="/props/propsPlugin">propsPlugin</a> add a new
-					prop every element accepts. Tell TypeScript about it
-					by merging into <mark>JSX.ElementAttributes&lt;Element&gt;</mark>
+					<a href="/props/propsPlugin">propsPlugin</a> add a new prop
+					every element accepts. Tell TypeScript about it by merging
+					into <mark>JSX.ElementAttributes&lt;Element&gt;</mark>
 					inside a <mark>declare module 'pota'</mark> block. The{' '}
-					<mark>Element</mark> generic is threaded through by
-					pota so callback props can be typed against the element
-					they're attached to (e.g.{' '}
-					<mark>(node: Element) =&gt; void</mark> for a ref-style
-					callback).
+					<mark>Element</mark> generic is threaded through by pota so
+					callback props can be typed against the element they're
+					attached to (e.g. <mark>(node: Element) =&gt; void</mark>{' '}
+					for a ref-style callback).
 				</p>
 				<Code
 					code={`
@@ -445,14 +433,14 @@ declare module 'pota' {
 
 			<Section title="Custom Element">
 				<p>
-					Declaring a custom element in TypeScript has two parts:
-					tell the compiler the tag exists, and describe its
-					attributes. You do that by merging into{' '}
+					Declaring a custom element in TypeScript has two parts: tell
+					the compiler the tag exists, and describe its attributes.
+					You do that by merging into{' '}
 					<mark>JSX.IntrinsicElements</mark> with a{' '}
-					<mark>declare module 'pota'</mark> block. To allow a
-					signal as an attribute value, widen the type with{' '}
-					<mark>() =&gt; T</mark> — that matches pota's
-					runtime acceptance of function values.
+					<mark>declare module 'pota'</mark> block. To allow a signal
+					as an attribute value, widen the type with{' '}
+					<mark>() =&gt; T</mark> — that matches pota's runtime
+					acceptance of function values.
 				</p>
 				<Code
 					code={`
