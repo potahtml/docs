@@ -8,7 +8,6 @@
 	const origin = location$2?.origin;
 	const Object$1 = window.Object;
 	const Array$1 = window.Array;
-	const Promise$1 = window.Promise;
 	const Symbol$1 = window.Symbol;
 	const assign = Object$1.assign;
 	const create$1 = Object$1.create;
@@ -38,14 +37,6 @@
 	const toEntries = value => isObject(value) && 'entries' in (/** @type {object} */value) ? /** @type {{ entries(): IterableIterator<[unknown, unknown]> }} */value.entries() : toArray(/** @type {Iterable<[unknown, unknown]>} */value);
 	const iterator = Symbol$1.iterator;
 	const stringify = JSON.stringify;
-
-	/**
-	 * @param {(
-	 * 	resolve: (value: unknown) => void,
-	 * 	reject: (reason?: any) => void,
-	 * ) => void} fn
-	 */
-	const promise = fn => new Promise$1(fn);
 
 	/**
 	 * Runs an array of functions
@@ -1643,25 +1634,6 @@
 	 */
 	const removeClass = (node, className) => className.length && node.classList.remove(...(isArray(className) ? className : tokenList(className)));
 
-	// attributes
-
-	/**
-	 * Sets an attribute on a node.
-	 *
-	 * @param {Element} node
-	 * @param {string} name
-	 * @param {string} value
-	 */
-	const setAttribute$1 = (node, name, value) => node.setAttribute(name, value);
-
-	/**
-	 * Removes an attribute from a node.
-	 *
-	 * @param {Element} node
-	 * @param {string} name
-	 */
-	const removeAttribute = (node, name) => node.removeAttribute(name);
-
 	// selector
 
 	/**
@@ -2224,18 +2196,6 @@
 	const CSSStyleSheet$1 = window.CSSStyleSheet;
 
 	/**
-	 * Creates tagged css and returns a CSSStyleSheet. Mostly for css
-	 * highlighting in js
-	 *
-	 * @param {TemplateStringsArray} template
-	 * @param {...any} values
-	 * @returns {CSSStyleSheet}
-	 */
-	const css = (template, ...values) => sheet(String.raw({
-	  raw: template
-	}, ...values));
-
-	/**
 	 * Creates a stylesheet from a css string
 	 *
 	 * @param {string} css
@@ -2277,34 +2237,6 @@
 	 * @param {CSSStyleSheet} styleSheet
 	 */
 	const removeAdoptedStyleSheet = (document, styleSheet) => removeFromArray(getAdoptedStyleSheets(document), styleSheet);
-
-	/**
-	 * Adds multiple stylesheets to a document or shadow root.
-	 *
-	 * @param {Document | ShadowRoot} document - The document or shadow
-	 *   root to add the stylesheets to.
-	 * @param {(CSSStyleSheet | string)[]} styleSheets - Array of
-	 *   stylesheets or stylesheet URLs to add.
-	 */
-	function addStyleSheets(document, styleSheets = []) {
-	  for (const sheet of styleSheets) {
-	    if (sheet) {
-	      sheet instanceof CSSStyleSheet$1 ? addAdoptedStyleSheet(document, sheet) : addStyleSheetExternal(document, sheet);
-	    }
-	  }
-	}
-
-	/**
-	 * Adds the stylesheet from urls. It uses a cache, to avoid having to
-	 * fire a request for each external sheet when used in more than one
-	 * custom element. Also, all reference the same object.
-	 *
-	 * @param {Document | ShadowRoot} document
-	 * @param {string} text
-	 */
-	const addStyleSheetExternal = withState((state, document, text) => {
-	  state.get(text, text => text.startsWith('http') ? fetch(text).then(r => r.text()).then(css => sheet(css)) : promise(resolve => resolve(sheet(text)))).then(styleSheet => addAdoptedStyleSheet(document, styleSheet));
-	});
 
 	/**
 	 * The purpose of this file is to guarantee the timing of some
@@ -3307,120 +3239,6 @@
 	}
 
 	/**
-	 * @template {Event} T
-	 * @param {T} e
-	 */
-	const preventDefault = e => e.preventDefault();
-
-	/**
-	 * @param {Element | typeof globalThis} node
-	 * @param {string} eventName
-	 * @param {CustomEventInit} [data]
-	 */
-
-	const emit = (node, eventName, data = {}) => {
-	  ['bubbles', 'cancelable', 'composed'].forEach(item => {
-	    if (!(item in data)) {
-	      data[item] = true;
-	    }
-	  });
-	  node.dispatchEvent(new CustomEvent(eventName, data));
-	};
-
-	/**
-	 * Defines a custom Element (if isnt defined already)
-	 *
-	 * @param {string} name - Name for the custom element
-	 * @param {CustomElementConstructor} constructor - Class for the
-	 *   custom element
-	 * @param {ElementDefinitionOptions} [options] - Options passed to
-	 *   `customElements.define`
-	 */
-	function customElement(name, constructor, options) {
-	  if (customElements.get(name) === undefined) {
-	    customElements.define(name, constructor, options);
-	  }
-	}
-	class CustomElement extends HTMLElement {
-	  /**
-	   * Static base stylesheets for the custom element.
-	   *
-	   * @type {(CSSStyleSheet | string)[]}
-	   */
-	  static baseStyleSheets = [];
-
-	  /**
-	   * Static additional stylesheets for the custom element.
-	   *
-	   * @type {(CSSStyleSheet | string)[]}
-	   */
-	  static styleSheets = [];
-	  constructor() {
-	    super();
-	    const shadowRoot = this.attachShadow({
-	      mode: 'open'
-	    });
-
-	    // this is needed because `baseStyleSheets/styleSheets` are `static`
-	    const constructor = /** @type {typeof CustomElement} */
-	    this.constructor;
-	    addStyleSheets(shadowRoot, constructor.baseStyleSheets);
-	    addStyleSheets(shadowRoot, constructor.styleSheets);
-	  }
-
-	  /* DOM API */
-
-	  /**
-	   * Shortcut for querySelector
-	   *
-	   * @param {string} query
-	   */
-	  query(query) {
-	    return querySelector(this, query);
-	  }
-	  /**
-	   * Shortcut for this.shadowRoot.innerHTML
-	   *
-	   * @param {string | Component} value
-	   */
-	  set html(value) {
-	    if (isString(value)) {
-	      this.shadowRoot.innerHTML = value;
-	    } else {
-	      this.shadowRoot.replaceChildren(toHTMLFragment(Component(value || 'slot')));
-	    }
-	  }
-
-	  /**
-	   * Toggles attribute `hidden`
-	   *
-	   * @param {boolean} value
-	   */
-	  set hidden(value) {
-	    value ? setAttribute$1(this, 'hidden', '') : removeAttribute(this, 'hidden');
-	  }
-
-	  /* EVENTS API */
-
-	  /**
-	   * Emits an event
-	   *
-	   * @param {string} eventName
-	   * @param {any} [data]
-	   */
-	  emit(eventName, data) {
-	    emit(this, eventName, data);
-	  }
-
-	  /* SLOTS API */
-
-	  /** @param {string} name */
-	  hasSlot(name) {
-	    return this.query(`:scope [slot="${name}"]`);
-	  }
-	}
-
-	/**
 	 * Similar to `Show`, but doesn't remove its children from the
 	 * document
 	 *
@@ -3431,32 +3249,11 @@
 	 * @url https://pota.quack.uy/Components/Collapse
 	 */
 	const Collapse = props => {
-	  // need to include the class here because else its not treeshaked
-
-	  class CollapseElement extends CustomElement {
-	    static styleSheets = [css`
-				:host {
-					display: contents;
-				}
-			`];
-
-	    /** @param {any} value - To toggle children */
-	    set when(value) {
-	      this.html = value ? '<slot/>' : this.fb || '';
-	    }
-	    /** @param {any} fallback - To toggle children */
-	    set fallback(fallback) {
-	      // TODO make this reactive
-	      this.fb = fallback;
-	    }
-	  }
-	  const name = 'pota-collapse';
-	  customElement(name, CollapseElement);
-	  return Component(name, {
-	    'prop:when': props.when,
-	    'prop:fallback': props.fallback,
+	  const visible = () => !!getValue(props.when);
+	  return [Component('div', {
+	    'style:display': () => visible() ? 'contents' : 'none',
 	    children: props.children
-	  });
+	  }), () => visible() ? undefined : props.fallback];
 	};
 
 	/**
@@ -5123,6 +4920,12 @@
 	  };
 	}
 	const useRoute = context(create(nothing));
+
+	/**
+	 * @template {Event} T
+	 * @param {T} e
+	 */
+	const preventDefault = e => e.preventDefault();
 
 	// window.location signal
 

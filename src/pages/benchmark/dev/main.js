@@ -1,7 +1,7 @@
 (function () {
 	'use strict';
 
-	const version = '0.20.229';
+	const version = '0.20.230';
 
 	const window = globalThis;
 	const queueMicrotask = window.queueMicrotask;
