@@ -10,17 +10,17 @@
 		ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas,
 		'Liberation Mono', monospace;*/
 	font-size: 17px;
-	min-height: 40px;
+	min-height: 38px;
 	flex: 0 0 auto;
 	width: 100%;
+	padding-left: 9px;
 }
 
 .tab {
 	display: inline-flex;
 	align-items: center;
 	gap: 4px;
-	padding: 4px 6px 4px 10px;
-	border-radius: 6px 6px 0 0;
+	padding: 4px 6px 4px 12px;
 	background: #0d1117;
 	color: #a6b8c6;
 	cursor: pointer;
@@ -78,7 +78,6 @@
 	padding: 0 6px;
 	font-size: 14px;
 	line-height: 1;
-	border-radius: 3px;
 	margin-left: 4px;
 }
 .close:hover {
@@ -91,7 +90,6 @@
 	background: transparent;
 	border: 1px dashed rgba(186, 225, 255, 0.2);
 	color: #a6b8c6;
-	border-radius: 6px 6px 0 0;
 	padding: 4px 10px;
 	cursor: pointer;
 	font-size: 14px;
