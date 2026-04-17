@@ -41,8 +41,10 @@ export default function () {
 						</tr>
 						<tr>
 							<td>parent?</td>
-							<td>Element [document.body]</td>
-							<td>target node where to render</td>
+							<td>Element</td>
+							<td>
+								target node (default: <mark>document.body</mark>)
+							</td>
 						</tr>
 						<tr>
 							<td>options?</td>

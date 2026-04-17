@@ -19,12 +19,57 @@ export default function () {
 				</p>
 			</Section>
 
+			<Section title="customElement (factory)">
+				<p>
+					<mark>customElement(name, constructor, options?)</mark>{' '}
+					registers a custom element with{' '}
+					<mark>customElements.define</mark>, but only if the tag
+					name has not been defined yet. This makes it safe to call
+					from modules that may be imported more than once (hot
+					reload, multiple entry points) without throwing a{' '}
+					<mark>NotSupportedError</mark>.
+				</p>
+				<table>
+					<thead>
+						<tr>
+							<th>name</th>
+							<th>type</th>
+							<th>description</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>name</td>
+							<td>string</td>
+							<td>tag name — must contain a hyphen</td>
+						</tr>
+						<tr>
+							<td>constructor</td>
+							<td>CustomElementConstructor</td>
+							<td>
+								class extending <mark>HTMLElement</mark> (or{' '}
+								<mark>CustomElement</mark> from{' '}
+								<mark>pota/components</mark>)
+							</td>
+						</tr>
+						<tr>
+							<td>options?</td>
+							<td>ElementDefinitionOptions</td>
+							<td>
+								forwarded to <mark>customElements.define</mark>{' '}
+								(for example <mark>{'{ extends: "button" }'}</mark>
+								)
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</Section>
+
 			<Section title="CustomElement Class">
 				<p>
 					The <mark>CustomElement</mark> Class provides an API for
-					common needed things on Custom Elements. Its was developed
-					to be used on the{' '}
-					<a href="/Components/Library/">Components Library</a>.
+					common needed things on Custom Elements. It was developed
+					to be used as a base class for a pota components library.
 				</p>
 
 				<p>
@@ -36,15 +81,17 @@ export default function () {
 
 				<Code
 					code={`
-import {CustomElement, customElement, css, render} from 'pota'
+import { render } from 'pota'
+import { CustomElement, customElement } from 'pota/components'
+import { css } from 'pota/use/css'
 
-class MyElement extends CustomElement{
-	static styleSheets = [css\`:host{ color:aqua; }\`]
+class MyElement extends CustomElement {
+	static styleSheets = [css\`:host { color: aqua; }\`]
 
-	constructor(){
+	constructor() {
 		super()
 		this.html = 'hello <b><slot/></b>!'
-		setTimeout(()=>{
+		setTimeout(() => {
 			this.html = <b>JSX Component takes over!</b>
 		}, 2000)
 	}
@@ -52,9 +99,7 @@ class MyElement extends CustomElement{
 
 customElement('hello-world', MyElement)
 
-	render(<hello-world>World</hello-world>)
-
-
+render(<hello-world>World</hello-world>)
 				`}
 				>
 					You may click re-run to see it in action

@@ -6,11 +6,12 @@ export default function () {
 	return (
 		<>
 			<Header title="useSelector">
-				Selector is a helper to create a conditional read-only signal.
-				A signal generator. It returns a function that evaluates to{' '}
-				<mark>true</mark> when the argument matches the original
-				signal. The thing to remember, is that creates 1 effect
-				instead of N effects for N values.
+				Builds a signal generator from a source signal. The returned
+				function, called with a value, yields a read-only signal
+				that's <mark>true</mark> when the source currently matches
+				that value. The key property: this uses a single effect for
+				every value — not one effect per value — so it scales to
+				long lists of items checking against a single selection.
 			</Header>
 
 			<Section title="Using selector">

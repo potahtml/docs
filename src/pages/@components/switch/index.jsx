@@ -7,9 +7,20 @@ export default function () {
 	return (
 		<>
 			<Header title={<Tag>Switch ...</Tag>}>
-				Shows the first <mark>Match</mark> that matches or a fallback
-				in case of no match
+				Renders the first <mark>&lt;Match/&gt;</mark> child whose{' '}
+				<mark>when</mark> is truthy. If none match, renders{' '}
+				<mark>fallback</mark> — or, if no explicit{' '}
+				<mark>fallback</mark> prop is set, a nested{' '}
+				<mark>&lt;Match/&gt;</mark> with no <mark>when</mark> acts
+				as the default branch.
 			</Header>
+
+			<p>
+				If the child of the matching <mark>&lt;Match/&gt;</mark> is
+				a function, it receives a signal carrying the current{' '}
+				<mark>when</mark> value — the same callback pattern as{' '}
+				<a href="/Components/Show">Show</a>.
+			</p>
 
 			<Section title="Switch Attributes">
 				<table>

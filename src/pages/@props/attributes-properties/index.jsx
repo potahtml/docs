@@ -7,14 +7,20 @@ export default function () {
 	return (
 		<>
 			<Header title="attributes / properties">
-				Describes behavior with attributes and properties.
+				How pota decides whether an unnamespaced prop writes to an
+				attribute or a property, and the conventions that fall out
+				of it.
 			</Header>
 
 			<Section title="Attributes vs Properties">
 				<p>
-					pota defaults to attributes since <mark>v0.18.184</mark>.
-					Namespace <mark>prop:</mark> can be used when in need for
-					setting a property.
+					Since <mark>v0.18.184</mark>, pota defaults to setting
+					<em> attributes</em>. Use the <mark>prop:</mark>{' '}
+					namespace to force a property assignment — typical
+					cases: <mark>value</mark> and <mark>checked</mark> on
+					form inputs, <mark>srcObject</mark> on media,{' '}
+					<mark>innerHTML</mark>, or any custom-element property
+					that expects a non-string value.
 				</p>
 
 				<p>
@@ -26,37 +32,45 @@ export default function () {
 			</Section>
 
 			<Section title="Deleting">
-				<p>
-					On a <mark>property</mark>, deleting means setting the value
-					to <mark>null</mark> when the passed value is{' '}
-					<mark>null</mark> or <mark>undefined</mark>.
-				</p>
-				<p>
-					On an <mark>attribute</mark>, deleting means removing the
-					attribute when the passed value is <mark>false</mark> ,{' '}
-					<mark>null</mark> or <mark>undefined</mark>.
-				</p>
+				<ul>
+					<li>
+						<b>property</b> (<mark>prop:*</mark>): assigning{' '}
+						<mark>null</mark> or <mark>undefined</mark> sets the
+						property to <mark>null</mark>.
+					</li>
+					<li>
+						<b>attribute</b> (default): passing <mark>false</mark>,{' '}
+						<mark>null</mark> or <mark>undefined</mark> removes
+						the attribute. <mark>true</mark> sets it to the empty
+						string.
+					</li>
+				</ul>
 			</Section>
 
 			<Section title="Children">
 				<p>
-					<mark>children</mark> as an attribute will be used as long
-					as the node on where it's defined doesn't have any{' '}
-					<mark>childNodes</mark>.
+					Passing <mark>children</mark> as a prop is only honoured
+					when the element has no explicit child nodes in JSX. If
+					both are set, the explicit <mark>childNodes</mark> win
+					and the <mark>children</mark> prop is ignored.
 				</p>
 			</Section>
 
 			<Section title="xmlns">
 				<p>
-					The <mark>xmlns</mark> attribute is copied to children.
-					Which means it supports by default most kinds if not all
-					xmls: SVG, MathML, with its fancy namespaces.
+					The <mark>xmlns</mark> attribute is inherited by
+					children, so SVG, MathML, and other XML dialects work
+					out of the box with their own namespaces — no special
+					wrapper needed.
 				</p>
 			</Section>
 
 			<Section title="Events">
 				<p>
-					Events such <mark>on:__</mark> are case sensitive
+					Event names in <mark>on:*</mark> are case-sensitive —{' '}
+					<mark>on:click</mark> and <mark>on:Click</mark> bind
+					different events. This matches how custom events are
+					typically named.
 				</p>
 			</Section>
 

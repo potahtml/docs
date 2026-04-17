@@ -6,9 +6,11 @@ export default function () {
 	return (
 		<>
 			<Header title="use:fullscreen">
-				<mark>use:fullscreen</mark> can fullscreen the element on
-				which the prop was added or an arbitraty element given as
-				value
+				Click handler that toggles fullscreen. With no value, the
+				element the prop is on goes fullscreen. Pass an element, a
+				selector, or a function returning one to target something
+				else (e.g. a button that fullscreens a nearby{' '}
+				<mark>&lt;video&gt;</mark>).
 			</Header>
 
 			<Section title="Snippet">

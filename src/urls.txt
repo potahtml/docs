@@ -59,7 +59,6 @@
 /node_modules/pota/src/use/location.js
 /node_modules/pota/src/use/orientation.js
 /node_modules/pota/src/use/paginate.js
-/node_modules/pota/src/use/polyfills.js
 /node_modules/pota/src/use/random.js
 /node_modules/pota/src/use/scroll.js
 /node_modules/pota/src/use/selector.js

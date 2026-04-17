@@ -6,14 +6,18 @@ export default function () {
 	return (
 		<>
 			<Header title="memo">
-				A regular memo will run right away after the definition. Memos
-				in pota are lazy, it holds the execution till it is used. If
-				the resulting lazy memo is not used, then the function will
-				never run. It used to use a version writen by{' '}
-				<a href="https://github.com/fabiospampinato">Fabio</a> but has
-				been changed to create a <mark>STALE</mark> memo instead that
-				starts executing after called.
+				Read-only signal whose value is the return of{' '}
+				<mark>fn</mark>, recomputed when any signal it reads
+				changes. Memos in pota are <em>lazy</em>: the function
+				doesn't run until the memo is read the first time. If it
+				is never read, it never runs.
 			</Header>
+
+			<p>
+				Use <mark>memo</mark> to cache derived work and share it
+				with multiple consumers — they all see the same value
+				without re-running <mark>fn</mark>.
+			</p>
 
 			<Section title="Arguments">
 				<table>
@@ -27,20 +31,23 @@ export default function () {
 					<tbody>
 						<tr>
 							<td>fn</td>
-							<td>fn</td>
-							<td>function to memo</td>
+							<td>() {'=>'} T</td>
+							<td>function to memoise</td>
 						</tr>
-					</tbody>
-					<tbody>
 						<tr>
 							<td>options?</td>
-							<td>{`{{equals?: false | ((prev: unknown, next: unknown) => boolean)}}`}</td>
-							<td>memo options</td>
+							<td>{`{ equals?: false | ((prev, next) => boolean) }`}</td>
+							<td>
+								<mark>equals: false</mark> notifies on every
+								recomputation; a comparator lets you control when
+								dependents re-run
+							</td>
 						</tr>
 					</tbody>
 				</table>
 				<p>
-					<b>Return Value:</b> Function
+					<b>Returns:</b> a read-only signal — call it to read the
+					current value.
 				</p>
 			</Section>
 

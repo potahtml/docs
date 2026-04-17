@@ -14,8 +14,11 @@ export default function () {
 
 			<Section title="Using useTimeout">
 				<p>
-					Automatically create signals for the values and returns true
-					when the value matches
+					<mark>start()</mark> schedules the callback;{' '}
+					<mark>stop()</mark> cancels it. When <mark>delay</mark>{' '}
+					is a signal, writing to it restarts the pending timeout
+					automatically. The timeout also cancels itself when the
+					owning scope is disposed.
 				</p>
 				<Code url="/pages/@use/time/snippet.jsx"></Code>
 			</Section>

@@ -6,9 +6,14 @@ export default function () {
 	return (
 		<>
 			<Header title="on:__">
-				<mark>on:__</mark> is for native and custom events such{' '}
-				<mark>on:click</mark>. Events <b>are</b> case-sensitive. It
-				also accepts arrays of handlers.
+				Attaches a native or custom event listener. The part after{' '}
+				<mark>on:</mark> is the event name and is{' '}
+				<strong>case-sensitive</strong> (<mark>on:click</mark> and{' '}
+				<mark>on:Click</mark> listen to different events). The
+				value can be a function, an object with{' '}
+				<mark>{'{ handleEvent, once?, passive?, capture? }'}</mark>
+				, or an array of either to register multiple handlers on
+				the same event.
 			</Header>
 
 			<Section title="Using Native Events">

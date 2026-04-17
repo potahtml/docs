@@ -12,9 +12,10 @@ export default function () {
 					<a href="https://github.com/trusktr">@trusktr</a>
 				</p>
 				<p>
-					Unlike <mark>HTML</mark>, attributes, tags and components{' '}
-					<u>are case sensitive</u>. The <mark>xml</mark> function
-					matches the use of <mark>JSX</mark>.
+					Unlike the browser HTML parser, attributes, tags and
+					components are <u>case sensitive</u>. The{' '}
+					<mark>xml</mark> function matches the use of{' '}
+					<mark>JSX</mark>.
 				</p>
 			</Header>
 
@@ -33,11 +34,14 @@ export default function () {
 
  						const test = xml\`<div>div contents</div>\`
 
-						render(typeof test === 'function')
+						// test is a function (a component). Pota renders it like any other:
  						render(test)
 					`}
 				>
-					Used to return a real element, but not anymore.
+					<mark>xml</mark> used to return a concrete element; it
+					now returns a function (a component), so it composes
+					with <mark>render</mark>, <mark>Show</mark>,{' '}
+					<mark>Suspense</mark> and friends.
 				</Code>
 			</Section>
 
@@ -79,7 +83,7 @@ export default function () {
  					`}
 				>
 					To not pollute the registry one may import <mark>XML</mark>{' '}
-					and create a an instance of <mark>xml</mark> that its local
+					and create an instance of <mark>xml</mark> that is local
 					to the file
 				</Code>
 			</Section>
@@ -96,9 +100,14 @@ export default function () {
 						render(test)
  					`}
 				>
-					Predefined components are: <mark>Collapse</mark>,{' '}
-					<mark>Dynamic</mark>, <mark>For</mark>, <mark>Head</mark>,{' '}
-					<mark>Portal</mark>, <mark>Show</mark>, <mark>Switch</mark>
+					Predefined components: <mark>A</mark>,{' '}
+					<mark>Collapse</mark>, <mark>Dynamic</mark>,{' '}
+					<mark>Errored</mark>, <mark>For</mark>, <mark>Head</mark>,{' '}
+					<mark>Match</mark>, <mark>Navigate</mark>,{' '}
+					<mark>Normalize</mark>, <mark>Portal</mark>,{' '}
+					<mark>Range</mark>, <mark>Route</mark>, <mark>Show</mark>,{' '}
+					<mark>Suspense</mark>, <mark>Switch</mark>,{' '}
+					<mark>Tabs</mark>.
 				</Code>
 			</Section>
 
@@ -106,7 +115,7 @@ export default function () {
 				<ol>
 					<li>
 						<mark>children</mark> as an attribute will be used as long
-						as the node doesnt have any <mark>childNodes</mark> (just
+						as the node doesn't have any <mark>childNodes</mark> (just
 						like in JSX). It must be totally empty, or else the
 						children attribute will be ignored
 					</li>
@@ -136,7 +145,7 @@ export default function () {
 				<p>Making a reactive tagged template that uses JSX</p>
 				<Code url="/pages/xml/jsx.jsx"></Code>
 			</Section>
-			<Section title="Custom Component">
+			<Section title="Custom Element — Basic">
 				<p>Making a custom component</p>
 				<Code url="/pages/xml/custom-element.jsx"></Code>
 			</Section>
@@ -158,15 +167,15 @@ export default function () {
 				<p>One calling the other</p>
 				<Code url="/pages/xml/custom-element-functions.jsx"></Code>
 			</Section>
-			<Section title="Custom Element">
-				<p>When is called the custom element constructor?</p>
+			<Section title="Custom Element — Constructor Timing">
+				<p>When is the custom element constructor called?</p>
 				<Code url="/pages/xml/custom-element-constructor.jsx"></Code>
 			</Section>
 			<Section title="Context">
 				<p>Display context value while nested</p>
 				<Code url="/pages/xml/context.jsx"></Code>
 			</Section>
-			<Section title="Custom Element">
+			<Section title="Custom Element — Tracking">
 				<p>Custom Element Tracking Test</p>
 				<Code url="/pages/xml/custom-element-track.jsx"></Code>
 			</Section>

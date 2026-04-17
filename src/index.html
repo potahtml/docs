@@ -86,12 +86,25 @@
 			href="/responsive.css"
 		/>
 
+		<!-- babel -->
+		<script>
+			globalThis.process = { env: { NODE_ENV: 'development' } }
+		</script>
+		<script src="/node_modules/pota/generated/babel-preset-standalone.js"></script>
+
 		<!-- monaco -->
 		<script>
-			globalThis.require = {
-				paths: {
-					vs: `https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.46.0/min/vs`,
-				},
+			const paths = {
+				vs: `https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.46.0/min/vs`,
+			}
+			if (globalThis.require) {
+				if (globalThis.require.paths) {
+					globalThis.require.paths.vs = paths.vs
+				} else {
+					globalThis.require.paths = paths
+				}
+			} else {
+				globalThis.require = { paths }
 			}
 		</script>
 		<script
@@ -106,12 +119,7 @@
 			crossorigin="anonymous"
 			src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.46.0/min/vs/editor/editor.main.js"
 		></script>
-		<!-- <link
-			rel="stylesheet"
-			data-name="vs/editor/editor.main"
-			crossorigin="anonymous"
-			href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.46.0/min/vs/editor/editor.main.min.css"
-		/> -->
+
 		<!-- prettier -->
 		<script
 			crossorigin="anonymous"
@@ -125,7 +133,7 @@
 			globalThis.prettierPluginEstree = prettierPluginEstree
 		</script>
 
-		<!-- pota -->
+		<!-- pota docs -->
 		<script
 			type="module"
 			src="/dist/multi-entry.js"

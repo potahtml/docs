@@ -26,7 +26,7 @@ const mkdir = dir => {
 export function pre() {
 	{
 		const importmap = JSON.parse(
-			read('./node_modules/pota/src/release/importmap.json'),
+			read('./node_modules/pota/generated/docs/importmap.json'),
 		)
 		importmap.imports['x/articles/'] = '/pages/@articles/'
 

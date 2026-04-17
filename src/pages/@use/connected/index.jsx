@@ -6,22 +6,24 @@ export default function () {
 	return (
 		<>
 			<Header title="use:connected">
-				<mark>use:connected</mark> is for Elements that need to run
-				some initialization after these have been connected to the
-				document. Is available exclusively to Elements via an
-				attribute. It also accepts arrays.
+				Element attribute that runs its callback once the element
+				is connected to the document. Available only as an
+				attribute on elements (not as a standalone lifecycle —
+				that's <a href="/ready">ready</a>). Accepts a single
+				callback or an array of callbacks.
 			</Header>
 
 			<p>
-				As of this writing, the <mark>use:connected</mark> callbacks,
-				will run after the current batch of Nodes have been inserted
-				into the document, before paint, in recursive order, and
-				before the <mark>ready</mark> callbacks.
+				<mark>use:connected</mark> callbacks run after the current
+				batch of nodes has been inserted into the document, before
+				paint, in recursive order, and before the{' '}
+				<mark>ready</mark> callbacks.
 			</p>
 
 			<p>
-				It is recomended to pass to this API a signal if any work with
-				it will be done in parallel to avoid race-conditions.
+				If work scheduled from the callback runs in parallel with
+				other reactive updates, pass the callback a signal so the
+				value stays in sync and you avoid race conditions.
 			</p>
 
 			<Section title="Arguments">

@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
     "outDir": "./dist",
+    "noEmit": true,
 
     "allowJs": true,
     "checkJs": true,
@@ -14,13 +14,10 @@
     "target": "ESNext",
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "moduleResolution": "NodeNext",
-    "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
 
     "jsx": "preserve",
     "jsxImportSource": "pota",
-
-    "sourceMap": true,
 
     "types": [
       "pota",
@@ -30,5 +27,11 @@
       "@types/css-modules"
     ]
   },
-  "exclude": ["./src/dist/*", "node_modules"]
+  "exclude": [
+    "./src/dist/*",
+    "./src/pages/benchmark/*",
+    "./src/pages/@articles/anatomy/*",
+    "./src/pages/tests/mutable*",
+    "node_modules"
+  ]
 }

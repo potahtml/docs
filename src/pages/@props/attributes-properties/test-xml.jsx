@@ -83,7 +83,7 @@ function App() {
       </fancy:svg>
       <hr />
       <hr />
-      Foreing object html {'-> xml -> html'}
+      Foreign object HTML {'-> XML -> HTML'}
       <svg
         viewBox="0 0 200 200"
         xmlns="http://www.w3.org/2000/svg"

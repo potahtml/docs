@@ -6,9 +6,12 @@ export default function () {
 	return (
 		<>
 			<Header title="use:disconnected">
-				<mark>use:disconnected</mark> is for Elements that need to run
-				some cleanup tasks before these are removed from the document.
-				It also accepts arrays.
+				Element attribute that runs its callback just before the
+				element is removed from the document. Useful for tearing
+				down non-reactive subscriptions tied to the live DOM — for
+				reactive-scope teardown, prefer{' '}
+				<a href="/cleanup">cleanup</a>. Accepts a single callback
+				or an array of callbacks.
 			</Header>
 
 			<Section title="Arguments">

@@ -26,10 +26,11 @@ export default function () {
 				}
 			>
 				<p>
-					Used to navigate or change the location.{' '}
-					<Tag mark={true}>Navigate</Tag> tag is just the same as{' '}
-					<mark>navigate</mark> function exported as a component for
-					convenience.
+					<mark>navigate(href, options?)</mark> changes the current
+					location programmatically.{' '}
+					<Tag mark={true}>Navigate</Tag> is a JSX wrapper around
+					the same function, for when you want to redirect
+					declaratively from inside a route.
 				</p>
 			</Section>
 
@@ -47,7 +48,7 @@ export default function () {
 							<td>href</td>
 							<td>url</td>
 							<td>
-								When the <mark>href</mark> is not absolute (thats it
+								When the <mark>href</mark> is not absolute (i.e.
 								starting with <mark>/</mark>, <mark>#</mark> or{' '}
 								<mark>http</mark>) it will navigate relative to{' '}
 								<mark>window.location.href</mark>.
@@ -67,8 +68,8 @@ export default function () {
 								<mark>/some/vari%C3%A9t%C3%A9/touch%C3%A9</mark>. Same
 								with the function version,{' '}
 								<mark>
-									navigate("/some/:cat/:page", {'{'}params: cat:
-									'variété', page: 'touché' {'}'})
+									navigate("/some/:cat/:page", {'{'} params: {'{'}{' '}
+									cat: 'variété', page: 'touché' {'}'} {'}'})
 								</mark>
 							</td>
 						</tr>
@@ -178,7 +179,7 @@ export default function () {
 							</td>
 							<td>
 								A key-value pairs object with URI decoded values of{' '}
-								<mark>searchParams</mark>, such:{' '}
+								<mark>searchParams</mark>, such as:{' '}
 								<mark>
 									{'{'}search:'variété'{'}'}
 								</mark>
@@ -191,7 +192,7 @@ export default function () {
 							</td>
 							<td>
 								A key-value pairs object with URI decoded values of{' '}
-								Route <mark>params</mark>, such:{' '}
+								Route <mark>params</mark>, such as:{' '}
 								<mark>
 									{'{'}page:'variété'{'}'}
 								</mark>
@@ -211,9 +212,14 @@ export default function () {
 
 			<Section title="useBeforeLeave">
 				<p>
-					Used to run code before leaving the route. To prevent
-					leaving the route, return false. It also works with async
-					functions.
+					Register a callback to run whenever the user tries to
+					leave the current route. The callback can be sync or
+					async; if it returns (or resolves to) <mark>false</mark>,
+					navigation is cancelled. Rejecting a returned promise
+					counts as <mark>false</mark>. Call{' '}
+					<mark>useBeforeLeave</mark> from within a route's
+					rendering — the guard is automatically cleared once the
+					user navigates to a location outside the route's path.
 				</p>
 			</Section>
 
@@ -229,12 +235,11 @@ export default function () {
 					<tbody>
 						<tr>
 							<td>fn</td>
-							<td>fn</td>
+							<td>() {'=>'} boolean | Promise&lt;boolean&gt;</td>
 							<td>
-								async or sync function that when returns false it
-								prevents the navigation. The async function could
-								resolve to <mark>false</mark> or just{' '}
-								<mark>reject</mark>
+								returning (or resolving to) <mark>false</mark>{' '}
+								cancels the navigation. A rejected promise is
+								treated as <mark>false</mark>.
 							</td>
 						</tr>
 					</tbody>

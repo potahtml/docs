@@ -6,13 +6,21 @@ export default function () {
 	return (
 		<>
 			<Header title="map">
-				Reactive helper that runs a callback only on new or modified
-				entries. The problem of doing{' '}
-				<mark>{'{array.map(item => <li>{item}</li>)}'}</mark>
-				is that is doesnt react when the array is modified (items
-				added/modified/deleted), as that would require to recreate the
-				whole array. For this reason <mark>map</mark> exists.
+				Reactive equivalent of <mark>array.map</mark>. Runs the
+				callback only for added, removed or changed entries —
+				existing rows keep their state instead of being recreated
+				on every change. Powers <mark>&lt;For/&gt;</mark> and works
+				with arrays, sets and maps.
 			</Header>
+
+			<p>
+				Plain{' '}
+				<mark>{'array.map(item => <li>{item}</li>)'}</mark> can't
+				react to mutations without rebuilding every row from
+				scratch, losing focus, DOM state, and any work the row
+				performed. <mark>map</mark> avoids that by keying rows by
+				identity and reusing them across updates.
+			</p>
 
 			<Section title="Arguments">
 				<table>
@@ -26,13 +34,37 @@ export default function () {
 					<tbody>
 						<tr>
 							<td>items</td>
-							<td>signal/iterable object </td>
-							<td>a signal whose value is iterable</td>
+							<td>iterable | () {'=>'} iterable</td>
+							<td>
+								array, Set, Map, or a signal returning one of the
+								above
+							</td>
 						</tr>
 						<tr>
 							<td>callback</td>
-							<td>fn</td>
-							<td>callback to run on each item</td>
+							<td>(item, index) {'=>'} JSX.Element</td>
+							<td>runs once per row; its return value is rendered</td>
+						</tr>
+						<tr>
+							<td>noSort?</td>
+							<td>boolean</td>
+							<td>
+								when <mark>true</mark>, reordering the input does
+								not reorder the DOM
+							</td>
+						</tr>
+						<tr>
+							<td>fallback?</td>
+							<td>any</td>
+							<td>rendered when the input is empty</td>
+						</tr>
+						<tr>
+							<td>reactiveIndex?</td>
+							<td>boolean</td>
+							<td>
+								when <mark>true</mark>, <mark>index</mark> is a
+								signal instead of a number
+							</td>
 						</tr>
 					</tbody>
 				</table>

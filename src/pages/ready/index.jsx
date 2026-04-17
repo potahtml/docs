@@ -11,11 +11,11 @@ export default function () {
 			</Header>
 
 			<p>
-				The <mark>ready</mark> callbacks, will run once the current
-				processing batch is done. That's it, after the full queue of{' '}
+				A <mark>ready</mark> callback runs once the current
+				processing batch is done — i.e. after the full queue of{' '}
 				<mark>connected</mark> callbacks has been processed, and
-				before painting. Relevant Elements that render something
-				should be already connected to the document.
+				before the next paint. By then, the elements produced by
+				the scope should already be connected to the document.
 			</p>
 
 			<Section title="Arguments">

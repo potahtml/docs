@@ -6,13 +6,16 @@ export default function () {
 	return (
 		<>
 			<Header title="Classes">
-				If for some reason make sense to use a component class, you
-				may do so by extending <mark>Pota</mark>
+				If a component class fits your use case, extend{' '}
+				<mark>Pota</mark> and render the class as you would any
+				component.
 			</Header>
 
 			<p>
-				A class, automatically registers the methods{' '}
-				<mark>ready</mark> and <mark>cleanup</mark>
+				If the subclass defines a <mark>ready()</mark> or{' '}
+				<mark>cleanup()</mark> method, pota calls them at the
+				matching lifecycle points — you don't need to register them
+				manually.
 			</p>
 
 			<Section title="Example">

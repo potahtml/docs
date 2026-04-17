@@ -27,14 +27,19 @@ export default function () {
 							<td>when</td>
 							<td>any</td>
 							<td>
-								once <mark>when</mark> becomes truthy, it will show
-								its children
+								once <mark>when</mark> becomes truthy, the children
+								are shown. When it becomes falsy they are hidden
+								but stay mounted, so iframes, canvases, video and
+								audio keep their state.
 							</td>
 						</tr>
 						<tr>
 							<td>fallback</td>
 							<td>any</td>
-							<td>when `falsy` a fallback could be displayed</td>
+							<td>
+								rendered in place of the children while{' '}
+								<mark>when</mark> is falsy
+							</td>
 						</tr>
 					</tbody>
 				</table>

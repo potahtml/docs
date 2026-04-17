@@ -80,7 +80,7 @@ export default function () {
 							<td>any</td>
 							<td>
 								fallback for when a `when` condition is set. if the
-								`when` condition is not set, this wont be used.
+								`when` condition is not set, this won't be used.
 							</td>
 						</tr>
 						<tr>
@@ -118,8 +118,9 @@ export default function () {
 			<Section title="Collapse">
 				<p>
 					<mark>Collapse</mark> hides a route instead of unmounting
-					it, so it avoids a re render and could be helpful to keep
-					state of iframes, canvas, video, audio or anything
+					it, so it avoids a re-render and is useful for keeping
+					the state of iframes, canvas, video, audio, or anything
+					else that would lose state on remount
 				</p>
 				<Code url="/pages/@components/route/route/collapse.jsx"></Code>
 			</Section>

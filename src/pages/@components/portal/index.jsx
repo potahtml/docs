@@ -7,16 +7,18 @@ export default function () {
 	return (
 		<>
 			<Header title={<Tag>Portal ...</Tag>}>
-				Portal inserts its children into a different part of the
-				document. It does so without using a wrapper. For portaling
-				children to <mark>document.head</mark> see{' '}
-				<Tag mark={true}>Head</Tag> component instead
+				Inserts its children into a different element while keeping
+				them inside the current reactive scope — no wrapper node is
+				added. For portaling into <mark>document.head</mark>, prefer{' '}
+				<Tag mark={true}>Head</Tag>, which also deduplicates{' '}
+				<mark>title</mark> / <mark>meta</mark> /{' '}
+				<mark>rel=canonical</mark>.
 			</Header>
 
 			<p>
-				Behind the scenes it use <mark>render</mark>, so in case the
-				container to which we portaled is removed from the document,
-				then the <mark>portal</mark> is disposed.
+				Portaled content is rendered via <mark>insert</mark> and is
+				owned by the surrounding component: if that component is
+				disposed, the portaled nodes are removed too.
 			</p>
 			<Section title="Attributes">
 				<table>

@@ -7,11 +7,12 @@ export default function () {
 	return (
 		<>
 			<Header title={<Tag>Show ...</Tag>}>
-				Renders its children based on a condition. For the condition
-				to be reactive it needs to be function. The{' '}
-				<mark>callback</mark> will receive a <mark>signal</mark> for
-				in case it keeps being <mark>truthy</mark> you can update
-				accordly.
+				Renders its children when <mark>when</mark> is truthy.
+				For reactivity, pass <mark>when</mark> as a function —
+				static values short-circuit and never re-evaluate. If{' '}
+				<mark>children</mark> is a callback, it receives a signal
+				that carries the current truthy value, so you can keep
+				reading fresh values without tearing down the tree.
 			</Header>
 
 			<Section title="Attributes">
@@ -60,7 +61,7 @@ export default function () {
 				<p>Test using a signal and also the signal value</p>
 
 				<Code url="/pages/@components/show/reactive.jsx">
-					The signal thats being called wont be reactive because
+					The signal that's being called won't be reactive because
 					instead of passing to <mark>when</mark> a function we are
 					passing the signal value which is a boolean
 				</Code>
@@ -91,7 +92,7 @@ export default function () {
 				</p>
 				<Code url="/pages/@components/show/fallback.jsx">
 					Fallbacks use <mark>memo</mark> which are lazy, so these
-					dont need to use the children helper
+					don't need to use the children helper
 				</Code>
 			</Section>
 
@@ -109,7 +110,7 @@ export default function () {
 			</Section>
 
 			<Section title="Callbacks">
-				<p>Children are arrays, so the callbacks could be anywhere</p>
+				<p>Children are arrays, so the callbacks can be placed anywhere</p>
 				<Code url="/pages/@components/show/callbacks.jsx">
 					The third callback needs to return a function for it to be
 					reactive

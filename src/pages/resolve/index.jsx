@@ -6,29 +6,34 @@ export default function () {
 	return (
 		<>
 			<Header title="resolve">
-				Utility to resolve <mark>props.children</mark>. It returns a
-				memo. This utility helps to unwrap the functions contained on
-				them. It does in a memo so functions are unwrapped only once.
+				Helper that runs the functions inside{' '}
+				<mark>props.children</mark> and returns a memo of the
+				result. The unwrapping happens inside a memo, so each
+				function runs at most once per change.
 			</Header>
 
 			<p>
-				<mark>props.children</mark> is <em>most of the time</em> an
-				array of functions/components and/or data. It does not contain
-				HTML, it is created when in need, once you return either
-				`props.children` or a new set of children.
+				<mark>props.children</mark> is typically an array of
+				functions, components and plain data. It is <em>not</em>{' '}
+				HTML; the elements are created when children are returned
+				— either by handing <mark>props.children</mark> back as-is
+				or by returning a new tree that references them.
 			</p>
 
 			<p>
-				Unlike Solid, <mark>props.children</mark> is not a getter. You
-				do not need the resolve helper to use props.children unless
-				you are attempting to run the possible functions/components in
-				them, or to do caching to prevent re renders. There's no
-				downside on using, accessing or modifying{' '}
-				<mark>props.children</mark> many times.
+				Unlike Solid, <mark>props.children</mark> is not a getter.
+				You don't need <mark>resolve</mark> to consume children —
+				reach for it when you need to run the functions inside (to
+				inspect them, or to avoid re-running them on every read).
+				Accessing or modifying <mark>props.children</mark>{' '}
+				directly as many times as you want has no cost.
 			</p>
 			<p>
-				The resolve helper causes tracking and changes the
-				context/scope on which things run.
+				<mark>resolve</mark> creates a memo owned by the caller, so
+				anything it reads becomes a dependency of that memo — not
+				of the surrounding effect. That matters when the caller is
+				itself an effect and you want the resolve to be the
+				tracking boundary.
 			</p>
 
 			<Section title="Arguments">

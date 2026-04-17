@@ -13,7 +13,7 @@ export default function () {
 				</p>
 			</Header>
 			<p>
-				In case you dont know what Signals are, here there are a few
+				In case you don't know what Signals are, here there are a few
 				links:
 			</p>
 			<ol>

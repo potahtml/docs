@@ -11,13 +11,14 @@ export default function () {
 			</Header>
 
 			<p>
-				The <mark>cleanup</mark> callbacks, will run once the current
-				tracking scope is disposed or recreated. It is provided by the
-				Reactive Library in use.
+				A <mark>cleanup</mark> callback runs when the current
+				tracking scope is disposed (or recreated, as happens with
+				a re-run memo).
 			</p>
 			<p>
-				The order seems to be from last added to first added, after
-				the Elements has been removed from the document.
+				Callbacks run in reverse registration order (LIFO), after
+				the elements owned by the scope have been removed from the
+				document.
 			</p>
 
 			<Section title="Arguments">

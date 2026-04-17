@@ -7,13 +7,12 @@ export default function () {
 	return (
 		<form>
 			<Header title="Usage">
-				The templates are located in{' '}
+				Starter templates live in the{' '}
 				<a href="https://github.com/potahtml/templates">
-					github pota templates
-				</a>
-				. Feel free to send improvements!. The recommended way to use
-				this package is with <b>rollup</b>, unless you can handle vite
-				idiosyncrasies.
+					pota-templates
+				</a>{' '}
+				repo — PRs welcome. The recommended template is{' '}
+				<b>rollup</b>; a <b>vite</b> template is also available.
 			</Header>
 
 			<Section title="Rollup (recommended)">
@@ -91,6 +90,12 @@ npm run dev
 				<CompilerLess />
 			</Section>
 			<Section title="Everything">
+				<p>
+					The full set of importable entry points, in one place.
+					Handy as a map when wiring bundler aliases or vendoring
+					pota. See <a href="/Directory">Directory</a> for the
+					named exports per sub-path.
+				</p>
 				<Code
 					code={`
 					Promise.all([
@@ -107,16 +112,17 @@ npm run dev
 		import('pota/use/browser'),
 		import('pota/use/clickoutside'),
 		import('pota/use/clipboard'),
+		import('pota/use/color'),
 		import('pota/use/css'),
 		import('pota/use/dom'),
 		import('pota/use/emitter'),
 		import('pota/use/event'),
 		import('pota/use/focus'),
+		import('pota/use/form'),
 		import('pota/use/fullscreen'),
 		import('pota/use/location'),
 		import('pota/use/orientation'),
 		import('pota/use/paginate'),
-		import('pota/use/polyfills'),
 		import('pota/use/random'),
 		import('pota/use/resize'),
 		import('pota/use/scroll'),

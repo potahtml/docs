@@ -64,6 +64,9 @@ export default function Menu() {
 						<li>
 							<a href="/Classes">Classes</a>
 						</li>
+						<li>
+							<a href="/CustomElement">CustomElement</a>
+						</li>
 					</ul>
 				</li>
 				<ul>
@@ -152,6 +155,20 @@ export default function Menu() {
 								children="<Tabs/>"
 							/>
 						</li>
+						<li>
+							<A
+								href="/Components/:page"
+								params={{ page: 'Errored' }}
+								children="<Errored/>"
+							/>
+						</li>
+						<li>
+							<A
+								href="/Components/:page"
+								params={{ page: 'Normalize' }}
+								children="<Normalize/>"
+							/>
+						</li>
 					</ul>
 					<h4>Route</h4>
 					<ul>
@@ -167,6 +184,13 @@ export default function Menu() {
 								href="/Components/Route/:page"
 								params={{ page: 'A' }}
 								children="<A/>"
+							/>
+						</li>
+						<li>
+							<A
+								href="/Components/Route/:page"
+								params={{ page: 'Navigate' }}
+								children="<Navigate/>"
 							/>
 						</li>
 						<li>

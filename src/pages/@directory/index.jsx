@@ -6,281 +6,432 @@ export default function () {
 	return (
 		<>
 			<Header title="Directory">
-				Directory of pota plugins and hooks for fancy stuff.
+				Every importable symbol from the <mark>pota/use/*</mark>{' '}
+				sub-paths, grouped by module. Some modules are{' '}
+				<em>props plugins</em>: importing them for their side effect
+				registers one or more <mark>use:*</mark> attributes you can
+				apply to elements.
 			</Header>
 
-			<Section title="Plugins">
+			<Section title="Props plugins">
 				<p>
-					Note:{' '}
-					<em>
-						<mark>props plugins</mark>
-					</em>{' '}
-					is a side-effect, once imported it registers globally.
+					Importing these registers <mark>use:*</mark> props
+					globally. You can import the side effect alone, or import
+					any named exports to call the helpers imperatively.
 				</p>
-				<p>
-					<Code
-						code={`
- // props plugins
-
-import { bind } from 'pota/use/bind'
-import 'pota/use/clickoutside'
-import 'pota/use/clipboard'
-import 'pota/use/fullscreen'
-
+				<Code
+					code={`
+import 'pota/use/bind'            // registers  use:bind
+import 'pota/use/clickoutside'    // registers  use:clickoutside, use:clickoutsideonce
+import 'pota/use/clipboard'       // registers  use:clipboard
+import 'pota/use/form'            // registers  use:click-focus-children-input, use:enter-focus-next, use:prevent-enter, use:size-to-input
+import 'pota/use/fullscreen'      // registers  use:fullscreen
+import 'pota/use/selection'       // registers  use:click-selects-all
 `}
-						render={false}
-					/>
-				</p>
+					render={false}
+				/>
+			</Section>
+
+			<Section title="pota/use/animate">
+				<Code
+					code={`import { animateClassTo, animatePartTo } from 'pota/use/animate'`}
+					render={false}
+				/>
+			</Section>
+
+			<Section title="pota/use/bind">
+				<Code
+					code={`import { bind } from 'pota/use/bind'`}
+					render={false}
+				/>
 				<p>
-					<Code
-						code={`
+					Registers the <mark>use:bind</mark> attribute. See{' '}
+					<a href="/use/bind">use:bind</a>.
+				</p>
+			</Section>
 
+			<Section title="pota/use/browser">
+				<Code
+					code={`import { isMobile, isFirefox } from 'pota/use/browser'`}
+					render={false}
+				/>
+			</Section>
 
-// use plugins
+			<Section title="pota/use/clickoutside">
+				<p>
+					Side-effect import. Registers <mark>use:clickoutside</mark>{' '}
+					and <mark>use:clickoutsideonce</mark>. See{' '}
+					<a href="/use/clickoutside">use:clickoutside</a>.
+				</p>
+			</Section>
 
-import {
-  isMobile,
-  isFirefox
-} from 'pota/use/browser'
+			<Section title="pota/use/clipboard">
+				<p>
+					Side-effect import. Registers <mark>use:clipboard</mark>.
+					See <a href="/use/clipboard">use:clipboard</a>.
+				</p>
+			</Section>
 
-import {
-  onDocumentFocus,
-  useDocumentFocus
-} from 'pota/use/focus'
+			<Section title="pota/use/color">
+				<Code
+					code={`import {
+  eyeDropper,
+  scale,
+  setAlpha,
+  textColor,
+  textColorWhenBackgroundIsBlack,
+  textColorWhenBackgroundIsWhite,
+  textColorWhenBackgroundIs,
+  validateColor,
+} from 'pota/use/color'`}
+					render={false}
+				/>
+			</Section>
 
-import {
-  onDocumentSize,
-  useDocumentSize
-} from 'pota/use/resize'
+			<Section title="pota/use/css">
+				<Code
+					code={`import {
+  CSSStyleSheet,
+  css,
+  sheet,
+  getAdoptedStyleSheets,
+  adoptedStyleSheets,
+  addAdoptedStyleSheet,
+  removeAdoptedStyleSheet,
+  addStyleSheets,
+  addStyleSheetExternal,
+} from 'pota/use/css'`}
+					render={false}
+				/>
+			</Section>
 
-import {
-  onDocumentVisible,
-  useDocumentVisible,
+			<Section title="pota/use/dom">
+				<Code
+					code={`import {
+  document,
+  head,
+  documentElement,
+  DocumentFragment,
+  isConnected,
+  activeElement,
 
-  isDocumentVisible
-} from 'pota/use/visibility'
+  createElement,
+  createElementNS,
+  createTextNode,
+  createComment,
+  createTreeWalker,
+  importNode,
 
-import {
-	  onDocumentFocus,
-  useDocumentFocus,
+  querySelector,
+  querySelectorAll,
+  walkElements,
+  getDocumentForElement,
+  getValueElement,
 
+  setAttribute,
+  hasAttribute,
+  removeAttribute,
+  addClass,
+  removeClass,
+  addPart,
+  removePart,
+  tokenList,
+
+  toDiff,
+} from 'pota/use/dom'`}
+					render={false}
+				/>
+			</Section>
+
+			<Section title="pota/use/emitter">
+				<Code
+					code={`import { Emitter } from 'pota/use/emitter'`}
+					render={false}
+				/>
+				<p>
+					Base class used by the <mark>on*</mark> / <mark>use*</mark>{' '}
+					pairs in modules like <mark>fullscreen</mark>,{' '}
+					<mark>orientation</mark>, <mark>resize</mark>,{' '}
+					<mark>visibility</mark>.
+				</p>
+			</Section>
+
+			<Section title="pota/use/event">
+				<Code
+					code={`import {
+  preventDefault,
+  stopPropagation,
+  stopImmediatePropagation,
+  stopEvent,
+
+  emit,
+  waitEvent,
+
+  addEventNative,
+  removeEventNative,
+  passiveEvent,
+} from 'pota/use/event'`}
+					render={false}
+				/>
+			</Section>
+
+			<Section title="pota/use/focus">
+				<Code
+					code={`import {
   focusNext,
-  focusPrevious
-} from 'pota/use/focus'
+  focusPrevious,
 
-import {
-  onFullscreen,
-  useFullscreen,
+  onDocumentFocus,
+  useDocumentFocus,
+} from 'pota/use/focus'`}
+					render={false}
+				/>
+			</Section>
 
+			<Section title="pota/use/form">
+				<Code
+					code={`import {
+  isDisabled,
+  focusNextInput,
+  form2object,
+  object2form,
+} from 'pota/use/form'`}
+					render={false}
+				/>
+				<p>
+					Registers <mark>use:click-focus-children-input</mark>,{' '}
+					<mark>use:enter-focus-next</mark>,{' '}
+					<mark>use:prevent-enter</mark>,{' '}
+					<mark>use:size-to-input</mark>.
+				</p>
+			</Section>
+
+			<Section title="pota/use/fullscreen">
+				<Code
+					code={`import {
   isFullscreen,
   exitFullscreen,
   requestFullscreen,
-  toggleFullscreen
-} from 'pota/use/fullscreen'
+  toggleFullscreen,
 
-import {
+  onFullscreen,
+  useFullscreen,
+} from 'pota/use/fullscreen'`}
+					render={false}
+				/>
+				<p>
+					Registers <mark>use:fullscreen</mark>. See{' '}
+					<a href="/use/fullscreen">use:fullscreen</a>.
+				</p>
+			</Section>
+
+			<Section title="pota/use/location">
+				<Code
+					code={`import {
+  location,
+  navigate,
+  navigateSync,
+  addListeners,
+  useBeforeLeave,
+} from 'pota/use/location'`}
+					render={false}
+				/>
+				<p>
+					See <a href="/use/location">useLocation</a>.
+				</p>
+			</Section>
+
+			<Section title="pota/use/orientation">
+				<Code
+					code={`import {
   onOrientation,
   useOrientation,
-} from 'pota/use/orientation'
-
-import { useSelector } from 'pota/use/selector'
-
-import { useTimeout } from 'pota/use/time'
-
-import {
-copyAudioTracks,
-copyVideoTracks,
-removeAudioTracks,
-removeVideoTracks,
-stopStream,
-stopTrack,
-stopTracks,
-stopTracks,
-} from 'pota/use/stream'
-
-
-`}
-						render={false}
-					/>
-				</p>
-
-				<ol>
-					<li>
-						<a href="/use/bind">bind</a> - automatically bind the
-						value of a form field to a signal
-					</li>
-					<li>
-						<a href="/use/clickoutside">clickoutside</a> - runs a
-						function when clicking outside the element
-					</li>
-					<li>
-						<a href="/use/clipboard">clipboard</a> - allows to copy to
-						clipboard the return value of a function, the string set
-						as the prop value or the <mark>innerText</mark> of the
-						element
-					</li>
-					<li>
-						<a href="/use/fullscreen">fullscreen</a> - on click it
-						will fullscreen the element
-					</li>
-					<li>
-						<a href="/use/selector">useSelector</a> - Most performant
-						way to have an <mark>isSelected</mark> signal.
-					</li>
-					<li>
-						<a href="/use/time">useTimeout</a> - For creating
-						setTimeouts that autodispose.
-					</li>
-				</ol>
+} from 'pota/use/orientation'`}
+					render={false}
+				/>
 			</Section>
 
-			{/*<Section title="Animations">
-				<p>
-					<Code
-						code="
-						import {
-animateClassTo,
-animatePartTo,
-						} from 'pota/animations'"
-						render={false}
-					/>
-				</p>
+			<Section title="pota/use/paginate">
+				<Code
+					code={`import { paginate, paginateValues } from 'pota/use/paginate'`}
+					render={false}
+				/>
 			</Section>
-			<Section title="Color">
+
+			<Section title="pota/use/random">
+				<Code
+					code={`import {
+  chance,
+  random,
+  randomBetween,
+  randomColor,
+  randomId,
+  randomSeeded,
+} from 'pota/use/random'`}
+					render={false}
+				/>
+			</Section>
+
+			<Section title="pota/use/resize">
+				<Code
+					code={`import {
+  documentSize,
+  onDocumentSize,
+  useDocumentSize,
+} from 'pota/use/resize'`}
+					render={false}
+				/>
+			</Section>
+
+			<Section title="pota/use/scroll">
+				<Code
+					code={`import {
+  scrollToElement,
+  scrollToSelector,
+  scrollToSelectorWithFallback,
+  scrollToLocationHash,
+  scrollToTop,
+} from 'pota/use/scroll'`}
+					render={false}
+				/>
+			</Section>
+
+			<Section title="pota/use/selection">
+				<Code
+					code={`import {
+  getSelection,
+  restoreSelection,
+} from 'pota/use/selection'`}
+					render={false}
+				/>
 				<p>
-					<Code
-						code="
-						import {
-
-eyeDropper,
-scale,
-setAlpha,
-textColor,
-textColorWhenBackgroundIsBlack,
-textColorWhenBackgroundIsWhite,
-validateColor,
-
-						} from 'pota/color'"
-						render={false}
-					/>
+					Registers <mark>use:click-selects-all</mark>.
 				</p>
 			</Section>
 
-			<Section title="Random">
+			<Section title="pota/use/selector">
+				<Code
+					code={`import { useSelector, usePrevious } from 'pota/use/selector'`}
+					render={false}
+				/>
 				<p>
-					<Code
-						code="
-						import {
-
-chance,
-random,
-randomSeeded,
-randomBetween,
-randomColor,
-randomId,
-
-						} from 'pota/random'"
-						render={false}
-					/>
-				</p>
-			</Section>
-			<Section title="Scroll">
-				<p>
-					<Code
-						code="
-						import {
-
-scrollToElement,
-scrollToSelector,
-scrollToSelectorWithFallback,
-scrollToTop,
-
-
-						} from 'pota/scroll'"
-						render={false}
-					/>
+					See <a href="/use/selector">useSelector</a>.
 				</p>
 			</Section>
 
-			<Section title="Strings">
+			<Section title="pota/use/stream">
+				<Code
+					code={`import {
+  copyAudioTracks,
+  copyVideoTracks,
+  removeAudioTracks,
+  removeVideoTracks,
+  stopStream,
+  stopTrack,
+  stopTracks,
+} from 'pota/use/stream'`}
+					render={false}
+				/>
+			</Section>
+
+			<Section title="pota/use/string">
+				<Code
+					code={`import {
+  capitalizeFirstLetter,
+  dashesToCamelCase,
+  copyToClipboard,
+  ensureString,
+  hash,
+  isEmoji,
+  label,
+  short,
+  toString,
+  validateEmail,
+  validatePassword,
+  wholeNumber,
+  diff,
+} from 'pota/use/string'`}
+					render={false}
+				/>
+			</Section>
+
+			<Section title="pota/use/test">
+				<Code
+					code={`import {
+  test,
+  isProxy,
+  rerenders,
+
+  body,
+  head,
+  childNodes,
+
+  microtask,
+  macrotask,
+  sleep,
+  sleepLong,
+
+  $,
+  $$,
+} from 'pota/use/test'`}
+					render={false}
+				/>
+			</Section>
+
+			<Section title="pota/use/time">
+				<Code
+					code={`import {
+  now,
+  date,
+  datetime,
+  time,
+  timeWithSeconds,
+  day,
+
+  measure,
+  timing,
+
+  useTimeout,
+} from 'pota/use/time'`}
+					render={false}
+				/>
 				<p>
-					<Code
-						code="
-						import {
-
-capitalizeFirstLetter,
-copyToClipboard,
-hash,
-isEmoji,
-label,
-toString,
-validateEmail,
-validatePassword,
-wholeNumber
-
-						} from 'pota/strings'"
-						render={false}
-					/>
+					See <a href="/use/time">useTimeout</a>.
 				</p>
 			</Section>
-			<Section title="Time">
-				<p>
-					<Code
-						code="
-						import {
 
-time,
-timeWithSeconds
+			<Section title="pota/use/url">
+				<Code
+					code={`import {
+  cleanLink,
+  encodeURIComponent,
+  decodeURIComponent,
 
-						} from 'pota/time'"
-						render={false}
-					/>
-				</p>
+  isAbsolute,
+  isRelative,
+  isExternal,
+  isFileProtocol,
+  isHash,
+  hasProtocol,
+  removeNestedProtocol,
+
+  paramsRegExp,
+  replaceParams,
+} from 'pota/use/url'`}
+					render={false}
+				/>
 			</Section>
-			<Section title="Test">
-				<p>
-					<Code
-						code="
-						import {
 
-describe,
-test,
-expect,
-assertions,
-
-
-						} from 'pota/test'"
-						render={false}
-					/>
-				</p>
+			<Section title="pota/use/visibility">
+				<Code
+					code={`import {
+  isDocumentVisible,
+  onDocumentVisible,
+  useDocumentVisible,
+} from 'pota/use/visibility'`}
+					render={false}
+				/>
 			</Section>
-			<Section title="Data">
-				<p>
-					<Code
-						code="
-						import {
-
-paginate,
-paginateValues
-
-
-						} from 'pota/data'"
-						render={false}
-					/>
-				</p>
-			</Section>
-			<Section title="CSS">
-				<p>
-					<Code
-						code="
-						import {
-css,
-sheet,
-						} from 'pota/x'"
-						render={false}
-					/>
-				</p>
-			</Section>*/}
 		</>
 	)
 }

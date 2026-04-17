@@ -29,23 +29,24 @@ export default function () {
 							<td>restoreFocus</td>
 							<td>boolean</td>
 							<td>
-								when moving items on a list that contains inputs may
-								cause focus lost
+								when items are reordered, the DOM swap can steal
+								focus and scroll position. Set to{' '}
+								<mark>true</mark> to save and restore both around
+								the swap.
 							</td>
 						</tr>
 						<tr>
 							<td>fallback</td>
 							<td>any</td>
-							<td>
-								when list is empty a fallback could be displayed
-							</td>
+							<td>rendered when the list is empty</td>
 						</tr>
 						<tr>
 							<td>reactiveIndex</td>
 							<td>boolean</td>
 							<td>
-								if the callback receives a <mark>signal</mark> for the{' '}
-								<mark>index</mark>
+								when <mark>true</mark>, the callback receives a
+								reactive signal for the index instead of a plain
+								number
 							</td>
 						</tr>
 					</tbody>
@@ -60,14 +61,13 @@ export default function () {
 			</Section>
 
 			<Section title="Heavy Test">
-				<p>Sowwy, but I need to test this thing</p>
+				<p>Stress test</p>
 				<Code url="/pages/@components/for/test.jsx"></Code>
 			</Section>
 
 			<Section title="Fallback">
 				<p>
-					For when the list has no items, a fallback could be
-					displayed
+					For when the list has no items, render a fallback
 				</p>
 				<Code url="/pages/@components/for/fallback.jsx"></Code>
 			</Section>

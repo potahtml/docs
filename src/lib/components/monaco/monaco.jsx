@@ -4,7 +4,7 @@ import { addEvent, cleanup, withValue } from 'pota'
 
 import { onDocumentSize } from 'pota/use/resize'
 
-import types from '../../../../node_modules/pota/src/release/types.json' with { type: 'json' }
+import types from '../../../../node_modules/pota/generated/docs/types.json' with { type: 'json' }
 
 function loadScriptInOrder(...scripts) {
 	return new Promise(async resolve => {

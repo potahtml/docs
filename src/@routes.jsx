@@ -12,17 +12,13 @@ function NotFound() {
 }
 export default function Routes() {
 	return (
-		<Route
-			path="/"
-			scroll={['#content']}
-		>
+		<Route path="/" scroll={['#content']}>
 			<NotFound />
 
 			<Route>
 				<Home />
 			</Route>
 
-			{/* todo remove me*/}
 			<Route path="articles/">
 				<Route
 					children={load(() => import('./pages/@articles/index.jsx'))}
@@ -55,14 +51,14 @@ export default function Routes() {
 				/>
 			</Route>
 
-			<Route path="CustomElement/">
-				<Route
-					children={load(
-						() =>
-							import('./pages/@components/custom-element/index.jsx'),
-					)}
-				/>
-			</Route>
+			<Route
+				path=":path$"
+				params={{ path: 'CustomElement' }}
+				children={load(
+					() =>
+						import('./pages/@components/custom-element/index.jsx'),
+				)}
+			/>
 
 			<Route path="Components/">
 				<NotFound />
@@ -79,6 +75,21 @@ export default function Routes() {
 					params={{ path: 'Dynamic' }}
 					children={load(
 						() => import('./pages/@components/dynamic/index.jsx'),
+					)}
+				/>
+				<Route
+					path=":path$"
+					params={{ path: 'Errored' }}
+					children={load(
+						() => import('./pages/@components/errored/index.jsx'),
+					)}
+				/>
+				<Route
+					path=":path$"
+					params={{ path: 'Normalize' }}
+					children={load(
+						() =>
+							import('./pages/@components/normalize/index.jsx'),
 					)}
 				/>
 				<Route
@@ -129,6 +140,14 @@ export default function Routes() {
 								import('./pages/@components/route/link/index.jsx'),
 						)}
 					/>
+					<Route
+						path=":path$"
+						params={{ path: 'Navigate' }}
+						children={load(
+							() =>
+								import('./pages/@components/route/navigate/index.jsx'),
+						)}
+					/>
 				</Route>
 
 				<Route
@@ -167,8 +186,6 @@ export default function Routes() {
 				params={{ path: 'Directory' }}
 				children={load(() => import('./pages/@directory/index.jsx'))}
 			/>
-
-			{/* todo remove me*/}
 
 			<Route
 				path=":path$"

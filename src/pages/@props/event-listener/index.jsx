@@ -6,13 +6,20 @@ export default function () {
 	return (
 		<>
 			<Header title="addEvent / removeEvent">
-				For adding and removing event listeners
+				Imperative event-listener helpers. Use them outside JSX (in
+				effects, lifecycles, or standalone code) when you need
+				<mark> DOM.addEventListener</mark>-like control but tied to
+				the reactive scope.
 			</Header>
 
 			<Section title="addEvent Arguments">
 				<p>
-					Returns a handy <mark>off</mark> function that uses no
-					arguments, to remove the added event
+					Returns an <mark>off()</mark> function that removes the
+					listener. The same removal is <em>also</em> registered
+					as a <mark>cleanup</mark> on the current reactive scope,
+					so the listener is torn down automatically when the
+					scope is disposed — you don't have to call{' '}
+					<mark>off()</mark> manually in most cases.
 				</p>
 				<table>
 					<thead>
