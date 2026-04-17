@@ -29,3 +29,8 @@
 :global .monaco-scrollable-element {
 	overflow-y: scroll !important;
 }
+
+:global .margin-view-overlays {
+	padding-top: 1px;
+	line-height: 24px; /*height of a*/
+}

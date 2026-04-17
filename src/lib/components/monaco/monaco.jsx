@@ -63,7 +63,7 @@ const model = monaco.editor.createModel(
  * Create a Monaco editor
  *
  * @param {{
- * 	value?: string
+ * 	value?: Accessor<string>
  * 	'on:change'?: Function
  * 	language?: string
  * 	delay?: number
@@ -114,9 +114,6 @@ export function Monaco(props) {
 					monaco.editor.setTheme(value || 'vs-dark')
 				})
 
-				// cleanup
-				cleanup(() => editor.dispose())
-
 				// on code change
 				let codeChangeTimeout
 				editor.getModel().onDidChangeContent(event => {
@@ -127,6 +124,31 @@ export function Monaco(props) {
 							props.delay || 200,
 						)
 					}
+				})
+
+				// flush pending debounced change when focus leaves the
+				// editor, so switching editors commits the latest value to
+				// the parent signal before the switch unmounts us.
+				// Uses DOM focusout (bubbles, synchronous) instead of
+				// monaco's onDidBlurEditorWidget which is delayed via
+				// setTimeout and fires AFTER the select's change event.
+				const flush = () => {
+					if (codeChangeTimeout) {
+						clearTimeout(codeChangeTimeout)
+						codeChangeTimeout = null
+						if (props['on:change']) {
+							props['on:change'](editor.getValue())
+						}
+					}
+				}
+				container.addEventListener('focusout', flush)
+
+				// cleanup: flush any pending debounced change before disposing,
+				// otherwise switching editors within the debounce window drops
+				// the last edits.
+				cleanup(() => {
+					flush()
+					editor.dispose()
 				})
 
 				// resize

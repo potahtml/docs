@@ -15,6 +15,7 @@ import { transform } from '../../lib/transform.js'
 import 'pota/use/clipboard'
 
 import { Monaco } from '../../lib/components/monaco/monaco.jsx'
+import { CodeMirror } from '../../lib/components/codemirror/codemirror.jsx'
 import { emit } from 'pota/use/event'
 
 const themesMonaco = [
@@ -83,6 +84,12 @@ const [themeTM, setTMTheme] = signal(
 const [themeMonaco, setMonacoTheme] = signal(
 	localStorage.themeMonaco || 'vs-dark',
 )
+const [themeCM, setCMTheme] = signal(
+	localStorage.themeCM || 'one-dark',
+)
+const [activeEditor, setActiveEditor] = signal(
+	localStorage.activeEditor || 'monaco',
+)
 
 export default function () {
 	const [autorun, setAutorun, updateAutorun] = signal(true)
@@ -100,6 +107,18 @@ export default function () {
 	)
 
 	const codeURL = memo(() => compress(code()))
+
+	// Read the latest code from the URL at mount time — the URL is
+	// the single source of truth across editor swaps, kept in sync by
+	// the effect below. Reading from the URL (and not from code())
+	// sidesteps any reactive-timing questions about when code() is
+	// "fresh" relative to the new editor mounting.
+	const valueFromURL = () => {
+		const hash = window.location.hash.substring(1)
+		let raw = hash ? uncompress(decodeURIComponent(hash)) : code()
+		raw = raw && raw.code ? raw.code : raw
+		return raw
+	}
 
 	effect(() => {
 		window.location.hash = '#' + codeURL()
@@ -126,10 +145,7 @@ export default function () {
 				style="padding-top:0px;"
 			>
 				<Tabs>
-					<section
-						flair="vertical"
-						class={styles.toolbar}
-					>
+					<section flair="vertical" class={styles.toolbar}>
 						<Tabs.Labels>
 							<Tabs.Label name="code">Code</Tabs.Label>
 							<Tabs.Label name="transformed">Transformed</Tabs.Label>
@@ -183,21 +199,70 @@ export default function () {
 									class={styles.themeSelector}
 									on:change={e => {
 										const value = e.currentTarget.value
-										setMonacoTheme(value)
-										localStorage.themeMonaco = value
+										setActiveEditor(value)
+										localStorage.activeEditor = value
 									}}
 								>
-									<For each={themesMonaco}>
-										{item => (
-											<option
-												selected={themeMonaco() === item}
-												value={item}
-											>
-												{item.replace(/-/g, ' ')}
-											</option>
-										)}
-									</For>
+									<option
+										selected={activeEditor() === 'monaco'}
+										value="monaco"
+									>
+										Monaco
+									</option>
+									<option
+										selected={activeEditor() === 'codemirror'}
+										value="codemirror"
+									>
+										CodeMirror
+									</option>
 								</select>
+								<Show when={() => activeEditor() === 'monaco'}>
+									<select
+										class={styles.themeSelector}
+										on:change={e => {
+											const value = e.currentTarget.value
+											setMonacoTheme(value)
+											localStorage.themeMonaco = value
+										}}
+									>
+										<For each={themesMonaco}>
+											{item => (
+												<option
+													selected={themeMonaco() === item}
+													value={item}
+												>
+													{item.replace(/-/g, ' ')}
+												</option>
+											)}
+										</For>
+									</select>
+								</Show>
+								<Show
+									when={() =>
+										activeEditor() === 'codemirror' &&
+										CodeMirror.themes.length > 1
+									}
+								>
+									<select
+										class={styles.themeSelector}
+										on:change={e => {
+											const value = e.currentTarget.value
+											setCMTheme(value)
+											localStorage.themeCM = value
+										}}
+									>
+										<For each={CodeMirror.themes}>
+											{item => (
+												<option
+													selected={themeCM() === item}
+													value={item}
+												>
+													{item.replace(/-/g, ' ')}
+												</option>
+											)}
+										</For>
+									</select>
+								</Show>
 							</Show>
 						</span>
 						<Show when={() => Tabs.selected().read().name === 'code'}>
@@ -226,24 +291,34 @@ export default function () {
 						flair="row grow"
 						style="padding-top:0px;"
 					>
-						<section
-							id="left"
-							flair="col grow"
-						>
+						<section id="left" flair="col grow">
 							<form id="form-playground">
 								<Tabs.Panels>
-									<Tabs.Panel
-										flair="col grow"
-										collapse
-									>
-										<Monaco
-											value={prettier(code(), true).catch(x =>
-												code(),
-											)}
-											on:change={value => setCode(value)}
-											on:format={code => prettier(code, true)}
-											theme={themeMonaco}
-										/>
+									<Tabs.Panel flair="col grow" collapse>
+										<Show when={() => activeEditor() === 'monaco'}>
+											<Monaco
+												value={valueFromURL}
+												on:change={value => {
+													setCode(value)
+													window.location.hash = '#' + compress(value)
+												}}
+												on:format={code => prettier(code, true)}
+												theme={themeMonaco}
+											/>
+										</Show>
+										<Show
+											when={() => activeEditor() === 'codemirror'}
+										>
+											<CodeMirror
+												value={valueFromURL}
+												on:change={value => {
+													setCode(value)
+													window.location.hash = '#' + compress(value)
+												}}
+												on:format={code => prettier(code, true)}
+												theme={themeCM}
+											/>
+										</Show>
 									</Tabs.Panel>
 									<Tabs.Panel flair="col grow">
 										<tm-textarea
@@ -266,10 +341,7 @@ export default function () {
 								</Tabs.Panels>
 							</form>
 						</section>
-						<section
-							id="right"
-							flair="col grow"
-						>
+						<section id="right" flair="col grow">
 							<section flair="row grow">
 								<Code
 									code={() => autorun() && code()}

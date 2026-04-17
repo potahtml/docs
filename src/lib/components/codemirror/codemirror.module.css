@@ -1,0 +1,62 @@
+.container {
+	width: 100%;
+	height: 100%;
+	padding: 10px;
+	padding-top: 0px;
+	margin-top: -1px;
+	padding-left: 0px;
+	margin-left: -5px;
+}
+
+.container * {
+	transition: none !important;
+	animation: none !important;
+	box-shadow: none !important;
+}
+
+/* background color */
+.container :global(.cm-editor) {
+	background: transparent !important;
+	outline: none !important;
+	height: 100%;
+}
+.container :global(.cm-editor.cm-focused) {
+	outline: none !important;
+}
+.container :global(.cm-gutters) {
+	background-color: transparent !important;
+	border-right: none !important;
+	padding-left: 13px;
+}
+
+/* margin to editor content */
+.container :global(.cm-scroller) {
+	margin-left: 12px;
+	overflow-y: scroll !important;
+	font-family:
+		ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas,
+		'Liberation Mono', monospace;
+	font-size: 18px;
+	line-height: 1.6;
+}
+
+.container :global(.cm-content) {
+	padding: 8px 7px;
+	padding-left: 0px;
+	margin-left: -7px;
+}
+.container :global(.cm-line) {
+	line-height: 24px; /*height of a*/
+}
+.container :global(.cm-gutterElement) {
+	padding: 1px 8px !important;
+}
+
+.container :global(.cm-activeLineGutter) {
+	background: transparent;
+	color: whitesmoke;
+}
+
+.container :global(.cm-lineNumbers) {
+	padding-top: 1px;
+}
