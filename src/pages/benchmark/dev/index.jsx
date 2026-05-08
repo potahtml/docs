@@ -120,41 +120,29 @@ const App = () => {
 					</div>
 					<div class="col-md-6">
 						<div class="row">
-							<Button
-								id="run"
-								text="Create 1,000 rows"
-								fn={run}
-							/>
+							<Button id="run" text="Create 1,000 rows" fn={run} />
 							<Button
 								id="runlots"
 								text="Create 10,000 rows"
 								fn={runLots}
 							/>
-							<Button
-								id="add"
-								text="Append 1,000 rows"
-								fn={add}
-							/>
+							<Button id="add" text="Append 1,000 rows" fn={add} />
 							<Button
 								id="update"
 								text="Update every 10th row"
 								fn={update}
 							/>
-							<Button
-								id="clear"
-								text="Clear"
-								fn={clear}
-							/>
-							<Button
-								id="swaprows"
-								text="Swap Rows"
-								fn={swapRows}
-							/>
-							<Button
-								id="bench"
-								text="bench"
-								fn={bench}
-							/>
+							<Button id="clear" text="Clear" fn={clear} />
+							<Button id="swaprows" text="Swap Rows" fn={swapRows} />
+							<div class="col-sm-6 smallpad">
+								<button
+									prop:textContent={'bench'}
+									id={'bench'}
+									type="button"
+									class="btn btn-primary btn-block"
+									use:ref={e => e.addEventListener('click', bench)}
+								/>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -182,10 +170,7 @@ const App = () => {
 										class="col-md-1"
 									/>
 									<td class="col-md-4">
-										<a
-											data-select
-											prop:textContent={row.label}
-										/>
+										<a data-select prop:textContent={row.label} />
 									</td>
 									<td class="col-md-1">
 										<a>

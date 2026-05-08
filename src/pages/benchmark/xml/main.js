@@ -1,6 +1,8 @@
 (function () {
 	'use strict';
 
+	const version = '0.20.233';
+
 	const window = globalThis;
 	const queueMicrotask = window.queueMicrotask;
 	const history = window.history;
@@ -8,6 +10,7 @@
 	const origin = location$2?.origin;
 	const Object$1 = window.Object;
 	const Array$1 = window.Array;
+	const Promise$1 = window.Promise;
 	const Symbol$1 = window.Symbol;
 	const assign = Object$1.assign;
 	const create$1 = Object$1.create;
@@ -37,6 +40,14 @@
 	const toEntries = value => isObject(value) && 'entries' in (/** @type {object} */value) ? /** @type {{ entries(): IterableIterator<[unknown, unknown]> }} */value.entries() : toArray(/** @type {Iterable<[unknown, unknown]>} */value);
 	const iterator = Symbol$1.iterator;
 	const stringify = JSON.stringify;
+
+	/**
+	 * @param {(
+	 * 	resolve: (value: unknown) => void,
+	 * 	reject: (reason?: any) => void,
+	 * ) => void} fn
+	 */
+	const promise = fn => new Promise$1(fn);
 
 	/**
 	 * Runs an array of functions
@@ -302,6 +313,7 @@
 	const {
 	  ownKeys: reflectOwnKeys,
 	  has: reflectHas,
+	  defineProperty: reflectDefineProperty,
 	  getOwnPropertyDescriptor: reflectGetOwnPropertyDescriptor,
 	  get: reflectGet,
 	  apply: reflectApply,
@@ -423,6 +435,7 @@
 	const $isComponent = Symbol$1();
 	const $isMap = Symbol$1();
 	const $isClass = Symbol$1();
+	const $isDerived = Symbol$1();
 	const $isMutable = Symbol$1();
 
 	// supported namespaces
@@ -468,6 +481,13 @@
 
 	function createReactiveSystem() {
 
+	  // Shared empty-array sentinel for `owned` / `cleanups` slots.
+	  // Never mutated; addOwned/addCleanups replace it with a fresh
+	  // array on first write. Stable JSArray slot type lets V8 skip
+	  // the undefined/single/array polymorphism on the hot Root
+	  // lifecycle methods.
+	  const EMPTY = [];
+
 	  /** @type {undefined | Computation} */
 	  let Owner;
 
@@ -487,8 +507,9 @@
 	  }
 	  function doRead(o) {
 	    if (Listener) {
-	      const sourceSlot = o.observers ? o.observers.length : 0;
-	      if (Listener.sources) {
+	      const observers = o.observers;
+	      const sourceSlot = observers.length;
+	      if (Listener.sources !== EMPTY) {
 	        Listener.sources.push(o);
 	        Listener.sourceSlots.push(sourceSlot);
 	      } else {
@@ -496,12 +517,12 @@
 	        Listener.sourceSlots = [sourceSlot];
 	      }
 	      const observerSlot = Listener.sources.length - 1;
-	      if (sourceSlot) {
-	        o.observers.push(Listener);
-	        o.observerSlots.push(observerSlot);
-	      } else {
+	      if (observers === EMPTY) {
 	        o.observers = [Listener];
 	        o.observerSlots = [observerSlot];
+	      } else {
+	        observers.push(Listener);
+	        o.observerSlots.push(observerSlot);
 	      }
 	    }
 	  }
@@ -516,7 +537,7 @@
 	    }
 	  }
 	  function doWrite(o) {
-	    if (o.observers && o.observers.length) {
+	    if (o.observers.length) {
 	      _writeTarget = o.observers;
 	      runUpdates(_markObservers);
 	    }
@@ -528,11 +549,11 @@
 	    /** @type {undefined | Root} */
 	    owner;
 
-	    /** @type {Computation | Computation[]} */
-	    owned;
+	    /** @type {Computation[]} */
+	    owned = EMPTY;
 
-	    /** @type {undefined | Function | Function[]} */
-	    cleanups;
+	    /** @type {Function[]} */
+	    cleanups = EMPTY;
 
 	    /** @type {Record<symbol, unknown>} */
 	    context;
@@ -552,64 +573,40 @@
 	    }
 	    /** @param {() => void} fn */
 	    addCleanups(fn) {
-	      if (!this.cleanups) {
-	        this.cleanups = fn;
-	      } else if (isArray(this.cleanups)) {
-	        this.cleanups.push(fn);
-	      } else {
-	        this.cleanups = [this.cleanups, fn];
-	      }
+	      if (this.cleanups === EMPTY) this.cleanups = [fn];else this.cleanups.push(fn);
 	    }
 	    /** @param {() => void} fn */
 	    cleanupCancel(fn) {
-	      if (!this.cleanups) ; else if (this.cleanups === fn) {
-	        this.cleanups = undefined;
-	      } else if (isArray(this.cleanups)) {
-	        removeFromArray(this.cleanups, fn);
-	      }
+	      if (this.cleanups !== EMPTY) removeFromArray(this.cleanups, fn);
 	    }
 	    /** @param {Computation} value */
 	    addOwned(value) {
-	      if (!this.owned) {
-	        this.owned = value;
-	      } else if (isArray(this.owned)) {
-	        this.owned.push(value);
-	      } else {
-	        this.owned = [this.owned, value];
-	      }
+	      if (this.owned === EMPTY) this.owned = [value];else this.owned.push(value);
 	    }
 	    dispose() {
 	      this.disposeOwned();
 	      this.doCleanups();
 	    }
 	    disposeOwned() {
-	      if (!this.owned) ; else if (isArray(this.owned)) {
-	        for (let i = this.owned.length - 1; i >= 0; i--) {
-	          this.owned[i].dispose();
+	      const owned = this.owned;
+	      if (owned.length) {
+	        for (let i = owned.length - 1; i >= 0; i--) {
+	          owned[i].dispose();
 	        }
-	        this.owned = undefined;
-	      } else {
-	        this.owned.dispose();
-	        this.owned = undefined;
+	        owned.length = 0;
 	      }
 	    }
 	    doCleanups() {
-	      if (!this.cleanups) ; else if (isArray(this.cleanups)) {
-	        for (let i = this.cleanups.length - 1; i >= 0; i--) {
+	      const cleanups = this.cleanups;
+	      if (cleanups.length) {
+	        for (let i = cleanups.length - 1; i >= 0; i--) {
 	          try {
-	            this.cleanups[i]();
+	            cleanups[i]();
 	          } catch (err) {
 	            routeError(this, err);
 	          }
 	        }
-	        this.cleanups = undefined;
-	      } else {
-	        try {
-	          this.cleanups();
-	        } catch (err) {
-	          routeError(this, err);
-	        }
-	        this.cleanups = undefined;
+	        cleanups.length = 0;
 	      }
 	    }
 	  }
@@ -623,8 +620,18 @@
 
 	    /** @type {Function | undefined} */
 	    fn;
-	    sources;
-	    sourceSlots;
+
+	    // Initialized to the shared `EMPTY` sentinel so V8 sees a
+	    // stable JSArray slot type from the first read. Without it,
+	    // each fresh Computation transitions `sources` / `sourceSlots`
+	    // from undefined to array on its first tracked read, which
+	    // matches the pattern documented for `observers` /
+	    // `observerSlots` on `Memo` / `Signal`.
+	    /** @type {any[]} */
+	    sources = EMPTY;
+
+	    /** @type {number[]} */
+	    sourceSlots = EMPTY;
 
 	    /**
 	     * @param {Computation} owner
@@ -710,8 +717,12 @@
 	  /** @template in T */
 	  class Memo extends Computation {
 	    value;
-	    observers;
-	    observerSlots;
+
+	    /** @type {Computation[]} */
+	    observers = EMPTY;
+
+	    /** @type {number[]} */
+	    observerSlots = EMPTY;
 
 	    /**
 	     * @param {Computation} owner
@@ -787,6 +798,18 @@
 	  class Derived extends Memo {
 	    value = nothing;
 	    isResolved;
+	    [$isDerived] = true;
+
+	    /**
+	     * Monotonic write token. Bumped on every direct write or fresh
+	     * `update()`; recursive resolve steps capture and compare the
+	     * current value to detect stale promise resolutions. Was a fresh
+	     * `{}` per write — counter avoids the per-update allocation while
+	     * preserving identity-via-`===` semantics for the staleness check.
+	     *
+	     * @type {number}
+	     */
+	    lastWrite = 0;
 
 	    /**
 	     * @param {Computation} owner
@@ -807,9 +830,6 @@
 	      this.read(); // tracking
 	      return this.isResolved === null;
 	    };
-	    run = () => {
-	      this.update();
-	    };
 	    _runFn = () => {
 	      // @ts-expect-error
 	      this.write(this.fn[0](), this.fn.slice(1));
@@ -818,7 +838,7 @@
 	      this.dispose();
 	      const time = Time;
 	      try {
-	        this.lastWrite = {};
+	        this.lastWrite++;
 	        runWith(this._runFn, this, this);
 	      } catch (err) {
 	        this.state = 1; /* STALE */
@@ -829,7 +849,7 @@
 	    }
 	    write(nextValue, fns) {
 	      this.isResolved = undefined;
-	      const mine = fns === undefined ? this.lastWrite = {} : this.lastWrite;
+	      const mine = fns === undefined ? ++this.lastWrite : this.lastWrite;
 	      withValue(nextValue, nextValue => {
 	        if (Listener || this.lastWrite === mine) {
 	          if (fns && fns.length) {
@@ -845,13 +865,10 @@
 	            // so this is a no-op there.
 	            this.state = 0; /* CLEAN */
 
-	            this.resolve && this.resolve(this);
+	            this._fireThens();
 	          }
 	        }
 	      }, () => {
-	        // is a promise so restore `then`
-	        this.thenRestore();
-
 	        // remove the old value while the promise is resolving
 	        // to avoid the "Florida - New York City" problem
 	        this.writeNextValue(nothing);
@@ -865,27 +882,45 @@
 	    }
 
 	    /**
-	     * Thenable stuff. It has to be a property so assign works
-	     * properly
+	     * Thenable surface. Stays defined across commits so consumers
+	     * can register more than once: each call to `then` either
+	     * fires synchronously (if already resolved) or queues onto
+	     * `thenCallbacks`, drained by `_fireThens` on commit. Has to
+	     * be an instance arrow so `assign(self(), this)` carries it
+	     * onto the callable wrapper.
+	     *
+	     * We resolve with `_unwrap()` rather than `self()`: `self()`
+	     * carries `then` onto every fresh wrapper, which makes the
+	     * resolved value itself thenable — JS's `await` would
+	     * recursively `then` it forever. `_unwrap()` returns the
+	     * same callable shape but with `then` stripped, terminating
+	     * the recursion.
 	     */
 	    then = (resolve, reject) => {
-	      this._then(resolve, reject);
-	    };
-	    _then(resolve, reject) {
-	      this.resolve = () => {
-	        this.then = undefined;
-	        this.resolve = undefined;
-	        resolve(this.self());
-	      };
+	      // `resolved()` reads through `this.read()` which triggers
+	      // `update()` on a STALE derived. Without it, awaiting a
+	      // freshly-constructed derived would queue forever because
+	      // the source fn never runs.
 	      if (this.resolved()) {
-	        this.resolve();
+	        resolve(this._unwrap());
+	        return;
+	      }
+	      if (!this.thenCallbacks) this.thenCallbacks = [];
+	      this.thenCallbacks.push(resolve);
+	    };
+	    _fireThens() {
+	      if (this.thenCallbacks) {
+	        const cbs = this.thenCallbacks;
+	        this.thenCallbacks = undefined;
+	        const wrap = this._unwrap();
+	        cbs.forEach(cb => cb(wrap));
 	      }
 	    }
-	    thenRestore() {
-	      if (!this.then) {
-	        // TODO: unsure if has to be restored
-	        this.then = this._then;
-	      }
+	    _unwrap() {
+	      // Bare read/write callable — no `assign(this)`, so no
+	      // `then` is carried onto it. JS's await thenability
+	      // check terminates here.
+	      return (...args) => args.length ? this.write(args[0]) : this.read();
 	    }
 	  }
 
@@ -923,6 +958,29 @@
 	  }
 
 	  /**
+	   * Plain leaf observable shared with Memo/Derived for the
+	   * `o.observers` access in doRead/doWrite. observers / observerSlots
+	   * start as the EMPTY sentinel so the slot type is always JSArray —
+	   * eliminates the undefined→array transition that was making doRead
+	   * megamorphic across signal-literal vs Memo vs Derived shapes.
+	   */
+	  class Signal {
+	    /** @type {Computation[]} */
+	    observers = EMPTY;
+
+	    /** @type {number[]} */
+	    observerSlots = EMPTY;
+
+	    /** @type {any} */
+	    value;
+
+	    /** @param {any} value */
+	    constructor(value) {
+	      this.value = value;
+	    }
+	  }
+
+	  /**
 	   * Creates a signal
 	   *
 	   * @template T
@@ -932,27 +990,27 @@
 	   */
 	  /* #__NO_SIDE_EFFECTS__ */
 	  function signal(value, options) {
-	    const o = {
-	      observers: undefined,
-	      observerSlots: undefined
-	    };
 	    let _equals = equals;
+	    if (options) {
+	      if (options.equals === false) _equals = equalsFalse;else if (options.equals) _equals = options.equals;
+	    }
+	    const o = new Signal(value);
 	    function read() {
 	      if (Listener) {
 	        doRead(o);
 	      }
-	      return value;
+	      return o.value;
 	    }
 	    function write(val) {
-	      if (!_equals(value, val)) {
-	        value = val;
+	      if (!_equals(o.value, val)) {
+	        o.value = val;
 	        doWrite(o);
 	        return true;
 	      }
 	      return false;
 	    }
 	    function update(val) {
-	      return write(untrack(() => val(value)));
+	      return write(untrack(() => val(o.value)));
 	    }
 	    const s = /** @type {any} */[read, write, update];
 	    s.read = read;
@@ -960,7 +1018,6 @@
 	    s.update = update;
 	    if (options) {
 	      assign(s, options);
-	      if (s.equals === false) _equals = equalsFalse;else if (s.equals) _equals = s.equals;
 	    }
 	    return s;
 	  }
@@ -1203,6 +1260,37 @@
 	    }
 	  }
 
+	  // Pools for Updates and Effects. Reused across calls so the array
+	  // literal sites don't deopt with "Insufficient type feedback for
+	  // array literal" and V8 keeps a stable JSArray elements kind.
+	  //
+	  // Both must be pools, not single scratch arrays. Updates can have
+	  // multiple arrays alive at once because the save/restore pattern
+	  // at solid.js:340-343 and solid.js:892-895 deliberately bypasses
+	  // the `if (Updates) return fn()` early-exit by setting Updates to
+	  // undefined before re-entering — so the inner runUpdates needs an
+	  // array independent of the outer's. Effects can also have multiple
+	  // arrays alive when runEffects iterates the captured queue while
+	  // nested work queues into a fresh one.
+	  const _updatesPool = [[]];
+	  const _effectsPool = [[]];
+
+	  // Static helper used by `runUpdates` to drain `Effects` in a fresh
+	  // nested batch. Replaces the `() => runEffects(effects)` closure
+	  // that was previously allocated on every top-level batch — heap
+	  // profile flagged it as a hot small-object allocation. The slot
+	  // is module-scoped (created once) and is only set immediately
+	  // before the recursive `runUpdates` call, so there is no risk of
+	  // re-entrant overwrite: nested `runUpdates` calls hit the
+	  // `if (Updates) return fn()` early-exit before reaching this
+	  // path.
+	  let _pendingEffects;
+	  function _drainEffects() {
+	    const effects = _pendingEffects;
+	    _pendingEffects = undefined;
+	    runEffects(effects);
+	  }
+
 	  /**
 	   * @template T
 	   * @param {() => T} fn
@@ -1214,13 +1302,15 @@
 	      return fn();
 	    }
 	    let wait = false;
+	    let myUpdates;
 	    if (!init) {
-	      Updates = [];
+	      myUpdates = Updates = _updatesPool.pop() || [];
 	    }
+	    let myEffects;
 	    if (Effects) {
 	      wait = true;
 	    } else {
-	      Effects = [];
+	      myEffects = Effects = _effectsPool.pop() || [];
 	    }
 	    Time++;
 	    try {
@@ -1234,7 +1324,10 @@
 	      if (!wait) {
 	        const effects = Effects;
 	        Effects = undefined;
-	        effects.length && runUpdates(() => runEffects(effects));
+	        if (effects.length) {
+	          _pendingEffects = effects;
+	          runUpdates(_drainEffects);
+	        }
 	      }
 	      return res;
 	    } catch (err) {
@@ -1243,6 +1336,15 @@
 	      }
 	      Updates = undefined;
 	      throw err;
+	    } finally {
+	      if (myUpdates) {
+	        myUpdates.length = 0;
+	        _updatesPool.push(myUpdates);
+	      }
+	      if (myEffects) {
+	        myEffects.length = 0;
+	        _effectsPool.push(myEffects);
+	      }
 	    }
 	  }
 	  function runEffects(queue) {
@@ -1403,16 +1505,29 @@
 	   * @param {Attribute<T>} value
 	   * @param {(value: T) => void} fn
 	   */
-	  function withValue(value, fn, writeDefaultValue = noop, wroteValue = {
-	    value: false
-	  }, resolved = []) {
+	  function withValue(value, fn, writeDefaultValue = noop, wroteValue = undefined, resolved = undefined) {
+	    // `wroteValue` and `resolved` are lazily allocated INSIDE the
+	    // branches that need them. The terminal `fn(value)` path is
+	    // the common case (every reactive prop assignment for a
+	    // primitive/element value goes through it) — making the
+	    // defaults eager allocated `{ value: false }` + `[]` per
+	    // call, even for the terminal path that never reads them.
+	    // Lazy init keeps that hot path allocation-free.
 	    if (isFunction(value)) {
 	      // TODO maybe change this to be a memo
 
-	      effect(() => withValue(value(), fn, writeDefaultValue, wroteValue, resolved));
-	    } else if (isArray(value) && !resolved.includes(value)) {
+	      if (wroteValue === undefined) wroteValue = {
+	        value: false
+	      };
+	      if (resolved === undefined) resolved = [];
+	      syncEffect(() => withValue(value(), fn, writeDefaultValue, wroteValue, resolved));
+	    } else if (isArray(value) && (resolved === undefined || !resolved.includes(value))) {
 	      // TODO maybe do same for objects ...
 
+	      if (wroteValue === undefined) wroteValue = {
+	        value: false
+	      };
+	      if (resolved === undefined) resolved = [];
 	      resolved.push(value);
 
 	      // when empty it should update too
@@ -1430,6 +1545,10 @@
 	        }, writeDefaultValue, wroteValue, resolved);
 	      });
 	    } else if (isPromise(value)) {
+	      if (wroteValue === undefined) wroteValue = {
+	        value: false
+	      };
+	      if (resolved === undefined) resolved = [];
 	      const remove = asyncTracking.add();
 	      /**
 	       * WriteDefaultValue is used to avoid a double write. If the
@@ -1557,6 +1676,7 @@
 	    owned,
 	    owner,
 	    root,
+	    Root,
 	    runWithOwner,
 	    signal,
 	    syncEffect,
@@ -1600,6 +1720,39 @@
 	const createElementNS = bind('createElementNS');
 	const createTextNode = bind('createTextNode');
 	const createComment = bind('createComment');
+
+	/**
+	 * Cleans a text value using the same whitespace rules JSX applies to
+	 * `JSXText` children: strip leading/trailing whitespace adjacent to
+	 * tags, drop blank lines, and add a single trailing space to non-last
+	 * lines that survived. Returns `''` when the input was pure
+	 * whitespace. Mirrors `cleanJSXElementLiteralChild` in
+	 * `babel-preset/transform/children.js` so xml↔jsx round-trips don't
+	 * have to fix up whitespace.
+	 *
+	 * @param {string} value
+	 * @returns {string}
+	 */
+	function cleanJSXText(value) {
+	  const lines = value.split(/\r\n|\n|\r/);
+	  let lastNonEmptyLine = 0;
+	  for (let i = 0; i < lines.length; i++) {
+	    if (/[^ \t]/.test(lines[i])) {
+	      lastNonEmptyLine = i;
+	    }
+	  }
+	  let str = '';
+	  for (let i = 0; i < lines.length; i++) {
+	    let trimmedLine = lines[i].replace(/\t/g, ' ');
+	    if (i !== 0) trimmedLine = trimmedLine.replace(/^ +/, '');
+	    if (i !== lines.length - 1) trimmedLine = trimmedLine.replace(/ +$/, '');
+	    if (trimmedLine) {
+	      if (i !== lastNonEmptyLine) trimmedLine += ' ';
+	      str += trimmedLine;
+	    }
+	  }
+	  return str;
+	}
 	bind('importNode');
 	const createTreeWalker = bind('createTreeWalker');
 
@@ -1633,6 +1786,25 @@
 	 * @param {string | string[]} className
 	 */
 	const removeClass = (node, className) => className.length && node.classList.remove(...(isArray(className) ? className : tokenList(className)));
+
+	// attributes
+
+	/**
+	 * Sets an attribute on a node.
+	 *
+	 * @param {Element} node
+	 * @param {string} name
+	 * @param {string} value
+	 */
+	const setAttribute$1 = (node, name, value) => node.setAttribute(name, value);
+
+	/**
+	 * Removes an attribute from a node.
+	 *
+	 * @param {Element} node
+	 * @param {string} name
+	 */
+	const removeAttribute = (node, name) => node.removeAttribute(name);
 
 	// selector
 
@@ -1740,6 +1912,7 @@
 	}
 
 	const {
+	  asyncTracking,
 	  batch,
 	  catchError,
 	  cleanup,
@@ -1748,9 +1921,11 @@
 	  effect,
 	  memo,
 	  owned,
+	  owner,
 	  root,
+	  Root,
+	  runWithOwner,
 	  signal,
-	  syncEffect,
 	  untrack,
 	  useSuspense,
 	  withValue
@@ -1777,38 +1952,53 @@
 
 	// MAP
 
-	class Row {
-	  runId;
+	class Row extends Root {
+	  runId = 0;
 	  item;
 	  index;
 	  isDupe;
-	  disposer;
 	  nodes;
-	  indexSignal;
-	  _begin;
-	  _end;
+	  indexSignal = null;
+	  _begin = null;
+	  _end = null;
+	  _fn;
+	  reactiveIndex;
 	  constructor(item, index, fn, isDupe, reactiveIndex) {
+	    // Row IS its own Root — no separate root() / Root allocation.
+	    super(owner());
 	    this.item = item;
 	    this.index = index;
 	    this.isDupe = isDupe;
-	    root(disposer => {
-	      this.disposer = clearing => {
-	        if (!clearing) {
-	          // console.log('removing row from Row')
-	          // if the row has a wrapper, remove it first to skip children removal
-	          this.remove();
-	        }
-	        disposer();
-	      };
-	      if (reactiveIndex) {
-	        this.indexSignal = signal(index);
-	        /** @type JSX.Element[] */
-	        this.nodes = fn(item, this.indexSignal.read);
-	      } else {
-	        /** @type JSX.Element[] */
-	        this.nodes = fn(item, index);
-	      }
-	    });
+	    this._fn = fn;
+	    this.reactiveIndex = reactiveIndex;
+
+	    // Run init with `this` as the active owner so any
+	    // effects/cleanups created inside attach to this Row.
+	    runWithOwner(this, () => this.rowInit());
+	  }
+	  rowInit() {
+	    if (this.reactiveIndex) {
+	      this.indexSignal = signal(this.index);
+	      /** @type JSX.Element[] */
+	      this.nodes = this._fn(this.item, this.indexSignal.read);
+	    } else {
+	      /** @type JSX.Element[] */
+	      this.nodes = this._fn(this.item, this.index);
+	    }
+	  }
+
+	  // Default disposal path — also remove DOM nodes. Used by
+	  // mapper.dispose(row) and by parent owner cascades.
+	  dispose() {
+	    this.remove();
+	    super.dispose();
+	  }
+
+	  // mapper.clear() path — the parent has already detached all rows
+	  // in one batch (toDiff fast-clear), so skip per-row remove() and
+	  // just clean up reactivity.
+	  disposeKeepingNodes() {
+	    super.dispose();
 	  }
 	  updateIndex(index) {
 	    if (this.index !== index) {
@@ -1819,7 +2009,7 @@
 	    }
 	  }
 	  begin() {
-	    if (!this._begin) {
+	    if (this._begin === null) {
 	      this.getBegin(this.nodes);
 	    }
 	    return this._begin;
@@ -1831,7 +2021,7 @@
 	    this._begin = nodes;
 	  }
 	  end() {
-	    if (!this._end) {
+	    if (this._end === null) {
 	      this.getEnd(this.nodes);
 	    }
 	    return this._end;
@@ -1892,7 +2082,7 @@
 	  function clear() {
 	    toDiff(flatToArray(prev.map(item => item.nodes)), [], true);
 	    for (const row of prev) {
-	      row.disposer(true);
+	      row.disposeKeepingNodes();
 	    }
 	    cache.clear();
 	    duplicates.clear();
@@ -1910,7 +2100,7 @@
 	      const arr = duplicates.get(row.item);
 	      arr.length === 1 ? duplicates.delete(row.item) : removeFromArray(arr, row);
 	    }
-	    row.disposer();
+	    row.dispose();
 	  }
 
 	  /**
@@ -2018,23 +2208,24 @@
 	        if (unsort.length) {
 	          let unsorted = unsort.length;
 	          if (unsorted) {
-	            // handle swap - unsorted rows should move only next to already sorted
-	            for (const usort of unsort) {
-	              if (rows[usort.index - 1] && (unsorted === 1 || !unsort.includes(rows[usort.index - 1]) || sorted.includes(rows[usort.index - 1]))) {
-	                rows[usort.index - 1].end().after(...usort.nodesForRow());
-	                sorted.push(usort);
-	                unsorted--;
-	              } else if (rows[usort.index + 1] && (unsorted === 1 || !unsort.includes(rows[usort.index + 1]) || sorted.includes(rows[usort.index - 1]))) {
-	                rows[usort.index + 1].begin().before(...usort.nodesForRow());
-	                sorted.push(usort);
-	                unsorted--;
+	            if (sorted.length) {
+	              // handle swap - unsorted rows should move only next to already sorted
+	              for (const usort of unsort) {
+	                if (rows[usort.index - 1] && (unsorted === 1 || !unsort.includes(rows[usort.index - 1]) || sorted.includes(rows[usort.index - 1]))) {
+	                  rows[usort.index - 1].end().after(...usort.nodesForRow());
+	                  sorted.push(usort);
+	                  unsorted--;
+	                } else if (rows[usort.index + 1] && (unsorted === 1 || !unsort.includes(rows[usort.index + 1]) || sorted.includes(rows[usort.index + 1]))) {
+	                  rows[usort.index + 1].begin().before(...usort.nodesForRow());
+	                  sorted.push(usort);
+	                  unsorted--;
+	                }
 	              }
 	            }
 	            if (unsorted) {
 	              // handles all other cases
 	              // best for any combination of: push/pop/shift/unshift/insertion/deletion
 	              // must check in reverse as on creation stuff is added to the end
-
 	              let current = rows[rows.length - 1];
 	              for (let i = rows.length - 1; i > 0; i--) {
 	                const previous = rows[i - 1];
@@ -2107,6 +2298,16 @@
 	function makeCallback(children) {
 	  /** Shortcut the most used case */
 	  if (isFunction(children)) {
+	    // JSX-component children (`<Inner />`) carry `$isComponent`. The
+	    // renderer untracks marked functions when it inserts them as
+	    // children, but flow components like `Show`/`Switch` invoke the
+	    // callback themselves inside a memo, bypassing that path. Mirror
+	    // the renderer's behavior here so the marked component runs
+	    // untracked regardless of the call site.
+	    // User callbacks (`{v => ...}`) are not marked and stay tracked.
+	    if ($isComponent in children) {
+	      return markComponent((...args) => untrack(() => children(...args)));
+	    }
 	    return markComponent(children);
 	  }
 
@@ -2115,7 +2316,7 @@
 	   * will end as `[[0, 1, 2]]`, so flat it
 	   */
 	  const childrenMaybeArray = flatNoArray(children);
-	  return isArray(childrenMaybeArray) ? markComponent((...args) => childrenMaybeArray.map(child => isFunction(child) ? child(...args) : child)) : markComponent((...args) => isFunction(childrenMaybeArray) ? childrenMaybeArray(...args) : childrenMaybeArray);
+	  return isArray(childrenMaybeArray) ? markComponent((...args) => childrenMaybeArray.map(child => isFunction(child) ? $isComponent in child ? untrack(() => child(...args)) : child(...args) : child)) : markComponent((...args) => isFunction(childrenMaybeArray) ? $isComponent in childrenMaybeArray ? untrack(() => childrenMaybeArray(...args)) : childrenMaybeArray(...args) : childrenMaybeArray);
 	}
 
 	/**
@@ -2239,6 +2440,34 @@
 	const removeAdoptedStyleSheet = (document, styleSheet) => removeFromArray(getAdoptedStyleSheets(document), styleSheet);
 
 	/**
+	 * Adds multiple stylesheets to a document or shadow root.
+	 *
+	 * @param {Document | ShadowRoot} document - The document or shadow
+	 *   root to add the stylesheets to.
+	 * @param {(CSSStyleSheet | string)[]} styleSheets - Array of
+	 *   stylesheets or stylesheet URLs to add.
+	 */
+	function addStyleSheets(document, styleSheets = []) {
+	  for (const sheet of styleSheets) {
+	    if (sheet) {
+	      sheet instanceof CSSStyleSheet$1 ? addAdoptedStyleSheet(document, sheet) : addStyleSheetExternal(document, sheet);
+	    }
+	  }
+	}
+
+	/**
+	 * Adds the stylesheet from urls. It uses a cache, to avoid having to
+	 * fire a request for each external sheet when used in more than one
+	 * custom element. Also, all reference the same object.
+	 *
+	 * @param {Document | ShadowRoot} document
+	 * @param {string} text
+	 */
+	const addStyleSheetExternal = withState((state, document, text) => {
+	  state.get(text, text => text.startsWith('http') ? fetch(text).then(r => r.text()).then(css => sheet(css)) : promise(resolve => resolve(sheet(text)))).then(styleSheet => addAdoptedStyleSheet(document, styleSheet));
+	});
+
+	/**
 	 * The purpose of this file is to guarantee the timing of some
 	 * callbacks. It queues a microtask, then the callbacks are added to a
 	 * position in the array. These are run with a priority.
@@ -2320,6 +2549,13 @@
 	 * @param {() => void} fn
 	 */
 	const onDone = fn => add(4, fn);
+
+	/**
+	 * Registers a callback that runs when all async tasks complete.
+	 *
+	 * @param {() => void} fn
+	 */
+	const readyAsync = asyncTracking.ready;
 
 	const plugins = cacheStore();
 	const pluginsNS = cacheStore();
@@ -2437,7 +2673,10 @@
 	 * @template {JSX.EventName} Name
 	 * @param {TargetElement} node
 	 * @param {Name} name
-	 * @param {JSX.EventHandlers<JSX.EventTypeFor<Name>, TargetElement>} value
+	 * @param {JSX.EventHandlers<
+	 * 	JSX.EventTypeFor<Name>,
+	 * 	TargetElement
+	 * >} value
 	 */
 	const setEvent = (node, name, value) => {
 	  flatForEach(value, value => {
@@ -2453,7 +2692,10 @@
 	 * @template {JSX.EventName} Name
 	 * @param {TargetElement} node
 	 * @param {Name} localName
-	 * @param {JSX.EventHandlers<JSX.EventTypeFor<Name>, TargetElement>} value
+	 * @param {JSX.EventHandlers<
+	 * 	JSX.EventTypeFor<Name>,
+	 * 	TargetElement
+	 * >} value
 	 */
 	const setEventNS = (node, localName, value) => {
 	  flatForEach(value, value => {
@@ -2682,10 +2924,11 @@
 	 * @param {string} name
 	 * @param {Accessor<string | number | boolean>} value
 	 * @param {string} ns
+	 * @param {string} localName
 	 * @url https://pota.quack.uy/props/setAttribute
 	 */
-	const setAttributeNS = (node, name, value, ns) => {
-	  withValue(value, value => _setAttributeNS(node, name, value, ns));
+	const setAttributeNS = (node, name, value, ns, localName) => {
+	  withValue(value, value => _setAttributeNS(node, name, value, ns, localName));
 	};
 
 	/**
@@ -2693,10 +2936,13 @@
 	 * @param {string} name
 	 * @param {string | number | boolean} value
 	 * @param {string} ns
+	 * @param {string} localName
 	 */
-	function _setAttributeNS(node, name, value, ns) {
+	function _setAttributeNS(node, name, value, ns, localName) {
 	  // if the value is false/null/undefined it will be removed
-	  value === false || value == null ? NS[ns] ? node.removeAttributeNS(NS[ns], name) : node.removeAttribute(name) : NS[ns] ? node.setAttributeNS(NS[ns], name, value === true ? '' : (/** @type {string} */value)) : node.setAttribute(name, value === true ? '' : (/** @type {string} */value));
+	  value === false || value == null ? NS[ns] ?
+	  // removeAttributeNS takes the local name, not the qualified
+	  node.removeAttributeNS(NS[ns], localName) : node.removeAttribute(name) : NS[ns] ? node.setAttributeNS(NS[ns], name, value === true ? '' : (/** @type {string} */value)) : node.setAttribute(name, value === true ? '' : (/** @type {string} */value));
 	}
 
 	propsPluginNS('prop', setPropertyNS, false);
@@ -2746,7 +2992,7 @@
 
 	    // run plugins NS
 	    plugin = pluginsNS.get(propNS[name][0]);
-	    plugin ? plugin(node, propNS[name][1], value) : setAttributeNS(node, name, value, propNS[name][0]);
+	    plugin ? plugin(node, propNS[name][1], value) : setAttributeNS(node, name, value, propNS[name][0], propNS[name][1]);
 	  } else {
 	    // catch all
 	    setAttribute(node, name, value);
@@ -2980,12 +3226,27 @@
 	        // For - TODO move this to the `For` component
 	        if ($isMap in child) {
 	          effect(() => {
-	            /** @ts-ignore-error @type {(cb: (c: JSX.Element) => void) => void} */
+	            // @ts-expect-error freaking typescript
 	            child(child => createChildren(parent, child, true));
 	          });
 	          // map has own dom removal
 	        } else {
 	          let node = [];
+
+	          // `Derived` while pending. The renderer's other thenable
+	          // branch lives under `case 'object'` and never sees
+	          // these because `typeof derived === 'function'`. Register
+	          // with the active Suspense so the fallback shows until
+	          // the derived first resolves. `d.then` is multi-consumer,
+	          // so a user `await d` later won't clobber our
+	          // registration. `cleanup(remove)` covers dispose; `remove`
+	          // is idempotent so the two paths are safe to converge.
+	          if ($isDerived in child) {
+	            const d = /** @type {Derived<unknown>} */child;
+	            const remove = useSuspense().add();
+	            cleanup(remove);
+	            d.then(remove);
+	          }
 	          effect(() => {
 	            // maybe a signal (at least a function) so needs an effect
 	            node = toDiff(node, /** @type {DOMElement[]} */
@@ -2995,7 +3256,8 @@
 	            // console.log('clearing parent and node', parent, node)
 	            if (parent.isConnected || node[0]?.isConnected) {
 	              toDiff(node);
-	              // @ts-expect-error
+	              // @ts-expect-error freaking typescript
+	              /** @type {Element} */
 	              parent.remove();
 	            }
 	          });
@@ -3222,7 +3484,8 @@
 	  return unwrapArray(toHTMLFragment(children).childNodes);
 	}
 
-	/** @ts-expect-error freaking typescript */
+	/* @type {typeof context & { toHTML: typeof toHTML }} */
+	// @ts-expect-error freaking typescript
 	context.toHTML = toHTML;
 
 	/**
@@ -3345,13 +3608,16 @@
 	// because re-ordering the elements trashes focus
 	function queue() {
 	  if (!queued) {
-	    queued = true;
 	    const active = activeElement();
+	    // nothing focused, nothing to restore — skip so the stale
+	    // capture doesn't block the next meaningful queue() call
+	    if (!active || active === document.body) return;
+	    queued = true;
 	    const scroll = documentElement.scrollTop;
 	    onFixes(() => {
 	      queued = false;
 	      // re-ordering the elements trashes focus
-	      active && active !== activeElement() && isConnected(active) &&
+	      active !== activeElement() && isConnected(active) &&
 	      // @ts-expect-error
 	      active.focus();
 	      documentElement.scrollTop = scroll;
@@ -3400,7 +3666,7 @@
 	  children: props.children
 	});
 
-	const constructorsTracked = [Object, Array, Map, undefined /** Object.create(null) */];
+	const constructorsTracked = [Object, Array, Map, Set, undefined /** Object.create(null) */];
 
 	/**
 	 * Returns `true` when `object` can't be made mutable.
@@ -3433,9 +3699,9 @@
 	/**
 	 * It returns all property descriptors for `target`.
 	 *
-	 * It checks for getters/setters of the prototype chain. The idea is
-	 * that if the prototype provides some getters/setters, then, we
-	 * should be able to track them too.
+	 * It checks for getters/setters of the prototype chain. The idea is that if the
+	 * prototype provides some getters/setters, then, we should be able to track
+	 * them too.
 	 */
 	function getPropertyDescriptors(target) {
 	  // blacklisted by default
@@ -3462,11 +3728,17 @@
 	/** Tracker */
 
 	const [getTracker] = weakStore();
-	const createTracker = () => new Track();
+	const createTracker = () => new Track(false);
 
 	/**
 	 * Returns a tracker for an object. A tracker is unique per object,
-	 * always the same tracker for the same object.
+	 * always the same tracker for the same object. Uses null-proto
+	 * object storage — number keys coerce to strings (matches array
+	 * index semantics).
+	 *
+	 * For handler-private trackers that need identity-keyed storage
+	 * (Map/Set per-key reactivity), instantiate directly via
+	 * `new Track(true)`.
 	 *
 	 * @template T
 	 * @param {T} target
@@ -3488,24 +3760,59 @@
 	const Value = 'Value';
 	const Key = 'Key';
 	const isUndefined = 'isUndefined';
+	const Getter = 'Getter';
 	const kinds = {
 	  __proto__: null,
 	  [Value]: undefined,
 	  [Key]: undefined,
-	  [isUndefined]: undefined
+	  [isUndefined]: undefined,
+	  [Getter]: undefined
 	};
+
+	/**
+	 * Track class — per-key reactive signal store.
+	 *
+	 * Use the `tracker(target)` factory for trackers memoized per target
+	 * (typical case: main proxy tracker). Instantiate directly via
+	 * `new Track(identity)` when the tracker is handler-private and
+	 * should NOT be memoized — e.g. Map/Set's `trackSlot`.
+	 */
 	class Track {
 	  // id = Date.now()
 
-	  #props = empty();
+	  /**
+	   * Per-key signal storage.
+	   *
+	   * - Default (`isIdentity=false`): null-proto object. Numbers
+	   *   auto-coerce to strings, matching array index semantics.
+	   * - Identity (`isIdentity=true`): `Map`. Keys preserved by
+	   *   identity — required for Map/Set where object keys,
+	   *   number-vs-string, and boolean-vs-string distinctions matter.
+	   */
+	  #props;
+	  isIdentity;
+	  constructor(identity) {
+	    this.isIdentity = !!identity;
+	    this.#props = identity ? new Map() : empty();
+	  }
 	  #prop(kind, key, value, equalsType) {
-	    if (!(key in this.#props)) {
-	      this.#props[key] = create$1(kinds);
+	    let entry;
+	    if (this.isIdentity) {
+	      entry = this.#props.get(key);
+	      if (!entry) {
+	        entry = create$1(kinds);
+	        this.#props.set(key, entry);
+	      }
+	    } else {
+	      if (!(key in this.#props)) {
+	        this.#props[key] = create$1(kinds);
+	      }
+	      entry = this.#props[key];
 	    }
-	    if (this.#props[key][kind] === undefined) {
-	      this.#props[key][kind] = signal(value, equalsType);
+	    if (entry[kind] === undefined) {
+	      entry[kind] = signal(value, equalsType);
 	    }
-	    return this.#props[key][kind];
+	    return entry[kind];
 	  }
 
 	  /**
@@ -3573,6 +3880,28 @@
 	   */
 	  isUndefinedWrite(key, value) {
 	    this.#prop(isUndefined, key, value === undefined, equalsDefault).write(value === undefined);
+	  }
+
+	  /**
+	   * Keeps track of: the getter function identity for an accessor
+	   * `key`. Subscribers are effects reading through a signalified
+	   * accessor wrapper; the signal fires when `defineProperty` swaps in
+	   * a getter with a different identity.
+	   *
+	   * @param {PropertyKey} key
+	   * @param {any} value - The getter function
+	   */
+	  getterRead(key, value) {
+	    this.#prop(Getter, key, value, equalsDefault).read();
+	  }
+	  /**
+	   * Writes the getter function identity for `key`.
+	   *
+	   * @param {PropertyKey} key
+	   * @param {any} value - The getter function
+	   */
+	  getterWrite(key, value) {
+	    return this.#prop(Getter, key, undefined, equalsDefault).write(value);
 	  }
 
 	  /**
@@ -3658,6 +3987,22 @@
 	}
 
 	/**
+	 * Per-wrapper pointer back to the user's original getter/setter.
+	 * Proxy traps that expose descriptors (`getOwnPropertyDescriptor`)
+	 * and compare getter identity (`defineProperty`) unwrap through this
+	 * so callers never see our signalify wrappers.
+	 */
+	const originalGetSet = new WeakMap();
+
+	/**
+	 * @template {((...a: any[]) => any) | undefined} F
+	 * @param {F} fn
+	 * @returns {F} The user's original if `fn` is one of our signalify
+	 *   wrappers, otherwise `fn` unchanged.
+	 */
+	const unwrapGetSet = fn => fn && originalGetSet.has(fn) ? originalGetSet.get(fn) : fn;
+
+	/**
 	 * Signalify object properties
 	 *
 	 * @template T
@@ -3717,6 +4062,16 @@
 	  if (isFunction(value) && wrapper === identity) {
 	    return;
 	  }
+
+	  /**
+	   * If the caller handed us a descriptor that came back through one
+	   * of our proxy traps (e.g. a `defineProperty` that retained a
+	   * previously-installed wrapper via spec merge), unwrap to the
+	   * user's originals. Ensures we never re-wrap our own wrappers and
+	   * that `originalGetSet` always maps to true originals.
+	   */
+	  if (descriptor.get) descriptor.get = unwrapGetSet(descriptor.get);
+	  if (descriptor.set) descriptor.set = unwrapGetSet(descriptor.set);
 	  const getter = descriptor.get?.bind(target);
 	  const setter = descriptor.set?.bind(target);
 
@@ -3724,38 +4079,64 @@
 	  if (!setter && wrapper) {
 	    value = wrapper(value);
 	  }
+
+	  /**
+	   * 1. We cannot know if the getter will return the same thing that has
+	   *    been set. For this reason we cant rely on the return value of
+	   *    the signal.
+	   * 2. We need to ensure the return value is always wrapped (for in case
+	   *    of being used as a mutable).
+	   * 3. For accessor descriptors we subscribe to a per-key `Getter`
+	   *    signal keyed to the user's original getter identity.
+	   *    `signalifyKey` writes the current getter identity below, so
+	   *    `defineProperty` swapping the getter for a different identity
+	   *    fires the signal; same-identity redefines are absorbed by the
+	   *    signal's equality check.
+	   */
+	  const wrapperGet = getter ? () => {
+	    value = wrapper(getter());
+	    descriptor.get && track.getterRead(key, descriptor.get);
+	    return track.valueRead(key, value);
+	  } : () => {
+	    value = wrapper(value);
+	    return track.valueRead(key, value);
+	  };
+
+	  /** When it's only a getter it shouldn't have a setter */
+	  const wrapperSet = getter && !setter ? undefined : setter ? val => {
+	    batch(() => {
+	      value = wrapper(val);
+	      setter(value);
+	      track.valueWrite(key, value);
+	    });
+	  } : val => {
+	    batch(() => {
+	      value = wrapper(val);
+	      track.valueWrite(key, value);
+	    });
+	  };
+
+	  /**
+	   * Record the user's original get/set on the wrapper so proxy traps
+	   * that expose descriptors can return the originals, and identity
+	   * comparisons stay meaningful.
+	   */
+	  if (descriptor.get) originalGetSet.set(wrapperGet, descriptor.get);
+	  if (descriptor.set) originalGetSet.set(wrapperSet, descriptor.set);
 	  defineProperty(target, key, {
-	    get:
-	    /**
-	     * 1. We cannot know if the getter will return the same thing that
-	     *    has been set. For this reason we cant rely on the return
-	     *    value of the signal.
-	     * 2. We need to ensure the return value is always wrapped (for in
-	     *    case of being used as a mutable).
-	     */
-	    getter ? () => {
-	      value = wrapper(getter());
-	      return track.valueRead(key, value);
-	    } : () => {
-	      value = wrapper(value);
-	      return track.valueRead(key, value);
-	    },
-	    set: /** When it's only a getter it shouldn't have a setter */
-	    getter && !setter ? undefined : setter ? val => {
-	      batch(() => {
-	        value = wrapper(val);
-	        setter(value);
-	        track.valueWrite(key, value);
-	      });
-	    } : val => {
-	      batch(() => {
-	        value = wrapper(val);
-	        track.valueWrite(key, value);
-	      });
-	    },
+	    get: wrapperGet,
+	    set: wrapperSet,
 	    enumerable: descriptor.enumerable,
 	    configurable: true
 	  });
+
+	  /**
+	   * Publish the current getter identity so subscribers on the
+	   * `Getter` signal fire when the user swaps the getter via
+	   * `defineProperty`. Same-identity redefines are absorbed by the
+	   * signal's equality check (a no-op write).
+	   */
+	  descriptor.get && track.getterWrite(key, descriptor.get);
 	}
 
 	/**
@@ -3799,7 +4180,7 @@
 	  }
 	  has(target, key) {
 	    const r = reflectHas(target, key);
-	    this.track.keyRead(key, r);
+	    if (this.shouldTrackKey(key)) this.track.keyRead(key, r);
 	    return r;
 	  }
 	  deleteProperty(target, key) {
@@ -3807,6 +4188,7 @@
 	    if (!(key in target)) {
 	      return true;
 	    }
+	    if (!this.shouldTrackKey(key)) return delete target[key];
 	    return batch(() => {
 	      this.track.keysWrite();
 	      this.track.delete(key);
@@ -3820,7 +4202,67 @@
 	  }
 	  getOwnPropertyDescriptor(target, key) {
 	    this.has(target, key);
-	    return reflectGetOwnPropertyDescriptor(target, key);
+	    const desc = reflectGetOwnPropertyDescriptor(target, key);
+	    if (desc) {
+	      // Return the user's original get/set — never expose our
+	      // signalify wrappers through a standard descriptor read.
+	      if (desc.get) desc.get = unwrapGetSet(desc.get);
+	      if (desc.set) desc.set = unwrapGetSet(desc.set);
+	    }
+	    return desc;
+	  }
+	  defineProperty(target, key, descriptor) {
+	    if (!this.shouldTrackKey(key)) {
+	      return reflectDefineProperty(target, key, descriptor);
+	    }
+	    return batch(() => {
+	      const wasIn = key in target;
+	      const oldDesc = wasIn ? reflectGetOwnPropertyDescriptor(target, key) : undefined;
+	      const r = reflectDefineProperty(target, key, descriptor);
+	      if (r) {
+	        const newDesc = reflectGetOwnPropertyDescriptor(target, key);
+	        const oldEnum = oldDesc ? oldDesc.enumerable : false;
+	        const newEnum = newDesc ? newDesc.enumerable : false;
+	        if (!wasIn) {
+	          this.track.keyWrite(key, true); // has changed
+	          if (newEnum) this.track.keysWrite(); // added to ownKeys
+	        } else if (oldEnum !== newEnum) {
+	          this.track.keysWrite(); // enumerability transitioned
+	        }
+
+	        // Wrap for per-key reactivity. Handles both data and
+	        // accessor descriptors; skips internally for
+	        // non-configurable and for blacklisted keys. Pass the
+	        // effective (merged) descriptor so accessor overrides
+	        // see retained get/set from the original.
+	        signalifyKey(target, key, newDesc, mutable, this.track);
+
+	        // Gate `valuesWrite()` on whether anything actually
+	        // changed — otherwise same-value redefines wake
+	        // `forEach`-style `valuesRead` subscribers unnecessarily.
+	        let changed = !wasIn;
+	        if ('value' in newDesc) {
+	          // Data descriptor — effective value is newDesc.value.
+	          // shall NOT run getters.
+	          const newValue = mutable(newDesc.value);
+	          this.track.isUndefinedWrite(key, newValue);
+	          if (this.track.valueWrite(key, newValue)) changed = true;
+	        } else {
+	          // Accessor descriptor — `signalifyKey` updates the
+	          // per-key `Getter` signal above, so same-identity
+	          // redefines are absorbed and real getter swaps fire
+	          // subscribers. We only need to flip `isUndefined`
+	          // for newly-added keys so effects that read the
+	          // key while undefined wake up; existing keys
+	          // already have `isUndefined` = false.
+	          if (!wasIn) {
+	            this.track.isUndefinedWrite(key, null);
+	          }
+	        }
+	        if (changed) this.track.valuesWrite();
+	      }
+	      return r;
+	    });
 	  }
 	  returnValue(target, key, value) {
 	    return isProxyValueReturnInvariant(target, key, value) ? (mutable(value), value) : mutable(value);
@@ -3832,6 +4274,32 @@
 	     * 2. Run in a batch to react to all changes at the same time.
 	     */
 	    return (...args) => batch(() => mutable(key in objectMethods ? objectMethods[key](this, target, value, args, proxy) : reflectApply(value, target, args)));
+	  }
+	  /**
+	   * `true` when reactive tracking should run for `key`. Skips
+	   * engine-internal keys (well-known symbols, `constructor`,
+	   * `__proto__`) so they don't create spurious subscriptions.
+	   *
+	   * @param {PropertyKey} key
+	   * @returns {boolean}
+	   */
+	  shouldTrackKey(key) {
+	    return !isKeyBlacklisted(key);
+	  }
+	  /**
+	   * `true` when `key` is an identity-sensitive blacklisted key. The
+	   * get trap returns the raw value for these so `obj.constructor ===
+	   * Object` and `obj.__proto__ === Object.prototype` hold. Other
+	   * blacklisted keys (well-known symbols) still go through
+	   * `returnFunction` so internal-slot methods like
+	   * `Map.prototype[Symbol.iterator]` receive the raw target as
+	   * receiver.
+	   *
+	   * @param {PropertyKey} key
+	   * @returns {boolean}
+	   */
+	  isIdentityKey(key) {
+	    return key === 'constructor' || key === '__proto__';
 	  }
 	}
 	const objectMethods = {
@@ -3851,15 +4319,25 @@
 	    if (key === $isMutable) {
 	      return true;
 	    }
+	    if (this.isIdentityKey(key)) {
+	      return reflectGet(target, key, proxy);
+	    }
+	    const shouldTrack = this.shouldTrackKey(key);
 
 	    /** To be able to track properties not yet set */
-	    if (!(key in target)) {
+	    if (shouldTrack && !(key in target)) {
 	      this.track.isUndefinedRead(key, true);
 	    }
 	    const value = reflectGet(target, key, proxy);
-	    return isFunction(value) ? this.returnFunction(target, key, value, proxy) : this.track.valueRead(key, this.returnValue(target, key, value));
+	    if (isFunction(value)) {
+	      return this.returnFunction(target, key, value, proxy);
+	    }
+	    return shouldTrack ? this.track.valueRead(key, this.returnValue(target, key, value)) : this.returnValue(target, key, value);
 	  }
 	  set(target, key, value, proxy) {
+	    if (!this.shouldTrackKey(key)) {
+	      return reflectSet(target, key, mutable(value), proxy);
+	    }
 	    return batch(() => {
 	      /** Always work with mutables */
 	      value = mutable(value);
@@ -3898,6 +4376,57 @@
 	       * changed, so it needs to be updated to 1.
 	       */
 	      this.track.valueWrite('length', target.length);
+	      return r;
+	    });
+	  }
+
+	  /**
+	   * Arrays track every key via the proxy's `get`/`set` traps (see
+	   * above), so the base class's `signalifyKey` step would install a
+	   * redundant accessor wrapper on top, double-tracking numeric
+	   * indices. Override here to do the descriptor work and fire tracker
+	   * notifications directly — without accessor wrapping.
+	   */
+	  defineProperty(target, key, descriptor) {
+	    if (!this.shouldTrackKey(key)) {
+	      return reflectDefineProperty(target, key, descriptor);
+	    }
+	    return batch(() => {
+	      const wasIn = key in target;
+	      const oldDesc = wasIn ? reflectGetOwnPropertyDescriptor(target, key) : undefined;
+	      const r = reflectDefineProperty(target, key, descriptor);
+	      if (r) {
+	        const newDesc = reflectGetOwnPropertyDescriptor(target, key);
+	        const oldEnum = oldDesc ? oldDesc.enumerable : false;
+	        const newEnum = newDesc ? newDesc.enumerable : false;
+	        if (!wasIn) {
+	          this.track.keyWrite(key, true);
+	          if (newEnum) this.track.keysWrite();
+	        } else if (oldEnum !== newEnum) {
+	          this.track.keysWrite();
+	        }
+
+	        // Gate `valuesWrite()` on whether anything actually
+	        // changed. We compare old vs new value directly
+	        // (arrays keep data descriptors on the raw target, so
+	        // `oldDesc.value` is meaningful). `valueWrite`'s
+	        // return can't be trusted alone — first write to a
+	        // never-read key always "fires" because the signal is
+	        // initialized with `undefined`.
+	        let changed = !wasIn;
+	        if ('value' in newDesc) {
+	          const newValue = mutable(newDesc.value);
+	          const oldValue = oldDesc && 'value' in oldDesc ? oldDesc.value : undefined;
+	          this.track.isUndefinedWrite(key, newValue);
+	          if (!is(oldValue, newValue)) {
+	            this.track.valueWrite(key, newValue);
+	            changed = true;
+	          }
+	        } else if (!wasIn) {
+	          this.track.isUndefinedWrite(key, null);
+	        }
+	        if (changed) this.track.valuesWrite();
+	      }
 	      return r;
 	    });
 	  }
@@ -4052,20 +4581,28 @@
 	    return r;
 	  },
 	  forEach(handler, target, value, args, proxy) {
+	    const cb = args[0];
+	    const thisArg = args[1];
 	    handler.track.valuesRead();
-	    reflectApply(value, target, args);
+	    reflectApply(value, target, [(element, index) => cb.call(thisArg, element, index, proxy)]);
 	  },
 	  map(handler, target, value, args, proxy) {
+	    const cb = args[0];
+	    const thisArg = args[1];
 	    handler.track.valuesRead();
-	    return reflectApply(value, target, args);
+	    return reflectApply(value, target, [(element, index) => cb.call(thisArg, element, index, proxy)]);
 	  },
 	  every(handler, target, value, args, proxy) {
+	    const cb = args[0];
+	    const thisArg = args[1];
 	    handler.track.valuesRead();
-	    return reflectApply(value, target, args);
+	    return reflectApply(value, target, [(element, index) => cb.call(thisArg, element, index, proxy)]);
 	  },
 	  some(handler, target, value, args, proxy) {
+	    const cb = args[0];
+	    const thisArg = args[1];
 	    handler.track.valuesRead();
-	    return reflectApply(value, target, args);
+	    return reflectApply(value, target, [(element, index) => cb.call(thisArg, element, index, proxy)]);
 	  },
 	  // lib.es2015.core.d.ts
 
@@ -4125,26 +4662,36 @@
 	    return key;
 	  },
 	  filter(handler, target, value, args, proxy) {
+	    const cb = args[0];
+	    const thisArg = args[1];
 	    handler.track.valuesRead();
-	    return reflectApply(value, target, args);
+	    return reflectApply(value, target, [(element, index) => cb.call(thisArg, element, index, proxy)]);
 	  },
 	  reduce(handler, target, value, args, proxy) {
+	    const cb = args[0];
 	    handler.track.valuesRead();
-	    return reflectApply(value, target, args);
+	    const wrapped = (acc, element, index) => cb(acc, element, index, proxy);
+	    return reflectApply(value, target, args.length > 1 ? [wrapped, args[1]] : [wrapped]);
 	  },
 	  reduceRight(handler, target, value, args, proxy) {
+	    const cb = args[0];
 	    handler.track.valuesRead();
-	    return reflectApply(value, target, args);
+	    const wrapped = (acc, element, index) => cb(acc, element, index, proxy);
+	    return reflectApply(value, target, args.length > 1 ? [wrapped, args[1]] : [wrapped]);
 	  },
 	  // lib.es2015.core.d.ts
 
 	  find(handler, target, value, args, proxy) {
+	    const cb = args[0];
+	    const thisArg = args[1];
 	    handler.track.valuesRead();
-	    return reflectApply(value, target, args);
+	    return reflectApply(value, target, [(element, index) => cb.call(thisArg, element, index, proxy)]);
 	  },
 	  findIndex(handler, target, value, args, proxy) {
+	    const cb = args[0];
+	    const thisArg = args[1];
 	    handler.track.valuesRead();
-	    return reflectApply(value, target, args);
+	    return reflectApply(value, target, [(element, index) => cb.call(thisArg, element, index, proxy)]);
 	  },
 	  // lib.es2015.iterable.d.ts
 
@@ -4194,8 +4741,10 @@
 	    return reflectApply(value, target, args);
 	  },
 	  flatMap(handler, target, value, args, proxy) {
+	    const cb = args[0];
+	    const thisArg = args[1];
 	    handler.track.valuesRead();
-	    return reflectApply(value, target, args);
+	    return reflectApply(value, target, [(element, index) => cb.call(thisArg, element, index, proxy)]);
 	  },
 	  // lib.es2022.array.d.ts
 
@@ -4208,12 +4757,16 @@
 	  // lib.es2023.array.d.ts
 
 	  findLast(handler, target, value, args, proxy) {
+	    const cb = args[0];
+	    const thisArg = args[1];
 	    handler.track.valuesRead();
-	    return reflectApply(value, target, args);
+	    return reflectApply(value, target, [(element, index) => cb.call(thisArg, element, index, proxy)]);
 	  },
 	  findLastIndex(handler, target, value, args, proxy) {
+	    const cb = args[0];
+	    const thisArg = args[1];
 	    handler.track.valuesRead();
-	    return reflectApply(value, target, args);
+	    return reflectApply(value, target, [(element, index) => cb.call(thisArg, element, index, proxy)]);
 	  },
 	  toReversed(handler, target, value, args, proxy) {
 	    handler.track.valuesRead();
@@ -4249,15 +4802,21 @@
 	    if (key === $isMutable) {
 	      return true;
 	    }
+	    if (this.isIdentityKey(key)) {
+	      return reflectGet(target, key, proxy);
+	    }
 
 	    /** To be able to track properties not yet set */
-	    if (!(key in target)) {
+	    if (this.shouldTrackKey(key) && !(key in target)) {
 	      this.track.isUndefinedRead(key, true);
 	    }
 	    const value = reflectGet(target, key, proxy);
 	    return isFunction(value) ? this.returnFunction(target, key, value, proxy) : this.returnValue(target, key, value);
 	  }
 	  set(target, key, value, proxy) {
+	    if (!this.shouldTrackKey(key)) {
+	      return reflectSet(target, key, mutable(value), proxy);
+	    }
 	    return batch(() => {
 	      /** Always work with mutables */
 	      value = mutable(value);
@@ -4280,53 +4839,47 @@
 	}
 
 	/**
-	 * Proxy for objects. In objects, values are tracked by the
-	 * setter/getters in the properties.
+	 * Proxy for Maps. Per-key `has` / `get` tracking goes through
+	 * `trackSlot` (the shared `Track` keys the #props Map by identity,
+	 * so object keys are tracked precisely). Iteration methods
+	 * (`forEach`, `keys`, `values`, `entries`) subscribe to the coarse
+	 * `valuesRead` / `keysRead` sentinels, plus per-key subscriptions at
+	 * each yield so partial iteration via `break` remains reactive.
 	 */
 	class ProxyHandlerMap extends ProxyHandlerObject {
 	  // type = 'Map'
 
 	  constructor(value) {
 	    super(value);
-	    this.trackSlot = tracker(empty());
+	    this.trackSlot = new Track(true);
 	  }
 	  get(target, key, proxy) {
 	    if (key === $isMutable) {
 	      return true;
 	    }
+	    if (this.isIdentityKey(key)) {
+	      return reflectGet(target, key, proxy);
+	    }
+	    const shouldTrack = this.shouldTrackKey(key);
 
 	    /** To be able to track properties not yet set */
-	    if (!(key in target)) {
+	    if (shouldTrack && !(key in target)) {
 	      this.track.isUndefinedRead(key, true);
 	    }
 
-	    /**
-	     * Tracking + value For whatever reason `size` is special for
-	     * `Map`
-	     */
-
-	    const value = key === 'size' ? this.track.valueRead(key, reflectGet(target, key, target)) : reflectGet(target, key, proxy);
+	    /** `size` needs the receiver to be the raw Map */
+	    const value = shouldTrack && key === 'size' ? this.track.valueRead(key, reflectGet(target, key, target)) : reflectGet(target, key, proxy);
 	    return isFunction(value) ? this.returnFunction(target, key, value, proxy) : this.returnValue(target, key, value);
 	  }
 	  returnFunction(target, key, value, proxy) {
 	    /**
 	     * 1. `Reflect.apply` to correct `receiver`. `TypeError: Method
-	     *    Set.prototype.add called on incompatible receiver #<Set>`
+	     *    Map.prototype.set called on incompatible receiver #<Map>`
 	     * 2. Run in a batch to react to all changes at the same time.
 	     */
 	    return (...args) => batch(() => mutable(key in mapMethods ? mapMethods[key](this, this.trackSlot, target, value, args, proxy) : reflectApply(value, target, args)));
 	  }
 	}
-
-	/**
-	 * Like Map but tracks.
-	 *
-	 * 1. Instances are supposed to be used Proxied, so theres no need for
-	 *    batching, because the proxy already batches the functions.
-	 * 2. This is an internal Class and is not meant to be used outside
-	 *    `mutable`.
-	 */
-
 	const mapMethods = {
 	  __proto__: null,
 	  has(handler, trackSlot, target, value, args, proxy) {
@@ -4384,11 +4937,12 @@
 	  },
 	  forEach(handler, trackSlot, target, value, args, proxy) {
 	    const cb = args[0];
+	    const thisArg = args[1];
 	    trackSlot.valuesRead();
 	    trackSlot.keysRead();
 	    for (const [key, value] of target.entries()) {
 	      trackSlot.valueRead(key, value);
-	      cb(value, key, proxy);
+	      cb.call(thisArg, value, key, proxy);
 	    }
 	  },
 	  *keys(handler, trackSlot, target, value, args, proxy) {
@@ -4396,8 +4950,8 @@
 	      trackSlot.keyRead(key, true);
 	      yield key;
 	    }
-
-	    // for when empty and for when iterating all
+	    // covers "iterated to completion" and "iterated empty"; partial
+	    // iteration with `break` relies on per-key subscriptions above.
 	    trackSlot.keysRead();
 	  },
 	  *values(handler, trackSlot, target, value, args, proxy) {
@@ -4405,8 +4959,6 @@
 	      trackSlot.valueRead(key, value);
 	      yield value;
 	    }
-
-	    // for when empty and for when iterating all
 	    trackSlot.valuesRead();
 	    trackSlot.keysRead();
 	  },
@@ -4415,8 +4967,6 @@
 	      trackSlot.valueRead(entry[0], entry[1]);
 	      yield entry;
 	    }
-
-	    // for when empty and for when iterating all
 	    trackSlot.valuesRead();
 	    trackSlot.keysRead();
 	  },
@@ -4426,7 +4976,134 @@
 	};
 
 	/**
-	 * Copies an object leaving native/built-ins intact
+	 * Proxy for Sets. Per-value `has` tracking goes through `trackSlot`
+	 * (the shared `Track` keys the #props Map by identity). Iteration
+	 * (`forEach`, `values`, etc.) subscribes to the coarse
+	 * `valuesRead()` sentinel.
+	 */
+	class ProxyHandlerSet extends ProxyHandlerObject {
+	  // type = 'Set'
+
+	  constructor(value) {
+	    super(value);
+	    this.trackSlot = new Track(true);
+	  }
+	  get(target, key, proxy) {
+	    if (key === $isMutable) {
+	      return true;
+	    }
+	    if (this.isIdentityKey(key)) {
+	      return reflectGet(target, key, proxy);
+	    }
+	    const shouldTrack = this.shouldTrackKey(key);
+
+	    /** To be able to track properties not yet set */
+	    if (shouldTrack && !(key in target)) {
+	      this.track.isUndefinedRead(key, true);
+	    }
+
+	    /** `size` needs the receiver to be the raw Set */
+	    const value = shouldTrack && key === 'size' ? this.track.valueRead(key, reflectGet(target, key, target)) : reflectGet(target, key, proxy);
+	    return isFunction(value) ? this.returnFunction(target, key, value, proxy) : this.returnValue(target, key, value);
+	  }
+	  returnFunction(target, key, value, proxy) {
+	    /**
+	     * 1. `Reflect.apply` to correct `receiver`. `TypeError: Method
+	     *    Set.prototype.add called on incompatible receiver #<Set>`
+	     * 2. Run in a batch to react to all changes at the same time.
+	     */
+	    return (...args) => batch(() => mutable(key in setMethods ? setMethods[key](this, this.trackSlot, target, value, args, proxy) : reflectApply(value, target, args)));
+	  }
+	}
+	const setMethods = {
+	  __proto__: null,
+	  has(handler, trackSlot, target, value, args, proxy) {
+	    const v = mutable(args[0]);
+	    const r = reflectApply(value, target, [v]);
+	    trackSlot.keyRead(v, r);
+	    return r;
+	  },
+	  add(handler, trackSlot, target, value, args, proxy) {
+	    const v = mutable(args[0]);
+	    if (target.has(v)) {
+	      // Already in — Set.add is a no-op semantically.
+	      return reflectApply(value, target, [v]);
+	    }
+	    trackSlot.keyWrite(v, true);
+	    trackSlot.valuesWrite();
+	    const r = reflectApply(value, target, [v]);
+	    handler.track.valueWrite('size', target.size);
+	    return r;
+	  },
+	  delete(handler, trackSlot, target, value, args, proxy) {
+	    const v = mutable(args[0]);
+	    const r = reflectApply(value, target, [v]);
+	    if (r) {
+	      trackSlot.keyWrite(v, false);
+	      trackSlot.valuesWrite();
+	      handler.track.valueWrite('size', target.size);
+	    }
+	    return r;
+	  },
+	  clear(handler, trackSlot, target, value, args, proxy) {
+	    if (target.size) {
+	      for (const v of target.values()) {
+	        trackSlot.keyWrite(v, false);
+	      }
+	      trackSlot.valuesWrite();
+	      reflectApply(value, target, args);
+	      handler.track.valueWrite('size', 0);
+	    }
+	  },
+	  forEach(handler, trackSlot, target, value, args, proxy) {
+	    const cb = args[0];
+	    const thisArg = args[1];
+	    trackSlot.valuesRead();
+	    for (const v of target.values()) {
+	      cb.call(thisArg, v, v, proxy);
+	    }
+	  },
+	  *values(handler, trackSlot, target, value, args, proxy) {
+	    for (const v of target.values()) {
+	      yield v;
+	    }
+	    trackSlot.valuesRead();
+	  },
+	  *keys(handler, trackSlot, target, value, args, proxy) {
+	    // Set.prototype.keys === Set.prototype.values
+	    for (const v of target.values()) {
+	      yield v;
+	    }
+	    trackSlot.valuesRead();
+	  },
+	  *entries(handler, trackSlot, target, value, args, proxy) {
+	    for (const v of target.values()) {
+	      yield [v, v];
+	    }
+	    trackSlot.valuesRead();
+	  },
+	  [iterator](handler, trackSlot, target, value, args, proxy) {
+	    return this.values(handler, trackSlot, target, value, args, proxy);
+	  }
+	};
+
+	/**
+	 * Deep-copies a value, preserving as much fidelity as practical:
+	 *
+	 * - Arrays, Sets, and Maps are reconstructed with their native types.
+	 * - Prototype chain is preserved (class instances stay `instanceof`
+	 *   their class).
+	 * - Own string AND symbol keys are copied, including non-enumerable
+	 *   properties and full descriptor attributes (writable, enumerable,
+	 *   configurable).
+	 * - Accessor descriptors are snapshotted: the getter is invoked once
+	 *   (inside `untrack` so reactive reads don't leak) and the result is
+	 *   stored as data on the copy. The original accessor shape is lost —
+	 *   copy returns a value snapshot, not a live recomputing view.
+	 * - Cycles are handled via the `seen` map.
+	 * - Frozen / sealed / non-extensible state is re-applied.
+	 * - Built-ins listed in `isMutationBlacklisted` (Date, RegExp,
+	 *   HTMLElement, …) are returned by reference.
 	 *
 	 * @template T
 	 * @param {T} o
@@ -4442,14 +5119,56 @@
 	  if (seen.has(o)) {
 	    return /** @type {T} */seen.get(o);
 	  }
-	  const c = /** @type {T} */isArray(o) ? [] : (/** @type {{ [key: string]: unknown }} */{});
-	  seen.set(o, c);
-	  for (const k in o) {
-	    // @ts-expect-error
-	    c[k] = copy(o[k], seen);
+	  let c;
+	  if (isArray(o)) {
+	    c = [];
+	  } else if (o instanceof Set) {
+	    c = new Set();
+	  } else if (o instanceof Map) {
+	    c = new Map();
+	  } else {
+	    // Preserve prototype for class instances.
+	    c = Object.create(Object.getPrototypeOf(o));
 	  }
-	  // @ts-expect-error
-	  return c;
+	  seen.set(o, c);
+
+	  // Collection contents. Done before the own-properties loop so
+	  // circular cycles register in `seen` consistently.
+	  if (o instanceof Set) {
+	    for (const v of o) c.add(copy(v, seen));
+	  } else if (o instanceof Map) {
+	    for (const [k, v] of o) {
+	      c.set(copy(k, seen), copy(v, seen));
+	    }
+	  }
+
+	  // Own keys (string + symbol, enumerable + non-enumerable).
+	  // `isObject(o)` narrowed via type guard, but TS keeps the
+	  // generic `T` view; cast to `object` for the Reflect API.
+	  const obj = /** @type {object} */o;
+	  for (const k of Reflect.ownKeys(obj)) {
+	    const desc = Object.getOwnPropertyDescriptor(obj, k);
+	    if (!desc) continue;
+	    let value;
+	    if ('value' in desc) {
+	      value = copy(desc.value, seen);
+	    } else if (desc.get) {
+	      // Snapshot: invoke getter once, untracked.
+	      try {
+	        value = copy(untrack(() => desc.get.call(o)), seen);
+	      } catch {}
+	    }
+	    Object.defineProperty(c, k, {
+	      value,
+	      writable: 'value' in desc ? desc.writable : true,
+	      enumerable: desc.enumerable,
+	      configurable: desc.configurable
+	    });
+	  }
+
+	  // Preserve frozen / sealed / non-extensible state.
+	  if (Object.isFrozen(o)) Object.freeze(c);else if (Object.isSealed(o)) Object.seal(c);else if (!Object.isExtensible(o)) Object.preventExtensions(c);
+	  return /** @type {T} */c;
 	}
 
 	/** Keeps track of what objects have already been made into a proxy */
@@ -4484,7 +5203,7 @@
 	 * @template T
 	 * @param {T} value
 	 * @param {boolean} [clone] - If to `copy` the value first
-	 * @returns {T & Record<string, any>}
+	 * @returns {import('#type/store.d.ts').Mutable<T>}
 	 */
 	function mutable(value, clone) {
 	  /** Return value as is when is not an object */
@@ -4493,11 +5212,11 @@
 	  }
 
 	  /** Make a copy to avoid modifying original data (optional) */
-	  value = clone ? copy(value) : value;
+	  value = clone ? untrack(() => copy(value)) : value;
 
 	  /** Avoid unwrapping external proxies */
 	  if (value[$isMutable]) {
-	    return value;
+	    return /** @type {import('#type/store.d.ts').Mutable<T>} */value;
 	  }
 
 	  /**
@@ -4516,7 +5235,7 @@
 	   */
 	  if (isMutationBlacklisted(value)) {
 	    setProxy(value, value);
-	    return value;
+	    return /** @type {import('#type/store.d.ts').Mutable<T>} */value;
 	  }
 
 	  /** Array methods are proxied by ProxyHandlerArray */
@@ -4538,6 +5257,24 @@
 	    untrack(() => value.forEach((value, key, map) => {
 	      map.set(key, mutable(value));
 	    }));
+	    return proxy;
+	  }
+
+	  /** Set methods are proxied by ProxyHandlerSet */
+	  if (value instanceof Set) {
+	    proxy = createProxy(value, ProxyHandlerSet);
+
+	    /**
+	     * Replace each element with its mutable wrap so nested objects
+	     * are reactive. Preserves insertion order.
+	     */
+	    untrack(() => {
+	      const items = [...value];
+	      value.clear();
+	      for (const item of items) {
+	        value.add(mutable(item));
+	      }
+	    });
 	    return proxy;
 	  }
 
@@ -4599,7 +5336,7 @@
 	 * @template U
 	 * @param {T} target
 	 * @param {U} source
-	 * @param {import('#type/store.d.ts').KeysOption<U>} [keys] Keep
+	 * @param {import('#type/store.d.ts').ReconcileKeys<U>} [keys] Keep
 	 *   references on objects with the same key. Shape mirrors `source`.
 	 * @returns {T & U}
 	 */
@@ -4648,62 +5385,19 @@
 	const getKeys = (keys, id) => undefined;
 
 	/**
-	 * Returns a `isSelected` function that will return `true` when the
-	 * argument for it matches the original signal `value`.
+	 * Returns a `function` that receives as a second argument whats
+	 * returned from it.
 	 *
-	 * @param {SignalAccessor<unknown>} value - Signal with the current
-	 *   value
+	 * @template T
+	 * @param {(next: T, previous: T) => T} fn
 	 */
-	function useSelector(value) {
-	  const map = new Map();
-	  let prev = [];
-	  syncEffect(() => {
-	    const val = value();
-	    const selected = isFunction((/** @type {{ values?: Function }} */val)?.values) ? toArray(/** @type {Iterable<unknown>} */
-	    /** @type {unknown} */
-	    (/** @type {{ values: Function }} */val).values()) : val === undefined ? [] : [val];
+	function usePrevious(fn) {
+	  let previous;
 
-	    // unselect
-	    for (const value of prev) {
-	      if (!selected.includes(value)) {
-	        const current = map.get(value);
-	        current && current.write(false);
-	      }
-	    }
-
-	    // select
-	    for (const value of selected) {
-	      if (!prev.includes(value)) {
-	        const current = map.get(value);
-	        current && current.write(true);
-	      }
-	    }
-	    prev = selected;
-	  });
-
-	  /**
-	   * Is selected function, it will return `true` when the value
-	   * matches the current signal.
-	   *
-	   * @template T
-	   * @param {T} item - Values to compare with current
-	   * @returns {SignalAccessor<T>} A signal with a boolean value
-	   */
-	  return function isSelected(item) {
-	    let selected = map.get(item);
-	    if (!selected) {
-	      selected = signal(prev.includes(item));
-	      selected.counter = 1;
-	      map.set(item, selected);
-	    } else {
-	      selected.counter++;
-	    }
-	    cleanup(() => {
-	      if (--selected.counter === 0) {
-	        map.delete(item);
-	      }
-	    });
-	    return selected.read;
+	  /** @param {T} [next] */
+	  return next => {
+	    previous = fn(next, previous);
+	    return previous; // for testing
 	  };
 	}
 
@@ -4927,6 +5621,21 @@
 	 */
 	const preventDefault = e => e.preventDefault();
 
+	/**
+	 * @param {Element | typeof globalThis} node
+	 * @param {string} eventName
+	 * @param {CustomEventInit} [data]
+	 */
+
+	const emit = (node, eventName, data = {}) => {
+	  ['bubbles', 'cancelable', 'composed'].forEach(item => {
+	    if (!(item in data)) {
+	      data[item] = true;
+	    }
+	  });
+	  node.dispatchEvent(new CustomEvent(eventName, data));
+	};
+
 	// window.location signal
 
 	const [getLocation, setLocation] = signal(location$2.href);
@@ -4947,18 +5656,6 @@
 	  return entries;
 	});
 	searchParamsMemo();
-	const params = mutable(/** @type {Record<PropertyKey, string>} */{});
-	const paramsMemo = memo(() => {
-	  const values = empty();
-	  useRoute.walk(context => {
-	    for (const [key, value] of entries(context.params()())) {
-	      values[key] = value !== undefined ? _decodeURIComponent(/** @type {string} */value) : value;
-	    }
-	  });
-	  replace(params, values);
-	  return values;
-	});
-	paramsMemo();
 	const location$1 = freeze({
 	  protocol: locationObject().protocol,
 	  origin: locationObject().origin,
@@ -4969,9 +5666,31 @@
 	  hash,
 	  search,
 	  searchParams,
-	  // searchParamsMemo,
-	  params
-	  // paramsMemo,
+	  /**
+	   * Reactive params for the caller's enclosing route chain. The
+	   * effect/mutable created here are owned by the caller's scope and
+	   * disposed automatically when that scope ends.
+	   *
+	   * Capture once at component setup (`const p = location.params`)
+	   * and read keys reactively from `p`. Do not call `location.params`
+	   * inline inside a reactive expression — every access creates a
+	   * fresh effect+mutable. Must be called inside an owner scope, or
+	   * the inner effect is orphaned.
+	   */
+	  get params() {
+	    const params = mutable(/** @type {Record<PropertyKey, string>} */{});
+	    effect(() => {
+	      path(); // track URL changes explicitly, not via Route.params
+	      const values = empty();
+	      useRoute.walk(context => {
+	        for (const [key, value] of entries(context.params()())) {
+	          values[key] = value !== undefined ? _decodeURIComponent(/** @type {string} */value) : value;
+	        }
+	      });
+	      replace(params, values);
+	    });
+	    return params;
+	  }
 	});
 	let BeforeLeave = [];
 
@@ -5081,13 +5800,6 @@
 	 * @returns {Promise<void>}
 	 */
 	async function onLocationChange() {
-	  // chrome has a bug on which if you use the back/forward button
-	  // it will change the title of the tab to whatever it was before
-	  // if the navigation is prevented (therefore the title/page wont change)
-	  // it will still use the old title even if the title tag didn't change at all
-	  const title = document$1.title;
-	  document$1.title = title + ' ';
-	  document$1.title = title;
 	  if (await canNavigate(location$2.href)) {
 	    setLocation(location$2.href);
 	  } else {
@@ -5301,6 +6013,45 @@
 	    params: undefined
 	  });
 	};
+
+	/**
+	 * For dynamic imports. Used as `load(() => import('file.js'))`. It
+	 * retries a couple of times on network error. Scrolls the document to
+	 * the hash of the url, or fallbacks defined on the `<Route>`
+	 * components.
+	 *
+	 * @template {(...args: any[]) => JSX.Element} C
+	 * @param {() => Promise<{ default: C }>} component - Import statement
+	 * @returns {C}
+	 * @url https://pota.quack.uy/load
+	 */
+	function load(component, tries = 0) {
+	  return markComponent(() => {
+	    /**
+	     * `owned` preserves the owner across the async boundary so the
+	     * loaded component renders in the correct reactive scope.
+	     */
+	    let fn;
+	    const withOwner = markComponent(owned(() => fn()));
+	    return component().then(r => {
+	      fn = () => {
+	        readyAsync(() => scroll(useRoute()));
+	        return r.default();
+	      };
+	      return withOwner;
+	    }).catch(e => new Promise(resolve => {
+	      if (tries++ < 9) {
+	        fn = () => load(component, tries);
+	        useTimeout(() => resolve(withOwner), 5000).start();
+	      } else {
+	        fn = () => {
+	          throw e;
+	        };
+	        resolve(withOwner);
+	      }
+	    }));
+	  });
+	}
 
 	/**
 	 * Provides a fallback till children promises resolve (recursively)
@@ -5570,132 +6321,305 @@
 	// returnng null when string is empty avoids 1 text node
 	unwrap(/** @type {any[]} */[props.children]).map(x => x?.toString()).join('') || null;
 
-	/** @type {Record<string, JSX.ElementType>} */
-	const defaultRegistry = assign(empty(), {
-	  A,
-	  Collapse,
-	  Dynamic,
-	  Errored,
-	  For,
-	  Head,
-	  Match,
-	  Navigate,
-	  Normalize,
-	  Portal,
-	  Range,
-	  Route,
-	  Show,
-	  Suspense,
-	  Switch,
-	  Tabs
+	/**
+	 * Defines a custom Element (if isnt defined already)
+	 *
+	 * @param {string} name - Name for the custom element
+	 * @param {CustomElementConstructor} constructor - Class for the
+	 *   custom element
+	 * @param {ElementDefinitionOptions} [options] - Options passed to
+	 *   `customElements.define`
+	 */
+	function customElement(name, constructor, options) {
+	  if (customElements.get(name) === undefined) {
+	    customElements.define(name, constructor, options);
+	  }
+	}
+	class CustomElement extends HTMLElement {
+	  /**
+	   * Static base stylesheets for the custom element.
+	   *
+	   * @type {(CSSStyleSheet | string)[]}
+	   */
+	  static baseStyleSheets = [];
+
+	  /**
+	   * Static additional stylesheets for the custom element.
+	   *
+	   * @type {(CSSStyleSheet | string)[]}
+	   */
+	  static styleSheets = [];
+	  constructor() {
+	    super();
+	    const shadowRoot = this.attachShadow({
+	      mode: 'open'
+	    });
+
+	    // this is needed because `baseStyleSheets/styleSheets` are `static`
+	    const constructor = /** @type {typeof CustomElement} */
+	    this.constructor;
+	    addStyleSheets(shadowRoot, constructor.baseStyleSheets);
+	    addStyleSheets(shadowRoot, constructor.styleSheets);
+	  }
+
+	  /* DOM API */
+
+	  /**
+	   * Shortcut for querySelector
+	   *
+	   * @param {string} query
+	   */
+	  query(query) {
+	    return querySelector(this, query);
+	  }
+	  /**
+	   * Shortcut for this.shadowRoot.innerHTML
+	   *
+	   * @param {string | Component} value
+	   */
+	  set html(value) {
+	    if (isString(value)) {
+	      this.shadowRoot.innerHTML = value;
+	    } else {
+	      this.shadowRoot.replaceChildren(toHTMLFragment(Component(value || 'slot')));
+	    }
+	  }
+
+	  /**
+	   * Toggles attribute `hidden`
+	   *
+	   * @param {boolean} value
+	   */
+	  set hidden(value) {
+	    value ? setAttribute$1(this, 'hidden', '') : removeAttribute(this, 'hidden');
+	  }
+
+	  /* EVENTS API */
+
+	  /**
+	   * Emits an event
+	   *
+	   * @param {string} eventName
+	   * @param {any} [data]
+	   */
+	  emit(eventName, data) {
+	    emit(this, eventName, data);
+	  }
+
+	  /* SLOTS API */
+
+	  /** @param {string} name */
+	  hasSlot(name) {
+	    return this.query(`:scope [slot="${name}"]`);
+	  }
+	}
+
+	var components = /*#__PURE__*/Object.freeze({
+		__proto__: null,
+		A: A,
+		Collapse: Collapse,
+		CustomElement: CustomElement,
+		Dynamic: Dynamic,
+		Errored: Errored,
+		For: For,
+		Head: Head,
+		Match: Match,
+		Navigate: Navigate,
+		Normalize: Normalize,
+		Portal: Portal,
+		Range: Range,
+		Route: Route,
+		Show: Show,
+		Suspense: Suspense,
+		Switch: Switch,
+		Tabs: Tabs,
+		customElement: customElement,
+		load: load
 	});
 
-	// parseXML
+	/** @type {Record<string, JSX.ElementType>} */
+	const defaultRegistry = assign(empty(), components, {
+	  load: undefined,
+	  customElement: undefined,
+	  CustomElement: undefined
+	});
 
+	/**
+	 * Sentinel used to splice `values` into the template string so the
+	 * XML parser preserves interpolation positions. Chosen to be unlikely
+	 * to collide with anything a user might write in a literal.
+	 */
 	const id = 'rosa19611227';
 	const splitId = /(rosa19611227)/;
 
 	/**
-	 * Makes Nodes from TemplateStringsArray
+	 * Parses a template's strings into a DOM node list. Cached by
+	 * template identity so the (expensive) DOMParser only runs once per
+	 * source location, even across `XML()` instances — only the
+	 * per-instance compile step depends on the registry.
 	 *
-	 * @param {TemplateStringsArray} content
-	 * @returns {NodeListOf<ChildNode>}
+	 * @param {TemplateStringsArray} template
+	 * @returns {ChildNode[]}
 	 */
-	const parseXML = withWeakCache((/** @type TemplateStringsArray */content) => {
-	  const html = /** @type {NodeListOf<ChildNode>} */
-	  new DOMParser().parseFromString(`<xml ${namespaces.xmlns}>${content.join(id)}</xml>`, 'text/xml').firstChild.childNodes;
-	  const first = /** @type {HTMLElement} */html[0];
+	const parse = withWeakCache((/** @type {TemplateStringsArray} */template) => {
+	  const parsed = /** @type {NodeListOf<ChildNode>} */
+	  new DOMParser().parseFromString(`<xml ${namespaces.xmlns}>${template.join(id)}</xml>`, 'text/xml').firstChild.childNodes;
+	  const first = /** @type {HTMLElement} */parsed[0];
 	  if (first?.tagName === 'parsererror') {
 	    first.style.padding = '1em';
 	    first.style.whiteSpace = 'pre-line';
-	    first.innerText = first.childNodes[1].textContent + '\n' + content.join('$v');
+	    first.innerText = first.childNodes[1].textContent + '\n' + template.join('$v');
 	  }
-	  return html;
+	  return toArray(parsed);
 	});
 
 	/**
-	 * Recursively walks a template and transforms it to `h` calls.
+	 * Builds a per-instance template cache for the given `xml`. Each
+	 * `XML()` calls this once at construction; the returned function
+	 * memoizes compiled factories by template identity, so when the `xml`
+	 * instance is collected its template factories go with it.
 	 *
-	 * @param {typeof xml} xml
-	 * @param {NodeListOf<ChildNode>} cached
-	 * @param {...unknown} values
-	 * @returns {JSX.Element}
+	 * Trade-off: `xml.define` must happen before the first `xml\`...``
+	 * invocation that uses the new tag — registering a name after a
+	 * template has been compiled won't retroactively rebind it.
+	 *
+	 * @param {{ components: Record<string, JSX.ElementType> }} xml
 	 */
-	function toH(xml, cached, values) {
-	  let index = 0;
-	  /**
-	   * Recursively transforms DOM nodes into Component calls.
-	   *
-	   * @param {ChildNode} node
-	   * @returns {JSX.Element}
-	   */
-	  function nodes(node) {
-	    const {
-	      nodeType
-	    } = node;
-	    if (nodeType === 1) {
-	      // element
-	      const {
-	        tagName,
-	        attributes,
-	        childNodes
-	      } = /** @type {DOMElement} */node;
+	const compile = xml => withWeakCache((/** @type {TemplateStringsArray} */template) => {
+	  const next = {
+	    i: 0
+	  };
+	  const builders = parse(template).map(n => compileNode(n, next, xml)).filter(b => b);
+	  return (/** @type {unknown[]} */values) => unwrapArray(builders.map(b => b(values)));
+	});
 
-	      // gather props
-	      /** @type {Record<string, unknown>} */
-	      const props = empty();
-	      for (let {
-	        name,
-	        value
-	      } of attributes) {
-	        if (value === id) {
-	          props[name] = values[index++];
-	        } else if (value.includes(id)) {
-	          const val = value.split(splitId).map(x => x === id ? values[index++] : x);
-	          props[name] = () => val.map(getValue).join('');
-	        } else {
-	          props[name] = value;
+	/**
+	 * Walks a parsed DOM node once and returns a builder function that
+	 * emits the corresponding JSX element on demand. The `xml` argument
+	 * is consulted at compile time to resolve registered components, so
+	 * each `XML()` instance compiles its own builder set.
+	 *
+	 * @param {ChildNode} node
+	 * @param {{ i: number }} next Compile-time slot counter, threaded
+	 *   through the walk so each interpolation point bakes its own fixed
+	 *   index into `values`. Not referenced at render time.
+	 * @param {{ components: Record<string, JSX.ElementType> }} xml
+	 * @returns {(values: unknown[]) => JSX.Element}
+	 */
+	function compileNode(node, next, xml) {
+	  switch (node.nodeType) {
+	    case 1:
+	      {
+	        /* element */
+	        const {
+	          tagName,
+	          attributes,
+	          childNodes
+	        } = /** @type {DOMElement} */node;
+
+	        /** @type {Record<string, string>} */
+	        const staticProps = empty();
+	        /** @type {((props: any, values: unknown[]) => void)[]} */
+	        const setters = [];
+	        for (const {
+	          name,
+	          value
+	        } of attributes) {
+	          if (value === id) {
+	            const valIdx = next.i++;
+	            setters.push((props, values) => {
+	              props[name] = values[valIdx];
+	            });
+	          } else if (value.includes(id)) {
+	            /** Bake each `id` marker's slot index; literals stay strings */
+	            const segments = value.split(splitId).map(x => x === id ? next.i++ : x);
+	            setters.push((props, values) => {
+	              const snap = segments.map(s => isString(s) ? s : values[s]);
+	              props[name] = () => snap.map(getValue).join('');
+	            });
+	          } else {
+	            /**
+	             * Literal — collected once at compile time; folded into the
+	             * per-render `props` object via a single `assign` rather
+	             * than a per-attribute closure call.
+	             */
+	            staticProps[name] = value;
+	          }
 	        }
-	      }
+	        const children = childNodes.length ? toArray(childNodes).map(n => compileNode(n, next, xml)).filter(b => b) : null;
 
-	      // gather children
-	      if (childNodes.length) {
-	        props.children = unwrapArray(toArray(childNodes).map(nodes));
-	      }
-	      const component = xml.components[tagName];
-	      if (!component && /^[A-Z]/.test(tagName)) {
-	        warn(`xml: Forgot to ´xml.define({ ${tagName} })´?`);
-	      }
-	      return Component(component || tagName, props);
-	    } else if (nodeType === 3) {
-	      // text
-	      const value = node.nodeValue;
-	      return value.includes(id) ? value.split(splitId).map(x => x === id ? values[index++] : x) : value;
-	    } else if (nodeType === 8) {
-	      // comment
-	      const value = node.nodeValue;
-	      if (value.includes(id)) {
-	        const val = value.split(splitId).map(x => x === id ? values[index++] : x);
-	        // reuse one Comment node and mutate its nodeValue so
-	        // reactive updates don't replace the node on every read
-	        const comment = createComment('');
-	        return () => {
-	          comment.nodeValue = val.map(getValue).join('');
-	          return comment;
+	        /**
+	         * Resolve the component-or-tagName at compile time using the
+	         * owning `xml` instance's registry. Registered names (any case)
+	         * resolve to the component value. Names not in the registry
+	         * fall through to `tagName` — `Component` then routes string
+	         * tags through `createTag`, which handles standard HTML/SVG and
+	         * hyphenated custom elements alike. Uppercase misses are likely
+	         * typos so we warn once per template; hyphenated / lowercase
+	         * misses are legitimate (real custom elements) and stay quiet.
+	         */
+	        const component = xml.components[tagName];
+	        if (!component && /^[A-Z]/.test(tagName)) {
+	          warn(`xml: Forgot to ´xml.define({ ${tagName} })´?`);
+	        }
+	        const value = component || tagName;
+	        return values => {
+	          /** @type {Record<string, unknown>} */
+	          const props = assign(empty(), staticProps);
+	          for (const set of setters) set(props, values);
+	          if (children && children.length) {
+	            props.children = unwrapArray(children.map(child => child(values)));
+	          }
+	          return Component(value, props);
 	        };
-	      } else {
-	        return createComment(value);
 	      }
-	    } else {
-	      error(`xml: ´nodeType´ not supported ´${nodeType}´`);
-	      return null;
-	    }
+	    case 3:
+	      {
+	        /**
+	         * Text — clean whitespace at compile time using JSX rules so
+	         * xml↔jsx round-trips don't have to fix up whitespace. The
+	         * interpolation marker has no whitespace, so the cleaner
+	         * preserves it in place; pure-whitespace text drops out.
+	         */
+	        const value = cleanJSXText(node.nodeValue);
+	        if (!value) return null;
+	        if (value.includes(id)) {
+	          const segments = value.split(splitId).map(x => x === id ? next.i++ : x);
+	          return values => segments.map(s => isString(s) ? s : values[s]);
+	        }
+	        return () => value;
+	      }
+	    case 8:
+	      {
+	        /* comment */
+	        const value = node.nodeValue;
+	        if (value.includes(id)) {
+	          const segments = value.split(splitId).map(x => x === id ? next.i++ : x);
+	          return values => {
+	            /**
+	             * Reuse one Comment node and mutate its nodeValue so
+	             * reactive updates don't replace the node on every read
+	             */
+	            const comment = createComment('');
+	            const snap = segments.map(s => isString(s) ? s : values[s]);
+	            return () => {
+	              comment.nodeValue = snap.map(getValue).join('');
+	              return comment;
+	            };
+	          };
+	        }
+	        return () => createComment(value);
+	      }
+	    default:
+	      {
+	        error(`xml: ´nodeType´ not supported ´${node.nodeType}´`);
+	        return () => null;
+	      }
 	  }
-	  return unwrapArray(toArray(cached).map(nodes));
 	}
 
 	/**
-	 * Function to create cached tagged template components.
+	 * Function to create a cached tagged template components namespace.
 	 *
 	 * @returns {((
 	 * 	template: TemplateStringsArray,
@@ -5721,11 +6645,14 @@
 	   * @url https://pota.quack.uy/XML
 	   */
 	  function xml(template, ...values) {
-	    return toH(xml, parseXML(template), values);
+	    return compiled(template)(values);
 	  }
 	  xml.components = assign(empty(), defaultRegistry);
 	  /**
 	   * Registers custom components that can be referenced by tag name.
+	   * Must be called before the first `xml\`...`` invocation that
+	   * references the new tag — once a template is compiled, its
+	   * component-vs-element decisions are fixed.
 	   *
 	   * @param {Record<string, JSX.ElementType>} userComponents
 	   */
@@ -5734,186 +6661,205 @@
 	      xml.components[name] = userComponents[name];
 	    }
 	  };
+
+	  /**
+	   * Hoist the per-instance template cache out of the per-render hot
+	   * path — `compile(xml)` is memoized but still costs a WeakMap
+	   * lookup; storing the inner directly skips that on every render.
+	   */
+	  const compiled = compile(xml);
 	  return xml;
 	}
 	const xml = XML();
 
 	let idCounter = 1;
-	const adjectives = ['pretty', 'large', 'big', 'small', 'tall', 'short', 'long', 'handsome', 'plain', 'quaint', 'clean', 'elegant', 'easy', 'angry', 'crazy', 'helpful', 'mushy', 'odd', 'unsightly', 'adorable', 'important', 'inexpensive', 'cheap', 'expensive', 'fancy'],
-	  colours = ['red', 'yellow', 'blue', 'green', 'pink', 'brown', 'purple', 'brown', 'white', 'black', 'orange'],
-	  nouns = ['table', 'chair', 'house', 'bbq', 'desk', 'car', 'pony', 'cookie', 'sandwich', 'burger', 'pizza', 'mouse', 'keyboard'];
-	function _random(max) {
-	  return Math.round(Math.random() * 1000) % max;
-	}
 	function buildData(count) {
-	  let data = new Array(count);
+	  const data = new Array(count);
 	  for (let i = 0; i < count; i++) {
-	    const [label, setLabel] = signal(`${adjectives[_random(adjectives.length)]} ${colours[_random(colours.length)]} ${nouns[_random(nouns.length)]}`);
+	    const [label,, update] = signal('elegant green keyboard');
 	    data[i] = {
 	      id: idCounter++,
 	      label,
-	      setLabel
+	      update
 	    };
 	  }
 	  return data;
 	}
-	const bbutton = ({
+	const Button = ({
 	  id,
 	  text,
 	  fn
 	}) => xml`<div class="col-sm-6 smallpad">
-    <button
-      id="${id}"
-      class="btn btn-primary btn-block"
-      type="button"
-      on:click="${fn}"
-    >
-      ${text}
-    </button>
-  </div>`;
+		<button
+			prop:textContent="${text}"
+			id="${id}"
+			type="button"
+			class="btn btn-primary btn-block"
+			on:click="${fn}"
+		/>
+	</div>`;
 	const App = () => {
-	  const [data, setData, updateData] = signal([]);
-	  const [selected, setSelected] = signal([]);
-	  const run = () => setData(buildData(1000));
-	  const runLots = () => {
-	    setData(buildData(10000));
-	  };
-	  const bench = () => {
-	    //  console.clear()
-	    // warm
-	    for (let k = 0; k < 5; k++) {
+	  const [data, setData, updateData] = signal([]),
+	    run = () => {
+	      // debugger
+	      setData(buildData(10));
+	    },
+	    runLots = () => {
 	      setData(buildData(10000));
-	      setData([]);
-	    }
-	    let createLarge = 0;
-	    let clearLarge = 0;
-	    let createSmall = 0;
-	    let clearSmall = 0;
-	    for (let k = 0; k < 10; k++) {
-	      createLarge += timing(() => setData(buildData(10000)));
-	      clearLarge += timing(() => setData([]));
-	      console.log(k + ' createLarge', createLarge / (k + 1), k + ' clearLarge', clearLarge / (k + 1));
-	    }
-	    console.log('------------');
-	    for (let k = 0; k < 10; k++) {
-	      createSmall += timing(() => setData(buildData(1000)));
-	      clearSmall += timing(() => setData([]));
-	      console.log(k + ' createSmall', createSmall / (k + 1), k + ' clearSmall', clearSmall / (k + 1));
-	    }
-	  };
-	  const add = () => updateData(d => [...d, ...buildData(1000)]);
-	  const update = () => batch(() => {
-	    for (let i = 0, d = data(), len = d.length; i < len; i += 10) d[i].setLabel(l => l + ' !!!');
-	  });
-	  const swapRows = () => {
-	    const d = data().slice();
-	    if (d.length > 998) {
-	      let tmp = d[1];
+	    },
+	    bench = () => {
+	      //  console.clear()
+	      // warm
+	      // debugger
+	      for (let k = 0; k < 5; k++) {
+	        setData(buildData(1));
+	        setData([]);
+	      }
+	      let createLarge = 0;
+	      let clearLarge = 0;
+	      let createSmall = 0;
+	      let clearSmall = 0;
+	      const results = [];
+	      for (let k = 0; k < 10; k++) {
+	        createLarge += timing(() => setData(buildData(10000)));
+	        clearLarge += timing(() => setData([]));
+	        results.push(`
+					createLarge ${(createLarge / (k + 1)).toFixed(2)} clearLarge ${(clearLarge / (k + 1)).toFixed(2)}
+				`);
+	      }
+	      for (let k = 0; k < 10; k++) {
+	        createSmall += timing(() => setData(buildData(1000)));
+	        clearSmall += timing(() => setData([]));
+	        results.push(`
+					createSmall ${(createSmall / (k + 1)).toFixed(2)} clearSmall ${(clearSmall / (k + 1)).toFixed(2)}
+				`);
+	      }
+	      for (const item of results) console.log(item.trim());
+	      console.log('------------', version);
+	    },
+	    add = () => {
+	      updateData(d => [...d, ...buildData(1000)]);
+	    },
+	    update = () => {
+	      const d = data();
+	      for (let i = 0; i < d.length; i += 10) d[i].update(l => l + ' !!!');
+	    },
+	    swapRows = () => {
+	      const d = [...data()];
+	      const tmp = d[1];
 	      d[1] = d[998];
 	      d[998] = tmp;
 	      setData(d);
-	    }
-	  };
-	  const clear = () => setData([]);
-	  const remove = id => updateData(d => {
-	    const idx = d.findIndex(datum => datum.id === id);
-	    d.splice(idx, 1);
-	    return [...d];
-	  });
-	  const isSelected = useSelector(selected);
+	    },
+	    clear = () => {
+	      setData([]);
+	    },
+	    remove = id => {
+	      updateData(d => {
+	        const idx = d.findIndex(datum => datum.id === id);
+	        d.splice(idx, 1);
+	        return [...d];
+	      });
+	    },
+	    danger = usePrevious((next, previous) => {
+	      next.setAttribute('class', 'danger');
+	      if (previous) {
+	        previous.removeAttribute('class');
+	      }
+	      return next;
+	    });
 	  xml.define({
-	    bbutton
+	    Button
 	  });
 	  return xml`<div class="container">
-    <div class="jumbotron">
-      <div class="row">
-        <div class="col-md-6">
-          <h1>pota Keyed</h1>
-        </div>
-        <div class="col-md-6">
-          <div class="row">
-            <bbutton
-              id="run"
-              text="Create 1,000 rows"
-              fn="${run}"
-            />
-            <bbutton
-              id="runlots"
-              text="Create 10,000 rows"
-              fn="${runLots}"
-            />
-            <bbutton
-              id="add"
-              text="Append 1,000 rows"
-              fn="${add}"
-            />
-            <bbutton
-              id="update"
-              text="Update every 10th row"
-              fn="${update}"
-            />
-            <bbutton
-              id="clear"
-              text="Clear"
-              fn="${clear}"
-            />
-            <bbutton
-              id="swaprows"
-              text="Swap Rows"
-              fn="${swapRows}"
-            />
-            <bbutton
-              id="bench"
-              text="bench"
-              fn="${bench}"
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-    <table
-      class="table table-hover table-striped test-data"
-      on:click="${e => {
+		<div class="jumbotron">
+			<div class="row">
+				<div class="col-md-6">
+					<h1>pota Keyed</h1>
+				</div>
+				<div class="col-md-6">
+					<div class="row">
+						<Button
+							id="run"
+							text="Create 1,000 rows"
+							fn="${run}"
+						/>
+						<Button
+							id="runlots"
+							text="Create 10,000 rows"
+							fn="${runLots}"
+						/>
+						<Button
+							id="add"
+							text="Append 1,000 rows"
+							fn="${add}"
+						/>
+						<Button
+							id="update"
+							text="Update every 10th row"
+							fn="${update}"
+						/>
+						<Button
+							id="clear"
+							text="Clear"
+							fn="${clear}"
+						/>
+						<Button
+							id="swaprows"
+							text="Swap Rows"
+							fn="${swapRows}"
+						/>
+						<Button
+							id="bench"
+							text="bench"
+							fn="${bench}"
+						/>
+					</div>
+				</div>
+			</div>
+		</div>
+		<table class="table table-hover table-striped test-data">
+			<tbody
+				on:click="${e => {
     const element = e.target;
-    if (element.setSelected !== undefined) {
-      setSelected(element.setSelected);
-    } else if (element.removeRow !== undefined) {
-      remove(element.removeRow);
+    if ('remove' in element.dataset) {
+      remove(+element.parentNode.parentNode.parentNode.firstChild.textContent);
+    } else if ('select' in element.dataset) {
+      danger(element.parentNode.parentNode);
     }
   }}"
-    >
-      <tbody>
-        <For each="${data}">
-          ${row => {
-    const {
-      id,
-      label
-    } = row;
-    return xml`<tr class:danger="${isSelected(id)}">
-              <td class="col-md-1">${id}</td>
-              <td class="col-md-4">
-                <a prop:setSelected="${id}">${label}</a>
-              </td>
-              <td class="col-md-1">
-                <a>
-                  <span
-                    class="glyphicon glyphicon-remove"
-                    aria-hidden="true"
-                    prop:removeRow="${id}"
-                  />
-                </a>
-              </td>
-              <td class="col-md-6" />
-            </tr>`;
-  }}
-        </For>
-      </tbody>
-    </table>
-    <span
-      class="preloadicon glyphicon glyphicon-remove"
-      aria-hidden="true"
-    />
-  </div>`;
+			>
+				<For each="${data}">
+					${row => xml`<tr>
+						<td
+							prop:textContent="${row.id}"
+							class="col-md-1"
+						/>
+						<td class="col-md-4">
+							<a
+								data-select=""
+								prop:textContent="${row.label}"
+							/>
+						</td>
+						<td class="col-md-1">
+							<a>
+								<span
+									data-remove=""
+									aria-hidden="true"
+									class="glyphicon glyphicon-remove"
+								/>
+							</a>
+						</td>
+						<td class="col-md-6" />
+					</tr>`}
+				</For>
+			</tbody>
+		</table>
+		<span
+			aria-hidden="true"
+			class="preloadicon glyphicon glyphicon-remove"
+		/>
+	</div>`;
 	};
 	render(App, document.getElementById('main'));
 

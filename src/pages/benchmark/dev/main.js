@@ -1,7 +1,7 @@
 (function () {
 	'use strict';
 
-	const version = '0.20.230';
+	const version = '0.20.233';
 
 	const window = globalThis;
 	const queueMicrotask = window.queueMicrotask;
@@ -243,6 +243,7 @@
 	const $isComponent = Symbol();
 	const $isMap = Symbol();
 	const $isClass = Symbol();
+	const $isDerived = Symbol();
 
 	// supported namespaces
 
@@ -287,6 +288,13 @@
 
 	function createReactiveSystem() {
 
+	  // Shared empty-array sentinel for `owned` / `cleanups` slots.
+	  // Never mutated; addOwned/addCleanups replace it with a fresh
+	  // array on first write. Stable JSArray slot type lets V8 skip
+	  // the undefined/single/array polymorphism on the hot Root
+	  // lifecycle methods.
+	  const EMPTY = [];
+
 	  /** @type {undefined | Computation} */
 	  let Owner;
 
@@ -306,8 +314,9 @@
 	  }
 	  function doRead(o) {
 	    if (Listener) {
-	      const sourceSlot = o.observers ? o.observers.length : 0;
-	      if (Listener.sources) {
+	      const observers = o.observers;
+	      const sourceSlot = observers.length;
+	      if (Listener.sources !== EMPTY) {
 	        Listener.sources.push(o);
 	        Listener.sourceSlots.push(sourceSlot);
 	      } else {
@@ -315,12 +324,12 @@
 	        Listener.sourceSlots = [sourceSlot];
 	      }
 	      const observerSlot = Listener.sources.length - 1;
-	      if (sourceSlot) {
-	        o.observers.push(Listener);
-	        o.observerSlots.push(observerSlot);
-	      } else {
+	      if (observers === EMPTY) {
 	        o.observers = [Listener];
 	        o.observerSlots = [observerSlot];
+	      } else {
+	        observers.push(Listener);
+	        o.observerSlots.push(observerSlot);
 	      }
 	    }
 	  }
@@ -335,7 +344,7 @@
 	    }
 	  }
 	  function doWrite(o) {
-	    if (o.observers && o.observers.length) {
+	    if (o.observers.length) {
 	      _writeTarget = o.observers;
 	      runUpdates(_markObservers);
 	    }
@@ -347,11 +356,11 @@
 	    /** @type {undefined | Root} */
 	    owner;
 
-	    /** @type {Computation | Computation[]} */
-	    owned;
+	    /** @type {Computation[]} */
+	    owned = EMPTY;
 
-	    /** @type {undefined | Function | Function[]} */
-	    cleanups;
+	    /** @type {Function[]} */
+	    cleanups = EMPTY;
 
 	    /** @type {Record<symbol, unknown>} */
 	    context;
@@ -371,64 +380,40 @@
 	    }
 	    /** @param {() => void} fn */
 	    addCleanups(fn) {
-	      if (!this.cleanups) {
-	        this.cleanups = fn;
-	      } else if (isArray(this.cleanups)) {
-	        this.cleanups.push(fn);
-	      } else {
-	        this.cleanups = [this.cleanups, fn];
-	      }
+	      if (this.cleanups === EMPTY) this.cleanups = [fn];else this.cleanups.push(fn);
 	    }
 	    /** @param {() => void} fn */
 	    cleanupCancel(fn) {
-	      if (!this.cleanups) ; else if (this.cleanups === fn) {
-	        this.cleanups = undefined;
-	      } else if (isArray(this.cleanups)) {
-	        removeFromArray(this.cleanups, fn);
-	      }
+	      if (this.cleanups !== EMPTY) removeFromArray(this.cleanups, fn);
 	    }
 	    /** @param {Computation} value */
 	    addOwned(value) {
-	      if (!this.owned) {
-	        this.owned = value;
-	      } else if (isArray(this.owned)) {
-	        this.owned.push(value);
-	      } else {
-	        this.owned = [this.owned, value];
-	      }
+	      if (this.owned === EMPTY) this.owned = [value];else this.owned.push(value);
 	    }
 	    dispose() {
 	      this.disposeOwned();
 	      this.doCleanups();
 	    }
 	    disposeOwned() {
-	      if (!this.owned) ; else if (isArray(this.owned)) {
-	        for (let i = this.owned.length - 1; i >= 0; i--) {
-	          this.owned[i].dispose();
+	      const owned = this.owned;
+	      if (owned.length) {
+	        for (let i = owned.length - 1; i >= 0; i--) {
+	          owned[i].dispose();
 	        }
-	        this.owned = undefined;
-	      } else {
-	        this.owned.dispose();
-	        this.owned = undefined;
+	        owned.length = 0;
 	      }
 	    }
 	    doCleanups() {
-	      if (!this.cleanups) ; else if (isArray(this.cleanups)) {
-	        for (let i = this.cleanups.length - 1; i >= 0; i--) {
+	      const cleanups = this.cleanups;
+	      if (cleanups.length) {
+	        for (let i = cleanups.length - 1; i >= 0; i--) {
 	          try {
-	            this.cleanups[i]();
+	            cleanups[i]();
 	          } catch (err) {
 	            routeError(this, err);
 	          }
 	        }
-	        this.cleanups = undefined;
-	      } else {
-	        try {
-	          this.cleanups();
-	        } catch (err) {
-	          routeError(this, err);
-	        }
-	        this.cleanups = undefined;
+	        cleanups.length = 0;
 	      }
 	    }
 	  }
@@ -442,8 +427,18 @@
 
 	    /** @type {Function | undefined} */
 	    fn;
-	    sources;
-	    sourceSlots;
+
+	    // Initialized to the shared `EMPTY` sentinel so V8 sees a
+	    // stable JSArray slot type from the first read. Without it,
+	    // each fresh Computation transitions `sources` / `sourceSlots`
+	    // from undefined to array on its first tracked read, which
+	    // matches the pattern documented for `observers` /
+	    // `observerSlots` on `Memo` / `Signal`.
+	    /** @type {any[]} */
+	    sources = EMPTY;
+
+	    /** @type {number[]} */
+	    sourceSlots = EMPTY;
 
 	    /**
 	     * @param {Computation} owner
@@ -529,8 +524,12 @@
 	  /** @template in T */
 	  class Memo extends Computation {
 	    value;
-	    observers;
-	    observerSlots;
+
+	    /** @type {Computation[]} */
+	    observers = EMPTY;
+
+	    /** @type {number[]} */
+	    observerSlots = EMPTY;
 
 	    /**
 	     * @param {Computation} owner
@@ -606,6 +605,18 @@
 	  class Derived extends Memo {
 	    value = nothing;
 	    isResolved;
+	    [$isDerived] = true;
+
+	    /**
+	     * Monotonic write token. Bumped on every direct write or fresh
+	     * `update()`; recursive resolve steps capture and compare the
+	     * current value to detect stale promise resolutions. Was a fresh
+	     * `{}` per write — counter avoids the per-update allocation while
+	     * preserving identity-via-`===` semantics for the staleness check.
+	     *
+	     * @type {number}
+	     */
+	    lastWrite = 0;
 
 	    /**
 	     * @param {Computation} owner
@@ -626,9 +637,6 @@
 	      this.read(); // tracking
 	      return this.isResolved === null;
 	    };
-	    run = () => {
-	      this.update();
-	    };
 	    _runFn = () => {
 	      // @ts-expect-error
 	      this.write(this.fn[0](), this.fn.slice(1));
@@ -637,7 +645,7 @@
 	      this.dispose();
 	      const time = Time;
 	      try {
-	        this.lastWrite = {};
+	        this.lastWrite++;
 	        runWith(this._runFn, this, this);
 	      } catch (err) {
 	        this.state = 1; /* STALE */
@@ -648,7 +656,7 @@
 	    }
 	    write(nextValue, fns) {
 	      this.isResolved = undefined;
-	      const mine = fns === undefined ? this.lastWrite = {} : this.lastWrite;
+	      const mine = fns === undefined ? ++this.lastWrite : this.lastWrite;
 	      withValue(nextValue, nextValue => {
 	        if (Listener || this.lastWrite === mine) {
 	          if (fns && fns.length) {
@@ -664,13 +672,10 @@
 	            // so this is a no-op there.
 	            this.state = 0; /* CLEAN */
 
-	            this.resolve && this.resolve(this);
+	            this._fireThens();
 	          }
 	        }
 	      }, () => {
-	        // is a promise so restore `then`
-	        this.thenRestore();
-
 	        // remove the old value while the promise is resolving
 	        // to avoid the "Florida - New York City" problem
 	        this.writeNextValue(nothing);
@@ -684,27 +689,45 @@
 	    }
 
 	    /**
-	     * Thenable stuff. It has to be a property so assign works
-	     * properly
+	     * Thenable surface. Stays defined across commits so consumers
+	     * can register more than once: each call to `then` either
+	     * fires synchronously (if already resolved) or queues onto
+	     * `thenCallbacks`, drained by `_fireThens` on commit. Has to
+	     * be an instance arrow so `assign(self(), this)` carries it
+	     * onto the callable wrapper.
+	     *
+	     * We resolve with `_unwrap()` rather than `self()`: `self()`
+	     * carries `then` onto every fresh wrapper, which makes the
+	     * resolved value itself thenable — JS's `await` would
+	     * recursively `then` it forever. `_unwrap()` returns the
+	     * same callable shape but with `then` stripped, terminating
+	     * the recursion.
 	     */
 	    then = (resolve, reject) => {
-	      this._then(resolve, reject);
-	    };
-	    _then(resolve, reject) {
-	      this.resolve = () => {
-	        this.then = undefined;
-	        this.resolve = undefined;
-	        resolve(this.self());
-	      };
+	      // `resolved()` reads through `this.read()` which triggers
+	      // `update()` on a STALE derived. Without it, awaiting a
+	      // freshly-constructed derived would queue forever because
+	      // the source fn never runs.
 	      if (this.resolved()) {
-	        this.resolve();
+	        resolve(this._unwrap());
+	        return;
+	      }
+	      if (!this.thenCallbacks) this.thenCallbacks = [];
+	      this.thenCallbacks.push(resolve);
+	    };
+	    _fireThens() {
+	      if (this.thenCallbacks) {
+	        const cbs = this.thenCallbacks;
+	        this.thenCallbacks = undefined;
+	        const wrap = this._unwrap();
+	        cbs.forEach(cb => cb(wrap));
 	      }
 	    }
-	    thenRestore() {
-	      if (!this.then) {
-	        // TODO: unsure if has to be restored
-	        this.then = this._then;
-	      }
+	    _unwrap() {
+	      // Bare read/write callable — no `assign(this)`, so no
+	      // `then` is carried onto it. JS's await thenability
+	      // check terminates here.
+	      return (...args) => args.length ? this.write(args[0]) : this.read();
 	    }
 	  }
 
@@ -742,6 +765,29 @@
 	  }
 
 	  /**
+	   * Plain leaf observable shared with Memo/Derived for the
+	   * `o.observers` access in doRead/doWrite. observers / observerSlots
+	   * start as the EMPTY sentinel so the slot type is always JSArray —
+	   * eliminates the undefined→array transition that was making doRead
+	   * megamorphic across signal-literal vs Memo vs Derived shapes.
+	   */
+	  class Signal {
+	    /** @type {Computation[]} */
+	    observers = EMPTY;
+
+	    /** @type {number[]} */
+	    observerSlots = EMPTY;
+
+	    /** @type {any} */
+	    value;
+
+	    /** @param {any} value */
+	    constructor(value) {
+	      this.value = value;
+	    }
+	  }
+
+	  /**
 	   * Creates a signal
 	   *
 	   * @template T
@@ -751,27 +797,27 @@
 	   */
 	  /* #__NO_SIDE_EFFECTS__ */
 	  function signal(value, options) {
-	    const o = {
-	      observers: undefined,
-	      observerSlots: undefined
-	    };
 	    let _equals = equals;
+	    if (options) {
+	      if (options.equals === false) _equals = equalsFalse;else if (options.equals) _equals = options.equals;
+	    }
+	    const o = new Signal(value);
 	    function read() {
 	      if (Listener) {
 	        doRead(o);
 	      }
-	      return value;
+	      return o.value;
 	    }
 	    function write(val) {
-	      if (!_equals(value, val)) {
-	        value = val;
+	      if (!_equals(o.value, val)) {
+	        o.value = val;
 	        doWrite(o);
 	        return true;
 	      }
 	      return false;
 	    }
 	    function update(val) {
-	      return write(untrack(() => val(value)));
+	      return write(untrack(() => val(o.value)));
 	    }
 	    const s = /** @type {any} */[read, write, update];
 	    s.read = read;
@@ -779,7 +825,6 @@
 	    s.update = update;
 	    if (options) {
 	      assign(s, options);
-	      if (s.equals === false) _equals = equalsFalse;else if (s.equals) _equals = s.equals;
 	    }
 	    return s;
 	  }
@@ -1022,6 +1067,37 @@
 	    }
 	  }
 
+	  // Pools for Updates and Effects. Reused across calls so the array
+	  // literal sites don't deopt with "Insufficient type feedback for
+	  // array literal" and V8 keeps a stable JSArray elements kind.
+	  //
+	  // Both must be pools, not single scratch arrays. Updates can have
+	  // multiple arrays alive at once because the save/restore pattern
+	  // at solid.js:340-343 and solid.js:892-895 deliberately bypasses
+	  // the `if (Updates) return fn()` early-exit by setting Updates to
+	  // undefined before re-entering — so the inner runUpdates needs an
+	  // array independent of the outer's. Effects can also have multiple
+	  // arrays alive when runEffects iterates the captured queue while
+	  // nested work queues into a fresh one.
+	  const _updatesPool = [[]];
+	  const _effectsPool = [[]];
+
+	  // Static helper used by `runUpdates` to drain `Effects` in a fresh
+	  // nested batch. Replaces the `() => runEffects(effects)` closure
+	  // that was previously allocated on every top-level batch — heap
+	  // profile flagged it as a hot small-object allocation. The slot
+	  // is module-scoped (created once) and is only set immediately
+	  // before the recursive `runUpdates` call, so there is no risk of
+	  // re-entrant overwrite: nested `runUpdates` calls hit the
+	  // `if (Updates) return fn()` early-exit before reaching this
+	  // path.
+	  let _pendingEffects;
+	  function _drainEffects() {
+	    const effects = _pendingEffects;
+	    _pendingEffects = undefined;
+	    runEffects(effects);
+	  }
+
 	  /**
 	   * @template T
 	   * @param {() => T} fn
@@ -1033,13 +1109,15 @@
 	      return fn();
 	    }
 	    let wait = false;
+	    let myUpdates;
 	    if (!init) {
-	      Updates = [];
+	      myUpdates = Updates = _updatesPool.pop() || [];
 	    }
+	    let myEffects;
 	    if (Effects) {
 	      wait = true;
 	    } else {
-	      Effects = [];
+	      myEffects = Effects = _effectsPool.pop() || [];
 	    }
 	    Time++;
 	    try {
@@ -1053,7 +1131,10 @@
 	      if (!wait) {
 	        const effects = Effects;
 	        Effects = undefined;
-	        effects.length && runUpdates(() => runEffects(effects));
+	        if (effects.length) {
+	          _pendingEffects = effects;
+	          runUpdates(_drainEffects);
+	        }
 	      }
 	      return res;
 	    } catch (err) {
@@ -1062,6 +1143,15 @@
 	      }
 	      Updates = undefined;
 	      throw err;
+	    } finally {
+	      if (myUpdates) {
+	        myUpdates.length = 0;
+	        _updatesPool.push(myUpdates);
+	      }
+	      if (myEffects) {
+	        myEffects.length = 0;
+	        _effectsPool.push(myEffects);
+	      }
 	    }
 	  }
 	  function runEffects(queue) {
@@ -1222,16 +1312,29 @@
 	   * @param {Attribute<T>} value
 	   * @param {(value: T) => void} fn
 	   */
-	  function withValue(value, fn, writeDefaultValue = noop, wroteValue = {
-	    value: false
-	  }, resolved = []) {
+	  function withValue(value, fn, writeDefaultValue = noop, wroteValue = undefined, resolved = undefined) {
+	    // `wroteValue` and `resolved` are lazily allocated INSIDE the
+	    // branches that need them. The terminal `fn(value)` path is
+	    // the common case (every reactive prop assignment for a
+	    // primitive/element value goes through it) — making the
+	    // defaults eager allocated `{ value: false }` + `[]` per
+	    // call, even for the terminal path that never reads them.
+	    // Lazy init keeps that hot path allocation-free.
 	    if (isFunction(value)) {
 	      // TODO maybe change this to be a memo
 
-	      effect(() => withValue(value(), fn, writeDefaultValue, wroteValue, resolved));
-	    } else if (isArray(value) && !resolved.includes(value)) {
+	      if (wroteValue === undefined) wroteValue = {
+	        value: false
+	      };
+	      if (resolved === undefined) resolved = [];
+	      syncEffect(() => withValue(value(), fn, writeDefaultValue, wroteValue, resolved));
+	    } else if (isArray(value) && (resolved === undefined || !resolved.includes(value))) {
 	      // TODO maybe do same for objects ...
 
+	      if (wroteValue === undefined) wroteValue = {
+	        value: false
+	      };
+	      if (resolved === undefined) resolved = [];
 	      resolved.push(value);
 
 	      // when empty it should update too
@@ -1249,6 +1352,10 @@
 	        }, writeDefaultValue, wroteValue, resolved);
 	      });
 	    } else if (isPromise(value)) {
+	      if (wroteValue === undefined) wroteValue = {
+	        value: false
+	      };
+	      if (resolved === undefined) resolved = [];
 	      const remove = asyncTracking.add();
 	      /**
 	       * WriteDefaultValue is used to avoid a double write. If the
@@ -1376,6 +1483,7 @@
 	    owned,
 	    owner,
 	    root,
+	    Root,
 	    runWithOwner,
 	    signal,
 	    syncEffect,
@@ -1563,7 +1671,10 @@
 	  context,
 	  effect,
 	  owned,
+	  owner,
 	  root,
+	  Root,
+	  runWithOwner,
 	  signal,
 	  untrack,
 	  useSuspense,
@@ -1591,38 +1702,53 @@
 
 	// MAP
 
-	class Row {
-	  runId;
+	class Row extends Root {
+	  runId = 0;
 	  item;
 	  index;
 	  isDupe;
-	  disposer;
 	  nodes;
-	  indexSignal;
-	  _begin;
-	  _end;
+	  indexSignal = null;
+	  _begin = null;
+	  _end = null;
+	  _fn;
+	  reactiveIndex;
 	  constructor(item, index, fn, isDupe, reactiveIndex) {
+	    // Row IS its own Root — no separate root() / Root allocation.
+	    super(owner());
 	    this.item = item;
 	    this.index = index;
 	    this.isDupe = isDupe;
-	    root(disposer => {
-	      this.disposer = clearing => {
-	        if (!clearing) {
-	          // console.log('removing row from Row')
-	          // if the row has a wrapper, remove it first to skip children removal
-	          this.remove();
-	        }
-	        disposer();
-	      };
-	      if (reactiveIndex) {
-	        this.indexSignal = signal(index);
-	        /** @type JSX.Element[] */
-	        this.nodes = fn(item, this.indexSignal.read);
-	      } else {
-	        /** @type JSX.Element[] */
-	        this.nodes = fn(item, index);
-	      }
-	    });
+	    this._fn = fn;
+	    this.reactiveIndex = reactiveIndex;
+
+	    // Run init with `this` as the active owner so any
+	    // effects/cleanups created inside attach to this Row.
+	    runWithOwner(this, () => this.rowInit());
+	  }
+	  rowInit() {
+	    if (this.reactiveIndex) {
+	      this.indexSignal = signal(this.index);
+	      /** @type JSX.Element[] */
+	      this.nodes = this._fn(this.item, this.indexSignal.read);
+	    } else {
+	      /** @type JSX.Element[] */
+	      this.nodes = this._fn(this.item, this.index);
+	    }
+	  }
+
+	  // Default disposal path — also remove DOM nodes. Used by
+	  // mapper.dispose(row) and by parent owner cascades.
+	  dispose() {
+	    this.remove();
+	    super.dispose();
+	  }
+
+	  // mapper.clear() path — the parent has already detached all rows
+	  // in one batch (toDiff fast-clear), so skip per-row remove() and
+	  // just clean up reactivity.
+	  disposeKeepingNodes() {
+	    super.dispose();
 	  }
 	  updateIndex(index) {
 	    if (this.index !== index) {
@@ -1633,7 +1759,7 @@
 	    }
 	  }
 	  begin() {
-	    if (!this._begin) {
+	    if (this._begin === null) {
 	      this.getBegin(this.nodes);
 	    }
 	    return this._begin;
@@ -1645,7 +1771,7 @@
 	    this._begin = nodes;
 	  }
 	  end() {
-	    if (!this._end) {
+	    if (this._end === null) {
 	      this.getEnd(this.nodes);
 	    }
 	    return this._end;
@@ -1706,7 +1832,7 @@
 	  function clear() {
 	    toDiff(flatToArray(prev.map(item => item.nodes)), [], true);
 	    for (const row of prev) {
-	      row.disposer(true);
+	      row.disposeKeepingNodes();
 	    }
 	    cache.clear();
 	    duplicates.clear();
@@ -1724,7 +1850,7 @@
 	      const arr = duplicates.get(row.item);
 	      arr.length === 1 ? duplicates.delete(row.item) : removeFromArray(arr, row);
 	    }
-	    row.disposer();
+	    row.dispose();
 	  }
 
 	  /**
@@ -1832,23 +1958,24 @@
 	        if (unsort.length) {
 	          let unsorted = unsort.length;
 	          if (unsorted) {
-	            // handle swap - unsorted rows should move only next to already sorted
-	            for (const usort of unsort) {
-	              if (rows[usort.index - 1] && (unsorted === 1 || !unsort.includes(rows[usort.index - 1]) || sorted.includes(rows[usort.index - 1]))) {
-	                rows[usort.index - 1].end().after(...usort.nodesForRow());
-	                sorted.push(usort);
-	                unsorted--;
-	              } else if (rows[usort.index + 1] && (unsorted === 1 || !unsort.includes(rows[usort.index + 1]) || sorted.includes(rows[usort.index - 1]))) {
-	                rows[usort.index + 1].begin().before(...usort.nodesForRow());
-	                sorted.push(usort);
-	                unsorted--;
+	            if (sorted.length) {
+	              // handle swap - unsorted rows should move only next to already sorted
+	              for (const usort of unsort) {
+	                if (rows[usort.index - 1] && (unsorted === 1 || !unsort.includes(rows[usort.index - 1]) || sorted.includes(rows[usort.index - 1]))) {
+	                  rows[usort.index - 1].end().after(...usort.nodesForRow());
+	                  sorted.push(usort);
+	                  unsorted--;
+	                } else if (rows[usort.index + 1] && (unsorted === 1 || !unsort.includes(rows[usort.index + 1]) || sorted.includes(rows[usort.index + 1]))) {
+	                  rows[usort.index + 1].begin().before(...usort.nodesForRow());
+	                  sorted.push(usort);
+	                  unsorted--;
+	                }
 	              }
 	            }
 	            if (unsorted) {
 	              // handles all other cases
 	              // best for any combination of: push/pop/shift/unshift/insertion/deletion
 	              // must check in reverse as on creation stuff is added to the end
-
 	              let current = rows[rows.length - 1];
 	              for (let i = rows.length - 1; i > 0; i--) {
 	                const previous = rows[i - 1];
@@ -1885,6 +2012,16 @@
 	function makeCallback(children) {
 	  /** Shortcut the most used case */
 	  if (isFunction(children)) {
+	    // JSX-component children (`<Inner />`) carry `$isComponent`. The
+	    // renderer untracks marked functions when it inserts them as
+	    // children, but flow components like `Show`/`Switch` invoke the
+	    // callback themselves inside a memo, bypassing that path. Mirror
+	    // the renderer's behavior here so the marked component runs
+	    // untracked regardless of the call site.
+	    // User callbacks (`{v => ...}`) are not marked and stay tracked.
+	    if ($isComponent in children) {
+	      return markComponent((...args) => untrack(() => children(...args)));
+	    }
 	    return markComponent(children);
 	  }
 
@@ -1893,7 +2030,7 @@
 	   * will end as `[[0, 1, 2]]`, so flat it
 	   */
 	  const childrenMaybeArray = flatNoArray(children);
-	  return isArray(childrenMaybeArray) ? markComponent((...args) => childrenMaybeArray.map(child => isFunction(child) ? child(...args) : child)) : markComponent((...args) => isFunction(childrenMaybeArray) ? childrenMaybeArray(...args) : childrenMaybeArray);
+	  return isArray(childrenMaybeArray) ? markComponent((...args) => childrenMaybeArray.map(child => isFunction(child) ? $isComponent in child ? untrack(() => child(...args)) : child(...args) : child)) : markComponent((...args) => isFunction(childrenMaybeArray) ? $isComponent in childrenMaybeArray ? untrack(() => childrenMaybeArray(...args)) : childrenMaybeArray(...args) : childrenMaybeArray);
 	}
 
 	/**
@@ -2208,7 +2345,10 @@
 	 * @template {JSX.EventName} Name
 	 * @param {TargetElement} node
 	 * @param {Name} name
-	 * @param {JSX.EventHandlers<JSX.EventTypeFor<Name>, TargetElement>} value
+	 * @param {JSX.EventHandlers<
+	 * 	JSX.EventTypeFor<Name>,
+	 * 	TargetElement
+	 * >} value
 	 */
 	const setEvent = (node, name, value) => {
 	  flatForEach(value, value => {
@@ -2224,7 +2364,10 @@
 	 * @template {JSX.EventName} Name
 	 * @param {TargetElement} node
 	 * @param {Name} localName
-	 * @param {JSX.EventHandlers<JSX.EventTypeFor<Name>, TargetElement>} value
+	 * @param {JSX.EventHandlers<
+	 * 	JSX.EventTypeFor<Name>,
+	 * 	TargetElement
+	 * >} value
 	 */
 	const setEventNS = (node, localName, value) => {
 	  flatForEach(value, value => {
@@ -2453,10 +2596,11 @@
 	 * @param {string} name
 	 * @param {Accessor<string | number | boolean>} value
 	 * @param {string} ns
+	 * @param {string} localName
 	 * @url https://pota.quack.uy/props/setAttribute
 	 */
-	const setAttributeNS = (node, name, value, ns) => {
-	  withValue(value, value => _setAttributeNS(node, name, value, ns));
+	const setAttributeNS = (node, name, value, ns, localName) => {
+	  withValue(value, value => _setAttributeNS(node, name, value, ns, localName));
 	};
 
 	/**
@@ -2464,10 +2608,13 @@
 	 * @param {string} name
 	 * @param {string | number | boolean} value
 	 * @param {string} ns
+	 * @param {string} localName
 	 */
-	function _setAttributeNS(node, name, value, ns) {
+	function _setAttributeNS(node, name, value, ns, localName) {
 	  // if the value is false/null/undefined it will be removed
-	  value === false || value == null ? NS[ns] ? node.removeAttributeNS(NS[ns], name) : node.removeAttribute(name) : NS[ns] ? node.setAttributeNS(NS[ns], name, value === true ? '' : (/** @type {string} */value)) : node.setAttribute(name, value === true ? '' : (/** @type {string} */value));
+	  value === false || value == null ? NS[ns] ?
+	  // removeAttributeNS takes the local name, not the qualified
+	  node.removeAttributeNS(NS[ns], localName) : node.removeAttribute(name) : NS[ns] ? node.setAttributeNS(NS[ns], name, value === true ? '' : (/** @type {string} */value)) : node.setAttribute(name, value === true ? '' : (/** @type {string} */value));
 	}
 
 	propsPluginNS('prop', setPropertyNS, false);
@@ -2517,7 +2664,7 @@
 
 	    // run plugins NS
 	    plugin = pluginsNS.get(propNS[name][0]);
-	    plugin ? plugin(node, propNS[name][1], value) : setAttributeNS(node, name, value, propNS[name][0]);
+	    plugin ? plugin(node, propNS[name][1], value) : setAttributeNS(node, name, value, propNS[name][0], propNS[name][1]);
 	  } else {
 	    // catch all
 	    setAttribute(node, name, value);
@@ -2788,12 +2935,27 @@
 	        // For - TODO move this to the `For` component
 	        if ($isMap in child) {
 	          effect(() => {
-	            /** @ts-ignore-error @type {(cb: (c: JSX.Element) => void) => void} */
+	            // @ts-expect-error freaking typescript
 	            child(child => createChildren(parent, child, true));
 	          });
 	          // map has own dom removal
 	        } else {
 	          let node = [];
+
+	          // `Derived` while pending. The renderer's other thenable
+	          // branch lives under `case 'object'` and never sees
+	          // these because `typeof derived === 'function'`. Register
+	          // with the active Suspense so the fallback shows until
+	          // the derived first resolves. `d.then` is multi-consumer,
+	          // so a user `await d` later won't clobber our
+	          // registration. `cleanup(remove)` covers dispose; `remove`
+	          // is idempotent so the two paths are safe to converge.
+	          if ($isDerived in child) {
+	            const d = /** @type {Derived<unknown>} */child;
+	            const remove = useSuspense().add();
+	            cleanup(remove);
+	            d.then(remove);
+	          }
 	          effect(() => {
 	            // maybe a signal (at least a function) so needs an effect
 	            node = toDiff(node, /** @type {DOMElement[]} */
@@ -2803,7 +2965,8 @@
 	            // console.log('clearing parent and node', parent, node)
 	            if (parent.isConnected || node[0]?.isConnected) {
 	              toDiff(node);
-	              // @ts-expect-error
+	              // @ts-expect-error freaking typescript
+	              /** @type {Element} */
 	              parent.remove();
 	            }
 	          });
@@ -3030,7 +3193,8 @@
 	  return unwrapArray(toHTMLFragment(children).childNodes);
 	}
 
-	/** @ts-expect-error freaking typescript */
+	/* @type {typeof context & { toHTML: typeof toHTML }} */
+	// @ts-expect-error freaking typescript
 	context.toHTML = toHTML;
 
 	/**
@@ -3081,13 +3245,16 @@
 	// because re-ordering the elements trashes focus
 	function queue() {
 	  if (!queued) {
-	    queued = true;
 	    const active = activeElement();
+	    // nothing focused, nothing to restore — skip so the stale
+	    // capture doesn't block the next meaningful queue() call
+	    if (!active || active === document.body) return;
+	    queued = true;
 	    const scroll = documentElement.scrollTop;
 	    onFixes(() => {
 	      queued = false;
 	      // re-ordering the elements trashes focus
-	      active && active !== activeElement() && isConnected(active) &&
+	      active !== activeElement() && isConnected(active) &&
 	      // @ts-expect-error
 	      active.focus();
 	      documentElement.scrollTop = scroll;
@@ -3126,6 +3293,7 @@
 
 	var _div = createPartial("<div class='col-sm-6 smallpad'><button type=button class='btn btn-primary btn-block'></button></div>", {"0":1,"m":2}),
 	  _div2 = createPartial("<div class=container><div class=jumbotron><div class=row><div class=col-md-6><h1>pota Keyed</h1></div><div class=col-md-6><div class=row></div></div></div></div><table class='table table-hover table-striped test-data'><tbody></tbody></table><span aria-hidden=true class='preloadicon glyphicon glyphicon-remove'></span></div>", {"0":6,"1":8,"m":9}),
+	  _div3 = createPartial("<div class='col-sm-6 smallpad'><button id=bench type=button class='btn btn-primary btn-block'></button></div>", {"0":1,"m":2}),
 	  _tr = createPartial("<tr><td class=col-md-1></td><td class=col-md-4><a data-select></a></td><td class=col-md-1><a><span data-remove aria-hidden=true class='glyphicon glyphicon-remove'></span></a></td><td class=col-md-6></td></tr>", {"0":1,"1":3,"m":4});
 	var _For = createComponent(For);
 	let idCounter = 1;
@@ -3221,8 +3389,8 @@
 	      }
 	      return next;
 	    });
-	  return _div2([_node5 => {
-	    createChildren(_node5, [_Button({
+	  return _div2([_node7 => {
+	    createChildren(_node7, [_Button({
 	      fn: run,
 	      id: "run",
 	      text: "Create 1,000 rows"
@@ -3246,13 +3414,12 @@
 	      fn: swapRows,
 	      id: "swaprows",
 	      text: "Swap Rows"
-	    }), _Button({
-	      fn: bench,
-	      id: "bench",
-	      text: "bench"
-	    })]);
-	  }, _node17 => {
-	    setEvent(_node17, "click", e => {
+	    }), _div3([_node5 => {
+	      setProperty(_node5, "textContent", 'bench');
+	      (e => e.addEventListener('click', bench))(_node5);
+	    }])]);
+	  }, _node19 => {
+	    setEvent(_node19, "click", e => {
 	      const element = e.target;
 	      if ('remove' in element.dataset) {
 	        remove(+element.parentNode.parentNode.parentNode.firstChild.textContent);
@@ -3260,13 +3427,13 @@
 	        danger(element.parentNode.parentNode);
 	      }
 	    });
-	    createChildren(_node17, _For({
+	    createChildren(_node19, _For({
 	      each: data,
 	      children: row => {
-	        return _tr([_node9 => {
-	          _node9.textContent = getValue(/* @static */row.id);
-	        }, _node10 => {
-	          setProperty(_node10, "textContent", row.label);
+	        return _tr([_node11 => {
+	          _node11.textContent = getValue(/* @static */row.id);
+	        }, _node12 => {
+	          setProperty(_node12, "textContent", row.label);
 	        }]);
 	      }
 	    }));
