@@ -10,5 +10,9 @@ git push
 cd /mnt/Data/www/pota/pota.docs.cloudflare/
 
 rm -f localhost.zip
+rm -f extracted
 
 mpa http://localhost:37808/
+
+unzip localhost.zip -d ./extracted
+npx wrangler pages deploy extracted --project-name=potahtml
