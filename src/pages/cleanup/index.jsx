@@ -49,6 +49,19 @@ export default function () {
 				></Code>
 			</Section>
 
+			<Section title="Detach a listener on disposal">
+				<p>
+					<mark>cleanup(fn)</mark> schedules <mark>fn</mark> to
+					run when the current owner disposes — typically a
+					parent component unmount or <mark>render()</mark>'s
+					returned disposer being called. Pair it with anything
+					you set up imperatively (timers, listeners,
+					third-party instances) so it doesn't outlive the
+					scope.
+				</p>
+				<Code url="/pages/cleanup/clock.jsx"></Code>
+			</Section>
+
 			<Section title="Timing">
 				<p>
 					Displays current timings of <mark>disconnected</mark> on

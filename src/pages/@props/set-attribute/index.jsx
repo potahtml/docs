@@ -9,7 +9,13 @@ export default function () {
 				Imperative helper for setting an attribute on an element.
 				Unwraps reactive accessors, and removes the attribute when
 				the value is <mark>false</mark>, <mark>null</mark> or{' '}
-				<mark>undefined</mark>.
+				<mark>undefined</mark>. The declarative form is the
+				normal JSX attribute (
+				<a href="/props/attributes-properties">
+					attributes vs properties
+				</a>
+				); for DOM properties specifically see{' '}
+				<a href="/props/setProperty">setProperty</a>.
 			</Header>
 
 			<Section title="Signature">
@@ -60,14 +66,25 @@ export default function () {
 			<Section title="When to use">
 				<p>
 					In JSX, prefer writing attributes directly —{' '}
-					<mark>{'<div id={id}/>'}</mark> already flows through{' '}
-					<mark>setAttribute</mark>. Reach for the function when you
-					are working outside JSX: building elements via{' '}
-					<mark>document.createElement</mark>, driving a ref from an
-					effect, writing a{' '}
-					<a href="/props/propsPlugin">propsPlugin</a>, or
-					bridging a third-party library.
+					<mark>{'<div id={id}/>'}</mark> already flows
+					through <mark>setAttribute</mark>. Reach for the
+					function when you are working outside JSX:
+					building elements via{' '}
+					<mark>document.createElement</mark>, driving a ref
+					from an effect, writing a{' '}
+					<a href="/use/ref">use:ref</a> factory, or bridging
+					a third-party library.
 				</p>
+			</Section>
+
+			<Section title="Reactive aria-busy on a ref">
+				<p>
+					Capture the button via <mark>ref()</mark>, then in an
+					inline effect call <mark>setAttribute</mark> with{' '}
+					<mark>'true'</mark> when busy and <mark>null</mark>{' '}
+					when idle — the latter removes the attribute.
+				</p>
+				<Code url="/pages/@props/set-attribute/example.jsx"></Code>
 			</Section>
 
 			<Section title="Snippet">

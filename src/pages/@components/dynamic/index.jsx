@@ -45,6 +45,20 @@ export default function () {
 				</table>
 			</Section>
 
+			<Section title="Data-driven block list">
+				<p>
+					<mark>&lt;Dynamic/&gt;</mark> is ideal when the
+					component identity is data-driven. Pair it with{' '}
+					<a href="/Components/For">&lt;For/&gt;</a> to render a
+					list of blocks where each entry names which component
+					to use plus the props to forward. The lookup happens
+					once per <mark>&lt;Dynamic/&gt;</mark> creation —
+					adding a new block of a given type creates a fresh
+					Dynamic.
+				</p>
+				<Code url="/pages/@components/dynamic/registry.jsx"></Code>
+			</Section>
+
 			<Section title="Using dynamic">
 				<p>Simple test</p>
 				<Code url="/pages/@components/dynamic/test.jsx"></Code>

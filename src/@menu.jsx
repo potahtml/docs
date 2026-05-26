@@ -169,6 +169,13 @@ export default function Menu() {
 								children="<Normalize/>"
 							/>
 						</li>
+						<li>
+							<A
+								href="/Components/:page"
+								params={{ page: 'Splitter' }}
+								children="<Splitter/>"
+							/>
+						</li>
 					</ul>
 					<h4>Route</h4>
 					<ul>
@@ -347,14 +354,6 @@ export default function Menu() {
 				<li>
 					<h4>API</h4>
 					<ul>
-						<li>
-							<A
-								href="/props/:page"
-								params={{ page: 'propsPlugin' }}
-							>
-								propsPlugin
-							</A>
-						</li>
 						<li>
 							<a href="/Directory">Directory</a>
 						</li>

@@ -70,6 +70,18 @@ export default function () {
 				</p>
 			</Section>
 
+			<Section title="Materialize JSX into nodes">
+				<p>
+					<mark>toHTML(children)</mark> evaluates JSX into actual
+					DOM nodes that you hand to imperative APIs (third-party
+					libraries, <mark>Element.append</mark>, native
+					dialogs). Reactivity is preserved: signals inside the
+					JSX still update the produced nodes for as long as the
+					surrounding owner is alive.
+				</p>
+				<Code url="/pages/to-html/materialize.jsx"></Code>
+			</Section>
+
 			<Section title="Snippet">
 				<Code url="/pages/to-html/snippet.jsx"></Code>
 			</Section>

@@ -58,7 +58,51 @@ export default function () {
 				></Code>
 			</Section>
 
-			<Section title="Usage">
+			<Section title="Derived value">
+				<p>
+					<mark>memo(fn)</mark> returns an accessor — call it (
+					<mark>doubled()</mark>) to read, or pass the accessor
+					itself (<mark>{'{doubled}'}</mark>) as a JSX child for
+					a reactive binding. The body re-runs only when
+					something it read actually changes, and only once per
+					change even if multiple readers depend on it.
+				</p>
+				<Code url="/pages/@reactivity/memo/derived-value.jsx"></Code>
+			</Section>
+
+			<Section title="Filtered list">
+				<p>
+					A memo is the right tool for a derived array — the
+					filter runs once when <mark>query</mark> or{' '}
+					<mark>items</mark> changes, and{' '}
+					<mark>&lt;For/&gt;</mark> reads the resulting array.
+					Without the memo, every <mark>&lt;For/&gt;</mark> and
+					every other reader would re-filter on every dependency
+					read.
+				</p>
+				<Code url="/pages/@reactivity/memo/filtered.jsx"></Code>
+			</Section>
+
+			<Section title="Layered memos">
+				<p>
+					Memos compose: a memo can read other memos, and each
+					layer caches independently. Adding{' '}
+					<mark>done.length</mark> recomputes{' '}
+					<mark>completed</mark>, but <mark>total</mark> doesn't
+					change unless the source array's length does — so the
+					percentage memo skips work the rest of the chain
+					didn't trigger.
+				</p>
+				<Code url="/pages/@reactivity/memo/layered.jsx"></Code>
+			</Section>
+
+			<Section title="Lazy execution">
+				<p>
+					An unread memo is a no-op — its function only runs
+					once something reads its value. Useful when memos are
+					declared eagerly but might not be needed depending on
+					the branch.
+				</p>
 				<Code url="/pages/@reactivity/memo/memo.jsx"></Code>
 			</Section>
 		</>

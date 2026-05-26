@@ -66,6 +66,17 @@ export default function () {
 				></Code>
 			</Section>
 
+			<Section title="Route-aware link">
+				<p>
+					<mark>&lt;A href="..."&gt;</mark> renders a regular
+					anchor but intercepts the click to perform client-side
+					navigation. <mark>params</mark> substitutes{' '}
+					<mark>:name</mark> placeholders in <mark>href</mark>;{' '}
+					<mark>replace</mark> swaps history instead of pushing.
+				</p>
+				<Code url="/pages/@components/route/link/example.jsx"></Code>
+			</Section>
+
 			<Section title="Params">
 				<p>Testing params replacement</p>
 				<Code url="/pages/@components/route/link/test.jsx"></Code>

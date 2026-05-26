@@ -11,8 +11,11 @@ export default function () {
 				renders a <mark>fallback</mark> in their place. It protects
 				its subtree from both synchronous throws during render and
 				reactive throws inside descendant{' '}
-				<mark>effect</mark>, <mark>memo</mark> and{' '}
-				<mark>derived</mark>.
+				<a href="/Reactivity/effect">effect</a>,{' '}
+				<a href="/Reactivity/memo">memo</a> and{' '}
+				<a href="/Reactivity/derived">derived</a>. The
+				programmatic form is{' '}
+				<a href="/Reactivity/catchError">catchError</a>.
 			</Header>
 
 			<Section title="Attributes">
@@ -47,6 +50,46 @@ export default function () {
 						</tr>
 					</tbody>
 				</table>
+			</Section>
+
+			<Section title="Boundary with reset">
+				<p>
+					<mark>&lt;Errored/&gt;</mark> catches throws from its
+					descendants — synchronous, from effects, or from
+					rejected <mark>derived</mark>/<mark>action</mark>{' '}
+					chains — and renders <mark>fallback</mark>. The
+					fallback can be a <mark>(err, reset) =&gt; JSX</mark>{' '}
+					function; calling <mark>reset()</mark> clears the
+					error and re-renders the children.
+				</p>
+				<Code url="/pages/@components/errored/boundary.jsx"></Code>
+			</Section>
+
+			<Section title="Different fallback shapes">
+				<p>
+					The <mark>fallback</mark> prop accepts three shapes: a
+					JSX element for a static "something failed" view, a
+					primitive (like a string or number) when you just want
+					to substitute a placeholder, or a{' '}
+					<mark>(err, reset) =&gt; JSX</mark> function when you
+					want to show the error and let the user recover. The
+					function form is the most common.
+				</p>
+				<Code url="/pages/@components/errored/fallback-shapes.jsx"></Code>
+			</Section>
+
+			<Section title="Async derived chain">
+				<p>
+					<mark>&lt;Errored/&gt;</mark> doesn't just catch
+					synchronous throws during render — it also catches
+					rejections from <mark>derived</mark> chains,{' '}
+					<mark>action</mark> pipelines, and async work in
+					effects within its subtree. Useful for network-driven
+					views: parse failures, HTTP errors, and timeouts land
+					in the same fallback regardless of how they were
+					thrown.
+				</p>
+				<Code url="/pages/@components/errored/async-derived.jsx"></Code>
 			</Section>
 
 			<Section title="Snippet">
@@ -154,9 +197,11 @@ render(
 						(detached <mark>setTimeout</mark>, microtasks,
 						external event listeners) are not caught — keep
 						async work reactive (return a promise from a
-						component, use an <mark>effect</mark>, or wrap
-						callbacks with <mark>owned</mark>) so the error
-						flows through the boundary.
+						component, use an{' '}
+						<a href="/Reactivity/effect">effect</a>, or wrap
+						callbacks with{' '}
+						<a href="/Reactivity/owned">owned</a>) so the
+						error flows through the boundary.
 					</li>
 				</ul>
 			</Section>

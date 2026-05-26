@@ -94,6 +94,18 @@ function Routes() {
 				/>
 			</Section>
 
+			<Section title="Redirect on render">
+				<p>
+					<mark>&lt;Navigate path="..."/&gt;</mark> triggers a
+					navigation as soon as it renders. Useful as the body
+					of a fallback <mark>&lt;Route&gt;</mark> for
+					redirects, or inside a <mark>&lt;Show&gt;</mark> to
+					bounce the user when a condition is met. Optional{' '}
+					<mark>replace</mark> swaps history instead of pushing.
+				</p>
+				<Code url="/pages/@components/route/navigate/redirect.jsx"></Code>
+			</Section>
+
 			<Section title="Programmatic navigation">
 				<p>
 					Outside JSX, import <mark>navigate</mark> from{' '}

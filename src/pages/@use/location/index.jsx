@@ -202,6 +202,22 @@ export default function () {
 				</table>
 			</Section>
 
+			<Section title="Read and navigate the URL">
+				<p>
+					<mark>location</mark> is a frozen object of accessors
+					over <mark>window.location</mark> — read{' '}
+					<mark>location.pathname()</mark>,{' '}
+					<mark>location.hash()</mark>,{' '}
+					<mark>location.search()</mark>, or the reactive{' '}
+					<mark>location.searchParams</mark> map.{' '}
+					<mark>navigate(path, options)</mark> performs
+					client-side navigation;{' '}
+					<mark>addListeners()</mark> ensures{' '}
+					<mark>popstate</mark>/click handlers are wired up.
+				</p>
+				<Code url="/pages/@use/location/navigate-buttons.jsx"></Code>
+			</Section>
+
 			<Section title="Log of `location`">
 				<p>
 					We modify the location to trigger reactivity based on the

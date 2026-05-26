@@ -26,6 +26,35 @@ export default function () {
 				></Code>
 			</Section>
 
+			<Section title="Compiler-less templates">
+				<p>
+					<mark>{'xml`...`'}</mark> is a tagged template that
+					parses HTML-like markup at runtime and produces a
+					JSX-equivalent component. Templates are parsed as{' '}
+					<mark>text/xml</mark>, so void elements need a
+					trailing slash (<mark>&lt;br/&gt;</mark>), every open
+					tag must close, and attribute values must be quoted.
+					Ill-formed input renders a visible{' '}
+					<mark>parsererror</mark> (it does not throw).
+				</p>
+				<Code url="/pages/xml/compiler-less-template.jsx"></Code>
+			</Section>
+
+			<Section title="Isolated XML instance">
+				<p>
+					<mark>XML()</mark> returns a fresh <mark>xml</mark>{' '}
+					template tag with its own component registry — useful
+					when you want a sandboxed surface (a docs site that
+					exposes a curated set of tags, an embed where you
+					don't want the global <mark>xml</mark> to be
+					polluted). Use <mark>xml.define(&#123; Name &#125;)</mark>{' '}
+					to register components by tag name; this must happen{' '}
+					<em>before</em> the first template that uses the name
+					is compiled.
+				</p>
+				<Code url="/pages/xml/isolated-factory.jsx"></Code>
+			</Section>
+
 			<Section title="Value">
 				<Code
 					code={`

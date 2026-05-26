@@ -108,6 +108,13 @@ export default function Routes() {
 				/>
 				<Route
 					path=":path$"
+					params={{ path: 'Splitter' }}
+					children={load(
+						() => import('./pages/@components/splitter/index.jsx'),
+					)}
+				/>
+				<Route
+					path=":path$"
 					params={{ path: 'Head' }}
 					children={load(
 						() => import('./pages/@components/head/index.jsx'),
@@ -271,6 +278,122 @@ export default function Routes() {
 					params={{ path: 'ref' }}
 					children={load(() => import('./pages/@use/ref/index.jsx'))}
 				/>
+
+				<Route
+					path=":path$"
+					params={{ path: 'intersection' }}
+					children={load(
+						() => import('./pages/@use/intersection/index.jsx'),
+					)}
+				/>
+
+				<Route
+					path=":path$"
+					params={{ path: 'mutation' }}
+					children={load(
+						() => import('./pages/@use/mutation/index.jsx'),
+					)}
+				/>
+
+				<Route
+					path=":path$"
+					params={{ path: 'keyboard' }}
+					children={load(
+						() => import('./pages/@use/keyboard/index.jsx'),
+					)}
+				/>
+
+				<Route
+					path=":path$"
+					params={{ path: 'drag' }}
+					children={load(() => import('./pages/@use/drag/index.jsx'))}
+				/>
+
+				<Route
+					path=":path$"
+					params={{ path: 'focus' }}
+					children={load(
+						() => import('./pages/@use/focus/index.jsx'),
+					)}
+				/>
+
+				<Route
+					path=":path$"
+					params={{ path: 'form' }}
+					children={load(() => import('./pages/@use/form/index.jsx'))}
+				/>
+
+				<Route
+					path=":path$"
+					params={{ path: 'resize' }}
+					children={load(
+						() => import('./pages/@use/resize/index.jsx'),
+					)}
+				/>
+
+				<Route
+					path=":path$"
+					params={{ path: 'scroll' }}
+					children={load(
+						() => import('./pages/@use/scroll/index.jsx'),
+					)}
+				/>
+
+				<Route
+					path=":path$"
+					params={{ path: 'selection' }}
+					children={load(
+						() => import('./pages/@use/selection/index.jsx'),
+					)}
+				/>
+
+				<Route
+					path=":path$"
+					params={{ path: 'emitter' }}
+					children={load(
+						() => import('./pages/@use/emitter/index.jsx'),
+					)}
+				/>
+
+				<Route
+					path=":path$"
+					params={{ path: 'visibility' }}
+					children={load(
+						() => import('./pages/@use/visibility/index.jsx'),
+					)}
+				/>
+
+				<Route
+					path=":path$"
+					params={{ path: 'orientation' }}
+					children={load(
+						() => import('./pages/@use/orientation/index.jsx'),
+					)}
+				/>
+
+				<Route
+					path=":path$"
+					params={{ path: 'animate' }}
+					children={load(
+						() => import('./pages/@use/animate/index.jsx'),
+					)}
+				/>
+
+				<Route
+					path=":path$"
+					params={{ path: 'paginate' }}
+					children={load(
+						() => import('./pages/@use/paginate/index.jsx'),
+					)}
+				/>
+
+				<Route
+					path=":path$"
+					params={{ path: 'event' }}
+					children={load(
+						() => import('./pages/@use/event/index.jsx'),
+					)}
+				/>
 			</Route>
 
 			<Route path="props/">
@@ -311,14 +434,6 @@ export default function Routes() {
 					params={{ path: 'style:__' }}
 					children={load(
 						() => import('./pages/@props/style/index.jsx'),
-					)}
-				/>
-
-				<Route
-					path=":path$"
-					params={{ path: 'propsPlugin' }}
-					children={load(
-						() => import('./pages/@props/props-plugin/index.jsx'),
 					)}
 				/>
 
@@ -389,6 +504,118 @@ export default function Routes() {
 					params={{ path: 'map' }}
 					children={load(
 						() => import('./pages/@reactivity/map/index.jsx'),
+					)}
+				/>
+				<Route
+					path=":path$"
+					params={{ path: 'signal' }}
+					children={load(
+						() => import('./pages/@reactivity/signal/index.jsx'),
+					)}
+				/>
+				<Route
+					path=":path$"
+					params={{ path: 'effect' }}
+					children={load(
+						() => import('./pages/@reactivity/effect/index.jsx'),
+					)}
+				/>
+				<Route
+					path=":path$"
+					params={{ path: 'derived' }}
+					children={load(
+						() => import('./pages/@reactivity/derived/index.jsx'),
+					)}
+				/>
+				<Route
+					path=":path$"
+					params={{ path: 'syncEffect' }}
+					children={load(
+						() => import('./pages/@reactivity/syncEffect/index.jsx'),
+					)}
+				/>
+				<Route
+					path=":path$"
+					params={{ path: 'asyncEffect' }}
+					children={load(
+						() => import('./pages/@reactivity/asyncEffect/index.jsx'),
+					)}
+				/>
+				<Route
+					path=":path$"
+					params={{ path: 'batch' }}
+					children={load(
+						() => import('./pages/@reactivity/batch/index.jsx'),
+					)}
+				/>
+				<Route
+					path=":path$"
+					params={{ path: 'root' }}
+					children={load(
+						() => import('./pages/@reactivity/root/index.jsx'),
+					)}
+				/>
+				<Route
+					path=":path$"
+					params={{ path: 'owned' }}
+					children={load(
+						() => import('./pages/@reactivity/owned/index.jsx'),
+					)}
+				/>
+				<Route
+					path=":path$"
+					params={{ path: 'untrack' }}
+					children={load(
+						() => import('./pages/@reactivity/untrack/index.jsx'),
+					)}
+				/>
+				<Route
+					path=":path$"
+					params={{ path: 'on' }}
+					children={load(
+						() => import('./pages/@reactivity/on/index.jsx'),
+					)}
+				/>
+				<Route
+					path=":path$"
+					params={{ path: 'withValue' }}
+					children={load(
+						() => import('./pages/@reactivity/withValue/index.jsx'),
+					)}
+				/>
+				<Route
+					path=":path$"
+					params={{ path: 'action' }}
+					children={load(
+						() => import('./pages/@reactivity/action/index.jsx'),
+					)}
+				/>
+				<Route
+					path=":path$"
+					params={{ path: 'catchError' }}
+					children={load(
+						() => import('./pages/@reactivity/catchError/index.jsx'),
+					)}
+				/>
+				<Route
+					path=":path$"
+					params={{ path: 'externalSignal' }}
+					children={load(
+						() => import('./pages/@reactivity/externalSignal/index.jsx'),
+					)}
+				/>
+				<Route
+					path=":path$"
+					params={{ path: 'listener' }}
+					children={load(
+						() => import('./pages/@reactivity/listener/index.jsx'),
+					)}
+				/>
+				<Route
+					path=":path$"
+					params={{ path: 'isResolved' }}
+					children={load(
+						() => import('./pages/@reactivity/isResolved/index.jsx'),
 					)}
 				/>
 

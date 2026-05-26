@@ -18,6 +18,19 @@ export default function () {
 				manually.
 			</p>
 
+			<Section title="Counter class component">
+				<p>
+					Define a <mark>render(props)</mark> method and instances
+					are created automatically when JSX uses the class. If
+					you also define <mark>ready()</mark> or{' '}
+					<mark>cleanup()</mark> methods, the renderer wires them
+					up for you. The instance has <mark>this.props</mark>{' '}
+					available; signals stored as instance fields work the
+					same as in function components.
+				</p>
+				<Code url="/pages/classes/counter.jsx"></Code>
+			</Section>
+
 			<Section title="Example">
 				<p>Testing a Class</p>
 				<Code url="/pages/classes/test.jsx"></Code>

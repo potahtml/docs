@@ -97,7 +97,7 @@ export default function () {
 			<p>
 				<mark>load</mark> function, as in{' '}
 				<mark>
-					{"children={load(()=>import('dynamic-import.jsx')}"}
+					{"children={load(()=>import('dynamic-import.jsx'))}"}
 				</mark>{' '}
 				can be used for lazy loading. It will retry a couple of times
 				on network errors, and will scroll the document.
@@ -106,6 +106,44 @@ export default function () {
 			<Section title="Snippet">
 				<Code
 					url="/pages/@components/route/route/snippet.jsx"
+					render={false}
+				></Code>
+			</Section>
+
+			<Section title="Client-side routing">
+				<p>
+					<mark>&lt;Route path="..."&gt;</mark> renders its
+					children when <mark>location.pathname</mark> matches{' '}
+					<mark>path</mark> (relative to any parent route).{' '}
+					<mark>:params</mark> in the path become available via
+					the route's location context. Routes nest by
+					declaration.
+				</p>
+				<Code url="/pages/@components/route/route/basic.jsx"></Code>
+			</Section>
+
+			<Section title="Nested routes and params">
+				<p>
+					Child <mark>&lt;Route&gt;</mark>s match relative to
+					their parent's path. The <mark>location.params</mark>{' '}
+					object is reactive — keys update as the URL changes,
+					so JSX that reads them stays in sync.
+				</p>
+				<Code url="/pages/@components/route/route/nested.jsx"></Code>
+			</Section>
+
+			<Section title="Lazy-loaded route components">
+				<p>
+					<mark>load(() =&gt; import('./Page.js'))</mark> returns
+					a marked component that fetches the module the first
+					time it renders. It retries on network errors (up to
+					nine times) and scrolls to the URL hash once the
+					loaded module commits. Most useful inside{' '}
+					<mark>&lt;Route&gt;</mark> so heavy pages aren't paid
+					for until visited.
+				</p>
+				<Code
+					url="/pages/@components/route/route/lazy.jsx"
 					render={false}
 				></Code>
 			</Section>

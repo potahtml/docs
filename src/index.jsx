@@ -46,10 +46,7 @@ globalThis.fn = async () => {
 render(
 	() => {
 		return (
-			<main
-				flair="row grow"
-				data-pathname={location.pathname}
-			>
+			<main flair="row grow" data-pathname={location.pathname}>
 				<Bench />
 				<svg
 					flair="selection-none"
@@ -105,10 +102,7 @@ render(
 						</span>
 						<span flair="grow" />
 						<span>
-							<a
-								href="https://github.com/potahtml/pota"
-								title="🌟"
-							>
+							<a href="https://github.com/potahtml/pota" title="🌟">
 								<img
 									class={styles.github}
 									src="/assets/github-mark-white.png"
@@ -133,10 +127,8 @@ render(
 					</a>*/}
 					</footer>
 				</aside>
-				<section
-					flair="grow col scroll-y scroll-thin"
-					id="content"
-				>
+
+				<section flair="grow col scroll-y scroll-thin" id="content">
 					<article flair="grow col">
 						<Routes />
 					</article>

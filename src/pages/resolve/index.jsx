@@ -59,6 +59,19 @@ export default function () {
 				<Code url="/pages/resolve/snippet.jsx"></Code>
 			</Section>
 
+			<Section title="Inspect resolved children">
+				<p>
+					<mark>resolve(children)</mark> returns a memo that
+					recursively unwraps function children — useful when a
+					wrapper component needs to look at its children
+					(count them, filter them, peek at their props)
+					without breaking reactivity. Reading{' '}
+					<mark>kids()</mark> re-runs only when child output
+					actually changes.
+				</p>
+				<Code url="/pages/resolve/inspect.jsx"></Code>
+			</Section>
+
 			<Section title="Children Caching">
 				<p>Filter children without causing re-renders</p>
 				<Code url="/pages/resolve/resolve-helper.jsx">

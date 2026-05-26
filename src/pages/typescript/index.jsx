@@ -392,42 +392,42 @@ render(
 				/>
 			</Section>
 
-			<Section title="use:* plugin props">
+			<Section title="Custom use:ref factories">
 				<p>
-					Plugins registered with{' '}
-					<a href="/props/propsPlugin">propsPlugin</a> add a new prop
-					every element accepts. Tell TypeScript about it by merging
-					into <mark>JSX.ElementAttributes&lt;Element&gt;</mark>
-					inside a <mark>declare module 'pota'</mark> block. The{' '}
-					<mark>Element</mark> generic is threaded through by pota so
-					callback props can be typed against the element they're
-					attached to (e.g. <mark>(node: Element) =&gt; void</mark>{' '}
-					for a ref-style callback).
+					Behavior helpers in pota are ref factories — plain
+					functions that return{' '}
+					<mark>(node) =&gt; void</mark>. Attach them via{' '}
+					<a href="/use/ref">use:ref</a>. Typing is the same
+					as typing any other function: the parameter types
+					are checked at the call site, and the return value
+					is whatever <mark>use:ref</mark> already accepts
+					(a function or nested array of functions).
 				</p>
 				<Code
 					code={`
 import type { JSX } from 'pota'
 
-declare module 'pota' {
-	namespace JSX {
-		interface ElementAttributes<Element> {
-			'use:tooltip'?: {
-				position: { x: number; y: number }
-				text: string
-			}
-		}
-	}
-}
+// A tooltip ref factory:
+type Tooltip = { position: { x: number; y: number }; text: string }
 
-// now every element accepts the prop:
-// <button use:tooltip={{ position: { x: 0, y: 0 }, text: 'Hi' }}/>
+const tooltip =
+	(opts: Tooltip) =>
+	(node: JSX.DOMElement) => {
+		node.setAttribute('title', opts.text)
+		// ...attach behavior, return cleanup via the surrounding scope
+	}
+
+// Use it:
+// <button use:ref={tooltip({ position: { x: 0, y: 0 }, text: 'Hi' })}/>
 					`}
 					render={false}
 				/>
 				<p>
-					For a prop that accepts both a plain value and a signal,
-					widen the type with <mark>| (() =&gt; T)</mark> — same
-					pattern as intrinsic attributes.
+					For an argument that accepts both a plain value
+					and a signal, widen the parameter with{' '}
+					<mark>| (() =&gt; T)</mark> and resolve it inside
+					the body with{' '}
+					<a href="/Reactivity/withValue">withValue</a>.
 				</p>
 			</Section>
 

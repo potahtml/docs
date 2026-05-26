@@ -131,6 +131,31 @@ export default function () {
 				</table>
 			</Section>
 
+			<Section title="Mount and dispose">
+				<p>
+					<mark>render(children, parent?, options?)</mark> mounts
+					the tree under <mark>parent</mark> (defaults to{' '}
+					<mark>document.body</mark>) and returns a disposer.
+					Calling the disposer cleans up all reactive owners and
+					removes the rendered DOM — useful for unit tests, hot
+					reloading, or apps that mount/unmount into a host page.
+				</p>
+				<Code url="/pages/render/mount-dispose.jsx"></Code>
+			</Section>
+
+			<Section title="insert">
+				<p>
+					<mark>insert(children, parent?, options?)</mark> is the
+					lower-level cousin of <mark>render</mark>: it places{' '}
+					<mark>children</mark> under <mark>parent</mark> but does{' '}
+					<em>not</em> wrap them in a fresh <mark>root</mark>. Use
+					it when you're already inside a reactive owner (for
+					example inside a component) and want to project content
+					into a different DOM location.
+				</p>
+				<Code url="/pages/render/insert-into-scope.jsx"></Code>
+			</Section>
+
 			<Section title="App">
 				<p>
 					Render a component to the <mark>body</mark> (default

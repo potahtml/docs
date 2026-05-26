@@ -19,6 +19,29 @@ export default function () {
 				</p>
 			</Section>
 
+			<Section title="Subclass CustomElement">
+				<p>
+					Extend <mark>CustomElement</mark> for a web component
+					with shadow DOM. <mark>connectedCallback</mark>{' '}
+					assigns <mark>this.html</mark> with a JSX-yielding
+					function;{' '}
+					<mark>this.query()</mark> looks up shadow children;{' '}
+					<mark>this.emit()</mark> dispatches a custom event.
+				</p>
+				<Code url="/pages/@components/custom-element/counter.jsx"></Code>
+			</Section>
+
+			<Section title="Idempotent registration">
+				<p>
+					<mark>customElement(name, ctor, options?)</mark> calls{' '}
+					<mark>customElements.define(name, ctor, options)</mark>{' '}
+					only if <mark>name</mark> isn't already registered.
+					Safer than calling <mark>define</mark> directly during
+					HMR or when a module is imported more than once.
+				</p>
+				<Code url="/pages/@components/custom-element/idempotent.jsx"></Code>
+			</Section>
+
 			<Section title="customElement (factory)">
 				<p>
 					<mark>customElement(name, constructor, options?)</mark>{' '}
@@ -105,6 +128,15 @@ render(<hello-world>World</hello-world>)
 					You may click re-run to see it in action
 				</Code>
 
+				<p>
+					Adopting extra stylesheets at runtime isn't a method on
+					the instance — import <mark>addStyleSheets</mark> from{' '}
+					<mark>pota/use/css</mark> and call it with the shadow
+					root. URLs and inline CSS strings are both accepted;
+					URL fetches are cached so siblings share the same{' '}
+					<mark>CSSStyleSheet</mark>.
+				</p>
+
 				<table>
 					<thead>
 						<tr>
@@ -115,32 +147,6 @@ render(<hello-world>World</hello-world>)
 						</tr>
 					</thead>
 					<tbody>
-						<tr>
-							<td>addStyleSheets</td>
-							<td>Method</td>
-							<td>
-								<mark>(CSSStyleSheet|urls)[] </mark>
-							</td>
-							<td>
-								Given an array containing <mark>CSSStyleSheet</mark>{' '}
-								or urls, it will append the stylesheets to{' '}
-								<mark>document.adoptedStyleSheets</mark>. When it's an
-								URL it will <mark>fetch</mark>, create a{' '}
-								<mark>CSSStyleSheet</mark> and cache it for the given
-								URL. So different Custom Elements all share the same
-								CSSStyleSheet.
-							</td>
-						</tr>
-						<tr>
-							<td>addStyleSheetExternal</td>
-							<td>Method</td>
-							<td>
-								<mark>url</mark>
-							</td>
-							<td>
-								Helper for <mark>addStyleSheets</mark>. See above
-							</td>
-						</tr>
 						<tr>
 							<td>query</td>
 							<td>Method</td>
@@ -171,12 +177,13 @@ render(<hello-world>World</hello-world>)
 							<td>hidden</td>
 							<td>Setter</td>
 							<td>
-								<mark>boolean | signal</mark>
+								<mark>boolean</mark>
 							</td>
 							<td>
-								<mark>hidden</mark> is a setter that will check the
-								value passed for truthiness and add or remove an
-								attribute named <mark>hidden</mark> on the Element.
+								Adds the <mark>hidden</mark> attribute when the
+								assigned value is truthy and removes it otherwise.
+								Assign each time you want a change — the setter
+								does not subscribe to a signal.
 							</td>
 						</tr>
 						<tr>

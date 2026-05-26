@@ -20,6 +20,7 @@ export default function () {
 				owned by the surrounding component: if that component is
 				disposed, the portaled nodes are removed too.
 			</p>
+
 			<Section title="Attributes">
 				<table>
 					<thead>
@@ -40,6 +41,30 @@ export default function () {
 						</tr>
 					</tbody>
 				</table>
+			</Section>
+
+			<Section title="Modal in an overlay">
+				<p>
+					<mark>&lt;Portal mount=&#123;node&#125;/&gt;</mark>{' '}
+					renders its children into <mark>node</mark> instead of
+					the surrounding tree, while keeping context, ownership,
+					and cleanup tied to the component that declared it.
+					Useful for tooltips, modals, toasts — anything that
+					needs to escape the parent's overflow/z-index context.
+				</p>
+				<Code url="/pages/@components/portal/modal.jsx"></Code>
+			</Section>
+
+			<Section title="Toast queue">
+				<p>
+					A toast container needs to escape any parent's{' '}
+					<mark>overflow: hidden</mark> or stacking context —{' '}
+					<mark>&lt;Portal/&gt;</mark> projects each toast into a
+					global host element while keeping its lifecycle tied to
+					the caller. Add a fixed-positioned host once and any
+					nested component can push notifications into it.
+				</p>
+				<Code url="/pages/@components/portal/toasts.jsx"></Code>
 			</Section>
 
 			<Section title="Portaling Children">

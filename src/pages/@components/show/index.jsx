@@ -52,6 +52,41 @@ export default function () {
 				></Code>
 			</Section>
 
+			<Section title="Toggle">
+				<p>
+					<mark>Show</mark> mounts its children when{' '}
+					<mark>when</mark> is truthy and <mark>fallback</mark>{' '}
+					otherwise. Pass the <em>reader</em> ({' '}
+					<mark>visible</mark>) so the condition stays reactive —
+					calling <mark>visible()</mark> would be a one-time
+					snapshot.
+				</p>
+				<Code url="/pages/@components/show/toggle.jsx"></Code>
+			</Section>
+
+			<Section title="Show with destructured value">
+				<p>
+					When <mark>when</mark> is truthy, <mark>Show</mark>{' '}
+					invokes the children function with a reactive accessor
+					for the value — useful when downstream code needs the
+					value (and TypeScript knows it's non-null inside the
+					branch).
+				</p>
+				<Code url="/pages/@components/show/destructured.jsx"></Code>
+			</Section>
+
+			<Section title="Auth gate">
+				<p>
+					<mark>Show</mark> is the natural primitive for "render
+					this only when the user is authenticated, else fall
+					back". Combining it with{' '}
+					<mark>&lt;Navigate/&gt;</mark> turns the fallback into a
+					redirect — no inline conditionals, the intent reads
+					top-to-bottom.
+				</p>
+				<Code url="/pages/@components/show/auth-gate.jsx"></Code>
+			</Section>
+
 			<Section title="Static true/false">
 				<p>Test using static values</p>
 				<Code url="/pages/@components/show/static.jsx"></Code>

@@ -97,6 +97,18 @@ export default function () {
 								before the selection change is applied
 							</td>
 						</tr>
+						<tr>
+							<td>
+								<mark>Tabs.Panel</mark>
+							</td>
+							<td>collapse?</td>
+							<td>
+								when <mark>true</mark>, the inactive panel is
+								hidden via <mark>display:none</mark> instead of
+								unmounted — its DOM and state survive across
+								selection changes
+							</td>
+						</tr>
 					</tbody>
 				</table>
 			</Section>
@@ -108,6 +120,35 @@ export default function () {
 					ancestor. Read it to know which tab is active:{' '}
 					<mark>{`const [get] = Tabs.selected(); get().id`}</mark>.
 				</p>
+			</Section>
+
+			<Section title="Labels and panels">
+				<p>
+					<mark>&lt;Tabs/&gt;</mark> is the parent.{' '}
+					<mark>&lt;Tabs.Labels/&gt;</mark> renders a{' '}
+					<mark>role="tablist"</mark> with one{' '}
+					<mark>&lt;button role="tab"&gt;</mark> per{' '}
+					<mark>&lt;Tabs.Label/&gt;</mark> child, and{' '}
+					<mark>&lt;Tabs.Panels/&gt;</mark> renders the matching
+					<mark>&lt;section&gt;</mark> panels — paired by
+					position. The first tab is active by default; pass{' '}
+					<mark>selected=&#123;index&#125;</mark> on{' '}
+					<mark>&lt;Tabs/&gt;</mark> to start elsewhere.
+				</p>
+				<Code url="/pages/@components/tabs/basic.jsx"></Code>
+			</Section>
+
+			<Section title="Programmatic + collapse">
+				<p>
+					Setting <mark>collapse</mark> on a{' '}
+					<mark>&lt;Tabs.Panel/&gt;</mark> keeps its DOM mounted
+					and just hides it via <mark>display: none</mark>, which
+					preserves any state inside (form drafts, scroll
+					position, mounted iframes). Combine with{' '}
+					<mark>selected</mark> on a label to start on a non-zero
+					tab.
+				</p>
+				<Code url="/pages/@components/tabs/programmatic.jsx"></Code>
 			</Section>
 
 			<Section title="Snippet">

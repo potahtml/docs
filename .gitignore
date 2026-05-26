@@ -1,7 +1,12 @@
 package-lock.json
 node_modules
-src/dist
-dist
+
+src/dist/*
+dist/*
+extracted/*
+localhost.zip
+.wrangler/*
+chrome/*
 
 *.m.css
 *.m.css.map

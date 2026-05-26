@@ -20,23 +20,23 @@
 		"@typescript/vfs": "^1.6.4",
 		"codemirror": "^6.0.2",
 		"color-bits": "^1.1.1",
-		"dom-flair": "file:../../dom-flair",
+		"dom-flair": "file:../../../../dom-flair",
 		"fflate": "^0.8.2",
-		"kompiler": "file:../../kompiler",
+		"kompiler": "file:../../../../kompiler",
 		"monaco-editor": "^0.55.1",
-		"pota": "file:../pota",
-		"tm-textarea": "file:../../solid/tm-textarea"
+		"pota": "file:../../../pota",
+		"tm-textarea": "file:../../../../solid/tm-textarea"
 	},
 	"kompiler": {
 		"watch": [
 			"src/release.js",
-			"../pota/src/"
+			"../../pota/src/"
 		],
 		"node": [
 			{
 				"input": "./src/pages/tests/node.js",
 				"watch": [
-					"../pota/"
+					"../../pota/"
 				],
 				"ignore": [
 					"coverage",
@@ -80,7 +80,7 @@
 					"src/pages/benchmark/dev/index.jsx"
 				],
 				"watch": [
-					"../pota/src/"
+					"../../pota/src/"
 				],
 				"output": "src/pages/benchmark/dev/main.js",
 				"minified": false,

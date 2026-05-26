@@ -11,6 +11,8 @@ export default function () {
 				<mark>{'{className: boolean}'}</mark> object, or a reactive
 				accessor. Strings replace the full <mark>class</mark>{' '}
 				attribute; arrays and objects add/remove individual classes.
+				The declarative form is{' '}
+				<a href="/props/class%3A__">class:__</a>.
 			</Header>
 
 			<Section title="Signature">
@@ -58,15 +60,37 @@ export default function () {
 				<p>
 					JSX's <mark>class=</mark> and{' '}
 					<mark>class:myClass=</mark> already flow through{' '}
-					<mark>setClass</mark>. Use the function when building
-					nodes imperatively, writing a{' '}
-					<a href="/props/propsPlugin">propsPlugin</a>, or
-					driving a class from an effect outside JSX.
+					<mark>setClass</mark>. Use the function when
+					building nodes imperatively, writing a{' '}
+					<a href="/use/ref">use:ref</a> factory, or driving
+					a class from an effect outside JSX.
 				</p>
 				<p>
 					Related: <a href="/props/class%3A__">class:__</a> covers
 					the declarative forms.
 				</p>
+			</Section>
+
+			<Section title="Toggle a class">
+				<p>
+					<mark>setClass(node, name, value)</mark> adds the
+					class when <mark>value</mark> is truthy and removes
+					it when falsy. Reactive accessors are unwrapped — pass
+					the read function directly and the class follows the
+					signal automatically.
+				</p>
+				<Code url="/pages/@props/set-class/example.jsx"></Code>
+			</Section>
+
+			<Section title="setClassList — many classes at once">
+				<p>
+					<mark>setClassList(node, value)</mark> accepts a
+					string, an array of names, or an object{' '}
+					<mark>{'{ name: truthy }'}</mark>. Each entry can be
+					a reactive accessor — signals you reference are
+					tracked and the corresponding class follows.
+				</p>
+				<Code url="/pages/@props/set-class/list.jsx"></Code>
 			</Section>
 
 			<Section title="Snippet">

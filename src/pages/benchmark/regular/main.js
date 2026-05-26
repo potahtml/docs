@@ -3305,8 +3305,8 @@
 	  text,
 	  fn
 	}) => _div([_node => {
-	  _node.textContent = getValue(/* @static */text);
-	  _node.setAttribute("id", getValue(/* @static */id));
+	  setProperty(_node, "textContent", /* @static */text);
+	  setAttribute(_node, "id", /* @static */id);
 	  setEvent(_node, "click", fn);
 	}]);
 	var _Button = createComponent(Button);
@@ -3390,7 +3390,7 @@
 	      each: data,
 	      children: row => {
 	        return _tr([_node9 => {
-	          _node9.textContent = getValue(/* @static  */row.id);
+	          setProperty(_node9, "textContent", /* @static  */row.id);
 	        }, _node10 => {
 	          setProperty(_node10, "textContent", row.label);
 	        }]);

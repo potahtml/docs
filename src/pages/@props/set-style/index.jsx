@@ -9,7 +9,10 @@ export default function () {
 				Imperative helper for applying styles to an element. Accepts
 				a CSS string, a style object, or a reactive accessor. A
 				property value of <mark>null</mark>, <mark>undefined</mark>{' '}
-				or <mark>false</mark> removes that property.
+				or <mark>false</mark> removes that property. The
+				declarative form is{' '}
+				<a href="/props/style%3A__">style:__</a>; for entire
+				stylesheets see <a href="/props/css">css / use:css</a>.
 			</Header>
 
 			<Section title="Signature">
@@ -54,14 +57,26 @@ export default function () {
 
 			<Section title="When to use">
 				<p>
-					In JSX, <mark>style="…"</mark>, <mark>style={'{…}'}</mark>
-					{' '}
-					and <mark>style:color={'{…}'}</mark> already route through
-					this helper. Call <mark>setStyle</mark> directly when you
-					are building elements imperatively, writing a{' '}
-					<a href="/props/propsPlugin">propsPlugin</a>, or driving
+					In JSX, <mark>style="…"</mark>,{' '}
+					<mark>style={'{…}'}</mark> and{' '}
+					<mark>style:color={'{…}'}</mark> already route
+					through this helper. Call <mark>setStyle</mark>{' '}
+					directly when you are building elements
+					imperatively, writing a{' '}
+					<a href="/use/ref">use:ref</a> factory, or driving
 					styles from an effect outside the render tree.
 				</p>
+			</Section>
+
+			<Section title="Cursor-following dot">
+				<p>
+					Capture an absolutely-positioned span via{' '}
+					<mark>ref()</mark>, then drive its{' '}
+					<mark>left</mark>/<mark>top</mark> from{' '}
+					<mark>x</mark>/<mark>y</mark> signals updated by{' '}
+					<mark>mousemove</mark>.
+				</p>
+				<Code url="/pages/@props/set-style/example.jsx"></Code>
 			</Section>
 
 			<Section title="Snippet">

@@ -52,6 +52,17 @@ export default function () {
 				></Code>
 			</Section>
 
+			<Section title="Hide without unmounting">
+				<p>
+					<mark>&lt;Collapse when/&gt;</mark> uses{' '}
+					<mark>style:display="none"</mark> instead of removing the
+					subtree. State inside the children survives across
+					hide/show — useful for tabs, accordions, or expensive
+					widgets you don't want to re-mount.
+				</p>
+				<Code url="/pages/@components/collapse/preserved.jsx"></Code>
+			</Section>
+
 			<Section title="Reactive">
 				<p>
 					A youtube video keeps playing in the background even if the

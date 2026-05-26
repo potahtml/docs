@@ -59,6 +59,16 @@ export default function () {
 				</p>
 			</Section>
 
+			<Section title="Title and meta from a component">
+				<p>
+					<mark>&lt;Head/&gt;</mark> portals its children into{' '}
+					<mark>document.head</mark> and stays reactive — updating
+					a signal updates the title or <mark>meta</mark> tag in
+					place. Cleanup on unmount removes whatever was inserted.
+				</p>
+				<Code url="/pages/@components/head/meta.jsx"></Code>
+			</Section>
+
 			<Section title="Snippet">
 				<Code
 					url="/pages/@components/head/snippet.jsx"

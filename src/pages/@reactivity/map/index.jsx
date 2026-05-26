@@ -70,6 +70,15 @@ export default function () {
 				</table>
 			</Section>
 
+			<Section title="Keyed iteration">
+				<p>
+					Pass the read function so the list stays reactive.
+					Reversing the array reuses every row's DOM node — only
+					their order changes.
+				</p>
+				<Code url="/pages/@reactivity/map/keyed.jsx"></Code>
+			</Section>
+
 			<Section title="map test">
 				<p>Modifying an array and getting reactive changes</p>
 				<Code url="/pages/@reactivity/map/test.jsx"></Code>

@@ -12,6 +12,30 @@ export default function () {
 				functions for easily restarting the timeout.
 			</Header>
 
+			<Section title="Auto-disposing timer with datetime">
+				<p>
+					<mark>pota/use/time</mark> exposes <mark>now</mark>,{' '}
+					<mark>date</mark>, <mark>datetime</mark>,{' '}
+					<mark>time</mark>, <mark>timeWithSeconds</mark>,{' '}
+					<mark>day</mark>, plus{' '}
+					<mark>useTimeout(cb, delay, ...args)</mark> — the
+					timeout integrates with the owner so it cancels
+					automatically on disposal.
+				</p>
+				<Code url="/pages/@use/time/timer.jsx"></Code>
+			</Section>
+
+			<Section title="Reactive delay">
+				<p>
+					<mark>useTimeout</mark> accepts an accessor for{' '}
+					<mark>delay</mark>, so the underlying{' '}
+					<mark>setTimeout</mark> resets every time the delay
+					changes. Useful for "save after N ms of idle"-style
+					flows where the user can adjust the threshold live.
+				</p>
+				<Code url="/pages/@use/time/reactive-delay.jsx"></Code>
+			</Section>
+
 			<Section title="Using useTimeout">
 				<p>
 					<mark>start()</mark> schedules the callback;{' '}

@@ -30,8 +30,9 @@ useCtx('new value', fn)`}
 					value and a <mark>fn</mark> to push that value for the
 					duration of <mark>fn</mark> — children rendered inside
 					read the new value; everything outside keeps the
-					previous one. Providing a <mark>Partial</mark> of an
-					object value shallow-merges it with the inherited value.
+					previous one. The new value replaces the inherited one
+					entirely; if you want to inherit-and-override, build
+					the merged object yourself before providing it.
 				</p>
 			</Section>
 
@@ -40,6 +41,45 @@ useCtx('new value', fn)`}
 					url="/pages/context/snippet.jsx"
 					render={false}
 				></Code>
+			</Section>
+
+			<Section title="Theme provider">
+				<p>
+					<mark>context(defaultValue)</mark> returns a{' '}
+					<mark>useContext</mark> function with a{' '}
+					<mark>Provider</mark> JSX component attached. Wrap a
+					subtree in <mark>&lt;Theme.Provider value=&#123;...&#125;/&gt;</mark>{' '}
+					and any descendant call to <mark>Theme()</mark> returns
+					that value. With no provider, <mark>Theme()</mark>{' '}
+					returns the default.
+				</p>
+				<Code url="/pages/context/theme-provider.jsx"></Code>
+			</Section>
+
+			<Section title="Functional override">
+				<p>
+					Calling the context function as{' '}
+					<mark>Theme(newValue, fn)</mark> runs <mark>fn</mark>{' '}
+					with the override applied; outside of <mark>fn</mark>,
+					the previous value is restored. Useful when you need
+					the context override outside the JSX tree (computing a
+					derived value, in an <mark>effect</mark>, etc.).
+				</p>
+				<Code
+					url="/pages/context/override.jsx"
+					render={false}
+				></Code>
+			</Section>
+
+			<Section title="Reactive context value">
+				<p>
+					Putting a signal <em>into</em> the context value gives
+					descendants both a reactive read and a write channel.
+					The provider creates the signal once; any nested
+					component can swap the theme by calling the context's{' '}
+					<mark>set</mark> action.
+				</p>
+				<Code url="/pages/context/reactive-value.jsx"></Code>
 			</Section>
 
 			<Section title="Example">

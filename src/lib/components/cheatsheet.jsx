@@ -50,9 +50,6 @@ setProperty, // setProperty(node, 'hidden', signal)
 setStyle, // setStyle(node, 'color', signal)
 setClass, // setClass(node, 'selected', signal)
 
-propsPlugin, // propsPlugin('red', function(node, propValue){node.style.color = 'red'}) <div red/>
-propsPluginNS, // propsPluginNS('color', function(node, localName, propValue){node.style.color = localName}) <div color:red/>
-
 // pota version
 version
 } from 'pota'
@@ -75,6 +72,7 @@ Head, // <Head><title>Hello World</title></Head>
 Switch, Match,// <Switch fallback="ouch"><Match when={true}/>Hi</Switch>
 Portal, // <Portal mount={document.body}>Hola</Portal>
 Range, // <Range start={0} stop={10} step={2}>{item=>item}</Range>
+Splitter, // <Splitter orientation="vertical" min={100} max={400} persist="key"/>
 Route,// <Route path="/">Hola home</Route>
 A,// <A href="/">home</A>
 Navigate,// <Navigate path="/" replace={boolean} params={{}} delay={1000} scroll={boolean}>Redirecting..</Navigate>

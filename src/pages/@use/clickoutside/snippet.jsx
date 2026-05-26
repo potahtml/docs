@@ -1,6 +1,6 @@
 import { render } from 'pota'
 
-import 'pota/use/clickoutside'
+import { clickOutside } from 'pota/use/clickoutside'
 
 function App() {
 	return (
@@ -8,9 +8,9 @@ function App() {
 			<section>
 				<input
 					name="name"
-					use:clickoutside={(event, node) =>
-						render('clicking outside')
-					}
+					use:ref={clickOutside((event, node) =>
+						render('clicking outside'),
+					)}
 				/>
 			</section>
 		</main>

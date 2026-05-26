@@ -65,6 +65,28 @@ export default function () {
 				</table>
 			</Section>
 
+			<Section title="Numeric range">
+				<p>
+					<mark>&lt;Range start stop step/&gt;</mark> produces a{' '}
+					<mark>&lt;For/&gt;</mark> over the numeric range, calling
+					its children with <mark>(value, index)</mark>. All three
+					props accept either a number or an accessor — drive the
+					bounds with signals.
+				</p>
+				<Code url="/pages/@components/range/numeric.jsx"></Code>
+			</Section>
+
+			<Section title="Descending with negative step">
+				<p>
+					<mark>step</mark> defaults to <mark>1</mark>. Pass a
+					negative number with <mark>start &gt; stop</mark> to
+					count down — the resulting iteration mirrors{' '}
+					<mark>for (let n = start; n &gt; stop; n += step)</mark>.
+					All three props can be reactive.
+				</p>
+				<Code url="/pages/@components/range/descending.jsx"></Code>
+			</Section>
+
 			<Section title="Simple Test">
 				<p>
 					Use a <mark>Range</mark> to display some values

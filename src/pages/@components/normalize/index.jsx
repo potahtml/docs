@@ -28,6 +28,15 @@ export default function () {
 				</p>
 			</Section>
 
+			<Section title="Coalesced text">
+				<p>
+					Two reactive inputs and a static greeting collapse into
+					one text node — typing in either input updates the
+					whole string in a single effect run.
+				</p>
+				<Code url="/pages/@components/normalize/two-input.jsx"></Code>
+			</Section>
+
 			<Section title="Snippet">
 				<Code
 					code={`

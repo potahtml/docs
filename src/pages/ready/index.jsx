@@ -46,6 +46,30 @@ export default function () {
 				></Code>
 			</Section>
 
+			<Section title="Focus on mount">
+				<p>
+					Schedule imperative work that needs the node in the
+					DOM — measuring sizes, focusing inputs, attaching
+					third-party widgets. <mark>ready(fn)</mark> fires
+					after <mark>onProps</mark>, <mark>onRef</mark>, and{' '}
+					<mark>onMount</mark>.
+				</p>
+				<Code url="/pages/ready/focus.jsx"></Code>
+			</Section>
+
+			<Section title="readyAsync">
+				<p>
+					<mark>readyAsync(fn)</mark> waits for any tracked async
+					work (promises inside{' '}
+					<mark>derived</mark>/<mark>withValue</mark>/etc.) to
+					complete before firing. Useful when you need a
+					snapshot of the world <em>after</em> everything has
+					loaded — common in tests or in screenshot/printing
+					flows.
+				</p>
+				<Code url="/pages/ready/async.jsx"></Code>
+			</Section>
+
 			<Section title="Timing">
 				<p>
 					Displays current timings of <mark>ready</mark> vs{' '}

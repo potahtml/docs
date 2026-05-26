@@ -7,8 +7,6 @@ git push
 
 # publish to pota.quack.uy
 
-cd /mnt/Data/www/pota/pota.docs.cloudflare/
-
 rm -f localhost.zip
 rm -f extracted
 

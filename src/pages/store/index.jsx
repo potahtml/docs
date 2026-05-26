@@ -15,9 +15,14 @@ export default function () {
 import {
 	mutable,
 	signalify,
+	store,
 	merge,
 	replace,
 	reset,
+	project,
+	copy,
+	readonly,
+	updateBlacklist,
 } from 'pota/store'
 					`}
 					render={false}
@@ -55,6 +60,16 @@ import {
 							</td>
 						</tr>
 						<tr>
+							<td>store</td>
+							<td>(source, clone?)</td>
+							<td>[store, setStore]</td>
+							<td>
+								pairs a deeply-reactive proxy with a batched setter.
+								The proxy reads as <mark>DeepReadonly&lt;T&gt;</mark>{' '}
+								so the setter is the sanctioned mutation path.
+							</td>
+						</tr>
+						<tr>
 							<td>merge</td>
 							<td>(target, source, keys?)</td>
 							<td>target</td>
@@ -83,22 +98,63 @@ import {
 								<mark>source</mark>
 							</td>
 						</tr>
+						<tr>
+							<td>project</td>
+							<td>(value)</td>
+							<td>copy-on-write proxy</td>
+							<td>
+								reads through to <mark>value</mark>, writes go to a
+								private copy — useful for editable drafts and
+								what-if scenarios
+							</td>
+						</tr>
+						<tr>
+							<td>copy</td>
+							<td>(value)</td>
+							<td>deep clone</td>
+							<td>
+								structural clone that preserves prototypes,
+								descriptor accessors, frozen state, and cycles
+							</td>
+						</tr>
+						<tr>
+							<td>readonly</td>
+							<td>(value)</td>
+							<td>frozen value</td>
+							<td>
+								deep-freezes <mark>value</mark> and types it as{' '}
+								<mark>DeepReadonly&lt;T&gt;</mark>
+							</td>
+						</tr>
+						<tr>
+							<td>updateBlacklist</td>
+							<td>(window)</td>
+							<td>void</td>
+							<td>
+								teaches <mark>mutable</mark> about constructors from
+								another realm (iframe, worker)
+							</td>
+						</tr>
 					</tbody>
 				</table>
 				<p>
-					All five utilities mutate <mark>target</mark> in place and
-					return it for convenience; the returned reference{' '}
-					<em>is</em> the same object you passed in.
+					The mutating utilities (
+					<mark>mutable</mark>, <mark>signalify</mark>,{' '}
+					<mark>merge</mark>, <mark>replace</mark>, <mark>reset</mark>
+					) modify <mark>target</mark> in place and return it for
+					convenience; the returned reference <em>is</em> the same
+					object you passed in.
 				</p>
 			</Section>
 
 			<Section title="mutable">
 				<p>
 					Wraps <mark>value</mark> in a proxy that turns every
-					property into a signal, recursively. Both existing and
-					new properties are tracked and mutable. Reads of keys
-					that don't exist yet are still tracked — once the key
-					is added, readers re-run.
+					property into a{' '}
+					<a href="/Reactivity/signal">signal</a>, recursively.
+					Both existing and new properties are tracked and
+					mutable. Reads of keys that don't exist yet are still
+					tracked — once the key is added, readers re-run.
 				</p>
 				<Code url="/pages/store/mutable.jsx"></Code>
 				<p>
@@ -121,6 +177,9 @@ import {
 					own properties become tracked getters/setters. Nested
 					objects stay plain objects. Useful for opt-in reactivity
 					on a handful of keys without walking the whole tree.
+					Each key becomes a{' '}
+					<a href="/Reactivity/signal">signal</a> behind the
+					scenes.
 				</p>
 				<Code url="/pages/store/signalify.jsx">
 					All own properties become reactive.
@@ -133,6 +192,36 @@ import {
 				</p>
 				<Code url="/pages/store/signalify-keys.jsx">
 					Only the <mark>lala</mark> property is made reactive.
+				</Code>
+			</Section>
+
+			<Section title="store">
+				<p>
+					<mark>store(source, clone?)</mark> returns the tuple{' '}
+					<mark>[store, setStore]</mark>. <mark>store</mark> is a{' '}
+					<mark>mutable</mark> proxy typed as{' '}
+					<mark>DeepReadonly&lt;T&gt;</mark> — TypeScript steers
+					all writes through the setter, even though the runtime
+					would still accept them.{' '}
+					<mark>setStore(fn)</mark> calls <mark>fn(draft)</mark>{' '}
+					inside{' '}
+					<a href="/Reactivity/batch">batch()</a> so any number
+					of mutations flush as a single notification, and
+					inside <a href="/Reactivity/untrack">untrack()</a> so
+					reads in the mutator don't subscribe the surrounding
+					scope.
+				</p>
+				<Code url="/pages/store/store.jsx">
+					Three writes inside one <mark>setStore</mark> call — the
+					effect runs once with the final values.
+				</Code>
+				<p>
+					The proxy is deep, so the setter can drill into nested
+					objects and arrays directly:
+				</p>
+				<Code url="/pages/store/store-nested.jsx">
+					Move a card between columns, rename a column — both
+					mutations land in one batched flush.
 				</Code>
 			</Section>
 
@@ -206,6 +295,79 @@ import {
 					the mutable proxy would share references with{' '}
 					<mark>defaultState</mark>.
 				</Code>
+			</Section>
+
+			<Section title="project">
+				<p>
+					<mark>project(value)</mark> wraps <mark>value</mark> in a
+					copy-on-write <mark>mutable</mark>: reads pass through to
+					the source so the projection stays in sync, but every
+					write goes to the projection's own copy. Each{' '}
+					<mark>project()</mark> call gets its own proxy store, so
+					two projections of the same source stay independent —
+					useful for editable drafts, undo stacks, and "what-if"
+					scenarios.
+				</p>
+				<Code url="/pages/store/project.jsx">
+					Bumping the draft's age leaves the original untouched;
+					renaming the original is visible through the draft until
+					the draft writes its own copy of <mark>name</mark>.
+				</Code>
+			</Section>
+
+			<Section title="copy">
+				<p>
+					<mark>copy(value)</mark> is a structural clone with
+					extras: it preserves the prototype chain (so class
+					instances stay <mark>instanceof</mark>), copies
+					non-enumerable / symbol keys, snapshots accessor
+					descriptors (the getter is invoked once inside{' '}
+					<mark>untrack</mark>), handles cycles, and re-applies
+					frozen / sealed / non-extensible state. Built-ins like{' '}
+					<mark>Date</mark>, <mark>RegExp</mark>, and DOM elements
+					pass through by reference.
+				</p>
+				<Code
+					url="/pages/store/copy.jsx"
+					render={false}
+				>
+					Cloning a class instance — getter + cycle preserved.
+				</Code>
+			</Section>
+
+			<Section title="readonly">
+				<p>
+					<mark>readonly(value)</mark> deep-freezes{' '}
+					<mark>value</mark> (and everything reachable from it)
+					and types the result as <mark>DeepReadonly&lt;T&gt;</mark>.
+					Useful for exposing config or constants where downstream
+					code shouldn't even attempt to write — silent strict-mode
+					failures become loud <mark>TypeError</mark> throws.
+				</p>
+				<Code
+					url="/pages/store/readonly.jsx"
+					render={false}
+				>
+					Reading is fine; any write throws in strict mode.
+				</Code>
+			</Section>
+
+			<Section title="updateBlacklist">
+				<p>
+					<mark>mutable</mark> refuses to wrap built-ins like{' '}
+					<mark>Date</mark>, <mark>RegExp</mark>, or DOM nodes —
+					they live on a constructor blacklist sourced from{' '}
+					<mark>globalThis</mark>. When you load code from another
+					realm (an iframe, a worker context's{' '}
+					<mark>globalThis</mark>), call{' '}
+					<mark>updateBlacklist(otherWindow)</mark> once so its
+					constructors are added — otherwise instances from that
+					realm could slip through and get proxied.
+				</p>
+				<Code
+					url="/pages/store/update-blacklist.jsx"
+					render={false}
+				></Code>
 			</Section>
 		</>
 	)

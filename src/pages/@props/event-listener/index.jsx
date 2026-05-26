@@ -107,6 +107,31 @@ export default function () {
 				</table>
 			</Section>
 
+			<Section title="Auto-detach on disposal">
+				<p>
+					<mark>addEvent(target, type, handler)</mark> adds the
+					listener and registers a cleanup that removes it when
+					the surrounding owner disposes — saving you the
+					manual{' '}
+					<mark>cleanup(() =&gt; removeEventListener(...))</mark>{' '}
+					dance. Helpful for global listeners (
+					<mark>window</mark>/<mark>document</mark>) that
+					components add to react to outside interactions.
+				</p>
+				<Code url="/pages/@props/event-listener/add-event.jsx"></Code>
+			</Section>
+
+			<Section title="Detach early with removeEvent">
+				<p>
+					<mark>removeEvent(node, type, handler)</mark> removes
+					the listener and returns an <mark>on</mark> function
+					that re-attaches it. Reach for it when you need to
+					detach earlier than the owner's cleanup would — e.g.
+					once a one-shot condition is met.
+				</p>
+				<Code url="/pages/@props/event-listener/remove-event.jsx"></Code>
+			</Section>
+
 			<Section title="Snippet">
 				<Code
 					url="/pages/@props/event-listener/snippet.jsx"

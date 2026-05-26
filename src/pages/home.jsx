@@ -65,8 +65,9 @@ export default function Home() {
 						destructure function arguments and objects
 					</li>
 					<li>
-						Provides a <mark>propsPlugin</mark> function for using
-						custom props on any element
+						<mark>use:ref</mark> accepts any function (or
+						nested array of functions) — composable
+						behavior helpers without a plugin registry
 					</li>
 					<li>
 						Allows multiple callbacks on components like{' '}

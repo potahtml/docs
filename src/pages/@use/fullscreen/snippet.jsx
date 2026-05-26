@@ -1,13 +1,13 @@
 import { render } from 'pota'
 
-import 'pota/use/fullscreen'
+import { fullscreen } from 'pota/use/fullscreen'
 
 function App() {
 	return (
 		<main>
 			<section>
-				<div use:fullscreen>fullscreen body</div>
-				<div use:fullscreen={(event, node) => node}>
+				<div use:ref={fullscreen()}>fullscreen body</div>
+				<div use:ref={fullscreen((event, node) => node)}>
 					fullscreen element
 				</div>
 			</section>

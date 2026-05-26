@@ -3263,6 +3263,18 @@
 	}
 
 	/**
+	 * Measures the execution time of a function.
+	 *
+	 * @param {() => void} fn
+	 * @returns {number} Duration in milliseconds.
+	 */
+	function timing(fn) {
+	  const start = performance.now();
+	  fn();
+	  return performance.now() - start;
+	}
+
+	/**
 	 * Returns a `function` that receives as a second argument whats
 	 * returned from it.
 	 *
@@ -3277,18 +3289,6 @@
 	    previous = fn(next, previous);
 	    return previous; // for testing
 	  };
-	}
-
-	/**
-	 * Measures the execution time of a function.
-	 *
-	 * @param {() => void} fn
-	 * @returns {number} Duration in milliseconds.
-	 */
-	function timing(fn) {
-	  const start = performance.now();
-	  fn();
-	  return performance.now() - start;
 	}
 
 	var _div = createPartial("<div class='col-sm-6 smallpad'><button type=button class='btn btn-primary btn-block'></button></div>", {"0":1,"m":2}),
@@ -3314,8 +3314,8 @@
 	  text,
 	  fn
 	}) => _div([_node => {
-	  _node.textContent = getValue(/** @static */text);
-	  _node.setAttribute("id", getValue(/** @static */id));
+	  setProperty(_node, "textContent", /** @static */text);
+	  setAttribute(_node, "id", /** @static */id);
 	  setEvent(_node, "click", fn);
 	}]);
 	var _Button = createComponent(Button);
@@ -3431,7 +3431,7 @@
 	      each: data,
 	      children: row => {
 	        return _tr([_node11 => {
-	          _node11.textContent = getValue(/* @static */row.id);
+	          setProperty(_node11, "textContent", /* @static */row.id);
 	        }, _node12 => {
 	          setProperty(_node12, "textContent", row.label);
 	        }]);

@@ -9,7 +9,10 @@ export default function () {
 				Imperative helper for assigning a DOM property on an element.
 				Unwraps reactive accessors; assigning <mark>null</mark> or{' '}
 				<mark>undefined</mark> sets the property to <mark>null</mark>
-				.
+				. The declarative form is{' '}
+				<a href="/props/prop%3A__">prop:__</a>; for HTML attributes
+				specifically see{' '}
+				<a href="/props/setAttribute">setAttribute</a>.
 			</Header>
 
 			<Section title="Signature">
@@ -65,6 +68,16 @@ export default function () {
 					<mark>video</mark>, <mark>textContent</mark>, or custom
 					properties on a custom element.
 				</p>
+			</Section>
+
+			<Section title="Sync a slider's valueAsNumber">
+				<p>
+					<mark>valueAsNumber</mark> only exists as a property
+					(no equivalent attribute). Drive it from a signal so
+					the slider follows the model — pressing{' '}
+					<em>min</em>/<em>max</em> snaps it instantly.
+				</p>
+				<Code url="/pages/@props/set-property/example.jsx"></Code>
 			</Section>
 
 			<Section title="Snippet">
