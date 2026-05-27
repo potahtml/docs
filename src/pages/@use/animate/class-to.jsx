@@ -3,15 +3,15 @@ import { animateClassTo } from 'pota/use/animate'
 
 function App() {
   const box = ref()
-  const [state, setState] = signal('idle')
+  const state = signal('idle')
 
   const toggle = async () => {
-    if (state() === 'idle') {
-      setState('out')
+    if (state.read() === 'idle') {
+      state.write('out')
       await animateClassTo(box(), 'idle', 'out')
-      setState('back')
+      state.write('back')
       await animateClassTo(box(), 'out', 'back')
-      setState('idle')
+      state.write('idle')
       await animateClassTo(box(), 'back', 'idle')
     }
   }
@@ -29,7 +29,7 @@ function App() {
       <button on:click={toggle}>animate</button>
       <div
         use:ref={box}
-        class={state}
+        class={state.read}
         style={{
           width: '120px',
           padding: '1rem',
@@ -37,7 +37,7 @@ function App() {
           'margin-top': '1rem',
         }}
       >
-        state: {state}
+        state: {state.read}
       </div>
     </>
   )

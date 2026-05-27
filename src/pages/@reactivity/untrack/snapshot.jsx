@@ -1,18 +1,18 @@
 import { effect, render, signal, untrack } from 'pota'
 
 function App() {
-  const [a, , updateA] = signal(1)
-  const [b, , updateB] = signal(10)
+  const a = signal(1)
+  const b = signal(10)
 
   effect(() => {
     // Re-runs only when `a` changes; `b` is read snapshot-style.
-    console.log('a =', a(), 'b was', untrack(() => b()))
+    console.log('a =', a.read(), 'b was', untrack(() => b.read()))
   })
 
   return (
     <div>
-      <button on:click={() => updateA(n => n + 1)}>a++</button>
-      <button on:click={() => updateB(n => n + 1)}>b++</button>
+      <button on:click={() => a.update(n => n + 1)}>a++</button>
+      <button on:click={() => b.update(n => n + 1)}>b++</button>
     </div>
   )
 }

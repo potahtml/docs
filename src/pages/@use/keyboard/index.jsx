@@ -32,6 +32,10 @@ export default function () {
   shortcut,            // shortcut(combo, fn)             → (node) => void
   globalShortcut,      // globalShortcut(combo, fn)       → () => void
   submitOnCtrlEnter,   // submitOnCtrlEnter(fn)           → (node) => void
+
+  // held-key state
+  useKeyHeld,          // useKeyHeld('shift')             → reactive reader (boolean)
+  keysHeld,            // keysHeld()                      → live Set<string> (non-reactive)
 } from 'pota/use/keyboard'`}
 					render={false}
 				/>
@@ -45,6 +49,43 @@ export default function () {
 					form-local submit shortcuts.
 				</p>
 				<Code url="/pages/@use/keyboard/snippet.jsx"></Code>
+			</Section>
+
+			<Section title="useKeyHeld / keysHeld — track held keys">
+				<p>
+					<mark>useKeyHeld(key)</mark> returns a reactive reader
+					that flips between <mark>true</mark> and{' '}
+					<mark>false</mark> as the key goes down and up.
+					Multiple subscribers share a single document-level
+					tracker; the tracker auto-detaches once the last
+					subscriber unmounts. Keys are matched case-insensitive
+					against <mark>KeyboardEvent.key</mark>.
+				</p>
+				<p>
+					<mark>keysHeld()</mark> returns the underlying
+					(live, non-reactive) <mark>Set</mark> of lowercased
+					held keys. Use it inside an{' '}
+					<mark>useAnimationFrame</mark> loop where reactive
+					tracking would be wasted overhead — e.g. WASD
+					movement, hold-to-charge meters, modifier inspection
+					during a drag.
+				</p>
+				<Code
+					code={`import { useKeyHeld, keysHeld } from 'pota/use/keyboard'
+import { useAnimationFrame } from 'pota/use/animate'
+
+// reactive: re-runs when shift goes down/up
+effect(() => element.classList.toggle('shifted', shift()))
+const shift = useKeyHeld('shift')
+
+// non-reactive: poll per frame
+const held = keysHeld()
+useAnimationFrame(() => {
+  if (held.has('w')) y -= 1
+  if (held.has('s')) y += 1
+}).start()`}
+					render={false}
+				/>
 			</Section>
 
 			<Section title="Document-scoped shortcut (`mod`)">

@@ -2,18 +2,18 @@ import { ref, render, setClass, signal } from 'pota'
 
 function App() {
   const card = ref()
-  const [selected, , updateSelected] = signal(false)
+  const selected = signal(false)
 
   return (
     <div>
       <div
         use:ref={card}
         class="card"
-        on:click={() => updateSelected(s => !s)}
+        on:click={() => selected.update(s => !s)}
       >
         click me
       </div>
-      {() => setClass(card(), 'selected', selected())}
+      {() => setClass(card(), 'selected', selected.read())}
     </div>
   )
 }

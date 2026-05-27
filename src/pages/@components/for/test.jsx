@@ -2,31 +2,31 @@ import { render, signal } from 'pota'
 import { For, Show } from 'pota/components'
 
 function Example() {
-  const [showing, setShowing] = signal(true)
-  setInterval(() => setShowing(!showing()), 5_000)
+  const showing = signal(true)
+  setInterval(() => showing.write(!showing.read()), 5_000)
 
-  const [value, setValue] = signal([1, 2])
-  const content = () => value().length + 1
+  const value = signal([1, 2])
+  const content = () => value.read().length + 1
 
   return (
     <main>
       <section class="buttons">
         <Buttons
-          setValue={setValue}
-          value={value}
+          setValue={value.write}
+          value={value.read}
           content={content}
         />
       </section>
       <hr />
       <section class="testing">
-        <For each={value}>
+        <For each={value.read}>
           {(item, index) => {
             return (
               <>
                 <div class="render">
                   <b>{item}</b>
                 </div>
-                <Show when={showing}>e</Show>
+                <Show when={showing.read}>e</Show>
                 <br />
               </>
             )
@@ -35,13 +35,13 @@ function Example() {
       </section>
       <hr /> simple value
       <section>
-        <For each={value}>{item => item}</For>
+        <For each={value.read}>{item => item}</For>
       </section>
       <hr />
       <section>
         should dispose:
-        <Show when={showing}>
-          <For each={value}>
+        <Show when={showing.read}>
+          <For each={value.read}>
             {item => <b class="render">{item}</b>}
           </For>
         </Show>
@@ -49,32 +49,32 @@ function Example() {
       <hr />
       <section>
         BEFORE
-        <For each={value}>{item => <b class="render">{item}</b>}</For>
+        <For each={value.read}>{item => <b class="render">{item}</b>}</For>
         AFTER
       </section>
       <hr />
       <section>
-        <For each={value}>
+        <For each={value.read}>
           B{item => <b class="render">{item}</b>}A
         </For>
       </section>
       <hr />
       <section>
-        <For each={value}>
+        <For each={value.read}>
           {item => (
             <>
               <br />
               BEFORE
               <br />
-              <Show when={showing}>#0-</Show>
-              <For each={value}>
+              <Show when={showing.read}>#0-</Show>
+              <For each={value.read}>
                 {item => (
                   <>
                     <b class="render">{item}</b>
                   </>
                 )}
               </For>
-              <Show when={showing}>-#N</Show>
+              <Show when={showing.read}>-#N</Show>
               <br />
               AFTER
             </>
@@ -83,7 +83,7 @@ function Example() {
       </section>
       <hr />
       <section>
-        <For each={value}>
+        <For each={value.read}>
           <hr />
           before
           <br />
@@ -93,7 +93,7 @@ function Example() {
                 <div class="render">
                   <b>{item}</b>
                 </div>
-                <Show when={showing}>e</Show>
+                <Show when={showing.read}>e</Show>
                 <br />
               </>
             )

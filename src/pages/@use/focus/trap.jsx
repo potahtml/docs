@@ -4,13 +4,13 @@ import { autoFocus, trapFocus } from 'pota/use/focus'
 import { clickOutside, escape } from 'pota/use/clickoutside'
 
 function App() {
-  const [open, setOpen] = signal(false)
-  const close = () => setOpen(false)
+  const open = signal(false)
+  const close = () => open.write(false)
 
   return (
     <div>
-      <button on:click={() => setOpen(true)}>open dialog</button>
-      <Show when={open}>
+      <button on:click={() => open.write(true)}>open dialog</button>
+      <Show when={open.read}>
         <div
           use:ref={[trapFocus, clickOutside(close), escape(close)]}
           style={{

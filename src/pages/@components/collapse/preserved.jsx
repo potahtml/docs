@@ -2,26 +2,26 @@ import { render, signal } from 'pota'
 import { Collapse } from 'pota/components'
 
 function HeavyForm() {
-  const [draft, setDraft] = signal('')
+  const draft = signal('')
   return (
     <form>
       <label>draft (preserved when hidden):</label>
       <input
-        prop:value={draft}
-        on:input={e => setDraft(e.currentTarget.value)}
+        prop:value={draft.read}
+        on:input={e => draft.write(e.currentTarget.value)}
       />
-      <p>{() => `${draft().length} chars`}</p>
+      <p>{() => `${draft.read().length} chars`}</p>
     </form>
   )
 }
 
 function App() {
-  const [open, , updateOpen] = signal(true)
+  const open = signal(true)
 
   return (
     <div>
-      <button on:click={() => updateOpen(o => !o)}>toggle</button>
-      <Collapse when={open}>
+      <button on:click={() => open.update(o => !o)}>toggle</button>
+      <Collapse when={open.read}>
         <HeavyForm />
       </Collapse>
     </div>

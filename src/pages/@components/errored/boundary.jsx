@@ -6,11 +6,11 @@ function Risky() {
 }
 
 function App() {
-  const [show, , updateShow] = signal(false)
+  const show = signal(false)
 
   return (
     <div>
-      <button on:click={() => updateShow(s => !s)}>toggle</button>
+      <button on:click={() => show.update(s => !s)}>toggle</button>
       <Errored
         fallback={(err, reset) => (
           <div>
@@ -19,7 +19,7 @@ function App() {
           </div>
         )}
       >
-        {() => (show() ? <Risky /> : <p>safe</p>)}
+        {() => (show.read() ? <Risky /> : <p>safe</p>)}
       </Errored>
     </div>
   )

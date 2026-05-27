@@ -1,13 +1,13 @@
 import { effect, root, signal } from 'pota'
 
 const dispose = root(dispose => {
-  const [ticks, , updateTicks] = signal(0)
+  const ticks = signal(0)
 
   effect(() => {
-    document.title = `ticks: ${ticks()}`
+    document.title = `ticks: ${ticks.read()}`
   })
 
-  const id = setInterval(() => updateTicks(n => n + 1), 1000)
+  const id = setInterval(() => ticks.update(n => n + 1), 1000)
 
   // when the caller disposes the root, stop the timer too
   return () => {

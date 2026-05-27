@@ -3,14 +3,14 @@ import { Show } from 'pota/components'
 import { css } from 'pota/use/css'
 
 function App() {
-  const [showing, setShowing, updateShowing] = signal(false)
+  const showing = signal(false)
 
   return (
     <main>
       Toggles the children of the XML tags.
       <button
         name="button"
-        on:click={() => updateShowing(showing => !showing)}
+        on:click={() => showing.update(showing => !showing)}
       >
         toggle
       </button>
@@ -28,11 +28,11 @@ function App() {
         height="24"
         viewBox="0 0 24 24"
       >
-        <Show when={showing}>
+        <Show when={showing.read}>
           <kilo:path d="M10 10.5h1.5v3H10zM19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7.5 15H6v-4.5H4.5V9h3v6zm5.5-1c0 .55-.45 1-1 1H9.5c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1H12c.55 0 1 .45 1 1v4zm6.5 1h-1.75L16 12.75V15h-1.5V9H16v2.25L17.75 9h1.75l-2.25 3 2.25 3z" />
         </Show>
       </kilo:svg>
-      <Show when={showing}>
+      <Show when={showing.read}>
         <kilo:svg
           xmlns="http://www.w3.org/2000/svg"
           width="24"
@@ -51,7 +51,7 @@ function App() {
         xmlns="http://www.w3.org/2000/svg"
         xmlns:xlink="http://www.w3.org/1999/xlink"
       >
-        <Show when={showing}>
+        <Show when={showing.read}>
           <a
             href="https://developer.mozilla.org/"
             xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -70,7 +70,7 @@ function App() {
         {'<'}math..{'/>'}
       </p>
       <math xmlns="http://www.w3.org/1998/Math/MathML">
-        <Show when={showing}>
+        <Show when={showing.read}>
           <mfrac>
             <msup>
               <mi>v</mi>
@@ -108,7 +108,7 @@ function App() {
 
         <polygon points="5,5 195,10 185,185 10,195" />
 
-        <Show when={showing}>
+        <Show when={showing.read}>
           <foreignObject
             x="20"
             y="20"

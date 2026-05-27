@@ -62,12 +62,22 @@ export default function () {
 
 			<Section title="pota/use/clipboard">
 				<Code
-					code={`import { clipboard } from 'pota/use/clipboard'`}
+					code={`import {
+  clipboard,
+  pasteText,
+  pasteFiles,
+} from 'pota/use/clipboard'`}
 					render={false}
 				/>
 				<p>
 					<mark>clipboard(value)</mark> — ref factory that
-					copies text on click. See{' '}
+					copies text on click.{' '}
+					<mark>pasteText(handler?)</mark> — strips
+					formatting on paste; without a handler, inserts
+					the plain text at the caret on input / textarea /
+					contenteditable hosts.{' '}
+					<mark>pasteFiles(handler)</mark> — captures
+					pasted files (images, OS clipboard files). See{' '}
 					<a href="/use/clipboard">clipboard</a>.
 				</p>
 			</Section>
@@ -158,6 +168,9 @@ export default function () {
   shortcut,
   globalShortcut,
   submitOnCtrlEnter,
+
+  useKeyHeld,
+  keysHeld,
 } from 'pota/use/keyboard'`}
 					render={false}
 				/>
@@ -166,7 +179,10 @@ export default function () {
 					keyboard chord. <mark>globalShortcut(combo, fn)</mark>{' '}
 					— same but listens on <mark>document</mark>.{' '}
 					<mark>submitOnCtrlEnter(fn)</mark> —{' '}
-					<mark>Ctrl/Cmd+Enter</mark> convenience. See{' '}
+					<mark>Ctrl/Cmd+Enter</mark> convenience.{' '}
+					<mark>useKeyHeld(key)</mark> — reactive boolean for
+					held keys. <mark>keysHeld()</mark> — live{' '}
+					<mark>Set</mark> for rAF loops. See{' '}
 					<a href="/use/keyboard">keyboard</a>.
 				</p>
 			</Section>
@@ -187,7 +203,7 @@ export default function () {
 
 			<Section title="pota/use/resize (ref)">
 				<Code
-					code={`import { resize } from 'pota/use/resize'`}
+					code={`import { resize, ensureInBounds } from 'pota/use/resize'`}
 					render={false}
 				/>
 				<p>
@@ -206,6 +222,31 @@ export default function () {
 					<mark>scrollIntoView(opts?)</mark> — ref factory;
 					scrolls the element into view on mount. See{' '}
 					<a href="/use/scroll">scroll</a>.
+				</p>
+			</Section>
+
+			<Section title="pota/use/tooltip (ref)">
+				<Code
+					code={`import { tooltip } from 'pota/use/tooltip'`}
+					render={false}
+				/>
+				<p>
+					Singleton overlay-backed tooltip on{' '}
+					<mark>hover</mark> / <mark>focus</mark>. See{' '}
+					<a href="/use/tooltip">tooltip</a>.
+				</p>
+			</Section>
+
+			<Section title="pota/use/upload (refs)">
+				<Code
+					code={`import { upload, dropzone } from 'pota/use/upload'`}
+					render={false}
+				/>
+				<p>
+					<mark>upload(opts)</mark> binds to{' '}
+					<mark>{`<input type="file">`}</mark>;{' '}
+					<mark>dropzone(opts)</mark> turns the element into a
+					drop target. See <a href="/use/upload">upload</a>.
 				</p>
 			</Section>
 
@@ -265,6 +306,43 @@ export default function () {
 					Synchronous <mark>isFullscreen()</mark> plus the
 					emitter pair tracking the fullscreen element. See{' '}
 					<a href="/use/fullscreen">fullscreen</a>.
+				</p>
+			</Section>
+
+			<Section title="pota/use/gamepad">
+				<Code
+					code={`import {
+  useGamepadConnected,
+  useGamepadButton,
+  useGamepadTrigger,
+  useGamepadAxis,
+  gamepadSnapshot,
+} from 'pota/use/gamepad'`}
+					render={false}
+				/>
+				<p>
+					Reactive accessors for connect state, buttons,
+					triggers, and axes (singleton{' '}
+					<mark>rAF</mark> poll, refcounted), plus a
+					non-reactive snapshot for game loops. See{' '}
+					<a href="/use/gamepad">gamepad</a>.
+				</p>
+			</Section>
+
+			<Section title="pota/use/mouse">
+				<Code
+					code={`import {
+  useMouseButton,
+  mouseButtons,
+  useMousePosition,
+  mousePosition,
+} from 'pota/use/mouse'`}
+					render={false}
+				/>
+				<p>
+					Reactive button + pointer-position accessors, plus
+					non-reactive variants for rAF loops. Tracks via
+					Pointer Events. See <a href="/use/mouse">mouse</a>.
 				</p>
 			</Section>
 
@@ -362,12 +440,18 @@ export default function () {
   timing,
 
   useTimeout,
+  useElapsed,
+  useStopwatch,
 } from 'pota/use/time'`}
 					render={false}
 				/>
 				<p>
-					Reactive clock readers plus <mark>useTimeout</mark>.
-					See <a href="/use/time">useTimeout</a>.
+					Clock formatters plus <mark>useTimeout</mark>{' '}
+					(auto-disposing setTimeout with reactive delay),{' '}
+					<mark>useElapsed</mark> (relative-time reader that
+					ticks on unit boundaries, not every second), and{' '}
+					<mark>useStopwatch</mark> (start / stop / reset
+					counter). See <a href="/use/time">time</a>.
 				</p>
 			</Section>
 
@@ -398,12 +482,50 @@ export default function () {
 
 			<Section title="pota/use/animate">
 				<Code
-					code={`import { animateClassTo, animatePartTo } from 'pota/use/animate'`}
+					code={`import {
+  animateClassTo,
+  animatePartTo,
+  stopAnimations,
+  documentKeyframes,
+  useAnimationFrame,
+} from 'pota/use/animate'`}
 					render={false}
 				/>
 				<p>
 					Swap classes/parts and await the resulting
-					animation. See <a href="/use/animate">animate</a>.
+					animation; cancel everything currently animating on
+					an element; introspect <mark>@keyframes</mark> rules;
+					drive an owned <mark>rAF</mark> loop with{' '}
+					<mark>start</mark> / <mark>stop</mark>. See{' '}
+					<a href="/use/animate">animate</a>.
+				</p>
+			</Section>
+
+			<Section title="pota/use/favicon">
+				<Code
+					code={`import { setFaviconBadge, useFaviconBadge } from 'pota/use/favicon'`}
+					render={false}
+				/>
+				<p>
+					Draws a notification badge on top of the document
+					favicon. See <a href="/use/favicon">favicon</a>.
+				</p>
+			</Section>
+
+			<Section title="pota/use/cached">
+				<Code
+					code={`import { cached } from 'pota/use/cached'`}
+					render={false}
+				/>
+				<p>
+					<mark>cached(url, opts?)</mark> — three-layer{' '}
+					<mark>fetch</mark> wrapper: in-flight dedup, Cache
+					API persistence with per-entry TTL, then network.
+					Options: <mark>ttl</mark>, <mark>cacheName</mark>,{' '}
+					<mark>parse</mark>. Pair with{' '}
+					<a href="/Reactivity/derived">derived</a> for
+					reactive async fetches. See{' '}
+					<a href="/use/cached">cached</a>.
 				</p>
 			</Section>
 
@@ -465,6 +587,7 @@ export default function () {
   DocumentFragment,
   isConnected,
   activeElement,
+  isPlaying,
 
   createElement,
   createElementNS,
@@ -540,6 +663,7 @@ export default function () {
 				<Code
 					code={`import {
   isDisabled,
+  isEditable,
   focusNextInput,
   form2object,
   object2form,
@@ -619,6 +743,26 @@ export default function () {
 				</p>
 			</Section>
 
+			<Section title="pota/use/storage">
+				<Code
+					code={`import { storage } from 'pota/use/storage'`}
+					render={false}
+				/>
+				<p>
+					<mark>storage(prefix)</mark> — builds a namespaced
+					signal factory. Each{' '}
+					<mark>(key, initial?)</mark> call returns a
+					regular pota signal that persists to{' '}
+					<mark>localStorage</mark> (or{' '}
+					<mark>sessionStorage</mark>, or an in-memory
+					fallback) under <mark>prefix + key</mark>. Signals
+					sharing a key stay in sync within the document and
+					across browser tabs via the native{' '}
+					<mark>storage</mark> event. See{' '}
+					<a href="/use/storage">storage</a>.
+				</p>
+			</Section>
+
 			<Section title="pota/use/stream">
 				<Code
 					code={`import {
@@ -676,6 +820,63 @@ export default function () {
 } from 'pota/use/test'`}
 					render={false}
 				/>
+			</Section>
+
+			<Section title="pota/use/overlay">
+				<Code
+					code={`import { createOverlay } from 'pota/use/overlay'`}
+					render={false}
+				/>
+				<p>
+					Shared imperative primitive behind{' '}
+					<a href="/use/tooltip">tooltip</a> and{' '}
+					<a href="/use/popover">popover</a>. Most code uses
+					those — reach for <mark>createOverlay</mark> when
+					building a new floating-UI primitive. See{' '}
+					<a href="/use/overlay">overlay</a>.
+				</p>
+			</Section>
+
+			<Section title="pota/use/popover">
+				<Code
+					code={`import { popover } from 'pota/use/popover'`}
+					render={false}
+				/>
+				<p>
+					Imperative floating popover controller (
+					<mark>role="dialog"</mark> + focus management). Each
+					call creates an independent instance. See{' '}
+					<a href="/use/popover">popover</a>.
+				</p>
+			</Section>
+
+			<Section title="pota/use/recorder">
+				<Code
+					code={`import { recorder } from 'pota/use/recorder'`}
+					render={false}
+				/>
+				<p>
+					Audio / video <mark>MediaRecorder</mark> controller
+					driven by reactive signals (
+					<mark>recording</mark>, <mark>paused</mark>,{' '}
+					<mark>duration</mark>, <mark>amplitude</mark>,{' '}
+					<mark>permission</mark>). See{' '}
+					<a href="/use/recorder">recorder</a>.
+				</p>
+			</Section>
+
+			<Section title="pota/use/upload (primitive)">
+				<Code
+					code={`import { uploadFile } from 'pota/use/upload'`}
+					render={false}
+				/>
+				<p>
+					Imperative upload primitive with progress, optional
+					content-addressed dedup via SHA-1 +{' '}
+					<mark>existsUrl</mark>, and{' '}
+					<mark>AbortSignal</mark> cancellation. See{' '}
+					<a href="/use/upload">upload</a>.
+				</p>
 			</Section>
 
 			<Section title="pota/use/url">

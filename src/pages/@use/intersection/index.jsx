@@ -46,7 +46,12 @@ export default function () {
 					second argument is forwarded to{' '}
 					<mark>IntersectionObserver</mark> as the options
 					bag (<mark>root</mark>, <mark>rootMargin</mark>,{' '}
-					<mark>threshold</mark>).
+					<mark>threshold</mark>), plus a pota-specific{' '}
+					<mark>once</mark>: when <mark>true</mark>, the
+					handler fires once on the first intersection and
+					then auto-unsubscribes. Handy for{' '}
+					<mark>reveal-on-scroll</mark> styles that only need
+					to flip a class once.
 				</p>
 				<Code url="/pages/@use/intersection/reveal.jsx"></Code>
 			</Section>

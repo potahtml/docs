@@ -43,20 +43,20 @@ export default function () {
 import { render, signal } from 'pota'
 import { Normalize } from 'pota/components'
 
-const [name, , updateName] = signal('world')
-const [n, , updateN] = signal(3)
+const name = signal('world')
+const n = signal(3)
 
 render(
 	<>
 		<p>
 			<Normalize>
-				hello {name}, you have {n} messages
+				hello {name.read}, you have {n.read} messages
 			</Normalize>
 		</p>
-		<button on:click={() => updateN(x => x + 1)}>+1 message</button>
+		<button on:click={() => n.update(x => x + 1)}>+1 message</button>
 		<button
 			on:click={() =>
-				updateName(x => (x === 'world' ? 'pota' : 'world'))
+				name.update(x => (x === 'world' ? 'pota' : 'world'))
 			}
 		>
 			toggle name

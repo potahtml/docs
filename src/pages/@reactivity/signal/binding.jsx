@@ -1,15 +1,15 @@
 import { render, signal } from 'pota'
 
 function App() {
-  const [name, setName] = signal('world')
+  const name = signal('world')
 
   return (
     <div>
       <input
-        prop:value={name}
-        on:input={e => setName(e.currentTarget.value)}
+        prop:value={name.read}
+        on:input={e => name.write(e.currentTarget.value)}
       />
-      <p>Hello, {name}!</p>
+      <p>Hello, {name.read}!</p>
     </div>
   )
 }

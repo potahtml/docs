@@ -13,7 +13,7 @@ const Quote = props => (
 const blockTypes = { Heading, Paragraph, Quote }
 
 function App() {
-  const [blocks] = signal([
+  const blocks = signal([
     { type: 'Heading', text: 'Pota in production' },
     { type: 'Paragraph', text: 'A small reactive renderer.' },
     {
@@ -24,7 +24,7 @@ function App() {
   ])
 
   return (
-    <For each={blocks}>
+    <For each={blocks.read}>
       {block => (
         <Dynamic component={blockTypes[block.type]} {...block} />
       )}

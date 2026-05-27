@@ -1,20 +1,20 @@
 import { asyncEffect, render, signal } from 'pota'
 
 function App() {
-  const [id, , updateId] = signal(1)
-  const [data, setData] = signal(null)
+  const id = signal(1)
+  const data = signal(null)
 
   asyncEffect(async prev => {
-    const current = id()
+    const current = id.read()
     await prev
     const res = await fetch(`/api/items/${current}`)
-    setData(await res.json())
+    data.write(await res.json())
   })
 
   return (
     <div>
-      <button on:click={() => updateId(n => n + 1)}>next</button>
-      <pre>{() => JSON.stringify(data(), null, 2)}</pre>
+      <button on:click={() => id.update(n => n + 1)}>next</button>
+      <pre>{() => JSON.stringify(data.read(), null, 2)}</pre>
     </div>
   )
 }

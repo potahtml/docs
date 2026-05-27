@@ -2,9 +2,9 @@ import { markComponent, render, signal } from 'pota'
 
 function makeCounter(initial) {
   return markComponent(() => {
-    const [n, , updateN] = signal(initial)
+    const n = signal(initial)
     return (
-      <button on:click={() => updateN(v => v + 1)}>{n}</button>
+      <button on:click={() => n.update(v => v + 1)}>{n.read}</button>
     )
   })
 }

@@ -2,10 +2,10 @@ import { derived, render, signal } from 'pota'
 import { Errored } from 'pota/components'
 
 function Post() {
-  const [id, setId, updateId] = signal(1)
+  const id = signal(1)
 
   const post = derived(
-    () => `https://jsonplaceholder.typicode.com/posts/${id()}`,
+    () => `https://jsonplaceholder.typicode.com/posts/${id.read()}`,
     url =>
       fetch(url).then(r => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`)
@@ -15,8 +15,8 @@ function Post() {
 
   return (
     <div>
-      <button on:click={() => updateId(n => n + 1)}>next</button>
-      <button on:click={() => setId(99999)}>break it</button>
+      <button on:click={() => id.update(n => n + 1)}>next</button>
+      <button on:click={() => id.write(99999)}>break it</button>
       <h2>{() => post()?.title ?? 'loading…'}</h2>
     </div>
   )

@@ -92,47 +92,48 @@ export function createPlaygroundState(fallbackContent) {
 		readFromLocalStorage() ||
 		defaultState(fallbackContent)
 
-	const [files, setFiles] = signal(initial.files)
-	const [active, setActive] = signal(initial.active)
-	const [cursor, setCursor] = signal(initial.cursor)
+	const files = signal(initial.files)
+	const active = signal(initial.active)
+	const cursor = signal(initial.cursor)
 
-	const getFile = name => files().find(f => f.name === name)
+	const getFile = name =>
+		files.read().find(f => f.name === name)
 
 	const updateFileContent = (name, content) => {
-		const current = files()
+		const current = files.read()
 		const idx = current.findIndex(f => f.name === name)
 		if (idx === -1) return
 		if (current[idx].content === content) return
 		const next = current.slice()
 		next[idx] = { ...next[idx], content }
-		setFiles(next)
+		files.write(next)
 	}
 
 	const addFile = (base = 'untitled.ts') => {
-		const current = files()
+		const current = files.read()
 		let name = base
 		let i = 1
 		while (current.some(f => f.name === name)) {
 			name = base.replace(/(\.[^.]+)?$/, m => `-${i}${m || ''}`)
 			i++
 		}
-		setFiles([...current, { name, content: '' }])
-		setActive(name)
+		files.write([...current, { name, content: '' }])
+		active.write(name)
 		return name
 	}
 
 	const removeFile = name => {
-		const current = files()
+		const current = files.read()
 		const idx = current.findIndex(f => f.name === name)
 		if (idx === -1) return false
 		const remaining = current.filter(f => f.name !== name)
 		if (remaining.length === 0) return false // refuse last-file delete
-		setFiles(remaining)
-		if (active() === name) {
+		files.write(remaining)
+		if (active.read() === name) {
 			// Prefer the tab to the left; if the closed tab was the
 			// leftmost, fall back to the new leftmost.
 			const leftIdx = Math.max(0, idx - 1)
-			setActive(remaining[leftIdx].name)
+			active.write(remaining[leftIdx].name)
 		}
 		return true
 	}
@@ -140,20 +141,22 @@ export function createPlaygroundState(fallbackContent) {
 	const renameFile = (oldName, newName) => {
 		newName = (newName || '').trim()
 		if (!newName || newName === oldName) return false
-		if (files().some(f => f.name === newName)) return false
-		setFiles(
-			files().map(f =>
-				f.name === oldName ? { ...f, name: newName } : f,
-			),
+		if (files.read().some(f => f.name === newName)) return false
+		files.write(
+			files
+				.read()
+				.map(f =>
+					f.name === oldName ? { ...f, name: newName } : f,
+				),
 		)
-		if (active() === oldName) setActive(newName)
+		if (active.read() === oldName) active.write(newName)
 		return true
 	}
 
 	const snapshot = () => ({
-		files: files(),
-		active: active(),
-		cursor: cursor(),
+		files: files.read(),
+		active: active.read(),
+		cursor: cursor.read(),
 	})
 
 	const persistToURL = () => {
@@ -185,14 +188,14 @@ export function createPlaygroundState(fallbackContent) {
 
 	return {
 		// accessors
-		files,
-		active,
-		cursor,
+		files: files.read,
+		active: active.read,
+		cursor: cursor.read,
 
 		// direct setters (use sparingly — prefer the mutation helpers)
-		setFiles,
-		setActive,
-		setCursor,
+		setFiles: files.write,
+		setActive: active.write,
+		setCursor: cursor.write,
 
 		// mutation helpers
 		getFile,

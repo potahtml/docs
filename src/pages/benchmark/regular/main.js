@@ -1,7 +1,12 @@
 (function () {
 	'use strict';
 
-	const window = globalThis;
+	// `globalThis` alone is typed as `typeof globalThis` — but in the
+	// DOM lib the real `window` is `Window & typeof globalThis`. Cast
+	// so consumers (e.g. `addEvent`'s `typeof window` template
+	// parameter) accept it without each call needing its own cast.
+	const window = /** @type {Window & typeof globalThis} */
+	globalThis;
 	const queueMicrotask = window.queueMicrotask;
 	const Object$1 = window.Object;
 	const Array$1 = window.Array;
@@ -307,7 +312,7 @@
 	  let Time = 0;
 	  const errorHandlerId = Symbol();
 	  function routeError(node, err) {
-	    const handler = node.context && node.context[errorHandlerId];
+	    const handler = node?.context?.[errorHandlerId];
 	    if (handler) handler(err);else console.error(err);
 	  }
 	  function doRead(o) {
@@ -610,7 +615,8 @@
 	     * `update()`; recursive resolve steps capture and compare the
 	     * current value to detect stale promise resolutions. Was a fresh
 	     * `{}` per write — counter avoids the per-update allocation while
-	     * preserving identity-via-`===` semantics for the staleness check.
+	     * preserving identity-via-`===` semantics for the staleness
+	     * check.
 	     *
 	     * @type {number}
 	     */
@@ -687,19 +693,18 @@
 	    }
 
 	    /**
-	     * Thenable surface. Stays defined across commits so consumers
-	     * can register more than once: each call to `then` either
-	     * fires synchronously (if already resolved) or queues onto
-	     * `thenCallbacks`, drained by `_fireThens` on commit. Has to
-	     * be an instance arrow so `assign(self(), this)` carries it
-	     * onto the callable wrapper.
+	     * Thenable surface. Stays defined across commits so consumers can
+	     * register more than once: each call to `then` either fires
+	     * synchronously (if already resolved) or queues onto
+	     * `thenCallbacks`, drained by `_fireThens` on commit. Has to be
+	     * an instance arrow so `assign(self(), this)` carries it onto the
+	     * callable wrapper.
 	     *
 	     * We resolve with `_unwrap()` rather than `self()`: `self()`
 	     * carries `then` onto every fresh wrapper, which makes the
-	     * resolved value itself thenable — JS's `await` would
-	     * recursively `then` it forever. `_unwrap()` returns the
-	     * same callable shape but with `then` stripped, terminating
-	     * the recursion.
+	     * resolved value itself thenable — JS's `await` would recursively
+	     * `then` it forever. `_unwrap()` returns the same callable shape
+	     * but with `then` stripped, terminating the recursion.
 	     */
 	    then = (resolve, reject) => {
 	      // `resolved()` reads through `this.read()` which triggers
@@ -747,22 +752,6 @@
 	  // SIGNAL
 
 	  /**
-	   * @param {any} a
-	   * @param {any} b
-	   */
-	  function equalsFalse(a, b) {
-	    return false;
-	  }
-
-	  /**
-	   * @param {any} a
-	   * @param {any} b
-	   */
-	  function equals(a, b) {
-	    return a === b;
-	  }
-
-	  /**
 	   * Plain leaf observable shared with Memo/Derived for the
 	   * `o.observers` access in doRead/doWrite. observers / observerSlots
 	   * start as the EMPTY sentinel so the slot type is always JSArray —
@@ -770,18 +759,50 @@
 	   * megamorphic across signal-literal vs Memo vs Derived shapes.
 	   */
 	  class Signal {
+	    /** @type {any} */
+	    value;
+
 	    /** @type {Computation[]} */
 	    observers = EMPTY;
 
 	    /** @type {number[]} */
 	    observerSlots = EMPTY;
 
-	    /** @type {any} */
-	    value;
-
-	    /** @param {any} value */
-	    constructor(value) {
+	    /**
+	     * @param {any} value
+	     * @param {SignalOptions<any>} [options]
+	     */
+	    constructor(value, options) {
 	      this.value = value;
+	      if (options) {
+	        assign(this, options);
+	        if (options.equals === false) {
+	          this.equals = this.equalsFalse;
+	        }
+	      }
+	    }
+	    read = () => {
+	      if (Listener) doRead(this);
+	      return this.value;
+	    };
+	    write = val => {
+	      if (!this.equals(this.value, val)) {
+	        this.value = val;
+	        doWrite(this);
+	        return true;
+	      }
+	      return false;
+	    };
+	    update = val => this.write(untrack(() => val(this.value)));
+
+	    /** @param {any} a @param {any} b */
+	    equals(a, b) {
+	      return a === b;
+	    }
+
+	    /** @param {any} a @param {any} b */
+	    equalsFalse(a, b) {
+	      return false;
 	    }
 	  }
 
@@ -795,36 +816,7 @@
 	   */
 	  /* #__NO_SIDE_EFFECTS__ */
 	  function signal(value, options) {
-	    let _equals = equals;
-	    if (options) {
-	      if (options.equals === false) _equals = equalsFalse;else if (options.equals) _equals = options.equals;
-	    }
-	    const o = new Signal(value);
-	    function read() {
-	      if (Listener) {
-	        doRead(o);
-	      }
-	      return o.value;
-	    }
-	    function write(val) {
-	      if (!_equals(o.value, val)) {
-	        o.value = val;
-	        doWrite(o);
-	        return true;
-	      }
-	      return false;
-	    }
-	    function update(val) {
-	      return write(untrack(() => val(o.value)));
-	    }
-	    const s = /** @type {any} */[read, write, update];
-	    s.read = read;
-	    s.write = write;
-	    s.update = update;
-	    if (options) {
-	      assign(s, options);
-	    }
-	    return s;
+	    return new Signal(value, options);
 	  }
 
 	  /**
@@ -1505,10 +1497,7 @@
 	/** @returns {Element | null} The currently focused element. */
 	const activeElement = () => document$1.activeElement;
 
-	/**
-	 * @returns {Element | undefined} The root `<html>` element if
-	 *   available.
-	 */
+	/** @returns {Element | undefined} The root `<html>` element if available. */
 	const documentElement = document$1?.documentElement;
 
 	/** DocumentFragment constructor exposed for convenience. */
@@ -1620,8 +1609,8 @@
 	 *
 	 * @param {DOMElement[]} [prev=[]] - Array with previous elements.
 	 *   Default is `[]`
-	 * @param {DOMElement[]} [next=[]] - Array with next elements.
-	 *   Default is `[]`
+	 * @param {DOMElement[]} [next=[]] - Array with next elements. Default
+	 *   is `[]`
 	 * @param {boolean} [short=false] - Whether to use fast clear. Default
 	 *   is `false`
 	 * @returns {DOMElement[]} The next array of elements
@@ -2116,10 +2105,7 @@
 	 */
 	const sheet = withCache(css => {
 	  const sheet = new CSSStyleSheet$1();
-	  /**
-	   * Replace is asynchronous and can accept `@import` statements
-	   * referencing external resources.
-	   */
+	  /** Replace is asynchronous and can accept `@import` statements referencing external resources. */
 	  sheet.replace(css);
 	  return sheet;
 	});
@@ -2247,8 +2233,8 @@
 	 *
 	 * @template T
 	 * @param {string} propName - Name of the prop
-	 * @param {(node: DOMElement, propValue: T) => void} fn - Function
-	 *   to run when this prop is found on any Element
+	 * @param {(node: DOMElement, propValue: T) => void} fn - Function to
+	 *   run when this prop is found on any Element
 	 * @param {boolean} [onMicrotask=true] - To avoid the problem of
 	 *   needed props not being set, or children elements not created yet.
 	 *   Default is `true`
@@ -2267,7 +2253,6 @@
 	 * 	propValue: any,
 	 * 	ns?: string,
 	 * ) => void} F
-	 *
 	 * @param {string} NSName - Name of the namespace
 	 * @param {F} fn - Function to run when this prop is found on any
 	 *   Element
@@ -3013,18 +2998,18 @@
 	        // async values
 	        if ('then' in child) {
 	          const remove = useSuspense().add();
-	          const [value, setValue] = signal(undefined);
+	          const value = signal(undefined);
 	          child.then(owned(result => {
 	            if (isComponent && isFunction(result)) {
 	              markComponent(result);
 	            }
-	            setValue(result);
+	            value.write(result);
 	            remove();
 	          }, remove), owned(err => {
 	            remove();
 	            throw err;
 	          }, remove));
-	          return createChildren(parent, value, relative);
+	          return createChildren(parent, value.read, relative);
 	        }
 
 	        // iterable/Map/Set/NodeList
@@ -3291,11 +3276,11 @@
 	function buildData(count) {
 	  const data = new Array(count);
 	  for (let i = 0; i < count; i++) {
-	    const [label,, update] = signal(`${adjectives[_random(adjectives.length)]} ${colours[_random(colours.length)]} ${nouns[_random(nouns.length)]}`);
+	    const label = signal(`${adjectives[_random(adjectives.length)]} ${colours[_random(colours.length)]} ${nouns[_random(nouns.length)]}`);
 	    data[i] = {
 	      id: idCounter++,
-	      label,
-	      update
+	      label: label.read,
+	      update: label.update
 	    };
 	  }
 	  return data;
@@ -3311,35 +3296,35 @@
 	}]);
 	var _Button = createComponent(Button);
 	const App = () => {
-	  const [data, setData, updateData] = signal([]),
+	  const data = signal([]),
 	    run = () => {
-	      setData(buildData(1000));
+	      data.write(buildData(1000));
 	    },
 	    runLots = () => {
-	      setData(buildData(10000));
+	      data.write(buildData(10000));
 	    },
 	    add = () => {
-	      updateData(d => [...d, ...buildData(1000)]);
+	      data.update(d => [...d, ...buildData(1000)]);
 	    },
 	    update = () => {
-	      const d = data();
+	      const d = data.read();
 	      const len = d.length;
 	      for (let i = 0; i < len; i += 10) d[i].update(l => l + ' !!!');
 	    },
 	    swapRows = () => {
-	      const d = [...data()];
+	      const d = [...data.read()];
 	      if (d.length > 998) {
 	        const tmp = d[1];
 	        d[1] = d[998];
 	        d[998] = tmp;
-	        setData(d);
+	        data.write(d);
 	      }
 	    },
 	    clear = () => {
-	      setData([]);
+	      data.write([]);
 	    },
 	    remove = id => {
-	      updateData(d => {
+	      data.update(d => {
 	        const idx = d.findIndex(datum => datum.id === id);
 	        d.splice(idx, 1);
 	        return [...d];
@@ -3387,7 +3372,7 @@
 	      }
 	    });
 	    createChildren(_node17, _For({
-	      each: data,
+	      each: data.read,
 	      children: row => {
 	        return _tr([_node9 => {
 	          setProperty(_node9, "textContent", /* @static  */row.id);

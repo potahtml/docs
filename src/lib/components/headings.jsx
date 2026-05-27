@@ -18,18 +18,18 @@ function whitespace(text) {
 }
 
 export function H2(props) {
-	const [URL, setURL] = signal(props.title)
-	const [title, setTitle] = signal('')
-	const [description, setDescription] = signal('')
+	const URL = signal(props.title)
+	const title = signal('')
+	const description = signal('')
 
 	return (
 		<>
-			<h2 id={URL}>
+			<h2 id={URL.read}>
 				<a
-					href={() => '#' + URL()}
+					href={() => '#' + URL.read()}
 					use:connected={element => {
-						setTitle(element.innerText)
-						setURL(encode(element.innerText))
+						title.write(element.innerText)
+						URL.write(encode(element.innerText))
 					}}
 				>
 					{props.title}
@@ -38,7 +38,7 @@ export function H2(props) {
 			<Show when={props.children}>
 				<p
 					use:connected={element =>
-						setDescription(whitespace(element.innerText))
+						description.write(whitespace(element.innerText))
 					}
 				>
 					{props.children}
@@ -58,15 +58,15 @@ export function H2(props) {
 					/>
 					<meta
 						property="og:title"
-						content={title}
+						content={title.read}
 					/>
 					<meta
 						name="description"
-						content={description}
+						content={description.read}
 					/>
 					<meta
 						property="og:description"
-						content={description}
+						content={description.read}
 					/>
 				</Head>
 			</Show>
@@ -75,14 +75,14 @@ export function H2(props) {
 }
 
 export function H3(props) {
-	const [URL, setURL] = signal('')
+	const URL = signal('')
 
 	return (
-		<h2 id={URL}>
+		<h2 id={URL.read}>
 			<a
-				href={() => '#' + URL()}
+				href={() => '#' + URL.read()}
 				use:connected={element => {
-					setURL(encode(element.innerText))
+					URL.write(encode(element.innerText))
 				}}
 			>
 				<span style="color:#58a6ff">#</span> {props.children}

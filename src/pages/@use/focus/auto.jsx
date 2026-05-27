@@ -3,19 +3,19 @@ import { Show } from 'pota/components'
 import { autoFocus } from 'pota/use/focus'
 
 function App() {
-  const [editing, setEditing] = signal(false)
+  const editing = signal(false)
 
   return (
     <Show
-      when={editing}
+      when={editing.read}
       fallback={
-        <button on:click={() => setEditing(true)}>edit</button>
+        <button on:click={() => editing.write(true)}>edit</button>
       }
     >
       <input
         value="hello"
         use:ref={autoFocus}
-        on:blur={() => setEditing(false)}
+        on:blur={() => editing.write(false)}
       />
     </Show>
   )

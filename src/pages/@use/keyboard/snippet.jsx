@@ -2,24 +2,24 @@ import { render, signal } from 'pota'
 import { shortcut, submitOnCtrlEnter } from 'pota/use/keyboard'
 
 function App() {
-  const [draft, setDraft, updateDraft] = signal('')
-  const [last, setLast] = signal('')
+  const draft = signal('')
+  const last = signal('')
 
   return (
     <form on:submit={e => e.preventDefault()}>
       <textarea
         rows="4"
-        value={draft}
-        on:input={e => setDraft(e.currentTarget.value)}
+        value={draft.read}
+        on:input={e => draft.write(e.currentTarget.value)}
         use:ref={[
           shortcut('mod+b', () =>
-            updateDraft(d => d + '**bold**'),
+            draft.update(d => d + '**bold**'),
           ),
-          submitOnCtrlEnter(() => setLast(draft())),
+          submitOnCtrlEnter(() => last.write(draft.read())),
         ]}
       />
       <p>
-        last submitted: <mark>{last}</mark>
+        last submitted: <mark>{last.read}</mark>
       </p>
       <p>
         try <kbd>Ctrl/Cmd</kbd>+<kbd>B</kbd>, then{' '}

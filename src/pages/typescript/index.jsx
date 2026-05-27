@@ -222,11 +222,11 @@ const Counter: FlowComponent<
 	{ start?: number },
 	(count: Accessor<number>) => JSX.Element
 > = props => {
-	const [count, , updateCount] = signal(props.start ?? 0)
+	const count = signal(props.start ?? 0)
 	return (
 		<>
-			<button on:click={() => updateCount(n => n + 1)}>+1</button>
-			{props.children?.(count)}
+			<button on:click={() => count.update(n => n + 1)}>+1</button>
+			{props.children?.(count.read)}
 		</>
 	)
 }
@@ -295,10 +295,10 @@ const MyShow: FlowComponent<
 	<Show when={props.when}>{props.children}</Show>
 )
 
-const [value] = signal('hello')
+const value = signal('hello')
 
 render(
-	<MyShow when={value}>
+	<MyShow when={value.read}>
 		{v => <p>first callback: {v}</p>}
 		<hr />
 		{v => <p>second callback: {v}</p>}
@@ -459,17 +459,17 @@ declare module 'pota' {
 	}
 }
 
-const [read, , update] = signal(0)
+const count = signal(0)
 
 render(
 	<>
-		<p>count: {read}</p>
+		<p>count: {count.read}</p>
 		<some-element
 			some-string="quack"
 			some-number={1}
-			some-other={read}
+			some-other={count.read}
 		/>
-		<button on:click={() => update(n => n + 1)}>increment</button>
+		<button on:click={() => count.update(n => n + 1)}>increment</button>
 	</>,
 )
 					`}

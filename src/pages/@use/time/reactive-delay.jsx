@@ -2,12 +2,12 @@ import { render, signal } from 'pota'
 import { useTimeout } from 'pota/use/time'
 
 function App() {
-  const [delay, setDelay] = signal(1000)
-  const [status, setStatus] = signal('idle')
+  const delay = signal(1000)
+  const status = signal('idle')
 
   const fire = useTimeout(
-    () => setStatus(`fired @ ${new Date().toLocaleTimeString()}`),
-    delay,
+    () => status.write(`fired @ ${new Date().toLocaleTimeString()}`),
+    delay.read,
   )
 
   return (
@@ -16,13 +16,13 @@ function App() {
         delay (ms):{' '}
         <input
           type="number"
-          prop:value={delay}
-          on:input={e => setDelay(Number(e.currentTarget.value))}
+          prop:value={delay.read}
+          on:input={e => delay.write(Number(e.currentTarget.value))}
         />
       </label>
       <button on:click={() => fire.start()}>start</button>
       <button on:click={() => fire.stop()}>stop</button>
-      <p>{status}</p>
+      <p>{status.read}</p>
     </div>
   )
 }

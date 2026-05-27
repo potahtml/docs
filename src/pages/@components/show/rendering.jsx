@@ -2,10 +2,10 @@ import { render, signal } from 'pota'
 import { Show } from 'pota/components'
 
 function Example() {
-  const [showing, setShowing, updateShowing] = signal(true)
+  const showing = signal(true)
 
   setInterval(() => {
-    updateShowing(showing => !showing)
+    showing.update(showing => !showing)
   }, 1_000)
 
   let rendered = 0
@@ -15,7 +15,7 @@ function Example() {
   }
 
   return (
-    <Show when={showing}>
+    <Show when={showing.read}>
       <CountRenders />
     </Show>
   )

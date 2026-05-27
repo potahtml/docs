@@ -3,9 +3,9 @@ import { useSelector } from 'pota/use/selector'
 import { For } from 'pota/components'
 import { css } from 'pota/use/css'
 
-const [selected, setSelected] = signal(3)
+const selected = signal(3)
 
-const isSelected = useSelector(selected)
+const isSelected = useSelector(selected.read)
 
 render(
   <main>
@@ -19,7 +19,7 @@ render(
       {item => (
         <li
           class:selected={isSelected(item)}
-          on:click={() => setSelected(item)}
+          on:click={() => selected.write(item)}
         >
           {item} is selected? {isSelected(item)}
         </li>

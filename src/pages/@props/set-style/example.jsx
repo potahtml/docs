@@ -2,14 +2,14 @@ import { ref, render, setStyle, signal } from 'pota'
 
 function App() {
   const dot = ref()
-  const [x, setX] = signal(0)
-  const [y, setY] = signal(0)
+  const x = signal(0)
+  const y = signal(0)
 
   return (
     <div
       on:mousemove={e => {
-        setX(e.clientX)
-        setY(e.clientY)
+        x.write(e.clientX)
+        y.write(e.clientY)
       }}
       style={{
         width: '100vw',
@@ -28,8 +28,8 @@ function App() {
         }}
       />
       {() => {
-        setStyle(dot(), 'left', `${x()}px`)
-        setStyle(dot(), 'top', `${y()}px`)
+        setStyle(dot(), 'left', `${x.read()}px`)
+        setStyle(dot(), 'top', `${y.read()}px`)
       }}
     </div>
   )

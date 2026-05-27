@@ -24,9 +24,10 @@ export default function () {
 					Extend <mark>CustomElement</mark> for a web component
 					with shadow DOM. <mark>connectedCallback</mark>{' '}
 					assigns <mark>this.html</mark> with a JSX-yielding
-					function;{' '}
-					<mark>this.query()</mark> looks up shadow children;{' '}
-					<mark>this.emit()</mark> dispatches a custom event.
+					function; <mark>this.emit()</mark> dispatches a
+					custom event. Anything else — querying shadow
+					children, toggling <mark>hidden</mark>, inspecting
+					slots — uses the standard DOM APIs directly.
 				</p>
 				<Code url="/pages/@components/custom-element/counter.jsx"></Code>
 			</Section>
@@ -96,10 +97,14 @@ export default function () {
 				</p>
 
 				<p>
-					On construct it will attach a <mark>shadowRoot</mark> in
-					mode open. If the constructor has a <mark>static</mark>{' '}
-					array field named <mark>styleSheets</mark>, then, the{' '}
-					<mark>shadowRoot</mark> will adopt the stylesheets. Example:
+					On construct it attaches an open{' '}
+					<mark>shadowRoot</mark> and adopts the stylesheets
+					listed in the two static class fields —{' '}
+					<mark>baseStyleSheets</mark> (intended for a shared
+					reset / design-system layer) then{' '}
+					<mark>styleSheets</mark> (per-element). Both accept
+					<mark>CSSStyleSheet</mark> instances or raw CSS
+					strings. Example:
 				</p>
 
 				<Code
@@ -148,67 +153,72 @@ render(<hello-world>World</hello-world>)
 					</thead>
 					<tbody>
 						<tr>
-							<td>query</td>
-							<td>Method</td>
+							<td>baseStyleSheets</td>
+							<td>Static field</td>
 							<td>
-								<mark>selector</mark>
+								<mark>(CSSStyleSheet | string)[]</mark>
 							</td>
 							<td>
-								Alias for <mark>element.querySelector</mark>
+								Stylesheets adopted into the shadow root
+								before <mark>styleSheets</mark>. Intended
+								for a shared reset / design-system layer.
+							</td>
+						</tr>
+						<tr>
+							<td>styleSheets</td>
+							<td>Static field</td>
+							<td>
+								<mark>(CSSStyleSheet | string)[]</mark>
+							</td>
+							<td>
+								Per-element stylesheets, adopted after{' '}
+								<mark>baseStyleSheets</mark>.
 							</td>
 						</tr>
 						<tr>
 							<td>html</td>
 							<td>Setter</td>
 							<td>
-								<mark>Component</mark>
+								<mark>string | Component</mark>
 							</td>
 							<td>
-								<mark>html</mark> is a setter that can be used with a{' '}
-								<mark>string</mark> or any{' '}
-								<mark>
-									<a href="/Component">Component</a>
-								</mark>
-								. The result will replace childrens on the{' '}
-								<mark>shadowRoot</mark>.
-							</td>
-						</tr>
-						<tr>
-							<td>hidden</td>
-							<td>Setter</td>
-							<td>
-								<mark>boolean</mark>
-							</td>
-							<td>
-								Adds the <mark>hidden</mark> attribute when the
-								assigned value is truthy and removes it otherwise.
-								Assign each time you want a change — the setter
-								does not subscribe to a signal.
+								Assign a <mark>string</mark> to write{' '}
+								<mark>shadowRoot.innerHTML</mark>; assign a{' '}
+								<a href="/Component">Component</a> (or pass
+								a falsy value to fall back to{' '}
+								<mark>&lt;slot/&gt;</mark>) to replace the
+								shadow root's children with the rendered
+								tree.
 							</td>
 						</tr>
 						<tr>
 							<td>emit</td>
 							<td>Method</td>
 							<td>
-								<mark>eventName, [data]</mark>
+								<mark>eventName, [init]</mark>
 							</td>
 							<td>
-								Method to dispatch an event from a custom element.
-							</td>
-						</tr>
-						<tr>
-							<td>hasSlot</td>
-							<td>Method</td>
-							<td>
-								<mark>slotName</mark>
-							</td>
-							<td>
-								Returns a boolean indicating if a slot is present.
-								TODO: This should return a signal instead.
+								Dispatches a <mark>CustomEvent</mark> from
+								the element. The second argument is the
+								standard <mark>CustomEventInit</mark> bag
+								(<mark>{`{ detail, bubbles, composed, cancelable }`}</mark>
+								).
 							</td>
 						</tr>
 					</tbody>
 				</table>
+
+				<p>
+					For anything else — querying shadow children,
+					toggling attributes, observing slot changes — use
+					the standard DOM APIs directly:{' '}
+					<mark>this.shadowRoot.querySelector(...)</mark>,{' '}
+					<mark>this.toggleAttribute('hidden', flag)</mark>,{' '}
+					<mark>
+						this.shadowRoot.addEventListener('slotchange', fn)
+					</mark>
+					.
+				</p>
 			</Section>
 		</>
 	)

@@ -26,6 +26,9 @@ export default function () {
   useElementSize,
   onElementSize,
   resize,
+
+  // viewport clamp
+  ensureInBounds,
 } from 'pota/use/resize'`}
 					render={false}
 				/>
@@ -54,6 +57,25 @@ export default function () {
 					placeholder — only with real entries.
 				</p>
 				<Code url="/pages/@use/resize/snippet.jsx"></Code>
+			</Section>
+
+			<Section title="ensureInBounds — clamp an element to the viewport">
+				<p>
+					<mark>ensureInBounds</mark> is a bare ref function. It
+					snapshots the element's top/left at mount and writes a{' '}
+					<mark>max-width</mark> / <mark>max-height</mark> that
+					keeps the element inside the viewport — recomputed on
+					every viewport resize. Useful for popovers, tooltips,
+					and floating menus whose anchor sits near the edge of
+					the screen. Sets <mark>max-*</mark> back to{' '}
+					<mark>null</mark> when the box fits.
+				</p>
+				<Code
+					code={`import { ensureInBounds } from 'pota/use/resize'
+
+<div use:ref={ensureInBounds} class="popover">…</div>`}
+					render={false}
+				/>
 			</Section>
 
 			<Section title="Viewport size">

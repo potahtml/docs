@@ -1,21 +1,21 @@
 import { render, resolve, signal } from 'pota'
 
 function Menu(props) {
-  const [rendered, setRendered, updateRendered] = signal(0)
+  const rendered = signal(0)
 
   const items = resolve(() => {
-    updateRendered(rendered => rendered + 1)
+    rendered.update(rendered => rendered + 1)
     return props.children
   })
 
-  const [search, setSearch] = signal('')
+  const search = signal('')
 
   function filter(item) {
-    if (!search()) return item
+    if (!search.read()) return item
 
     const text = item.textContent
 
-    return text.includes(search()) ? item : null
+    return text.includes(search.read()) ? item : null
   }
   return (
     <nav>
@@ -23,13 +23,13 @@ function Menu(props) {
         Filter:
         <input
           type="text"
-          on:input={e => setSearch(e.currentTarget.value)}
+          on:input={e => search.write(e.currentTarget.value)}
         />
       </label>
       <hr />
       <ul>{() => items().filter(filter)}</ul>
       <hr />
-      Children rendered {rendered} time
+      Children rendered {rendered.read} time
     </nav>
   )
 }

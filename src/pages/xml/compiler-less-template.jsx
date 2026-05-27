@@ -1,13 +1,13 @@
 import { signal, render } from 'pota'
 import { xml } from 'pota/xml'
 
-const [count, setCount, updateCount] = signal(0)
+const count = signal(0)
 
 const App = xml`
 	<div>
-		<p>count: ${count}</p>
-		<button on:click="${() => updateCount(n => n + 1)}">+</button>
-		<button on:click="${() => setCount(0)}">reset</button>
+		<p>count: ${count.read}</p>
+		<button on:click="${() => count.update(n => n + 1)}">+</button>
+		<button on:click="${() => count.write(0)}">reset</button>
 	</div>
 `
 

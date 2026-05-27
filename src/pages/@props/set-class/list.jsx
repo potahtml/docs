@@ -2,24 +2,24 @@ import { ref, render, setClassList, signal } from 'pota'
 
 function App() {
   const box = ref()
-  const [open, , updateOpen] = signal(false)
-  const [error, , updateError] = signal(false)
+  const open = signal(false)
+  const error = signal(false)
 
   return (
     <div>
       <div use:ref={box} class="panel">
         panel
       </div>
-      <button on:click={() => updateOpen(o => !o)}>
+      <button on:click={() => open.update(o => !o)}>
         toggle open
       </button>
-      <button on:click={() => updateError(e => !e)}>
+      <button on:click={() => error.update(e => !e)}>
         toggle error
       </button>
       {() =>
         setClassList(box(), {
-          open: open(),
-          error: error(),
+          open: open.read(),
+          error: error.read(),
         })
       }
     </div>

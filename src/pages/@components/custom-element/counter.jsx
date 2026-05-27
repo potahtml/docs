@@ -1,25 +1,32 @@
+import { render, signal } from 'pota'
 import { CustomElement, customElement } from 'pota/components'
 
 class CounterEl extends CustomElement {
   static styleSheets = [`button { font-weight: bold }`]
 
-  count = 0
+  count = signal(0)
 
   connectedCallback() {
     this.html = () => (
       <button on:click={() => this.bump()}>
-        count: <span class="n">{this.count}</span>
+        count: <span class="n">{this.count.read}</span>
       </button>
     )
   }
 
   bump() {
-    this.count++
-    this.query('.n').textContent = this.count
-    this.emit('changed', this.count)
+    this.count.update(n => n + 1)
+    this.emit('changed', { detail: this.count.read() })
   }
 }
 
 customElement('my-counter', CounterEl)
 
-document.body.append(new CounterEl())
+const last = signal(0)
+
+render(
+  <>
+    <my-counter on:changed={e => last.write(e.detail)} />
+    <span> last 'changed' detail: {last.read}</span>
+  </>,
+)

@@ -5,11 +5,13 @@ import { Section } from '../../../lib/components/section.jsx'
 export default function () {
 	return (
 		<>
-			<Header title="useTimeout">
-				useTimeout is a helper to create a <mark>setTimeout</mark>{' '}
-				that autodisposes. It also allows for the delay to be
-				reactive. Provides <mark>start</mark> and <mark>stop</mark>{' '}
-				functions for easily restarting the timeout.
+			<Header title="time">
+				<mark>pota/use/time</mark> ships clock formatters,{' '}
+				<mark>useTimeout</mark> for auto-disposing
+				timers, <mark>useElapsed</mark> for relative-time
+				readers that re-render on unit boundaries, and{' '}
+				<mark>useStopwatch</mark> for start/stop/reset
+				counters.
 			</Header>
 
 			<Section title="Auto-disposing timer with datetime">
@@ -45,6 +47,39 @@ export default function () {
 					owning scope is disposed.
 				</p>
 				<Code url="/pages/@use/time/snippet.jsx"></Code>
+			</Section>
+
+			<Section title="useElapsed — relative time without per-second renders">
+				<p>
+					<mark>useElapsed(timestamp)</mark> returns a
+					reactive reader of seconds elapsed since a Unix
+					timestamp. The trick: it re-evaluates only on the
+					next unit boundary — once per second under a
+					minute, once per minute under an hour, once per
+					hour under a day, and so on — so a row that says{' '}
+					<em>"5 days ago"</em> doesn't re-render every
+					second. The argument may be a value or an
+					accessor; <mark>0</mark> / falsy values stop the
+					ticker. Auto-cleans on scope dispose.
+				</p>
+				<Code url="/pages/@use/time/elapsed.jsx"></Code>
+			</Section>
+
+			<Section title="useStopwatch — start / stop / reset">
+				<p>
+					<mark>useStopwatch(opts?)</mark> returns{' '}
+					<mark>{`{ elapsed, running, start, stop, reset }`}</mark>.{' '}
+					<mark>elapsed()</mark> is a reactive reader in
+					milliseconds; the underlying tick is{' '}
+					<mark>opts.interval</mark> (default{' '}
+					<mark>1000</mark>). For finer resolution lower the
+					interval — or drive your own loop from{' '}
+					<mark>useAnimationFrame</mark> reading{' '}
+					<mark>now()</mark> directly. Pass{' '}
+					<mark>{`{ autoStart: true }`}</mark> to start on
+					construction.
+				</p>
+				<Code url="/pages/@use/time/stopwatch.jsx"></Code>
 			</Section>
 		</>
 	)

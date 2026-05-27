@@ -98,10 +98,10 @@ export default function () {
 import { render, signal } from 'pota'
 import { Errored } from 'pota/components'
 
-const [ok, setOk] = signal(false)
+const ok = signal(false)
 
 function Boom() {
-	if (!ok()) throw new Error('kaboom')
+	if (!ok.read()) throw new Error('kaboom')
 	return <p>Everything is fine now.</p>
 }
 
@@ -112,7 +112,7 @@ render(
 				<p>Something broke: {String(err)}</p>
 				<button
 					on:click={() => {
-						setOk(true)
+						ok.write(true)
 						reset()
 					}}
 				>
@@ -144,12 +144,12 @@ render(
 import { render, signal } from 'pota'
 import { Errored, Suspense } from 'pota/components'
 
-const [ok, setOk] = signal(false)
+const ok = signal(false)
 
 function AsyncBoom() {
 	return new Promise((resolve, reject) => {
 		setTimeout(() => {
-			ok()
+			ok.read()
 				? resolve(<p>Everything is fine now.</p>)
 				: reject(new Error('fetch failed'))
 		}, 800)
@@ -163,7 +163,7 @@ render(
 				<p>Something broke: {String(err)}</p>
 				<button
 					on:click={() => {
-						setOk(true)
+						ok.write(true)
 						reset()
 					}}
 				>

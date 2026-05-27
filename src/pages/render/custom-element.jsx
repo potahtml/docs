@@ -1,10 +1,10 @@
 import { render, signal } from 'pota'
 
-const [read, write] = signal(true)
+const value = signal(true)
 
 function recurse(name) {
   render(<div>{name}</div>)
-  write(!read())
+  value.write(!value.read())
 }
 
 class CustomElement extends HTMLElement {

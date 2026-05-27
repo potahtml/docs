@@ -2,24 +2,24 @@ import { render, signal } from 'pota'
 import { For } from 'pota/components'
 
 function Example() {
-  const [value, setValue] = signal([1, 2])
-  const content = () => value().length + 1
+  const value = signal([1, 2])
+  const content = () => value.read().length + 1
 
   return (
     <main>
       <section class="buttons">
         <Buttons
-          setValue={setValue}
-          value={value}
+          setValue={value.write}
+          value={value.read}
           content={content}
         />
       </section>
       <hr />
-      <For each={value}>
+      <For each={value.read}>
         {item => (
           <>
             <div class="render">
-              <For each={value}>
+              <For each={value.read}>
                 <>{item => <span class="render">{item}</span>}</>
               </For>
             </div>

@@ -68,7 +68,7 @@ function _random(max) {
 function buildData(count) {
   let data = new Array(count)
   for (let i = 0; i < count; i++) {
-    const [label, setLabel, updateLabel] = signal(
+    const label = signal(
       `elegant green keyboard ${idCounter++}`,
       /*  `${adjectives[_random(adjectives.length)]} ${
         colours[_random(colours.length)]
@@ -76,8 +76,8 @@ function buildData(count) {
     )
     data[i] = {
       id: idCounter,
-      label,
-      updateLabel,
+      label: label.read,
+      updateLabel: label.update,
     }
   }
   return data
@@ -97,18 +97,18 @@ const Button = ({ id, text, fn }) => (
 )
 
 const App = () => {
-  const [data, setData, updateData] = signal([]),
-    [selected, setSelected] = signal(null),
-    run = () => setData(buildData(10)),
+  const data = signal([]),
+    selected = signal(null),
+    run = () => data.write(buildData(10)),
     runLots = () => {
-      setData(buildData(10000))
+      data.write(buildData(10000))
     },
     bench = () => {
       //  console.clear()
       // warm
       for (let k = 0; k < 5; k++) {
-        setData(buildData(10000))
-        setData([])
+        data.write(buildData(10000))
+        data.write([])
       }
 
       let createLarge = 0
@@ -116,8 +116,8 @@ const App = () => {
       let createSmall = 0
       let clearSmall = 0
       for (let k = 0; k < 10; k++) {
-        createLarge += timing(() => setData(buildData(10000)))
-        clearLarge += timing(() => setData([]))
+        createLarge += timing(() => data.write(buildData(10000)))
+        clearLarge += timing(() => data.write([]))
         console.log(
           k + ' createLarge',
           createLarge / (k + 1),
@@ -127,8 +127,8 @@ const App = () => {
       }
       console.log('------------')
       for (let k = 0; k < 10; k++) {
-        createSmall += timing(() => setData(buildData(1000)))
-        clearSmall += timing(() => setData([]))
+        createSmall += timing(() => data.write(buildData(1000)))
+        clearSmall += timing(() => data.write([]))
         console.log(
           k + ' createSmall',
           createSmall / (k + 1),
@@ -137,29 +137,29 @@ const App = () => {
         )
       }
     },
-    add = () => updateData(d => [...d, ...buildData(1000)]),
+    add = () => data.update(d => [...d, ...buildData(1000)]),
     update = () =>
       batch(() => {
-        for (let i = 0, d = data(), len = d.length; i < len; i += 10)
+        for (let i = 0, d = data.read(), len = d.length; i < len; i += 10)
           d[i].updateLabel(l => l + ' !!!')
       }),
     swapRows = () => {
-      const d = data().slice()
+      const d = data.read().slice()
       if (d.length > 998) {
         let tmp = d[1]
         d[1] = d[998]
         d[998] = tmp
-        setData(d)
+        data.write(d)
       }
     },
-    clear = () => setData([]),
+    clear = () => data.write([]),
     remove = id =>
-      updateData(d => {
+      data.update(d => {
         const idx = d.findIndex(datum => datum.id === id)
         d.splice(idx, 1)
         return [...d]
       }),
-    isSelected = useSelector(selected)
+    isSelected = useSelector(selected.read)
 
   return (
     <div class="container">
@@ -215,14 +215,14 @@ const App = () => {
           const element = e.target
           const { selectRow, removeRow } = element
           if (selectRow !== undefined) {
-            setSelected(selectRow)
+            selected.write(selectRow)
           } else if (removeRow !== undefined) {
             remove(removeRow)
           }
         }}
       >
         <tbody>
-          <For each={data}>
+          <For each={data.read}>
             {row => {
               const { id, label } = row
 

@@ -17,13 +17,13 @@ export const CompilerLess = (
   } from "pota/xml";
 
   function Counter() {
-    const [count, setCount, updateCount] = signal(1);
+    const count = signal(1);
 
-    const increment = () => updateCount((count) => count + 1);
+    const increment = () => count.update((count) => count + 1);
 
-    const double = memo(() => count() * 2);
+    const double = memo(() => count.read() * 2);
 
-    const counting = ()=> count
+    const counting = ()=> count.read
     const doubling = ()=>double
 
 

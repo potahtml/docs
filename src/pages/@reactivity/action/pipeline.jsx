@@ -2,11 +2,11 @@ import { action, render, signal } from 'pota'
 import { Errored } from 'pota/components'
 
 function Form() {
-  const [email, setEmail] = signal('')
-  const [status, setStatus] = signal('idle')
+  const email = signal('')
+  const status = signal('idle')
 
   const submit = action(
-    () => email(),
+    () => email.read(),
     value => {
       if (!value.includes('@')) throw new Error('invalid email')
       return fetch('/subscribe', {
@@ -15,17 +15,17 @@ function Form() {
       })
     },
     res => res.json(),
-    result => setStatus(`subscribed: ${result.id}`),
+    result => status.write(`subscribed: ${result.id}`),
   )
 
   return (
     <form on:submit={e => (e.preventDefault(), submit())}>
       <input
-        prop:value={email}
-        on:input={e => setEmail(e.currentTarget.value)}
+        prop:value={email.read}
+        on:input={e => email.write(e.currentTarget.value)}
       />
       <button>subscribe</button>
-      <p>{status}</p>
+      <p>{status.read}</p>
     </form>
   )
 }

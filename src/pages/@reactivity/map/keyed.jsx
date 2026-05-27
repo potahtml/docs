@@ -1,7 +1,7 @@
 import { map, render, signal } from 'pota'
 
 function App() {
-  const [items, , updateItems] = signal([
+  const items = signal([
     'apple',
     'banana',
     'cherry',
@@ -10,11 +10,11 @@ function App() {
   return (
     <div>
       <button
-        on:click={() => updateItems(list => [...list].reverse())}
+        on:click={() => items.update(list => [...list].reverse())}
       >
         reverse
       </button>
-      <ul>{map(items, item => <li>{item}</li>)}</ul>
+      <ul>{map(items.read, item => <li>{item}</li>)}</ul>
     </div>
   )
 }

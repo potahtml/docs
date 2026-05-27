@@ -5,7 +5,7 @@ import { paginateValues } from 'pota/use/paginate'
 const rows = Array.from({ length: 23 }, (_, i) => `row #${i + 1}`)
 
 function App() {
-  const [perPage] = signal(5)
+  const perPage = signal(5)
 
   const {
     items,
@@ -15,7 +15,7 @@ function App() {
     hasNext,
     next,
     previous,
-  } = paginateValues(() => rows, perPage)
+  } = paginateValues(() => rows, perPage.read)
 
   return (
     <div>

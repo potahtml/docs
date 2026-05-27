@@ -33,13 +33,12 @@ export default function () {
 								(initialValue?, {'{ equals?: false | (a, b) => boolean }'})
 							</td>
 							<td>
-								<mark>
-									[read, write, update] & {'{ read, write, update }'}
-								</mark>
+								<mark>{'{ read, write, update }'}</mark>
 							</td>
 							<td>
-								reactive value. Destructure as a tuple or
-								access by name — same callables either way.
+								reactive value. Methods are bound — pass{' '}
+								<mark>signal.read</mark> directly as a JSX
+								child or handler.
 							</td>
 						</tr>
 						<tr>
@@ -218,6 +217,31 @@ export default function () {
 								captures the current owner. The wrapped
 								function re-runs under that owner if alive,
 								or calls <mark>onCancel</mark> if disposed.
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<a href="/Reactivity/owner">owner</a>
+							</td>
+							<td>()</td>
+							<td>current owner | undefined</td>
+							<td>
+								the active reactive owner — what{' '}
+								<mark>cleanup</mark> attaches to.
+								Introspection helper, sibling to{' '}
+								<mark>listener</mark>.
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<a href="/Reactivity/unwrap">unwrap</a>
+							</td>
+							<td>(children)</td>
+							<td>resolved value</td>
+							<td>
+								recursively calls functions and flattens
+								arrays once. The non-reactive sibling of{' '}
+								<a href="/resolve">resolve</a>.
 							</td>
 						</tr>
 						<tr>

@@ -2,19 +2,19 @@ import { render, signal } from 'pota'
 import { Match, Switch } from 'pota/components'
 
 function App() {
-  const [role, setRole] = signal('guest')
+  const role = signal('guest')
 
   return (
     <div>
-      <button on:click={() => setRole('admin')}>admin</button>
-      <button on:click={() => setRole('user')}>user</button>
-      <button on:click={() => setRole('guest')}>guest</button>
+      <button on:click={() => role.write('admin')}>admin</button>
+      <button on:click={() => role.write('user')}>user</button>
+      <button on:click={() => role.write('guest')}>guest</button>
 
       <Switch>
-        <Match when={() => role() === 'admin'}>
+        <Match when={() => role.read() === 'admin'}>
           <p>full access</p>
         </Match>
-        <Match when={() => role() === 'user'}>
+        <Match when={() => role.read() === 'user'}>
           <p>limited access</p>
         </Match>
         <Match>

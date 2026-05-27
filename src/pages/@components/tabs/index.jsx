@@ -115,10 +115,11 @@ export default function () {
 
 			<Section title="Tabs.selected">
 				<p>
-					<mark>Tabs.selected()</mark> returns the selected-tab
-					signal tuple for the nearest <mark>&lt;Tabs&gt;</mark>{' '}
-					ancestor. Read it to know which tab is active:{' '}
-					<mark>{`const [get] = Tabs.selected(); get().id`}</mark>.
+					<mark>Tabs.selected()</mark> returns the selected-tab{' '}
+					<a href="/Reactivity/signal">signal</a> object for the
+					nearest <mark>&lt;Tabs&gt;</mark> ancestor. Read it
+					(reactively) to know which tab is active:{' '}
+					<mark>{`Tabs.selected().read().id`}</mark>.
 				</p>
 			</Section>
 

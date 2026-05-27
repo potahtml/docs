@@ -1,12 +1,12 @@
 import { render, signal } from 'pota'
 
 function useCounter(initial = 0) {
-  const [count, setCount, updateCount] = signal(initial)
+  const count = signal(initial)
   return {
-    count,
-    increment: () => updateCount(v => v + 1),
-    decrement: () => updateCount(v => v - 1),
-    reset: () => setCount(initial),
+    read: count.read,
+    increment: () => count.update(v => v + 1),
+    decrement: () => count.update(v => v - 1),
+    reset: () => count.write(initial),
   }
 }
 
@@ -15,7 +15,7 @@ function App() {
 
   return (
     <div>
-      <p>{counter.count}</p>
+      <p>{counter.read}</p>
       <button on:click={counter.increment}>+</button>
       <button on:click={counter.decrement}>−</button>
       <button on:click={counter.reset}>reset</button>

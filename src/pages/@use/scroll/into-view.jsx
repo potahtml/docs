@@ -3,15 +3,15 @@ import { For, Show } from 'pota/components'
 import { scrollIntoView } from 'pota/use/scroll'
 
 function App() {
-  const [selected, setSelected] = signal(null)
+  const selected = signal(null)
   const items = Array.from({ length: 30 }, (_, i) => i + 1)
 
   return (
     <div>
-      <button on:click={() => setSelected(20)}>
+      <button on:click={() => selected.write(20)}>
         scroll to #20
       </button>
-      <button on:click={() => setSelected(null)} style={{ 'margin-left': '0.5rem' }}>
+      <button on:click={() => selected.write(null)} style={{ 'margin-left': '0.5rem' }}>
         clear
       </button>
 
@@ -19,7 +19,7 @@ function App() {
         <For each={items}>
           {item => (
             <Show
-              when={() => selected() === item}
+              when={() => selected.read() === item}
               fallback={<li>item {item}</li>}
             >
               <li

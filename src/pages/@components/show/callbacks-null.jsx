@@ -2,23 +2,23 @@ import { render, signal } from 'pota'
 import { Show } from 'pota/components'
 
 function Example() {
-  const [showing, setShowing] = signal({
+  const showing = signal({
     username: Math.random(),
   })
 
   setInterval(() => {
-    setShowing({ username: Math.random() })
+    showing.write({ username: Math.random() })
   }, 1_000)
 
   setInterval(() => {
-    setShowing(null)
+    showing.write(null)
   }, 8_000)
 
   function Test(props) {
     return props.children
   }
   return (
-    <Show when={showing}>
+    <Show when={showing.read}>
       <div>The value is:</div>
       {value => () => value().username}
       <hr />

@@ -26,6 +26,7 @@ export default function () {
 
   // imperative helpers
   isDisabled,
+  isEditable,
   focusNextInput,
   form2object,
   object2form,
@@ -80,20 +81,28 @@ export default function () {
 				<Code url="/pages/@use/form/roundtrip.jsx"></Code>
 			</Section>
 
-			<Section title="isDisabled / focusNextInput">
+			<Section title="isDisabled / isEditable / focusNextInput">
 				<p>
 					<mark>isDisabled(node)</mark> returns{' '}
 					<mark>true</mark> for elements that are{' '}
 					<mark>:disabled</mark> — directly or via an
 					ancestor <mark>{`<fieldset disabled>`}</mark>.{' '}
+					<mark>isEditable(node)</mark> returns{' '}
+					<mark>true</mark> for <mark>&lt;input&gt;</mark>,{' '}
+					<mark>&lt;textarea&gt;</mark>,{' '}
+					<mark>&lt;select&gt;</mark>, and any element with{' '}
+					<mark>isContentEditable</mark> — the canonical "is
+					the user typing into this?" check that global
+					keyboard shortcuts can use to bail out.{' '}
 					<mark>focusNextInput(node, event)</mark> is the
-					engine behind <mark>enterFocusNext</mark>;
-					exported so you can wire your own key handlers.
+					engine behind <mark>enterFocusNext</mark>; exported
+					so you can wire your own key handlers.
 				</p>
 				<Code
-					code={`import { isDisabled, focusNextInput } from 'pota/use/form'
+					code={`import { isDisabled, isEditable, focusNextInput } from 'pota/use/form'
 
 isDisabled(input)         // boolean
+isEditable(document.activeElement)  // true → don't hijack typing keys
 focusNextInput(input, e)  // advance focus + preventDefault on success`}
 					render={false}
 				/>

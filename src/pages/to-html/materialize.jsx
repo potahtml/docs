@@ -1,9 +1,9 @@
 import { toHTML, signal } from 'pota'
 
-const [label, setLabel] = signal('first')
+const label = signal('first')
 
-const node = toHTML(<p>{label}</p>)
+const node = toHTML(<p>{label.read}</p>)
 document.body.append(node)
 
 // the existing <p> updates in place
-setTimeout(() => setLabel('second'), 1000)
+setTimeout(() => label.write('second'), 1000)

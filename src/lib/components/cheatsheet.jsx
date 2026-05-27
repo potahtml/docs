@@ -5,7 +5,7 @@ render, // render(thing, target=document.body, {clear:false, relative:false})
 Component, // const comp = Component(Fancy, {children:[4,5,6]})
 
 // reactivity
-signal, // const [read, write, update] = signal(initialValue)
+signal, // const s = signal(initialValue); s.read(); s.write(v); s.update(prev => next)
 
 root, // root(fn)
 effect, // effect(fn)

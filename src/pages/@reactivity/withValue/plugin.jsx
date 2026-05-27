@@ -6,11 +6,11 @@ const title = value => node =>
   })
 
 function App() {
-  const [tip, setTip] = signal('hover me')
+  const tip = signal('hover me')
   return (
     <div>
-      <button use:ref={title(tip)}>hover</button>
-      <button on:click={() => setTip(`clicked at ${Date.now()}`)}>
+      <button use:ref={title(tip.read)}>hover</button>
+      <button on:click={() => tip.write(`clicked at ${Date.now()}`)}>
         change tooltip
       </button>
     </div>

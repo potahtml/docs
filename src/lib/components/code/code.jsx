@@ -48,19 +48,19 @@ export function Code(props) {
 	}
 
 	// TODO change this for writable
-	const [code, setCode] = signal(getValue(props.code))
+	const code = signal(getValue(props.code))
 
 	effect(() => {
-		setCode(getValue(props.code))
+		code.write(getValue(props.code))
 	})
 
-	const codeURL = memo(() => compress(code()))
+	const codeURL = memo(() => compress(code.read()))
 
 	const frame = ref()
 
 	// transformed code
 
-	const [transformedURL, setTransformedURL] = signal('')
+	const transformedURL = signal('')
 
 	effect(() => {
 		if (props.render === false) return
@@ -84,7 +84,7 @@ export function Code(props) {
 						: transform(f.content).then(c => [f.name, c]),
 				),
 			).then(pairs =>
-				setTransformedURL(
+				transformedURL.write(
 					compress({
 						entry,
 						modules: Object.fromEntries(pairs),
@@ -92,8 +92,8 @@ export function Code(props) {
 				),
 			)
 		} else {
-			transform(code()).then(code =>
-				setTransformedURL(compress(code)),
+			transform(code.read()).then(code =>
+				transformedURL.write(compress(code)),
 			)
 		}
 	})
@@ -115,16 +115,16 @@ export function Code(props) {
 								class="snippet"
 								grammar="tsx"
 								theme="monokai"
-								value={prettier(code())}
+								value={prettier(code.read())}
 								data-editable={props.render !== false}
 								prop:editable={props.render !== false}
 								stylesheet={snippetStyleSheet}
-								on:input={e => setCode(e.target.value)}
+								on:input={e => code.write(e.target.value)}
 							/>
 						</section>
 					</Show>
 					<Show
-						when={() => props.render !== false && transformedURL()}
+						when={() => props.render !== false && transformedURL.read()}
 					>
 						<section class={styles.frame}>
 							<iframe
@@ -138,7 +138,7 @@ export function Code(props) {
 										? '?playground'
 										: '') +
 									'#' +
-									transformedURL()
+									transformedURL.read()
 								}
 							/>
 						</section>
@@ -178,7 +178,7 @@ export function Code(props) {
 								on:click={() =>
 									window.open(
 										'/pages/@playground/preview/index.html#' +
-											transformedURL(),
+											transformedURL.read(),
 									)
 								}
 							>

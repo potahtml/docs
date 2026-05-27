@@ -1,19 +1,19 @@
 import { effect, render, signal } from 'pota'
 
 function App() {
-  const [theme, setTheme] = signal(
+  const theme = signal(
     localStorage.getItem('theme') ?? 'light',
   )
 
   effect(() => {
-    localStorage.setItem('theme', theme())
+    localStorage.setItem('theme', theme.read())
   })
 
   return (
     <div>
-      <p>theme: {theme}</p>
-      <button on:click={() => setTheme('light')}>light</button>
-      <button on:click={() => setTheme('dark')}>dark</button>
+      <p>theme: {theme.read}</p>
+      <button on:click={() => theme.write('light')}>light</button>
+      <button on:click={() => theme.write('dark')}>dark</button>
     </div>
   )
 }

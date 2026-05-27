@@ -2,12 +2,12 @@ import { render, signal } from 'pota'
 import { xml } from 'pota/xml'
 
 function Example() {
-  const [count, setCount, updateCount] = signal(0)
+  const count = signal(0)
 
-  setInterval(() => updateCount(count => count + 1), 1_000)
+  setInterval(() => count.update(count => count + 1), 1_000)
 
   const add10 = xml`<button
-    on:click="${() => updateCount(count => count + 10)}"
+    on:click="${() => count.update(count => count + 10)}"
     name="button"
   >
     add 10
@@ -21,7 +21,7 @@ function Example() {
   }
 
   return xml`<div>
-    Hello, The count is: ${count}!<br />
+    Hello, The count is: ${count.read}!<br />
     <i
       on:click="${thisworks}"
       on:mouseout="${hellyeah}"

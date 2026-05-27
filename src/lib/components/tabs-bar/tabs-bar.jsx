@@ -42,19 +42,19 @@ export function TabsBar(props) {
 }
 
 function Tab(props) {
-	const [editing, setEditing] = signal(false)
+	const editing = signal(false)
 	let nameEl
 
 	const startEdit = () => {
-		setEditing(true)
+		editing.write(true)
 		// the editable span is remounted when `editing` flips true, so
 		// its use:ref handles focus + select.
 	}
 
 	const commit = () => {
-		if (!editing()) return
+		if (!editing.read()) return
 		const next = (nameEl?.textContent || '').trim()
-		setEditing(false)
+		editing.write(false)
 		if (next && next !== props.file.name) {
 			props['on:rename']?.(next)
 		}
@@ -62,7 +62,7 @@ function Tab(props) {
 
 	const cancel = () => {
 		if (nameEl) nameEl.textContent = props.file.name
-		setEditing(false)
+		editing.write(false)
 	}
 
 	return (
@@ -73,7 +73,7 @@ function Tab(props) {
 			on:click={e => {
 				// ignore clicks that land on the close button
 				if (e.target.closest('[data-role="close"]')) return
-				if (editing()) return
+				if (editing.read()) return
 				props['on:select']?.()
 			}}
 			on:dblclick={e => {
@@ -81,7 +81,7 @@ function Tab(props) {
 				startEdit()
 			}}
 		>
-			<Show when={editing}>
+			<Show when={editing.read}>
 				<span
 					class={styles.nameInput}
 					contenteditable="true"
@@ -116,7 +116,7 @@ function Tab(props) {
 					}}
 				/>
 			</Show>
-			<Show when={() => !editing()}>
+			<Show when={() => !editing.read()}>
 				<span class={styles.name}>{props.file.name}</span>
 			</Show>
 			<button

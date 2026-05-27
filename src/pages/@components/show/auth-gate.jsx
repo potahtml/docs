@@ -2,18 +2,18 @@ import { render, signal } from 'pota'
 import { Navigate, Route, Show } from 'pota/components'
 
 function App() {
-  const [user, setUser] = signal(null)
+  const user = signal(null)
 
   return (
     <div>
-      <button on:click={() => setUser({ name: 'Ada' })}>
+      <button on:click={() => user.write({ name: 'Ada' })}>
         log in as Ada
       </button>
-      <button on:click={() => setUser(null)}>log out</button>
+      <button on:click={() => user.write(null)}>log out</button>
 
       <Route path="/dashboard">
         <Show
-          when={user}
+          when={user.read}
           fallback={<Navigate path="/login" replace />}
         >
           {u => <p>welcome, {() => u().name}</p>}

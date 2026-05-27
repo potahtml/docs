@@ -2,7 +2,7 @@ import { render, signal } from 'pota'
 import { For } from 'pota/components'
 
 function App() {
-  const [items, , updateItems] = signal([
+  const items = signal([
     'apple',
     'banana',
     'cherry',
@@ -11,12 +11,12 @@ function App() {
   return (
     <div>
       <button
-        on:click={() => updateItems(list => [...list].reverse())}
+        on:click={() => items.update(list => [...list].reverse())}
       >
         reverse
       </button>
       <ul>
-        <For each={items}>{item => <li>{item}</li>}</For>
+        <For each={items.read}>{item => <li>{item}</li>}</For>
       </ul>
     </div>
   )

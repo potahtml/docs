@@ -2,17 +2,17 @@ import { render, signal } from 'pota'
 import { mutated } from 'pota/use/mutation'
 
 function App() {
-  const [flag, , updateFlag] = signal(false)
-  const [seen, , updateSeen] = signal([])
+  const flag = signal(false)
+  const seen = signal([])
 
   return (
     <div>
       <div
-        class={() => (flag() ? 'on' : 'off')}
+        class={() => (flag.read() ? 'on' : 'off')}
         data-tick={() => Date.now()}
         use:ref={mutated(
           records => {
-            updateSeen(prev => [
+            seen.update(prev => [
               ...prev,
               ...records.map(r => r.attributeName),
             ])
@@ -23,8 +23,8 @@ function App() {
       >
         watched
       </div>
-      <button on:click={() => updateFlag(v => !v)}>toggle</button>
-      <pre>{() => seen().join('\n')}</pre>
+      <button on:click={() => flag.update(v => !v)}>toggle</button>
+      <pre>{() => seen.read().join('\n')}</pre>
     </div>
   )
 }

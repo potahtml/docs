@@ -14,12 +14,12 @@ function _random(max) {
 function buildData(count) {
 	const data = new Array(count)
 	for (let i = 0; i < count; i++) {
-		const [label, , update] = signal('elegant green keyboard')
+		const label = signal('elegant green keyboard')
 
 		data[i] = {
 			id: idCounter++,
-			label,
-			update,
+			label: label.read,
+			update: label.update,
 		}
 	}
 	return data
@@ -37,21 +37,21 @@ const Button = ({ id, text, fn }) =>
 	</div>`
 
 const App = () => {
-	const [data, setData, updateData] = signal([]),
+	const data = signal([]),
 		run = () => {
 			// debugger
-			setData(buildData(10))
+			data.write(buildData(10))
 		},
 		runLots = () => {
-			setData(buildData(10000))
+			data.write(buildData(10000))
 		},
 		bench = () => {
 			//  console.clear()
 			// warm
 			// debugger
 			for (let k = 0; k < 5; k++) {
-				setData(buildData(1))
-				setData([])
+				data.write(buildData(1))
+				data.write([])
 			}
 
 			let createLarge = 0
@@ -60,15 +60,15 @@ const App = () => {
 			let clearSmall = 0
 			const results = []
 			for (let k = 0; k < 10; k++) {
-				createLarge += timing(() => setData(buildData(10000)))
-				clearLarge += timing(() => setData([]))
+				createLarge += timing(() => data.write(buildData(10000)))
+				clearLarge += timing(() => data.write([]))
 				results.push(`
 					createLarge ${(createLarge / (k + 1)).toFixed(2)} clearLarge ${(clearLarge / (k + 1)).toFixed(2)}
 				`)
 			}
 			for (let k = 0; k < 10; k++) {
-				createSmall += timing(() => setData(buildData(1000)))
-				clearSmall += timing(() => setData([]))
+				createSmall += timing(() => data.write(buildData(1000)))
+				clearSmall += timing(() => data.write([]))
 				results.push(`
 					createSmall ${(createSmall / (k + 1)).toFixed(2)} clearSmall ${(clearSmall / (k + 1)).toFixed(2)}
 				`)
@@ -77,25 +77,25 @@ const App = () => {
 			console.log('------------', version)
 		},
 		add = () => {
-			updateData(d => [...d, ...buildData(1000)])
+			data.update(d => [...d, ...buildData(1000)])
 		},
 		update = () => {
-			const d = data()
+			const d = data.read()
 			for (let i = 0; i < d.length; i += 10)
 				d[i].update(l => l + ' !!!')
 		},
 		swapRows = () => {
-			const d = [...data()]
+			const d = [...data.read()]
 			const tmp = d[1]
 			d[1] = d[998]
 			d[998] = tmp
-			setData(d)
+			data.write(d)
 		},
 		clear = () => {
-			setData([])
+			data.write([])
 		},
 		remove = id => {
-			updateData(d => {
+			data.update(d => {
 				const idx = d.findIndex(datum => datum.id === id)
 				d.splice(idx, 1)
 				return [...d]
@@ -173,7 +173,7 @@ const App = () => {
 					}
 				}}"
 			>
-				<For each="${data}">
+				<For each="${data.read}">
 					${row => xml`<tr>
 						<td
 							prop:textContent="${row.id}"

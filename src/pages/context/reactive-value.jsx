@@ -17,12 +17,12 @@ function Toolbar() {
 }
 
 function App() {
-  const [theme, setTheme] = signal('light')
+  const theme = signal('light')
   return (
     <Theme.Provider
       value={{
-        value: theme,
-        set: v => setTheme(v),
+        value: theme.read,
+        set: v => theme.write(v),
       }}
     >
       <Toolbar />

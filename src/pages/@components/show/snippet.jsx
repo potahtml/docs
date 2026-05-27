@@ -2,7 +2,7 @@ import { signal } from 'pota'
 import { Show } from 'pota/components'
 
 function Component() {
-  const [condition, setCondition] = signal(true)
+  const condition = signal(true)
 
-  return <Show when={condition}>Thing to render</Show>
+  return <Show when={condition.read}>Thing to render</Show>
 }

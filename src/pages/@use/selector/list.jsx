@@ -5,8 +5,8 @@ import { render, signal } from 'pota'
 const items = ['apple', 'banana', 'cherry', 'date']
 
 function App() {
-  const [current, setCurrent] = signal('apple')
-  const isSelected = useSelector(current)
+  const current = signal('apple')
+  const isSelected = useSelector(current.read)
 
   return (
     <ul>
@@ -14,7 +14,7 @@ function App() {
         {item => (
           <li
             class:selected={isSelected(item)}
-            on:click={() => setCurrent(item)}
+            on:click={() => current.write(item)}
           >
             {item}
           </li>

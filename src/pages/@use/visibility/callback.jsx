@@ -2,10 +2,10 @@ import { render, signal } from 'pota'
 import { onDocumentVisible } from 'pota/use/visibility'
 
 function App() {
-  const [log, , updateLog] = signal([])
+  const log = signal([])
 
   onDocumentVisible(visible => {
-    updateLog(entries => [
+    log.update(entries => [
       ...entries,
       `${new Date().toLocaleTimeString()} — ${visible ? 'visible' : 'hidden'}`,
     ])
@@ -16,7 +16,7 @@ function App() {
       <p>Switch tabs to populate the log:</p>
       <ul>
         {() =>
-          log().map(entry => (
+          log.read().map(entry => (
             <li>
               <code>{entry}</code>
             </li>

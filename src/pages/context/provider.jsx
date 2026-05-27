@@ -3,14 +3,14 @@ import { context, render, signal } from 'pota'
 const Context = context()
 
 function Component(props) {
-	const [value, setValue, updateValue] = signal(0)
+	const value = signal(0)
 
 	setInterval(() => {
-		updateValue(num => (num += 1))
+		value.update(num => (num += 1))
 	}, 1_000)
 
 	return (
-		<Context.Provider value={{ myValue: value }}>
+		<Context.Provider value={{ myValue: value.read }}>
 			<b>children: </b>
 			{props.children}
 

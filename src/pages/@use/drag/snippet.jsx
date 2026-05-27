@@ -2,26 +2,26 @@ import { render, signal } from 'pota'
 import { draggable } from 'pota/use/drag'
 
 function App() {
-  const [pos, setPos] = signal({ x: 40, y: 40 })
+  const pos = signal({ x: 40, y: 40 })
   let committed = { x: 40, y: 40 }
 
   return (
     <div
       use:ref={draggable({
         onMove(info) {
-          setPos({
+          pos.write({
             x: committed.x + info.dx,
             y: committed.y + info.dy,
           })
         },
         onEnd() {
-          committed = pos()
+          committed = pos.read()
         },
       })}
       style={() => ({
         position: 'absolute',
-        left: pos().x + 'px',
-        top: pos().y + 'px',
+        left: pos.read().x + 'px',
+        top: pos.read().y + 'px',
         width: '120px',
         height: '120px',
         background: 'rebeccapurple',

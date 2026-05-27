@@ -2,15 +2,15 @@ import { render, signal } from 'pota'
 import { mutated } from 'pota/use/mutation'
 
 function App() {
-  const [count, , updateCount] = signal(0)
-  const [log, , updateLog] = signal([])
+  const count = signal(0)
+  const log = signal([])
 
   return (
     <div>
       <div
         id="bucket"
         use:ref={mutated(records => {
-          updateLog(prev => [
+          log.update(prev => [
             ...prev,
             ...records.map(r => `${r.type} (${r.addedNodes.length} added)`),
           ])
@@ -18,12 +18,12 @@ function App() {
         style={{ padding: '1rem', border: '1px solid #aaa' }}
       >
         {() =>
-          [...Array(count())].map((_, i) => <p>item {i + 1}</p>)
+          [...Array(count.read())].map((_, i) => <p>item {i + 1}</p>)
         }
       </div>
-      <button on:click={() => updateCount(n => n + 1)}>add</button>
+      <button on:click={() => count.update(n => n + 1)}>add</button>
       <ul>
-        {() => log().map(line => <li>{line}</li>)}
+        {() => log.read().map(line => <li>{line}</li>)}
       </ul>
     </div>
   )

@@ -2,12 +2,12 @@ import { render, signal } from 'pota'
 import { resize } from 'pota/use/resize'
 
 function App() {
-  const [size, setSize] = signal({ width: 0, height: 0 })
+  const size = signal({ width: 0, height: 0 })
 
   return (
     <div
       use:ref={resize(entry => {
-        setSize({
+        size.write({
           width: Math.round(entry.contentRect.width),
           height: Math.round(entry.contentRect.height),
         })
@@ -23,7 +23,7 @@ function App() {
     >
       drag the bottom-right corner to resize. current:{' '}
       <mark>
-        {() => size().width}×{() => size().height}
+        {() => size.read().width}×{() => size.read().height}
       </mark>
     </div>
   )

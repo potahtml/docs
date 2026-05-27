@@ -1,13 +1,13 @@
 import { addEvent, render, signal } from 'pota'
 
 function App() {
-  const [key, setKey] = signal('press anything')
+  const key = signal('press anything')
 
   addEvent(window, 'keydown', e => {
-    setKey(`pressed: ${e.key}`)
+    key.write(`pressed: ${e.key}`)
   })
 
-  return <p>{key}</p>
+  return <p>{key.read}</p>
 }
 
 render(App)

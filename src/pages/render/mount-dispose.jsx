@@ -1,10 +1,10 @@
 import { render, signal } from 'pota'
 
 function App() {
-  const [count, , updateCount] = signal(0)
+  const count = signal(0)
   return (
-    <button on:click={() => updateCount(n => n + 1)}>
-      clicks: {count}
+    <button on:click={() => count.update(n => n + 1)}>
+      clicks: {count.read}
     </button>
   )
 }

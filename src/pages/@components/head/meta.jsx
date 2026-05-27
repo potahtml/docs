@@ -2,19 +2,19 @@ import { render, signal } from 'pota'
 import { Head } from 'pota/components'
 
 function App() {
-  const [page, setPage] = signal('home')
+  const page = signal('home')
 
   return (
     <div>
       <Head>
-        <title>{() => `${page()} — my site`}</title>
+        <title>{() => `${page.read()} — my site`}</title>
         <meta
           name="description"
-          content={() => `Page: ${page()}`}
+          content={() => `Page: ${page.read()}`}
         />
       </Head>
-      <button on:click={() => setPage('home')}>home</button>
-      <button on:click={() => setPage('about')}>about</button>
+      <button on:click={() => page.write('home')}>home</button>
+      <button on:click={() => page.write('about')}>about</button>
     </div>
   )
 }

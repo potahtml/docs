@@ -3,13 +3,13 @@ import { emit } from 'pota/use/event'
 
 function App() {
   const target = ref()
-  const [last, setLast] = signal('—')
+  const last = signal('—')
 
   return (
     <div>
       <div
         use:ref={target}
-        on:greet={e => setLast(e.detail.name)}
+        on:greet={e => last.write(e.detail.name)}
       >
         listening for <code>greet</code> events
       </div>
@@ -22,7 +22,7 @@ function App() {
         dispatch greet
       </button>
 
-      <p>last greeted: {last}</p>
+      <p>last greeted: {last.read}</p>
     </div>
   )
 }

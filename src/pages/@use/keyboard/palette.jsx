@@ -3,20 +3,20 @@ import { Show } from 'pota/components'
 import { globalShortcut } from 'pota/use/keyboard'
 
 function App() {
-  const [open, setOpen] = signal(false)
+  const open = signal(false)
 
   return (
     <div
       use:ref={[
-        globalShortcut('mod+k', () => setOpen(true)),
-        globalShortcut('escape', () => setOpen(false)),
+        globalShortcut('mod+k', () => open.write(true)),
+        globalShortcut('escape', () => open.write(false)),
       ]}
     >
       <p>
         press <kbd>Ctrl/Cmd</kbd>+<kbd>K</kbd> to open the
         palette
       </p>
-      <Show when={open}>
+      <Show when={open.read}>
         <div
           style={{
             position: 'fixed',

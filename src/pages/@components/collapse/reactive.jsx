@@ -2,17 +2,17 @@ import { render, signal } from 'pota'
 import { Collapse } from 'pota/components'
 
 function Example() {
-  const [showing, setShowing, updateShowing] = signal(true)
+  const showing = signal(true)
 
   return (
     <>
       <button
         name="button"
-        on:click={() => updateShowing(showing => !showing)}
+        on:click={() => showing.update(showing => !showing)}
       >
         toggle
       </button>
-      <Collapse when={showing}>
+      <Collapse when={showing.read}>
         <iframe
           width="560"
           height="315"

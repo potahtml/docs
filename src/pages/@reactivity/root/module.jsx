@@ -1,10 +1,10 @@
 import { effect, root, signal } from 'pota'
 
 export const session = root(() => {
-  const [user, setUser] = signal(null)
+  const user = signal(null)
 
   effect(() => {
-    if (user()) {
+    if (user.read()) {
       document.documentElement.classList.add('logged-in')
     } else {
       document.documentElement.classList.remove('logged-in')
@@ -12,8 +12,8 @@ export const session = root(() => {
   })
 
   return {
-    user,
-    login: u => setUser(u),
-    logout: () => setUser(null),
+    user: user.read,
+    login: u => user.write(u),
+    logout: () => user.write(null),
   }
 })

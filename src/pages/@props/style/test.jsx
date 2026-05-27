@@ -1,9 +1,9 @@
 import { render, signal } from 'pota'
 
 function App() {
-  const [randomColor, setRandomColor] = signal()
+  const randomColor = signal()
   setInterval(() => {
-    setRandomColor(
+    randomColor.write(
       '#' + Math.floor(Math.random() * 16777215).toString(16),
     )
   }, 1_000)
@@ -25,15 +25,15 @@ function App() {
       <div style:color="yellow">yellow namespaced</div>
       <div
         style:my-ns={{
-          color: randomColor,
+          color: randomColor.read,
         }}
       >
         random color from signal + namespaced + object
       </div>
-      <div style:color={randomColor}>
+      <div style:color={randomColor.read}>
         random color from signal + namespace
       </div>
-      <div style={() => 'color:' + randomColor()}>
+      <div style={() => 'color:' + randomColor.read()}>
         cssText + signal
       </div>
       <div style={undefined}>undefined</div>

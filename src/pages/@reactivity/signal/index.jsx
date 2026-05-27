@@ -7,12 +7,12 @@ export default function () {
 		<>
 			<Header title="signal">
 				The leaf primitive of pota's reactive graph. Holds a value,
-				notifies observers when it changes. The return doubles as a
-				tuple <mark>[read, write, update]</mark> and an object{' '}
-				<mark>{'{ read, write, update }'}</mark>, so destructure
-				whichever form fits the call site — segregating reads from
-				writes is usually clearest. For derived values, reach for{' '}
-				<a href="/Reactivity/memo">memo</a> /{' '}
+				notifies observers when it changes. Returns a{' '}
+				<mark>Signal</mark> object with three callables —{' '}
+				<mark>read</mark>, <mark>write</mark>, and{' '}
+				<mark>update</mark> — so you keep the writer next to the
+				reader instead of threading separate variables. For derived
+				values, reach for <a href="/Reactivity/memo">memo</a> /{' '}
 				<a href="/Reactivity/derived">derived</a>; for side-effects
 				that mirror a signal,{' '}
 				<a href="/Reactivity/effect">effect</a>.
@@ -47,13 +47,15 @@ export default function () {
 					</tbody>
 				</table>
 				<p>
-					<b>Returns:</b> a tuple/object with three callables —{' '}
-					<mark>read()</mark> reads (and tracks),{' '}
+					<b>Returns:</b> a <mark>Signal</mark> object with three
+					methods — <mark>read()</mark> reads (and tracks),{' '}
 					<mark>write(next)</mark> assigns and returns{' '}
 					<mark>true</mark> when the value changed,{' '}
 					<mark>update(fn)</mark> reads the previous value{' '}
 					<em>without tracking</em> and writes the result of{' '}
-					<mark>fn(prev)</mark>.
+					<mark>fn(prev)</mark>. The methods are bound — pass{' '}
+					<mark>signal.read</mark> directly as a JSX child or
+					handler without wrapping.
 				</p>
 			</Section>
 
@@ -67,12 +69,11 @@ export default function () {
 			<Section title="Counter">
 				<p>
 					<mark>signal(0)</mark> with a button that bumps and
-					another that resets. Pass the read function (
-					<mark>count</mark>, the function reference, not{' '}
-					<mark>count()</mark>) as a JSX child so the renderer
-					re-runs it whenever the value changes.{' '}
-					<mark>update</mark> receives the previous value;{' '}
-					<mark>setCount</mark> replaces it directly.
+					another that resets. Pass <mark>count.read</mark> (the
+					method reference, not <mark>count.read()</mark>) as a
+					JSX child so the renderer re-runs it whenever the value
+					changes. <mark>update</mark> receives the previous
+					value; <mark>write</mark> replaces it directly.
 				</p>
 				<Code url="/pages/@reactivity/signal/counter.jsx"></Code>
 			</Section>
@@ -105,8 +106,8 @@ export default function () {
 			<Section title="Two-way input binding">
 				<p>
 					Wire an input to a signal:{' '}
-					<mark>prop:value=&#123;name&#125;</mark> binds the DOM
-					property to the read function and the{' '}
+					<mark>prop:value=&#123;name.read&#125;</mark> binds the
+					DOM property to the read method and the{' '}
 					<mark>on:input</mark> handler writes back. For a richer
 					two-way binding helper, see{' '}
 					<a href="/use/bind">use:bind</a>.
@@ -116,10 +117,10 @@ export default function () {
 
 			<Section title="Encapsulated counter">
 				<p>
-					Hide the writer behind a hook-style function that returns
-					just a reader and named actions. The signal stays the
-					source of truth internally; consumers can't bypass the
-					action API to write whatever they like.
+					Hide the writer behind a hook-style function that
+					exposes just a reader and named actions. The signal
+					stays the source of truth internally; consumers can't
+					bypass the action API to write whatever they like.
 				</p>
 				<Code url="/pages/@reactivity/signal/encapsulate.jsx"></Code>
 			</Section>

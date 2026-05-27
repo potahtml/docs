@@ -1,10 +1,10 @@
 import { derived, readyAsync, render, signal } from 'pota'
 
 function App() {
-  const [id] = signal(1)
+  const id = signal(1)
 
   const post = derived(
-    () => fetch(`https://jsonplaceholder.typicode.com/posts/${id()}`),
+    () => fetch(`https://jsonplaceholder.typicode.com/posts/${id.read()}`),
     res => res.json(),
   )
 

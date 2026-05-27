@@ -2,18 +2,18 @@ import { render, signal } from 'pota'
 import { Collapse } from 'pota/components'
 
 function Example() {
-  const [showing, setShowing, updateShowing] = signal(true)
+  const showing = signal(true)
 
   return (
     <>
       <button
         name="button"
-        on:click={() => updateShowing(showing => !showing)}
+        on:click={() => showing.update(showing => !showing)}
       >
         toggle
       </button>
       <Collapse
-        when={showing}
+        when={showing.read}
         fallback={
           <div style="color:aquamarine">
             The video is playing and this is the fallback!

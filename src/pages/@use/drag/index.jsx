@@ -20,10 +20,25 @@ export default function () {
 				<mark>pointerup</mark> are listened for on{' '}
 				<mark>document</mark>, so the gesture continues even
 				when the pointer leaves the handle. Each callback
-				receives a <mark>DragInfo</mark> with{' '}
-				<mark>dx</mark>, <mark>dy</mark>, the current{' '}
-				<mark>x</mark>/<mark>y</mark>, the origin, and the raw
-				event.
+				receives a <mark>DragInfo</mark> with the cumulative
+				delta (<mark>dx</mark>, <mark>dy</mark>), the current
+				pointer position (<mark>x</mark>, <mark>y</mark>), the
+				origin (<mark>originX</mark>, <mark>originY</mark>),
+				pointer coordinates relative to the element's box at
+				<mark> pointerdown</mark> clamped to the box (
+				<mark>elementX</mark>, <mark>elementY</mark>), the same
+				values expressed as <mark>0</mark>–<mark>100</mark>{' '}
+				percent (<mark>percentX</mark>, <mark>percentY</mark>),
+				and the raw <mark>event</mark>.
+			</p>
+			<p>
+				Use <mark>dx</mark>/<mark>dy</mark> when you're moving
+				the element itself. Use <mark>elementX</mark>/
+				<mark>elementY</mark> or <mark>percentX</mark>/
+				<mark>percentY</mark> for sliders, range pickers, and
+				color canvases — where the element doesn't move during
+				the gesture and the pointer position within its bounds
+				is what matters.
 			</p>
 
 			<Section title="Exports">

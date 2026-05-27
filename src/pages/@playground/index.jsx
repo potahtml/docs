@@ -93,21 +93,15 @@ const themesTM = [
 	'vitesse-light',
 ]
 
-const [themeTM, setTMTheme] = signal(
-	localStorage.themeTM || 'monokai',
-)
-const [themeMonaco, setMonacoTheme] = signal(
-	localStorage.themeMonaco || 'vs-dark',
-)
-const [themeCM, setCMTheme] = signal(
-	localStorage.themeCM || 'one-dark',
-)
-const [activeEditor, setActiveEditor] = signal(
+const themeTM = signal(localStorage.themeTM || 'monokai')
+const themeMonaco = signal(localStorage.themeMonaco || 'vs-dark')
+const themeCM = signal(localStorage.themeCM || 'one-dark')
+const activeEditor = signal(
 	localStorage.activeEditor || 'monaco',
 )
 
 export default function () {
-	const [autorun, setAutorun, updateAutorun] = signal(true)
+	const autorun = signal(true)
 
 	// The preview pipeline works on a single entry file — pick the
 	// active tab's content. Other files are for type-checking / editor
@@ -168,8 +162,8 @@ export default function () {
 								<input
 									name="autorun"
 									type="checkbox"
-									checked={autorun()}
-									on:click={() => updateAutorun(checked => !checked)}
+									checked={autorun.read()}
+									on:click={() => autorun.update(checked => !checked)}
 								/>
 							</label>
 						</span>
@@ -184,14 +178,14 @@ export default function () {
 									class={styles.themeSelector}
 									on:change={e => {
 										const value = e.currentTarget.value
-										setTMTheme(value)
+										themeTM.write(value)
 										localStorage.themeTM = value
 									}}
 								>
 									<For each={themesTM}>
 										{item => (
 											<option
-												selected={themeTM() === item}
+												selected={themeTM.read() === item}
 												value={item}
 											>
 												{item.replace(/-/g, ' ')}
@@ -207,36 +201,36 @@ export default function () {
 									class={styles.themeSelector}
 									on:change={e => {
 										const value = e.currentTarget.value
-										setActiveEditor(value)
+										activeEditor.write(value)
 										localStorage.activeEditor = value
 									}}
 								>
 									<option
-										selected={activeEditor() === 'monaco'}
+										selected={activeEditor.read() === 'monaco'}
 										value="monaco"
 									>
 										Monaco
 									</option>
 									<option
-										selected={activeEditor() === 'codemirror'}
+										selected={activeEditor.read() === 'codemirror'}
 										value="codemirror"
 									>
 										CodeMirror
 									</option>
 								</select>
-								<Show when={() => activeEditor() === 'monaco'}>
+								<Show when={() => activeEditor.read() === 'monaco'}>
 									<select
 										class={styles.themeSelector}
 										on:change={e => {
 											const value = e.currentTarget.value
-											setMonacoTheme(value)
+											themeMonaco.write(value)
 											localStorage.themeMonaco = value
 										}}
 									>
 										<For each={themesMonaco}>
 											{item => (
 												<option
-													selected={themeMonaco() === item}
+													selected={themeMonaco.read() === item}
 													value={item}
 												>
 													{item.replace(/-/g, ' ')}
@@ -247,7 +241,7 @@ export default function () {
 								</Show>
 								<Show
 									when={() =>
-										activeEditor() === 'codemirror' &&
+										activeEditor.read() === 'codemirror' &&
 										CodeMirror.themes.length > 1
 									}
 								>
@@ -255,14 +249,14 @@ export default function () {
 										class={styles.themeSelector}
 										on:change={e => {
 											const value = e.currentTarget.value
-											setCMTheme(value)
+											themeCM.write(value)
 											localStorage.themeCM = value
 										}}
 									>
 										<For each={CodeMirror.themes}>
 											{item => (
 												<option
-													selected={themeCM() === item}
+													selected={themeCM.read() === item}
 													value={item}
 												>
 													{item.replace(/-/g, ' ')}
@@ -317,7 +311,7 @@ export default function () {
 												persist()
 											}}
 										/>
-										<Show when={() => activeEditor() === 'monaco'}>
+										<Show when={() => activeEditor.read() === 'monaco'}>
 											<Monaco
 												files={pgFiles}
 												activeFile={pgActive}
@@ -325,11 +319,11 @@ export default function () {
 												on:change={handleChange}
 												on:cursorChange={handleCursorChange}
 												on:format={code => prettier(code, true)}
-												theme={themeMonaco}
+												theme={themeMonaco.read}
 											/>
 										</Show>
 										<Show
-											when={() => activeEditor() === 'codemirror'}
+											when={() => activeEditor.read() === 'codemirror'}
 										>
 											<CodeMirror
 												files={pgFiles}
@@ -338,7 +332,7 @@ export default function () {
 												on:change={handleChange}
 												on:cursorChange={handleCursorChange}
 												on:format={code => prettier(code, true)}
-												theme={themeCM}
+												theme={themeCM.read}
 											/>
 										</Show>
 									</Tabs.Panel>
@@ -346,7 +340,7 @@ export default function () {
 										<tm-textarea
 											class="playground line-numbers"
 											grammar="tsx"
-											theme={themeTM}
+											theme={themeTM.read}
 											value={() => transform(activeCode())}
 											prop:editable={false}
 										/>
@@ -356,7 +350,7 @@ export default function () {
 											class="playground"
 											value={prettier(CheatSheetText)}
 											grammar="tsx"
-											theme={themeTM}
+											theme={themeTM.read}
 											prop:editable={false}
 										/>
 									</Tabs.Panel>
@@ -366,7 +360,7 @@ export default function () {
 						<section id="right" flair="col grow">
 							<section flair="row grow">
 								<Code
-									files={() => (autorun() ? pgFiles() : [])}
+									files={() => (autorun.read() ? pgFiles() : [])}
 									entry="main.tsx"
 									render={true}
 									preview={false}

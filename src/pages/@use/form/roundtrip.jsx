@@ -3,7 +3,7 @@ import { form2object, object2form } from 'pota/use/form'
 
 function App() {
   const formRef = ref()
-  const [snapshot, setSnapshot] = signal({})
+  const snapshot = signal({})
 
   return (
     <div>
@@ -11,7 +11,7 @@ function App() {
         use:ref={formRef}
         on:submit={e => {
           e.preventDefault()
-          setSnapshot(form2object(e.currentTarget))
+          snapshot.write(form2object(e.currentTarget))
         }}
       >
         <p>
@@ -45,7 +45,7 @@ function App() {
         </button>
       </form>
 
-      <pre>{() => JSON.stringify(snapshot(), null, 2)}</pre>
+      <pre>{() => JSON.stringify(snapshot.read(), null, 2)}</pre>
     </div>
   )
 }

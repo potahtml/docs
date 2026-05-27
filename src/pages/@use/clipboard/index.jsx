@@ -6,10 +6,12 @@ export default function () {
 	return (
 		<>
 			<Header title="clipboard">
-				<mark>clipboard(value)</mark> from{' '}
-				<mark>pota/use/clipboard</mark> returns a ref function
-				that copies text to the clipboard on click. The value
-				decides what gets copied:
+				<mark>pota/use/clipboard</mark> ships three ref
+				factories: <mark>clipboard(value)</mark> copies on
+				click, <mark>pasteText(handler?)</mark> intercepts
+				paste and strips formatting, and{' '}
+				<mark>pasteFiles(handler)</mark> captures pasted
+				images and files.
 			</Header>
 
 			<ul>
@@ -40,6 +42,40 @@ export default function () {
 
 			<Section title="Snippet">
 				<Code url="/pages/@use/clipboard/snippet.jsx"></Code>
+			</Section>
+
+			<Section title="pasteText — strip formatting on paste">
+				<p>
+					<mark>pasteText()</mark> with no handler intercepts{' '}
+					<mark>paste</mark> events on{' '}
+					<mark>&lt;input&gt;</mark>,{' '}
+					<mark>&lt;textarea&gt;</mark>, and{' '}
+					<mark>contenteditable</mark> hosts and inserts only
+					the clipboard's <mark>text/plain</mark> portion at
+					the caret — no rich-text styles, fonts, colors, or
+					embedded images leak in. A synthetic{' '}
+					<mark>input</mark> event is dispatched so{' '}
+					<a href="/use/bind">bind</a> and other input
+					listeners pick up the programmatic edit.
+				</p>
+				<p>
+					Pass a <mark>(text, event, node)</mark> handler to
+					massage the text first; the default insertion is
+					skipped when a handler is provided.
+				</p>
+				<Code url="/pages/@use/clipboard/paste-text.jsx"></Code>
+			</Section>
+
+			<Section title="pasteFiles — capture pasted files">
+				<p>
+					<mark>pasteFiles(handler)</mark> fires only when at
+					least one <mark>File</mark> is present in the
+					clipboard (pasted images, files copied from the OS
+					file manager, etc.).{' '}
+					<mark>preventDefault()</mark> runs so the host
+					doesn't also receive a textual representation.
+				</p>
+				<Code url="/pages/@use/clipboard/paste-files.jsx"></Code>
 			</Section>
 		</>
 	)

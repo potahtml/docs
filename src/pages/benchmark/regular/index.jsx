@@ -67,13 +67,13 @@ function _random(max) {
 function buildData(count) {
   const data = new Array(count)
   for (let i = 0; i < count; i++) {
-    const [label, , update] = signal(
+    const label = signal(
       `${adjectives[_random(adjectives.length)]} ${colours[_random(colours.length)]} ${nouns[_random(nouns.length)]}`,
     )
     data[i] = {
       id: idCounter++,
-      label,
-      update,
+      label: label.read,
+      update: label.update,
     }
   }
   return data
@@ -92,35 +92,35 @@ const Button = ({ id, text, fn }) => (
 )
 
 const App = () => {
-  const [data, setData, updateData] = signal([]),
+  const data = signal([]),
     run = () => {
-      setData(buildData(1000))
+      data.write(buildData(1000))
     },
     runLots = () => {
-      setData(buildData(10000))
+      data.write(buildData(10000))
     },
     add = () => {
-      updateData(d => [...d, ...buildData(1000)])
+      data.update(d => [...d, ...buildData(1000)])
     },
     update = () => {
-      const d = data()
+      const d = data.read()
       const len = d.length
       for (let i = 0; i < len; i += 10) d[i].update(l => l + ' !!!')
     },
     swapRows = () => {
-      const d = [...data()]
+      const d = [...data.read()]
       if (d.length > 998) {
         const tmp = d[1]
         d[1] = d[998]
         d[998] = tmp
-        setData(d)
+        data.write(d)
       }
     },
     clear = () => {
-      setData([])
+      data.write([])
     },
     remove = id => {
-      updateData(d => {
+      data.update(d => {
         const idx = d.findIndex(datum => datum.id === id)
         d.splice(idx, 1)
         return [...d]
@@ -191,7 +191,7 @@ const App = () => {
             }
           }}
         >
-          <For each={data}>
+          <For each={data.read}>
             {row => {
               return (
                 <tr>

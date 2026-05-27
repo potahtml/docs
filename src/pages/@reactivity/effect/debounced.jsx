@@ -2,13 +2,13 @@ import { effect, render, signal } from 'pota'
 import { useTimeout } from 'pota/use/time'
 
 function App() {
-  const [query, setQuery] = signal('')
-  const [result, setResult] = signal('—')
+  const query = signal('')
+  const result = signal('—')
 
   effect(() => {
-    const q = query()
+    const q = query.read()
     const timer = useTimeout(() => {
-      setResult(q ? `searched for "${q}"` : '—')
+      result.write(q ? `searched for "${q}"` : '—')
     }, 400)
     timer.start()
   })
@@ -17,9 +17,9 @@ function App() {
     <div>
       <input
         placeholder="type a query…"
-        on:input={e => setQuery(e.currentTarget.value)}
+        on:input={e => query.write(e.currentTarget.value)}
       />
-      <p>{result}</p>
+      <p>{result.read}</p>
     </div>
   )
 }

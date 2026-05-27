@@ -3,15 +3,20 @@
 
 	const version = '0.20.233';
 
-	const window = globalThis;
-	const queueMicrotask = window.queueMicrotask;
-	const history = window.history;
-	const location$2 = window.location;
+	// `globalThis` alone is typed as `typeof globalThis` — but in the
+	// DOM lib the real `window` is `Window & typeof globalThis`. Cast
+	// so consumers (e.g. `addEvent`'s `typeof window` template
+	// parameter) accept it without each call needing its own cast.
+	const window$1 = /** @type {Window & typeof globalThis} */
+	globalThis;
+	const queueMicrotask = window$1.queueMicrotask;
+	const history = window$1.history;
+	const location$2 = window$1.location;
 	const origin = location$2?.origin;
-	const Object$1 = window.Object;
-	const Array$1 = window.Array;
-	const Promise$1 = window.Promise;
-	const Symbol$1 = window.Symbol;
+	const Object$1 = window$1.Object;
+	const Array$1 = window$1.Array;
+	const Promise$1 = window$1.Promise;
+	const Symbol$1 = window$1.Symbol;
 	const assign = Object$1.assign;
 	const create$1 = Object$1.create;
 	const defineProperty = Object$1.defineProperty;
@@ -41,13 +46,20 @@
 	const iterator = Symbol$1.iterator;
 	const stringify = JSON.stringify;
 
-	/**
-	 * @param {(
-	 * 	resolve: (value: unknown) => void,
-	 * 	reject: (reason?: any) => void,
-	 * ) => void} fn
-	 */
+	/** @param {(resolve: (value: unknown) => void, reject: (reason?: any) => void) => void} fn */
 	const promise = fn => new Promise$1(fn);
+
+	/**
+	 * Given a promise it adds `onDone` to `then` and `catch` that gets
+	 * ignored.
+	 *
+	 * ```js
+	 * resolved(promise, onDone)
+	 * // is same as
+	 * promise.then(onDone).catch(onDone)
+	 * ```
+	 */
+	const resolvedIgnoreError = (promise, onDone) => promise.then(onDone).catch(e => onDone(e.toString()));
 
 	/**
 	 * Runs an array of functions
@@ -502,7 +514,7 @@
 	  let Time = 0;
 	  const errorHandlerId = Symbol$1();
 	  function routeError(node, err) {
-	    const handler = node.context && node.context[errorHandlerId];
+	    const handler = node?.context?.[errorHandlerId];
 	    if (handler) handler(err);else console.error(err);
 	  }
 	  function doRead(o) {
@@ -805,7 +817,8 @@
 	     * `update()`; recursive resolve steps capture and compare the
 	     * current value to detect stale promise resolutions. Was a fresh
 	     * `{}` per write — counter avoids the per-update allocation while
-	     * preserving identity-via-`===` semantics for the staleness check.
+	     * preserving identity-via-`===` semantics for the staleness
+	     * check.
 	     *
 	     * @type {number}
 	     */
@@ -882,19 +895,18 @@
 	    }
 
 	    /**
-	     * Thenable surface. Stays defined across commits so consumers
-	     * can register more than once: each call to `then` either
-	     * fires synchronously (if already resolved) or queues onto
-	     * `thenCallbacks`, drained by `_fireThens` on commit. Has to
-	     * be an instance arrow so `assign(self(), this)` carries it
-	     * onto the callable wrapper.
+	     * Thenable surface. Stays defined across commits so consumers can
+	     * register more than once: each call to `then` either fires
+	     * synchronously (if already resolved) or queues onto
+	     * `thenCallbacks`, drained by `_fireThens` on commit. Has to be
+	     * an instance arrow so `assign(self(), this)` carries it onto the
+	     * callable wrapper.
 	     *
 	     * We resolve with `_unwrap()` rather than `self()`: `self()`
 	     * carries `then` onto every fresh wrapper, which makes the
-	     * resolved value itself thenable — JS's `await` would
-	     * recursively `then` it forever. `_unwrap()` returns the
-	     * same callable shape but with `then` stripped, terminating
-	     * the recursion.
+	     * resolved value itself thenable — JS's `await` would recursively
+	     * `then` it forever. `_unwrap()` returns the same callable shape
+	     * but with `then` stripped, terminating the recursion.
 	     */
 	    then = (resolve, reject) => {
 	      // `resolved()` reads through `this.read()` which triggers
@@ -942,22 +954,6 @@
 	  // SIGNAL
 
 	  /**
-	   * @param {any} a
-	   * @param {any} b
-	   */
-	  function equalsFalse(a, b) {
-	    return false;
-	  }
-
-	  /**
-	   * @param {any} a
-	   * @param {any} b
-	   */
-	  function equals(a, b) {
-	    return a === b;
-	  }
-
-	  /**
 	   * Plain leaf observable shared with Memo/Derived for the
 	   * `o.observers` access in doRead/doWrite. observers / observerSlots
 	   * start as the EMPTY sentinel so the slot type is always JSArray —
@@ -965,18 +961,50 @@
 	   * megamorphic across signal-literal vs Memo vs Derived shapes.
 	   */
 	  class Signal {
+	    /** @type {any} */
+	    value;
+
 	    /** @type {Computation[]} */
 	    observers = EMPTY;
 
 	    /** @type {number[]} */
 	    observerSlots = EMPTY;
 
-	    /** @type {any} */
-	    value;
-
-	    /** @param {any} value */
-	    constructor(value) {
+	    /**
+	     * @param {any} value
+	     * @param {SignalOptions<any>} [options]
+	     */
+	    constructor(value, options) {
 	      this.value = value;
+	      if (options) {
+	        assign(this, options);
+	        if (options.equals === false) {
+	          this.equals = this.equalsFalse;
+	        }
+	      }
+	    }
+	    read = () => {
+	      if (Listener) doRead(this);
+	      return this.value;
+	    };
+	    write = val => {
+	      if (!this.equals(this.value, val)) {
+	        this.value = val;
+	        doWrite(this);
+	        return true;
+	      }
+	      return false;
+	    };
+	    update = val => this.write(untrack(() => val(this.value)));
+
+	    /** @param {any} a @param {any} b */
+	    equals(a, b) {
+	      return a === b;
+	    }
+
+	    /** @param {any} a @param {any} b */
+	    equalsFalse(a, b) {
+	      return false;
 	    }
 	  }
 
@@ -990,36 +1018,7 @@
 	   */
 	  /* #__NO_SIDE_EFFECTS__ */
 	  function signal(value, options) {
-	    let _equals = equals;
-	    if (options) {
-	      if (options.equals === false) _equals = equalsFalse;else if (options.equals) _equals = options.equals;
-	    }
-	    const o = new Signal(value);
-	    function read() {
-	      if (Listener) {
-	        doRead(o);
-	      }
-	      return o.value;
-	    }
-	    function write(val) {
-	      if (!_equals(o.value, val)) {
-	        o.value = val;
-	        doWrite(o);
-	        return true;
-	      }
-	      return false;
-	    }
-	    function update(val) {
-	      return write(untrack(() => val(o.value)));
-	    }
-	    const s = /** @type {any} */[read, write, update];
-	    s.read = read;
-	    s.write = write;
-	    s.update = update;
-	    if (options) {
-	      assign(s, options);
-	    }
-	    return s;
+	    return new Signal(value, options);
 	  }
 
 	  /**
@@ -1686,7 +1685,7 @@
 	  };
 	}
 
-	const document$1 = /** @type {Document} */window.document;
+	const document$1 = /** @type {Document} */window$1.document;
 	const head = document$1?.head;
 
 	/**
@@ -1700,14 +1699,11 @@
 	/** @returns {Element | null} The currently focused element. */
 	const activeElement = () => document$1.activeElement;
 
-	/**
-	 * @returns {Element | undefined} The root `<html>` element if
-	 *   available.
-	 */
+	/** @returns {Element | undefined} The root `<html>` element if available. */
 	const documentElement = document$1?.documentElement;
 
 	/** DocumentFragment constructor exposed for convenience. */
-	const DocumentFragment = window.DocumentFragment;
+	const DocumentFragment = window$1.DocumentFragment;
 
 	/**
 	 * Safely binds a document method so it can be called later.
@@ -1787,25 +1783,6 @@
 	 */
 	const removeClass = (node, className) => className.length && node.classList.remove(...(isArray(className) ? className : tokenList(className)));
 
-	// attributes
-
-	/**
-	 * Sets an attribute on a node.
-	 *
-	 * @param {Element} node
-	 * @param {string} name
-	 * @param {string} value
-	 */
-	const setAttribute$1 = (node, name, value) => node.setAttribute(name, value);
-
-	/**
-	 * Removes an attribute from a node.
-	 *
-	 * @param {Element} node
-	 * @param {string} name
-	 */
-	const removeAttribute = (node, name) => node.removeAttribute(name);
-
 	// selector
 
 	/**
@@ -1867,8 +1844,8 @@
 	 *
 	 * @param {DOMElement[]} [prev=[]] - Array with previous elements.
 	 *   Default is `[]`
-	 * @param {DOMElement[]} [next=[]] - Array with next elements.
-	 *   Default is `[]`
+	 * @param {DOMElement[]} [next=[]] - Array with next elements. Default
+	 *   is `[]`
 	 * @param {boolean} [short=false] - Whether to use fast clear. Default
 	 *   is `false`
 	 * @returns {DOMElement[]} The next array of elements
@@ -1940,9 +1917,9 @@
 	 * @returns {SignalFunction<T>}
 	 */
 	function signalFunction(value) {
-	  const [read, write] = signal(value);
+	  const s = signal(value);
 	  // @ts-expect-error
-	  return (...args) => args.length ? write(args[0]) : read();
+	  return (...args) => args.length ? s.write(args[0]) : s.read();
 	}
 
 	/**
@@ -2416,7 +2393,7 @@
 	  handleEvent: owned(e => handler.handleEvent(e))
 	} : owned(handler);
 
-	const CSSStyleSheet$1 = window.CSSStyleSheet;
+	const CSSStyleSheet$1 = window$1.CSSStyleSheet;
 
 	/**
 	 * Creates a stylesheet from a css string
@@ -2426,10 +2403,7 @@
 	 */
 	const sheet = withCache(css => {
 	  const sheet = new CSSStyleSheet$1();
-	  /**
-	   * Replace is asynchronous and can accept `@import` statements
-	   * referencing external resources.
-	   */
+	  /** Replace is asynchronous and can accept `@import` statements referencing external resources. */
 	  sheet.replace(css);
 	  return sheet;
 	});
@@ -2599,8 +2573,8 @@
 	 *
 	 * @template T
 	 * @param {string} propName - Name of the prop
-	 * @param {(node: DOMElement, propValue: T) => void} fn - Function
-	 *   to run when this prop is found on any Element
+	 * @param {(node: DOMElement, propValue: T) => void} fn - Function to
+	 *   run when this prop is found on any Element
 	 * @param {boolean} [onMicrotask=true] - To avoid the problem of
 	 *   needed props not being set, or children elements not created yet.
 	 *   Default is `true`
@@ -2619,7 +2593,6 @@
 	 * 	propValue: any,
 	 * 	ns?: string,
 	 * ) => void} F
-	 *
 	 * @param {string} NSName - Name of the namespace
 	 * @param {F} fn - Function to run when this prop is found on any
 	 *   Element
@@ -3328,18 +3301,18 @@
 	        // async values
 	        if ('then' in child) {
 	          const remove = useSuspense().add();
-	          const [value, setValue] = signal(undefined);
+	          const value = signal(undefined);
 	          child.then(owned(result => {
 	            if (isComponent && isFunction(result)) {
 	              markComponent(result);
 	            }
-	            setValue(result);
+	            value.write(result);
 	            remove();
 	          }, remove), owned(err => {
 	            remove();
 	            throw err;
 	          }, remove));
-	          return createChildren(parent, value, relative);
+	          return createChildren(parent, value.read, relative);
 	        }
 
 	        // iterable/Map/Set/NodeList
@@ -3462,7 +3435,7 @@
 	 * @returns {() => void} Disposer
 	 * @url https://pota.quack.uy/render
 	 */
-	function render(children, parent, options = nothing) {
+	function render$1(children, parent, options = nothing) {
 	  const dispose = root(dispose => {
 	    insert(Factory(isFunction(children) ? children : () => children), parent, options);
 	    return dispose;
@@ -3575,21 +3548,21 @@
 	 * @url https://pota.quack.uy/Components/Errored
 	 */
 	const Errored = props => {
-	  const [err, writeErr] = signal(/** @type {unknown} */noError);
-	  const [attempt,, updateAttempt] = signal(0);
+	  const err = signal(/** @type {unknown} */noError);
+	  const attempt = signal(0);
 	  const fallback = makeCallback(props.fallback);
 	  const reset = () => {
 	    batch(() => {
-	      writeErr(noError);
-	      updateAttempt(n => n + 1);
+	      err.write(noError);
+	      attempt.update(n => n + 1);
 	    });
 	  };
 	  const children = memo(() => {
-	    attempt();
-	    return catchError(() => toHTMLFragment(props.children), writeErr);
+	    attempt.read();
+	    return catchError(() => toHTMLFragment(props.children), err.write);
 	  });
 	  return memo(() => {
-	    const e = err();
+	    const e = err.read();
 	    if (e !== noError) return fallback(e, reset);
 	    return children();
 	  });
@@ -3671,22 +3644,2749 @@
 	});
 
 	/**
-	 * Renders children based on the `range` function arguments
+	 * Copies a string to the clipboard, ignoring errors.
 	 *
-	 * @type {FlowComponent<
-	 * 	{
-	 * 		start?: Accessor<number>
-	 * 		stop?: Accessor<number>
-	 * 		step?: Accessor<number>
-	 * 	},
-	 * 	Children<(item: number, index: number) => JSX.Element>
-	 * >}
-	 * @url https://pota.quack.uy/Components/Range
+	 * @param {string} s
+	 * @returns {Promise<void>}
 	 */
-	const Range = props => Component(For, {
-	  each: () => toArray(range(getValue(props.start) ?? 0, getValue(props.stop) ?? 0, getValue(props.step) ?? 1)),
-	  children: props.children
-	});
+	const copyToClipboard = s => resolvedIgnoreError(navigator.clipboard.writeText(s), noop);
+
+	/**
+	 * Checks if a string contains emoji characters.
+	 *
+	 * @param {string} value
+	 * @returns {boolean}
+	 */
+	const isEmoji = value => /(\uD83C\uDFF4(?:\uDB40\uDC67\uDB40\uDC62(?:\uDB40\uDC65\uDB40\uDC6E\uDB40\uDC67|\uDB40\uDC77\uDB40\uDC6C\uDB40\uDC73|\uDB40\uDC73\uDB40\uDC63\uDB40\uDC74)\uDB40\uDC7F|\u200D\u2620\uFE0F)|\uD83D\uDC69\u200D\uD83D\uDC69\u200D(?:\uD83D\uDC66\u200D\uD83D\uDC66|\uD83D\uDC67\u200D(?:\uD83D[\uDC66\uDC67]))|\uD83D\uDC68(?:\u200D(?:\u2764\uFE0F\u200D(?:\uD83D\uDC8B\u200D)?\uD83D\uDC68|(?:\uD83D[\uDC68\uDC69])\u200D(?:\uD83D\uDC66\u200D\uD83D\uDC66|\uD83D\uDC67\u200D(?:\uD83D[\uDC66\uDC67]))|\uD83D\uDC66\u200D\uD83D\uDC66|\uD83D\uDC67\u200D(?:\uD83D[\uDC66\uDC67])|\uD83C[\uDF3E\uDF73\uDF93\uDFA4\uDFA8\uDFEB\uDFED]|\uD83D[\uDCBB\uDCBC\uDD27\uDD2C\uDE80\uDE92]|\uD83E[\uDDB0-\uDDB3])|(?:\uD83C[\uDFFB-\uDFFF])\u200D(?:\uD83C[\uDF3E\uDF73\uDF93\uDFA4\uDFA8\uDFEB\uDFED]|\uD83D[\uDCBB\uDCBC\uDD27\uDD2C\uDE80\uDE92]|\uD83E[\uDDB0-\uDDB3]))|\uD83D\uDC69\u200D(?:\u2764\uFE0F\u200D(?:\uD83D\uDC8B\u200D(?:\uD83D[\uDC68\uDC69])|\uD83D[\uDC68\uDC69])|\uD83C[\uDF3E\uDF73\uDF93\uDFA4\uDFA8\uDFEB\uDFED]|\uD83D[\uDCBB\uDCBC\uDD27\uDD2C\uDE80\uDE92]|\uD83E[\uDDB0-\uDDB3])|\uD83D\uDC69\u200D\uD83D\uDC66\u200D\uD83D\uDC66|(?:\uD83D\uDC41\uFE0F\u200D\uD83D\uDDE8|\uD83D\uDC69(?:\uD83C[\uDFFB-\uDFFF])\u200D[\u2695\u2696\u2708]|\uD83D\uDC68(?:(?:\uD83C[\uDFFB-\uDFFF])\u200D[\u2695\u2696\u2708]|\u200D[\u2695\u2696\u2708])|(?:(?:\u26F9|\uD83C[\uDFCB\uDFCC]|\uD83D\uDD75)\uFE0F|\uD83D\uDC6F|\uD83E[\uDD3C\uDDDE\uDDDF])\u200D[\u2640\u2642]|(?:\u26F9|\uD83C[\uDFCB\uDFCC]|\uD83D\uDD75)(?:\uD83C[\uDFFB-\uDFFF])\u200D[\u2640\u2642]|(?:\uD83C[\uDFC3\uDFC4\uDFCA]|\uD83D[\uDC6E\uDC71\uDC73\uDC77\uDC81\uDC82\uDC86\uDC87\uDE45-\uDE47\uDE4B\uDE4D\uDE4E\uDEA3\uDEB4-\uDEB6]|\uD83E[\uDD26\uDD37-\uDD39\uDD3D\uDD3E\uDDB8\uDDB9\uDDD6-\uDDDD])(?:(?:\uD83C[\uDFFB-\uDFFF])\u200D[\u2640\u2642]|\u200D[\u2640\u2642])|\uD83D\uDC69\u200D[\u2695\u2696\u2708])\uFE0F|\uD83D\uDC69\u200D\uD83D\uDC67\u200D(?:\uD83D[\uDC66\uDC67])|\uD83D\uDC69\u200D\uD83D\uDC69\u200D(?:\uD83D[\uDC66\uDC67])|\uD83D\uDC68(?:\u200D(?:(?:\uD83D[\uDC68\uDC69])\u200D(?:\uD83D[\uDC66\uDC67])|\uD83D[\uDC66\uDC67])|\uD83C[\uDFFB-\uDFFF])|\uD83C\uDFF3\uFE0F\u200D\uD83C\uDF08|\uD83D\uDC69\u200D\uD83D\uDC67|\uD83D\uDC69(?:\uD83C[\uDFFB-\uDFFF])\u200D(?:\uD83C[\uDF3E\uDF73\uDF93\uDFA4\uDFA8\uDFEB\uDFED]|\uD83D[\uDCBB\uDCBC\uDD27\uDD2C\uDE80\uDE92]|\uD83E[\uDDB0-\uDDB3])|\uD83D\uDC69\u200D\uD83D\uDC66|\uD83C\uDDF6\uD83C\uDDE6|\uD83C\uDDFD\uD83C\uDDF0|\uD83C\uDDF4\uD83C\uDDF2|\uD83D\uDC69(?:\uD83C[\uDFFB-\uDFFF])|\uD83C\uDDED(?:\uD83C[\uDDF0\uDDF2\uDDF3\uDDF7\uDDF9\uDDFA])|\uD83C\uDDEC(?:\uD83C[\uDDE6\uDDE7\uDDE9-\uDDEE\uDDF1-\uDDF3\uDDF5-\uDDFA\uDDFC\uDDFE])|\uD83C\uDDEA(?:\uD83C[\uDDE6\uDDE8\uDDEA\uDDEC\uDDED\uDDF7-\uDDFA])|\uD83C\uDDE8(?:\uD83C[\uDDE6\uDDE8\uDDE9\uDDEB-\uDDEE\uDDF0-\uDDF5\uDDF7\uDDFA-\uDDFF])|\uD83C\uDDF2(?:\uD83C[\uDDE6\uDDE8-\uDDED\uDDF0-\uDDFF])|\uD83C\uDDF3(?:\uD83C[\uDDE6\uDDE8\uDDEA-\uDDEC\uDDEE\uDDF1\uDDF4\uDDF5\uDDF7\uDDFA\uDDFF])|\uD83C\uDDFC(?:\uD83C[\uDDEB\uDDF8])|\uD83C\uDDFA(?:\uD83C[\uDDE6\uDDEC\uDDF2\uDDF3\uDDF8\uDDFE\uDDFF])|\uD83C\uDDF0(?:\uD83C[\uDDEA\uDDEC-\uDDEE\uDDF2\uDDF3\uDDF5\uDDF7\uDDFC\uDDFE\uDDFF])|\uD83C\uDDEF(?:\uD83C[\uDDEA\uDDF2\uDDF4\uDDF5])|\uD83C\uDDF8(?:\uD83C[\uDDE6-\uDDEA\uDDEC-\uDDF4\uDDF7-\uDDF9\uDDFB\uDDFD-\uDDFF])|\uD83C\uDDEE(?:\uD83C[\uDDE8-\uDDEA\uDDF1-\uDDF4\uDDF6-\uDDF9])|\uD83C\uDDFF(?:\uD83C[\uDDE6\uDDF2\uDDFC])|\uD83C\uDDEB(?:\uD83C[\uDDEE-\uDDF0\uDDF2\uDDF4\uDDF7])|\uD83C\uDDF5(?:\uD83C[\uDDE6\uDDEA-\uDDED\uDDF0-\uDDF3\uDDF7-\uDDF9\uDDFC\uDDFE])|\uD83C\uDDE9(?:\uD83C[\uDDEA\uDDEC\uDDEF\uDDF0\uDDF2\uDDF4\uDDFF])|\uD83C\uDDF9(?:\uD83C[\uDDE6\uDDE8\uDDE9\uDDEB-\uDDED\uDDEF-\uDDF4\uDDF7\uDDF9\uDDFB\uDDFC\uDDFF])|\uD83C\uDDE7(?:\uD83C[\uDDE6\uDDE7\uDDE9-\uDDEF\uDDF1-\uDDF4\uDDF6-\uDDF9\uDDFB\uDDFC\uDDFE\uDDFF])|[#\*0-9]\uFE0F\u20E3|\uD83C\uDDF1(?:\uD83C[\uDDE6-\uDDE8\uDDEE\uDDF0\uDDF7-\uDDFB\uDDFE])|\uD83C\uDDE6(?:\uD83C[\uDDE8-\uDDEC\uDDEE\uDDF1\uDDF2\uDDF4\uDDF6-\uDDFA\uDDFC\uDDFD\uDDFF])|\uD83C\uDDF7(?:\uD83C[\uDDEA\uDDF4\uDDF8\uDDFA\uDDFC])|\uD83C\uDDFB(?:\uD83C[\uDDE6\uDDE8\uDDEA\uDDEC\uDDEE\uDDF3\uDDFA])|\uD83C\uDDFE(?:\uD83C[\uDDEA\uDDF9])|(?:\uD83C[\uDFC3\uDFC4\uDFCA]|\uD83D[\uDC6E\uDC71\uDC73\uDC77\uDC81\uDC82\uDC86\uDC87\uDE45-\uDE47\uDE4B\uDE4D\uDE4E\uDEA3\uDEB4-\uDEB6]|\uD83E[\uDD26\uDD37-\uDD39\uDD3D\uDD3E\uDDB8\uDDB9\uDDD6-\uDDDD])(?:\uD83C[\uDFFB-\uDFFF])|(?:\u26F9|\uD83C[\uDFCB\uDFCC]|\uD83D\uDD75)(?:\uD83C[\uDFFB-\uDFFF])|(?:[\u261D\u270A-\u270D]|\uD83C[\uDF85\uDFC2\uDFC7]|\uD83D[\uDC42\uDC43\uDC46-\uDC50\uDC66\uDC67\uDC70\uDC72\uDC74-\uDC76\uDC78\uDC7C\uDC83\uDC85\uDCAA\uDD74\uDD7A\uDD90\uDD95\uDD96\uDE4C\uDE4F\uDEC0\uDECC]|\uD83E[\uDD18-\uDD1C\uDD1E\uDD1F\uDD30-\uDD36\uDDB5\uDDB6\uDDD1-\uDDD5])(?:\uD83C[\uDFFB-\uDFFF])|(?:[\u231A\u231B\u23E9-\u23EC\u23F0\u23F3\u25FD\u25FE\u2614\u2615\u2648-\u2653\u267F\u2693\u26A1\u26AA\u26AB\u26BD\u26BE\u26C4\u26C5\u26CE\u26D4\u26EA\u26F2\u26F3\u26F5\u26FA\u26FD\u2705\u270A\u270B\u2728\u274C\u274E\u2753-\u2755\u2757\u2795-\u2797\u27B0\u27BF\u2B1B\u2B1C\u2B50\u2B55]|\uD83C[\uDC04\uDCCF\uDD8E\uDD91-\uDD9A\uDDE6-\uDDFF\uDE01\uDE1A\uDE2F\uDE32-\uDE36\uDE38-\uDE3A\uDE50\uDE51\uDF00-\uDF20\uDF2D-\uDF35\uDF37-\uDF7C\uDF7E-\uDF93\uDFA0-\uDFCA\uDFCF-\uDFD3\uDFE0-\uDFF0\uDFF4\uDFF8-\uDFFF]|\uD83D[\uDC00-\uDC3E\uDC40\uDC42-\uDCFC\uDCFF-\uDD3D\uDD4B-\uDD4E\uDD50-\uDD67\uDD7A\uDD95\uDD96\uDDA4\uDDFB-\uDE4F\uDE80-\uDEC5\uDECC\uDED0-\uDED2\uDEEB\uDEEC\uDEF4-\uDEF9]|\uD83E[\uDD10-\uDD3A\uDD3C-\uDD3E\uDD40-\uDD45\uDD47-\uDD70\uDD73-\uDD76\uDD7A\uDD7C-\uDDA2\uDDB0-\uDDB9\uDDC0-\uDDC2\uDDD0-\uDDFF])|(?:[#\*0-9\xA9\xAE\u203C\u2049\u2122\u2139\u2194-\u2199\u21A9\u21AA\u231A\u231B\u2328\u23CF\u23E9-\u23F3\u23F8-\u23FA\u24C2\u25AA\u25AB\u25B6\u25C0\u25FB-\u25FE\u2600-\u2604\u260E\u2611\u2614\u2615\u2618\u261D\u2620\u2622\u2623\u2626\u262A\u262E\u262F\u2638-\u263A\u2640\u2642\u2648-\u2653\u265F\u2660\u2663\u2665\u2666\u2668\u267B\u267E\u267F\u2692-\u2697\u2699\u269B\u269C\u26A0\u26A1\u26AA\u26AB\u26B0\u26B1\u26BD\u26BE\u26C4\u26C5\u26C8\u26CE\u26CF\u26D1\u26D3\u26D4\u26E9\u26EA\u26F0-\u26F5\u26F7-\u26FA\u26FD\u2702\u2705\u2708-\u270D\u270F\u2712\u2714\u2716\u271D\u2721\u2728\u2733\u2734\u2744\u2747\u274C\u274E\u2753-\u2755\u2757\u2763\u2764\u2795-\u2797\u27A1\u27B0\u27BF\u2934\u2935\u2B05-\u2B07\u2B1B\u2B1C\u2B50\u2B55\u3030\u303D\u3297\u3299]|\uD83C[\uDC04\uDCCF\uDD70\uDD71\uDD7E\uDD7F\uDD8E\uDD91-\uDD9A\uDDE6-\uDDFF\uDE01\uDE02\uDE1A\uDE2F\uDE32-\uDE3A\uDE50\uDE51\uDF00-\uDF21\uDF24-\uDF93\uDF96\uDF97\uDF99-\uDF9B\uDF9E-\uDFF0\uDFF3-\uDFF5\uDFF7-\uDFFF]|\uD83D[\uDC00-\uDCFD\uDCFF-\uDD3D\uDD49-\uDD4E\uDD50-\uDD67\uDD6F\uDD70\uDD73-\uDD7A\uDD87\uDD8A-\uDD8D\uDD90\uDD95\uDD96\uDDA4\uDDA5\uDDA8\uDDB1\uDDB2\uDDBC\uDDC2-\uDDC4\uDDD1-\uDDD3\uDDDC-\uDDDE\uDDE1\uDDE3\uDDE8\uDDEF\uDDF3\uDDFA-\uDE4F\uDE80-\uDEC5\uDECB-\uDED2\uDEE0-\uDEE5\uDEE9\uDEEB\uDEEC\uDEF0\uDEF3-\uDEF9]|\uD83E[\uDD10-\uDD3A\uDD3C-\uDD3E\uDD40-\uDD45\uDD47-\uDD70\uDD73-\uDD76\uDD7A\uDD7C-\uDDA2\uDDB0-\uDDB9\uDDC0-\uDDC2\uDDD0-\uDDFF])\uFE0F?|(?:[\u261D\u26F9\u270A-\u270D]|\uD83C[\uDF85\uDFC2-\uDFC4\uDFC7\uDFCA-\uDFCC]|\uD83D[\uDC42\uDC43\uDC46-\uDC50\uDC66-\uDC69\uDC6E\uDC70-\uDC78\uDC7C\uDC81-\uDC83\uDC85-\uDC87\uDCAA\uDD74\uDD75\uDD7A\uDD90\uDD95\uDD96\uDE45-\uDE47\uDE4B-\uDE4F\uDEA3\uDEB4-\uDEB6\uDEC0\uDECC]|\uD83E[\uDD18-\uDD1C\uDD1E\uDD1F\uDD26\uDD30-\uDD39\uDD3D\uDD3E\uDDB5\uDDB6\uDDB8\uDDB9\uDDD1-\uDDDD]))/g.test(value);
+
+	var Emoji = {
+		"#ABW": "🇦🇼",
+		"#AC": "🇦🇨",
+		"#AD": "🇦🇩",
+		"#AE": "🇦🇪",
+		"#AF": "🇦🇫",
+		"#AFG": "🇦🇫",
+		"#AG": "🇦🇬",
+		"#AGO": "🇦🇴",
+		"#AHO": "🇧🇶",
+		"#AI": "🇦🇮",
+		"#AIA": "🇦🇮",
+		"#AL": "🇦🇱",
+		"#ALA": "🇦🇽",
+		"#ALB": "🇦🇱",
+		"#ALD": "🇦🇽",
+		"#ALG": "🇩🇿",
+		"#AM": "🇦🇲",
+		"#AND": "🇦🇩",
+		"#ANG": "🇦🇴",
+		"#ANT": "🇧🇶",
+		"#AO": "🇦🇴",
+		"#AQ": "🇦🇶",
+		"#AR": "🇦🇷",
+		"#ARE": "🇦🇪",
+		"#ARG": "🇦🇷",
+		"#ARM": "🇦🇲",
+		"#ARU": "🇦🇼",
+		"#AS": "🇦🇸",
+		"#ASA": "🇦🇸",
+		"#ASM": "🇦🇸",
+		"#AT": "🇦🇹",
+		"#ATA": "🇦🇶",
+		"#ATF": "🇹🇫",
+		"#ATG": "🇦🇬",
+		"#AU": "🇦🇺",
+		"#AUS": "🇦🇺",
+		"#AUT": "🇦🇹",
+		"#AW": "🇦🇼",
+		"#AX": "🇦🇽",
+		"#AZ": "🇦🇿",
+		"#AZE": "🇦🇿",
+		"#BA": "🇧🇦",
+		"#BAH": "🇧🇸",
+		"#BAN": "🇧🇩",
+		"#BAR": "🇧🇧",
+		"#BB": "🇧🇧",
+		"#BD": "🇧🇩",
+		"#BDI": "🇧🇮",
+		"#BE": "🇧🇪",
+		"#BEL": "🇧🇪",
+		"#BEN": "🇧🇯",
+		"#BER": "🇧🇲",
+		"#BES": "🇧🇶",
+		"#BF": "🇧🇫",
+		"#BFA": "🇧🇫",
+		"#BG": "🇧🇬",
+		"#BGD": "🇧🇩",
+		"#BGR": "🇧🇬",
+		"#BH": "🇧🇭",
+		"#BHR": "🇧🇭",
+		"#BHS": "🇧🇸",
+		"#BHU": "🇧🇹",
+		"#BI": "🇧🇮",
+		"#BIH": "🇧🇦",
+		"#BIZ": "🇧🇿",
+		"#BJ": "🇧🇯",
+		"#BL": "🇧🇱",
+		"#BLM": "🇧🇱",
+		"#BLR": "🇧🇾",
+		"#BLZ": "🇧🇿",
+		"#BM": "🇧🇲",
+		"#BMU": "🇧🇲",
+		"#BN": "🇧🇳",
+		"#BO": "🇧🇴",
+		"#BOL": "🇧🇴",
+		"#BOT": "🇧🇼",
+		"#BQ": "🇧🇶",
+		"#BR": "🇧🇷",
+		"#BRA": "🇧🇷",
+		"#BRB": "🇧🇧",
+		"#BRN": "🇧🇭",
+		"#BRU": "🇧🇳",
+		"#BS": "🇧🇸",
+		"#BT": "🇧🇹",
+		"#BTN": "🇧🇹",
+		"#BUL": "🇧🇬",
+		"#BUR": "🇧🇫",
+		"#BV": "🇧🇻",
+		"#BVT": "🇧🇻",
+		"#BW": "🇧🇼",
+		"#BWA": "🇧🇼",
+		"#BY": "🇧🇾",
+		"#BZ": "🇧🇿",
+		"#CA": "🇨🇦",
+		"#CAF": "🇨🇫",
+		"#CAM": "🇰🇭",
+		"#CAN": "🇨🇦",
+		"#CAY": "🇰🇾",
+		"#CC": "🇨🇨",
+		"#CCK": "🇨🇨",
+		"#CD": "🇨🇩",
+		"#CF": "🇨🇫",
+		"#CG": "🇨🇬",
+		"#CGO": "🇨🇬",
+		"#CH": "🇨🇭",
+		"#CHA": "🇹🇩",
+		"#CHE": "🇨🇭",
+		"#CHI": "🇨🇱",
+		"#CHL": "🇨🇱",
+		"#CHN": "🇨🇳",
+		"#CI": "🇨🇮",
+		"#CIV": "🇨🇮",
+		"#CK": "🇨🇰",
+		"#CL": "🇨🇱",
+		"#CM": "🇨🇲",
+		"#CMR": "🇨🇲",
+		"#CN": "🇨🇳",
+		"#CO": "🇨🇴",
+		"#COD": "🇨🇩",
+		"#COG": "🇨🇬",
+		"#COK": "🇨🇰",
+		"#COL": "🇨🇴",
+		"#COM": "🇰🇲",
+		"#CP": "🇨🇵",
+		"#CPV": "🇨🇻",
+		"#CR": "🇨🇷",
+		"#CRC": "🇨🇷",
+		"#CRI": "🇨🇷",
+		"#CRO": "🇭🇷",
+		"#CTA": "🇨🇫",
+		"#CU": "🇨🇺",
+		"#CUB": "🇨🇺",
+		"#CUW": "🇨🇼",
+		"#CV": "🇨🇻",
+		"#CW": "🇨🇼",
+		"#CX": "🇨🇽",
+		"#CXR": "🇨🇽",
+		"#CY": "🇨🇾",
+		"#CYM": "🇰🇾",
+		"#CYP": "🇨🇾",
+		"#CZ": "🇨🇿",
+		"#CZE": "🇨🇿",
+		"#DE": "🇩🇪",
+		"#DEN": "🇩🇰",
+		"#DEU": "🇩🇪",
+		"#DG": "🇩🇬",
+		"#DJ": "🇩🇯",
+		"#DJI": "🇩🇯",
+		"#DK": "🇩🇰",
+		"#DM": "🇩🇲",
+		"#DMA": "🇩🇲",
+		"#DNK": "🇩🇰",
+		"#DO": "🇩🇴",
+		"#DOM": "🇩🇴",
+		"#DZ": "🇩🇿",
+		"#DZA": "🇩🇿",
+		"#EA": "🇪🇦",
+		"#EC": "🇪🇨",
+		"#ECU": "🇪🇨",
+		"#EE": "🇪🇪",
+		"#EG": "🇪🇬",
+		"#EGY": "🇪🇬",
+		"#EH": "🇪🇭",
+		"#ENG": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
+		"#EQG": "🇬🇶",
+		"#ER": "🇪🇷",
+		"#ERI": "🇪🇷",
+		"#ES": "🇪🇸",
+		"#ESA": "🇸🇻",
+		"#ESH": "🇪🇭",
+		"#ESP": "🇪🇸",
+		"#EST": "🇪🇪",
+		"#ET": "🇪🇹",
+		"#ETH": "🇪🇹",
+		"#EU": "🇪🇺",
+		"#FAR": "🇫🇴",
+		"#FGU": "🇬🇫",
+		"#FI": "🇫🇮",
+		"#FIJ": "🇫🇯",
+		"#FIN": "🇫🇮",
+		"#FJ": "🇫🇯",
+		"#FJI": "🇫🇯",
+		"#FK": "🇫🇰",
+		"#FLK": "🇫🇰",
+		"#FM": "🇫🇲",
+		"#FO": "🇫🇴",
+		"#FPO": "🇵🇫",
+		"#FR": "🇫🇷",
+		"#FRA": "🇫🇷",
+		"#FRO": "🇫🇴",
+		"#FSM": "🇫🇲",
+		"#GA": "🇬🇦",
+		"#GAB": "🇬🇦",
+		"#GAE": "🏳🌈",
+		"#GAM": "🇬🇲",
+		"#GAY": "🏳🌈",
+		"#GB": "🇬🇧",
+		"#GBG": "🇬🇬",
+		"#GBJ": "🇯🇪",
+		"#GBM": "🇮🇲",
+		"#GBR": "🇬🇧",
+		"#GBS": "🇬🇼",
+		"#GBZ": "🇬🇮",
+		"#GD": "🇬🇩",
+		"#GE": "🇬🇪",
+		"#GEO": "🇬🇪",
+		"#GEQ": "🇬🇶",
+		"#GER": "🇩🇪",
+		"#GF": "🇬🇫",
+		"#GG": "🇬🇬",
+		"#GGY": "🇬🇬",
+		"#GH": "🇬🇭",
+		"#GHA": "🇬🇭",
+		"#GI": "🇬🇮",
+		"#GIB": "🇬🇮",
+		"#GIN": "🇬🇳",
+		"#GL": "🇬🇱",
+		"#GLP": "🇬🇵",
+		"#GM": "🇬🇲",
+		"#GMB": "🇬🇲",
+		"#GN": "🇬🇳",
+		"#GNB": "🇬🇼",
+		"#GNQ": "🇬🇶",
+		"#GP": "🇬🇵",
+		"#GQ": "🇬🇶",
+		"#GR": "🇬🇷",
+		"#GRC": "🇬🇷",
+		"#GRD": "🇬🇩",
+		"#GRE": "🇬🇷",
+		"#GRL": "🇬🇱",
+		"#GRN": "🇬🇩",
+		"#GS": "🇬🇸",
+		"#GT": "🇬🇹",
+		"#GTM": "🇬🇹",
+		"#GU": "🇬🇺",
+		"#GUA": "🇬🇹",
+		"#GUD": "🇬🇵",
+		"#GUF": "🇬🇫",
+		"#GUI": "🇬🇳",
+		"#GUM": "🇬🇺",
+		"#GUY": "🇬🇾",
+		"#GW": "🇬🇼",
+		"#GY": "🇬🇾",
+		"#HAI": "🇭🇹",
+		"#HEL": "🇸🇭",
+		"#HK": "🇭🇰",
+		"#HKG": "🇭🇰",
+		"#HM": "🇭🇲",
+		"#HMD": "🇭🇲",
+		"#HN": "🇭🇳",
+		"#HND": "🇭🇳",
+		"#HON": "🇭🇳",
+		"#HR": "🇭🇷",
+		"#HRV": "🇭🇷",
+		"#HT": "🇭🇹",
+		"#HTI": "🇭🇹",
+		"#HU": "🇭🇺",
+		"#HUN": "🇭🇺",
+		"#IC": "🇮🇨",
+		"#ID": "🇮🇩",
+		"#IDN": "🇮🇩",
+		"#IE": "🇮🇪",
+		"#IL": "🇮🇱",
+		"#IM": "🇮🇲",
+		"#IMN": "🇮🇲",
+		"#IN": "🇮🇳",
+		"#INA": "🇮🇩",
+		"#IND": "🇮🇳",
+		"#IO": "🇮🇴",
+		"#IOT": "🇮🇴",
+		"#IQ": "🇮🇶",
+		"#IR": "🇮🇷",
+		"#IRI": "🇮🇷",
+		"#IRL": "🇮🇪",
+		"#IRN": "🇮🇷",
+		"#IRQ": "🇮🇶",
+		"#IS": "🇮🇸",
+		"#ISL": "🇮🇸",
+		"#ISR": "🇮🇱",
+		"#ISV": "🇻🇮",
+		"#IT": "🇮🇹",
+		"#ITA": "🇮🇹",
+		"#IVB": "🇻🇬",
+		"#JAM": "🇯🇲",
+		"#JE": "🇯🇪",
+		"#JEY": "🇯🇪",
+		"#JM": "🇯🇲",
+		"#JO": "🇯🇴",
+		"#JOR": "🇯🇴",
+		"#JP": "🇯🇵",
+		"#JPN": "🇯🇵",
+		"#KAZ": "🇰🇿",
+		"#KE": "🇰🇪",
+		"#KEN": "🇰🇪",
+		"#KG": "🇰🇬",
+		"#KGZ": "🇰🇬",
+		"#KH": "🇰🇭",
+		"#KHM": "🇰🇭",
+		"#KI": "🇰🇮",
+		"#KIR": "🇰🇮",
+		"#KM": "🇰🇲",
+		"#KN": "🇰🇳",
+		"#KNA": "🇰🇳",
+		"#KOR": "🇰🇷",
+		"#KP": "🇰🇵",
+		"#KR": "🇰🇷",
+		"#KSA": "🇸🇦",
+		"#KUW": "🇰🇼",
+		"#KVX": "🇽🇰",
+		"#KW": "🇰🇼",
+		"#KWT": "🇰🇼",
+		"#KY": "🇰🇾",
+		"#KZ": "🇰🇿",
+		"#LA": "🇱🇦",
+		"#LAO": "🇱🇦",
+		"#LAT": "🇱🇻",
+		"#LB": "🇱🇧",
+		"#LBA": "🇱🇾",
+		"#LBN": "🇱🇧",
+		"#LBR": "🇱🇷",
+		"#LBY": "🇱🇾",
+		"#LC": "🇱🇨",
+		"#LCA": "🇱🇨",
+		"#LES": "🇱🇸",
+		"#LI": "🇱🇮",
+		"#LIB": "🇱🇧",
+		"#LIE": "🇱🇮",
+		"#LK": "🇱🇰",
+		"#LKA": "🇱🇰",
+		"#LR": "🇱🇷",
+		"#LS": "🇱🇸",
+		"#LSO": "🇱🇸",
+		"#LT": "🇱🇹",
+		"#LTU": "🇱🇹",
+		"#LU": "🇱🇺",
+		"#LUX": "🇱🇺",
+		"#LV": "🇱🇻",
+		"#LVA": "🇱🇻",
+		"#LY": "🇱🇾",
+		"#MA": "🇲🇦",
+		"#MAC": "🇲🇴",
+		"#MAD": "🇲🇬",
+		"#MAF": "🇲🇫",
+		"#MAR": "🇲🇦",
+		"#MAS": "🇲🇾",
+		"#MAW": "🇲🇼",
+		"#MAY": "🇾🇹",
+		"#MC": "🇲🇨",
+		"#MCO": "🇲🇨",
+		"#MD": "🇲🇩",
+		"#MDA": "🇲🇩",
+		"#MDG": "🇲🇬",
+		"#MDV": "🇲🇻",
+		"#ME": "🇲🇪",
+		"#MEX": "🇲🇽",
+		"#MF": "🇲🇫",
+		"#MG": "🇲🇬",
+		"#MGL": "🇲🇳",
+		"#MGO": "🇲🇪",
+		"#MH": "🇲🇭",
+		"#MHL": "🇲🇭",
+		"#MK": "🇲🇰",
+		"#MKD": "🇲🇰",
+		"#ML": "🇲🇱",
+		"#MLI": "🇲🇱",
+		"#MLT": "🇲🇹",
+		"#MM": "🇲🇲",
+		"#MMR": "🇲🇲",
+		"#MN": "🇲🇳",
+		"#MNE": "🇲🇪",
+		"#MNG": "🇲🇳",
+		"#MNP": "🇲🇵",
+		"#MNT": "🇲🇸",
+		"#MO": "🇲🇴",
+		"#MON": "🇲🇨",
+		"#MOZ": "🇲🇿",
+		"#MP": "🇲🇵",
+		"#MQ": "🇲🇶",
+		"#MR": "🇲🇷",
+		"#MRI": "🇲🇺",
+		"#MRT": "🇲🇶",
+		"#MS": "🇲🇸",
+		"#MSH": "🇲🇭",
+		"#MSR": "🇲🇸",
+		"#MT": "🇲🇹",
+		"#MTN": "🇲🇷",
+		"#MTQ": "🇲🇶",
+		"#MU": "🇲🇺",
+		"#MUS": "🇲🇺",
+		"#MV": "🇲🇻",
+		"#MW": "🇲🇼",
+		"#MWI": "🇲🇼",
+		"#MX": "🇲🇽",
+		"#MY": "🇲🇾",
+		"#MYA": "🇲🇲",
+		"#MYS": "🇲🇾",
+		"#MYT": "🇾🇹",
+		"#MZ": "🇲🇿",
+		"#NA": "🇳🇦",
+		"#NAM": "🇳🇦",
+		"#NC": "🇳🇨",
+		"#NCA": "🇳🇮",
+		"#NCD": "🇳🇨",
+		"#NCL": "🇳🇨",
+		"#NE": "🇳🇪",
+		"#NED": "🇳🇱",
+		"#NEP": "🇳🇵",
+		"#NER": "🇳🇪",
+		"#NF": "🇳🇫",
+		"#NFI": "🇳🇫",
+		"#NFK": "🇳🇫",
+		"#NG": "🇳🇬",
+		"#NGA": "🇳🇬",
+		"#NGR": "🇳🇬",
+		"#NI": "🇳🇮",
+		"#NIC": "🇳🇮",
+		"#NIG": "🇳🇪",
+		"#NIU": "🇳🇺",
+		"#NL": "🇳🇱",
+		"#NLD": "🇳🇱",
+		"#NMA": "🇲🇵",
+		"#NMI": "🇲🇵",
+		"#NO": "🇳🇴",
+		"#NOR": "🇳🇴",
+		"#NP": "🇳🇵",
+		"#NPL": "🇳🇵",
+		"#NR": "🇳🇷",
+		"#NRU": "🇳🇷",
+		"#NU": "🇳🇺",
+		"#NZ": "🇳🇿",
+		"#NZL": "🇳🇿",
+		"#OM": "🇴🇲",
+		"#OMA": "🇴🇲",
+		"#OMN": "🇴🇲",
+		"#PA": "🇵🇦",
+		"#PAK": "🇵🇰",
+		"#PAN": "🇵🇦",
+		"#PAR": "🇵🇾",
+		"#PCN": "🇵🇳",
+		"#PE": "🇵🇪",
+		"#PER": "🇵🇪",
+		"#PF": "🇵🇫",
+		"#PG": "🇵🇬",
+		"#PH": "🇵🇭",
+		"#PHI": "🇵🇭",
+		"#PHL": "🇵🇭",
+		"#PK": "🇵🇰",
+		"#PL": "🇵🇱",
+		"#PLE": "🇵🇸",
+		"#PLU": "🇵🇼",
+		"#PLW": "🇵🇼",
+		"#PM": "🇵🇲",
+		"#PN": "🇵🇳",
+		"#PNG": "🇵🇬",
+		"#POL": "🇵🇱",
+		"#POR": "🇵🇹",
+		"#PR": "🇵🇷",
+		"#PRI": "🇵🇷",
+		"#PRK": "🇰🇵",
+		"#PRT": "🇵🇹",
+		"#PRY": "🇵🇾",
+		"#PS": "🇵🇸",
+		"#PSE": "🇵🇸",
+		"#PT": "🇵🇹",
+		"#PUR": "🇵🇷",
+		"#PW": "🇵🇼",
+		"#PY": "🇵🇾",
+		"#PYF": "🇵🇫",
+		"#QA": "🇶🇦",
+		"#QAT": "🇶🇦",
+		"#RE": "🇷🇪",
+		"#REU": "🇷🇪",
+		"#RO": "🇷🇴",
+		"#ROS": "🇦🇶",
+		"#ROU": "🇷🇴",
+		"#RS": "🇷🇸",
+		"#RSA": "🇿🇦",
+		"#RU": "🇷🇺",
+		"#RUS": "🇷🇺",
+		"#RW": "🇷🇼",
+		"#RWA": "🇷🇼",
+		"#SA": "🇸🇦",
+		"#SAH": "🇪🇭",
+		"#SAM": "🇼🇸",
+		"#SAU": "🇸🇦",
+		"#SB": "🇸🇧",
+		"#SC": "🇸🇨",
+		"#SCO": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+		"#SCT": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+		"#SD": "🇸🇩",
+		"#SDN": "🇸🇩",
+		"#SE": "🇸🇪",
+		"#SEN": "🇸🇳",
+		"#SEY": "🇸🇨",
+		"#SG": "🇸🇬",
+		"#SGP": "🇸🇬",
+		"#SGS": "🇬🇸",
+		"#SH": "🇸🇭",
+		"#SHN": "🇸🇭",
+		"#SI": "🇸🇮",
+		"#SIN": "🇸🇬",
+		"#SJ": "🇸🇯",
+		"#SJM": "🇸🇯",
+		"#SK": "🇸🇰",
+		"#SKN": "🇰🇳",
+		"#SL": "🇸🇱",
+		"#SLB": "🇸🇧",
+		"#SLE": "🇸🇱",
+		"#SLO": "🇸🇮",
+		"#SLV": "🇸🇻",
+		"#SM": "🇸🇲",
+		"#SMR": "🇸🇲",
+		"#SN": "🇸🇳",
+		"#SO": "🇸🇴",
+		"#SOL": "🇸🇧",
+		"#SOM": "🇸🇴",
+		"#SPM": "🇵🇲",
+		"#SR": "🇸🇷",
+		"#SRB": "🇷🇸",
+		"#SRI": "🇱🇰",
+		"#SS": "🇸🇸",
+		"#SSD": "🇸🇸",
+		"#ST": "🇸🇹",
+		"#STP": "🇸🇹",
+		"#SUD": "🇸🇩",
+		"#SUI": "🇨🇭",
+		"#SUR": "🇸🇷",
+		"#SV": "🇸🇻",
+		"#SVK": "🇸🇰",
+		"#SVN": "🇸🇮",
+		"#SWE": "🇸🇪",
+		"#SWZ": "🇸🇿",
+		"#SX": "🇸🇽",
+		"#SXM": "🇸🇽",
+		"#SY": "🇸🇾",
+		"#SYC": "🇸🇨",
+		"#SYR": "🇸🇾",
+		"#SZ": "🇸🇿",
+		"#TA": "🇹🇦",
+		"#TAH": "🇵🇫",
+		"#TAN": "🇹🇿",
+		"#TC": "🇹🇨",
+		"#TCA": "🇹🇨",
+		"#TCD": "🇹🇩",
+		"#TD": "🇹🇩",
+		"#TF": "🇹🇫",
+		"#TG": "🇹🇬",
+		"#TGA": "🇹🇴",
+		"#TGO": "🇹🇬",
+		"#TH": "🇹🇭",
+		"#THA": "🇹🇭",
+		"#TJ": "🇹🇯",
+		"#TJK": "🇹🇯",
+		"#TK": "🇹🇰",
+		"#TKL": "🇹🇰",
+		"#TKM": "🇹🇲",
+		"#TKS": "🇹🇨",
+		"#TL": "🇹🇱",
+		"#TLS": "🇹🇱",
+		"#TM": "🇹🇲",
+		"#TN": "🇹🇳",
+		"#TO": "🇹🇴",
+		"#TOG": "🇹🇬",
+		"#TON": "🇹🇴",
+		"#TPE": "🇹🇼",
+		"#TR": "🇹🇷",
+		"#TRI": "🇹🇹",
+		"#TT": "🇹🇹",
+		"#TTO": "🇹🇹",
+		"#TUN": "🇹🇳",
+		"#TUR": "🇹🇷",
+		"#TUV": "🇹🇻",
+		"#TV": "🇹🇻",
+		"#TW": "🇹🇼",
+		"#TWN": "🇹🇼",
+		"#TZ": "🇹🇿",
+		"#TZA": "🇹🇿",
+		"#UA": "🇺🇦",
+		"#UAE": "🇦🇪",
+		"#UG": "🇺🇬",
+		"#UGA": "🇺🇬",
+		"#UKR": "🇺🇦",
+		"#UM": "🇺🇲",
+		"#UMI": "🇺🇲",
+		"#UN": "🇺🇳",
+		"#URU": "🇺🇾",
+		"#URY": "🇺🇾",
+		"#US": "🇺🇸",
+		"#USA": "🇺🇸",
+		"#UY": "🇺🇾",
+		"#UZ": "🇺🇿",
+		"#UZB": "🇺🇿",
+		"#VA": "🇻🇦",
+		"#VAN": "🇻🇺",
+		"#VAT": "🇻🇦",
+		"#VC": "🇻🇨",
+		"#VCT": "🇻🇨",
+		"#VE": "🇻🇪",
+		"#VEN": "🇻🇪",
+		"#VG": "🇻🇬",
+		"#VGB": "🇻🇬",
+		"#VI": "🇻🇮",
+		"#VIE": "🇻🇳",
+		"#VIN": "🇻🇨",
+		"#VIR": "🇻🇮",
+		"#VN": "🇻🇳",
+		"#VNM": "🇻🇳",
+		"#VU": "🇻🇺",
+		"#VUT": "🇻🇺",
+		"#WAF": "🇼🇫",
+		"#WAL": "🏴󠁧󠁢󠁷󠁬󠁳󠁿",
+		"#WF": "🇼🇫",
+		"#WLF": "🇼🇫",
+		"#WLS": "🏴󠁧󠁢󠁷󠁬󠁳󠁿",
+		"#WS": "🇼🇸",
+		"#WSM": "🇼🇸",
+		"#XK": "🇽🇰",
+		"#YE": "🇾🇪",
+		"#YEM": "🇾🇪",
+		"#YT": "🇾🇹",
+		"#ZA": "🇿🇦",
+		"#ZAF": "🇿🇦",
+		"#ZAM": "🇿🇲",
+		"#ZIM": "🇿🇼",
+		"#ZM": "🇿🇲",
+		"#ZMB": "🇿🇲",
+		"#ZW": "🇿🇼",
+		"#ZWE": "🇿🇼",
+		"#⃣": "#⃣",
+		":#:": "#",
+		":*:": "*",
+		":+1:": "👍",
+		":-1:": "👎",
+		":0:": "0",
+		":100:": "💯",
+		":1234:": "🔢",
+		":1:": "1",
+		":2:": "2",
+		":3:": "3",
+		":4:": "4",
+		":5:": "5",
+		":6:": "6",
+		":7:": "7",
+		":8:": "8",
+		":8ball:": "🎱",
+		":9:": "9",
+		":a:": "🅰",
+		":ab:": "🆎",
+		":abacus:": "🧮",
+		":abc:": "🔤",
+		":abcd:": "🔡",
+		":ac:": "🇦🇨",
+		":accept:": "🉑",
+		":ad:": "🇦🇩",
+		":adhesive_bandage:": "🩹",
+		":admission_tickets:": "🎟",
+		":adult:": "🧑",
+		":ae:": "🇦🇪",
+		":aerial_tramway:": "🚡",
+		":af:": "🇦🇫",
+		":ag:": "🇦🇬",
+		":ai:": "🇦🇮",
+		":airplane:": "✈",
+		":airplane_arriving:": "🛬",
+		":airplane_departure:": "🛫",
+		":airplane_small:": "🛩",
+		":al:": "🇦🇱",
+		":alarm_clock:": "⏰",
+		":alembic:": "⚗",
+		":alien:": "👽",
+		":am:": "🇦🇲",
+		":ambulance:": "🚑",
+		":amphora:": "🏺",
+		":anchor:": "⚓",
+		":angel:": "👼",
+		":anger:": "💢",
+		":anger_right:": "🗯",
+		":angry:": "😠",
+		":anguished:": "😧",
+		":ant:": "🐜",
+		":ao:": "🇦🇴",
+		":apple:": "🍎",
+		":aq:": "🇦🇶",
+		":aquarius:": "♒",
+		":ar:": "🇦🇷",
+		":archery:": "🏹",
+		":aries:": "♈",
+		":arrow_backward:": "◀",
+		":arrow_double_down:": "⏬",
+		":arrow_double_up:": "⏫",
+		":arrow_down:": "⬇",
+		":arrow_down_small:": "🔽",
+		":arrow_forward:": "▶",
+		":arrow_heading_down:": "⤵",
+		":arrow_heading_up:": "⤴",
+		":arrow_left:": "⬅",
+		":arrow_lower_left:": "↙",
+		":arrow_lower_right:": "↘",
+		":arrow_right:": "➡",
+		":arrow_right_hook:": "↪",
+		":arrow_up:": "⬆",
+		":arrow_up_down:": "↕",
+		":arrow_up_small:": "🔼",
+		":arrow_upper_left:": "↖",
+		":arrow_upper_right:": "↗",
+		":arrows_clockwise:": "🔃",
+		":arrows_counterclockwise:": "🔄",
+		":art:": "🎨",
+		":articulated_lorry:": "🚛",
+		":as:": "🇦🇸",
+		":asterisk:": "*⃣",
+		":asterisk_symbol:": "*",
+		":astonished:": "😲",
+		":at:": "🇦🇹",
+		":athletic_shoe:": "👟",
+		":atm:": "🏧",
+		":atom:": "⚛",
+		":atom_symbol:": "⚛",
+		":au:": "🇦🇺",
+		":auto_rickshaw:": "🛺",
+		":avocado:": "🥑",
+		":aw:": "🇦🇼",
+		":ax:": "🇦🇽",
+		":axe:": "🪓",
+		":az:": "🇦🇿",
+		":b:": "🅱",
+		":ba:": "🇧🇦",
+		":baby:": "👶",
+		":baby_bottle:": "🍼",
+		":baby_chick:": "🐤",
+		":baby_symbol:": "🚼",
+		":back:": "🔙",
+		":back_of_hand:": "🤚",
+		":bacon:": "🥓",
+		":badger:": "🦡",
+		":badminton:": "🏸",
+		":bagel:": "🥯",
+		":baggage_claim:": "🛄",
+		":baguette_bread:": "🥖",
+		":bald:": "🦲",
+		":ballet_shoes:": "🩰",
+		":balloon:": "🎈",
+		":ballot_box:": "🗳",
+		":bamboo:": "🎍",
+		":banana:": "🍌",
+		":bangbang:": "‼",
+		":banjo:": "🪕",
+		":bank:": "🏦",
+		":bar_chart:": "📊",
+		":barber:": "💈",
+		":baseball:": "⚾",
+		":basket:": "🧺",
+		":basketball:": "🏀",
+		":basketball_player:": "⛹",
+		":bat:": "🦇",
+		":bath:": "🛀",
+		":bathtub:": "🛁",
+		":battery:": "🔋",
+		":bb:": "🇧🇧",
+		":bd:": "🇧🇩",
+		":be:": "🇧🇪",
+		":beach:": "🏖",
+		":beach_umbrella:": "⛱",
+		":beach_with_umbrella:": "🏖",
+		":bear:": "🐻",
+		":bearded_person:": "🧔",
+		":bed:": "🛏",
+		":bee:": "🐝",
+		":beer:": "🍺",
+		":beers:": "🍻",
+		":beetle:": "🐞",
+		":beginner:": "🔰",
+		":bell:": "🔔",
+		":bellhop:": "🛎",
+		":bellhop_bell:": "🛎",
+		":bento:": "🍱",
+		":beverage_box:": "🧃",
+		":bf:": "🇧🇫",
+		":bg:": "🇧🇬",
+		":bh:": "🇧🇭",
+		":bi:": "🇧🇮",
+		":bicyclist:": "🚴",
+		":bike:": "🚲",
+		":bikini:": "👙",
+		":billed_cap:": "🧢",
+		":biohazard:": "☣",
+		":biohazard_sign:": "☣",
+		":bird:": "🐦",
+		":birthday:": "🎂",
+		":bj:": "🇧🇯",
+		":bl:": "🇧🇱",
+		":black_circle:": "⚫",
+		":black_heart:": "🖤",
+		":black_joker:": "🃏",
+		":black_large_square:": "⬛",
+		":black_medium_square:": "◼",
+		":black_nib:": "✒",
+		":black_small_square:": "▪",
+		":black_square_button:": "🔲",
+		":blond-haired_man:": "👱♂",
+		":blond-haired_woman:": "👱♀",
+		":blond_haired_person:": "👱",
+		":blossom:": "🌼",
+		":blowfish:": "🐡",
+		":blue_book:": "📘",
+		":blue_car:": "🚙",
+		":blue_circle:": "🔵",
+		":blue_heart:": "💙",
+		":blue_square:": "🟦",
+		":blush:": "😊",
+		":bm:": "🇧🇲",
+		":bn:": "🇧🇳",
+		":bo:": "🇧🇴",
+		":boar:": "🐗",
+		":bomb:": "💣",
+		":bone:": "🦴",
+		":book:": "📖",
+		":bookmark:": "🔖",
+		":bookmark_tabs:": "📑",
+		":books:": "📚",
+		":boom:": "💥",
+		":boot:": "👢",
+		":bouquet:": "💐",
+		":bow:": "🙇",
+		":bow_and_arrow:": "🏹",
+		":bowl_with_spoon:": "🥣",
+		":bowling:": "🎳",
+		":boxing_glove:": "🥊",
+		":boxing_gloves:": "🥊",
+		":boy:": "👦",
+		":bq:": "🇧🇶",
+		":br:": "🇧🇷",
+		":brain:": "🧠",
+		":bread:": "🍞",
+		":breast_feeding:": "🤱",
+		":bricks:": "🧱",
+		":bride_with_veil:": "👰",
+		":bridge_at_night:": "🌉",
+		":briefcase:": "💼",
+		":briefs:": "🩲",
+		":broccoli:": "🥦",
+		":broken_heart:": "💔",
+		":broom:": "🧹",
+		":brown_circle:": "🟤",
+		":brown_heart:": "🤎",
+		":brown_square:": "🟫",
+		":bs:": "🇧🇸",
+		":bt:": "🇧🇹",
+		":bug:": "🐛",
+		":building_construction:": "🏗",
+		":bulb:": "💡",
+		":bullettrain_front:": "🚅",
+		":bullettrain_side:": "🚄",
+		":burrito:": "🌯",
+		":bus:": "🚌",
+		":busstop:": "🚏",
+		":bust_in_silhouette:": "👤",
+		":busts_in_silhouette:": "👥",
+		":butter:": "🧈",
+		":butterfly:": "🦋",
+		":bv:": "🇧🇻",
+		":bw:": "🇧🇼",
+		":by:": "🇧🇾",
+		":bz:": "🇧🇿",
+		":ca:": "🇨🇦",
+		":cactus:": "🌵",
+		":cake:": "🍰",
+		":calendar:": "📆",
+		":calendar_spiral:": "🗓",
+		":call_me:": "🤙",
+		":call_me_hand:": "🤙",
+		":calling:": "📲",
+		":camel:": "🐫",
+		":camera:": "📷",
+		":camera_with_flash:": "📸",
+		":camping:": "🏕",
+		":cancer:": "♋",
+		":candle:": "🕯",
+		":candy:": "🍬",
+		":canned_food:": "🥫",
+		":canoe:": "🛶",
+		":capital_abcd:": "🔠",
+		":capricorn:": "♑",
+		":card_box:": "🗃",
+		":card_file_box:": "🗃",
+		":card_index:": "📇",
+		":card_index_dividers:": "🗂",
+		":carousel_horse:": "🎠",
+		":carrot:": "🥕",
+		":cartwheel:": "🤸",
+		":cat2:": "🐈",
+		":cat:": "🐱",
+		":cc:": "🇨🇨",
+		":cd:": "💿",
+		":cf:": "🇨🇫",
+		":cg:": "🇨🇬",
+		":ch:": "🇨🇭",
+		":chains:": "⛓",
+		":chair:": "🪑",
+		":champagne:": "🍾",
+		":champagne_glass:": "🥂",
+		":chart:": "💹",
+		":checkered_flag:": "🏁",
+		":cheese:": "🧀",
+		":cheese_wedge:": "🧀",
+		":cherries:": "🍒",
+		":cherry_blossom:": "🌸",
+		":chess_pawn:": "♟",
+		":chestnut:": "🌰",
+		":chicken:": "🐔",
+		":child:": "🧒",
+		":children_crossing:": "🚸",
+		":chile:": "🇨🇱",
+		":chipmunk:": "🐿",
+		":chocolate_bar:": "🍫",
+		":chopsticks:": "🥢",
+		":christmas_tree:": "🎄",
+		":church:": "⛪",
+		":ci:": "🇨🇮",
+		":cinema:": "🎦",
+		":circus_tent:": "🎪",
+		":city_dusk:": "🌆",
+		":city_sunrise:": "🌇",
+		":city_sunset:": "🌇",
+		":cityscape:": "🏙",
+		":ck:": "🇨🇰",
+		":cl:": "🆑",
+		":clap:": "👏",
+		":clapper:": "🎬",
+		":classical_building:": "🏛",
+		":clinking_glass:": "🥂",
+		":clipboard:": "📋",
+		":clock1030:": "🕥",
+		":clock10:": "🕙",
+		":clock1130:": "🕦",
+		":clock11:": "🕚",
+		":clock1230:": "🕧",
+		":clock12:": "🕛",
+		":clock130:": "🕜",
+		":clock1:": "🕐",
+		":clock230:": "🕝",
+		":clock2:": "🕑",
+		":clock330:": "🕞",
+		":clock3:": "🕒",
+		":clock430:": "🕟",
+		":clock4:": "🕓",
+		":clock530:": "🕠",
+		":clock5:": "🕔",
+		":clock630:": "🕡",
+		":clock6:": "🕕",
+		":clock730:": "🕢",
+		":clock7:": "🕖",
+		":clock830:": "🕣",
+		":clock8:": "🕗",
+		":clock930:": "🕤",
+		":clock9:": "🕘",
+		":clock:": "🕰",
+		":closed_book:": "📕",
+		":closed_umbrella:": "🌂",
+		":cloud:": "☁",
+		":cloud_lightning:": "🌩",
+		":cloud_rain:": "🌧",
+		":cloud_snow:": "🌨",
+		":cloud_tornado:": "🌪",
+		":cloud_with_lightning:": "🌩",
+		":cloud_with_rain:": "🌧",
+		":cloud_with_snow:": "🌨",
+		":cloud_with_tornado:": "🌪",
+		":clown:": "🤡",
+		":clown_face:": "🤡",
+		":clubs:": "♣",
+		":cm:": "🇨🇲",
+		":cn:": "🇨🇳",
+		":co:": "🇨🇴",
+		":coat:": "🧥",
+		":cocktail:": "🍸",
+		":coconut:": "🥥",
+		":coffee:": "☕",
+		":coffin:": "⚰",
+		":cold_face:": "🥶",
+		":cold_sweat:": "😰",
+		":comet:": "☄",
+		":compass:": "🧭",
+		":compression:": "🗜",
+		":computer:": "💻",
+		":confetti_ball:": "🎊",
+		":confounded:": "😖",
+		":confused:": "😕",
+		":congo:": "🇨🇩",
+		":congratulations:": "㊗",
+		":construction:": "🚧",
+		":construction_site:": "🏗",
+		":construction_worker:": "👷",
+		":control_knobs:": "🎛",
+		":convenience_store:": "🏪",
+		":cookie:": "🍪",
+		":cooking:": "🍳",
+		":cool:": "🆒",
+		":cop:": "👮",
+		":copyright:": "©",
+		":corn:": "🌽",
+		":couch:": "🛋",
+		":couch_and_lamp:": "🛋",
+		":couple:": "👫",
+		":couple_mm:": "👨❤👨",
+		":couple_with_heart:": "💑",
+		":couple_ww:": "👩❤👩",
+		":couplekiss:": "💏",
+		":couplekiss_mm:": "👨❤💋👨",
+		":couplekiss_ww:": "👩❤💋👩",
+		":cow2:": "🐄",
+		":cow:": "🐮",
+		":cowboy:": "🤠",
+		":cp:": "🇨🇵",
+		":cr:": "🇨🇷",
+		":crab:": "🦀",
+		":crayon:": "🖍",
+		":credit_card:": "💳",
+		":crescent_moon:": "🌙",
+		":cricket:": "🦗",
+		":cricket_bat_ball:": "🏏",
+		":cricket_game:": "🏏",
+		":crocodile:": "🐊",
+		":croissant:": "🥐",
+		":cross:": "✝",
+		":crossed_flags:": "🎌",
+		":crossed_swords:": "⚔",
+		":crown:": "👑",
+		":cruise_ship:": "🛳",
+		":cry:": "😢",
+		":crying_cat_face:": "😿",
+		":crystal_ball:": "🔮",
+		":cu:": "🇨🇺",
+		":cucumber:": "🥒",
+		":cup_with_straw:": "🥤",
+		":cupcake:": "🧁",
+		":cupid:": "💘",
+		":curling_stone:": "🥌",
+		":curly_haired:": "🦱",
+		":curly_loop:": "➰",
+		":currency_exchange:": "💱",
+		":curry:": "🍛",
+		":custard:": "🍮",
+		":customs:": "🛃",
+		":cut_of_meat:": "🥩",
+		":cv:": "🇨🇻",
+		":cw:": "🇨🇼",
+		":cx:": "🇨🇽",
+		":cy:": "🇨🇾",
+		":cyclone:": "🌀",
+		":cz:": "🇨🇿",
+		":dagger:": "🗡",
+		":dagger_knife:": "🗡",
+		":dancer:": "💃",
+		":dancers:": "👯",
+		":dango:": "🍡",
+		":dark_sunglasses:": "🕶",
+		":dart:": "🎯",
+		":dash:": "💨",
+		":date:": "📅",
+		":de:": "🇩🇪",
+		":deaf_man:": "🧏♂",
+		":deaf_person:": "🧏",
+		":deaf_woman:": "🧏♀",
+		":deciduous_tree:": "🌳",
+		":deer:": "🦌",
+		":department_store:": "🏬",
+		":derelict_house_building:": "🏚",
+		":desert:": "🏜",
+		":desert_island:": "🏝",
+		":desktop:": "🖥",
+		":desktop_computer:": "🖥",
+		":detective:": "🕵",
+		":dg:": "🇩🇬",
+		":diamonds:": "♦",
+		":disappointed:": "😞",
+		":disappointed_relieved:": "😥",
+		":dividers:": "🗂",
+		":diving_mask:": "🤿",
+		":diya_lamp:": "🪔",
+		":dizzy:": "💫",
+		":dizzy_face:": "😵",
+		":dj:": "🇩🇯",
+		":dk:": "🇩🇰",
+		":dm:": "🇩🇲",
+		":dna:": "🧬",
+		":do:": "🇩🇴",
+		":do_not_litter:": "🚯",
+		":dog2:": "🐕",
+		":dog:": "🐶",
+		":dollar:": "💵",
+		":dolls:": "🎎",
+		":dolphin:": "🐬",
+		":door:": "🚪",
+		":double_vertical_bar:": "⏸",
+		":doughnut:": "🍩",
+		":dove:": "🕊",
+		":dove_of_peace:": "🕊",
+		":dragon:": "🐉",
+		":dragon_face:": "🐲",
+		":dress:": "👗",
+		":dromedary_camel:": "🐪",
+		":drool:": "🤤",
+		":drooling_face:": "🤤",
+		":drop_of_blood:": "🩸",
+		":droplet:": "💧",
+		":drum:": "🥁",
+		":drum_with_drumsticks:": "🥁",
+		":duck:": "🦆",
+		":dumpling:": "🥟",
+		":dvd:": "📀",
+		":dz:": "🇩🇿",
+		":e-mail:": "📧",
+		":ea:": "🇪🇦",
+		":eagle:": "🦅",
+		":ear:": "👂",
+		":ear_of_rice:": "🌾",
+		":earth_africa:": "🌍",
+		":earth_americas:": "🌎",
+		":earth_asia:": "🌏",
+		":ec:": "🇪🇨",
+		":ee:": "🇪🇪",
+		":eg:": "🇪🇬",
+		":egg:": "🥚",
+		":eggplant:": "🍆",
+		":eh:": "🇪🇭",
+		":eight:": "8⃣",
+		":eight_spoked_asterisk:": "✳",
+		":eject:": "⏏",
+		":eject_symbol:": "⏏",
+		":electric_plug:": "🔌",
+		":elephant:": "🐘",
+		":elf:": "🧝",
+		":email:": "📧",
+		":end:": "🔚",
+		":england:": "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
+		":envelope:": "✉",
+		":envelope_with_arrow:": "📩",
+		":er:": "🇪🇷",
+		":es:": "🇪🇸",
+		":et:": "🇪🇹",
+		":eu:": "🇪🇺",
+		":euro:": "💶",
+		":european_castle:": "🏰",
+		":european_post_office:": "🏤",
+		":evergreen_tree:": "🌲",
+		":exclamation:": "❗",
+		":expecting_woman:": "🤰",
+		":exploding_head:": "🤯",
+		":expressionless:": "😑",
+		":eye:": "👁",
+		":eyeglasses:": "👓",
+		":eyes:": "👀",
+		":face_palm:": "🤦",
+		":face_vomiting:": "🤮",
+		":face_with_monocle:": "🧐",
+		":face_with_thermometer:": "🤒",
+		":facepalm:": "🤦",
+		":factory:": "🏭",
+		":fairy:": "🧚",
+		":falafel:": "🧆",
+		":fallen_leaf:": "🍂",
+		":family:": "👪",
+		":family_man_boy:": "👨👦",
+		":family_man_girl:": "👨👧",
+		":family_mmb:": "👨👨👦",
+		":family_mmbb:": "👨👨👦👦",
+		":family_mmg:": "👨👨👧",
+		":family_mmgb:": "👨👨👧👦",
+		":family_mmgg:": "👨👨👧👧",
+		":family_mwbb:": "👨👩👦👦",
+		":family_mwg:": "👨👩👧",
+		":family_mwgb:": "👨👩👧👦",
+		":family_mwgg:": "👨👩👧👧",
+		":family_woman_boy:": "👩👦",
+		":family_woman_girl:": "👩👧",
+		":family_wwb:": "👩👩👦",
+		":family_wwbb:": "👩👩👦👦",
+		":family_wwg:": "👩👩👧",
+		":family_wwgb:": "👩👩👧👦",
+		":family_wwgg:": "👩👩👧👧",
+		":fast_forward:": "⏩",
+		":fax:": "📠",
+		":fearful:": "😨",
+		":feet:": "🐾",
+		":female_sign:": "♀",
+		":fencer:": "🤺",
+		":fencing:": "🤺",
+		":ferris_wheel:": "🎡",
+		":ferry:": "⛴",
+		":fi:": "🇫🇮",
+		":field_hockey:": "🏑",
+		":file_cabinet:": "🗄",
+		":file_folder:": "📁",
+		":film_frames:": "🎞",
+		":film_projector:": "📽",
+		":fingers_crossed:": "🤞",
+		":fire:": "🔥",
+		":fire_engine:": "🚒",
+		":fire_extinguisher:": "🧯",
+		":firecracker:": "🧨",
+		":fireworks:": "🎆",
+		":first_place:": "🥇",
+		":first_place_medal:": "🥇",
+		":first_quarter_moon:": "🌓",
+		":fish:": "🐟",
+		":fish_cake:": "🍥",
+		":fist:": "✊",
+		":five:": "5⃣",
+		":fj:": "🇫🇯",
+		":fk:": "🇫🇰",
+		":flag_ac:": "🇦🇨",
+		":flag_ad:": "🇦🇩",
+		":flag_ae:": "🇦🇪",
+		":flag_af:": "🇦🇫",
+		":flag_ag:": "🇦🇬",
+		":flag_ai:": "🇦🇮",
+		":flag_al:": "🇦🇱",
+		":flag_am:": "🇦🇲",
+		":flag_ao:": "🇦🇴",
+		":flag_aq:": "🇦🇶",
+		":flag_ar:": "🇦🇷",
+		":flag_as:": "🇦🇸",
+		":flag_at:": "🇦🇹",
+		":flag_au:": "🇦🇺",
+		":flag_aw:": "🇦🇼",
+		":flag_ax:": "🇦🇽",
+		":flag_az:": "🇦🇿",
+		":flag_ba:": "🇧🇦",
+		":flag_bb:": "🇧🇧",
+		":flag_bd:": "🇧🇩",
+		":flag_be:": "🇧🇪",
+		":flag_bf:": "🇧🇫",
+		":flag_bg:": "🇧🇬",
+		":flag_bh:": "🇧🇭",
+		":flag_bi:": "🇧🇮",
+		":flag_bj:": "🇧🇯",
+		":flag_bl:": "🇧🇱",
+		":flag_black:": "🏴",
+		":flag_bm:": "🇧🇲",
+		":flag_bn:": "🇧🇳",
+		":flag_bo:": "🇧🇴",
+		":flag_bq:": "🇧🇶",
+		":flag_br:": "🇧🇷",
+		":flag_bs:": "🇧🇸",
+		":flag_bt:": "🇧🇹",
+		":flag_bv:": "🇧🇻",
+		":flag_bw:": "🇧🇼",
+		":flag_by:": "🇧🇾",
+		":flag_bz:": "🇧🇿",
+		":flag_ca:": "🇨🇦",
+		":flag_cc:": "🇨🇨",
+		":flag_cd:": "🇨🇩",
+		":flag_cf:": "🇨🇫",
+		":flag_cg:": "🇨🇬",
+		":flag_ch:": "🇨🇭",
+		":flag_ci:": "🇨🇮",
+		":flag_ck:": "🇨🇰",
+		":flag_cl:": "🇨🇱",
+		":flag_cm:": "🇨🇲",
+		":flag_cn:": "🇨🇳",
+		":flag_co:": "🇨🇴",
+		":flag_cp:": "🇨🇵",
+		":flag_cr:": "🇨🇷",
+		":flag_cu:": "🇨🇺",
+		":flag_cv:": "🇨🇻",
+		":flag_cw:": "🇨🇼",
+		":flag_cx:": "🇨🇽",
+		":flag_cy:": "🇨🇾",
+		":flag_cz:": "🇨🇿",
+		":flag_de:": "🇩🇪",
+		":flag_dg:": "🇩🇬",
+		":flag_dj:": "🇩🇯",
+		":flag_dk:": "🇩🇰",
+		":flag_dm:": "🇩🇲",
+		":flag_do:": "🇩🇴",
+		":flag_dz:": "🇩🇿",
+		":flag_ea:": "🇪🇦",
+		":flag_ec:": "🇪🇨",
+		":flag_ee:": "🇪🇪",
+		":flag_eg:": "🇪🇬",
+		":flag_eh:": "🇪🇭",
+		":flag_er:": "🇪🇷",
+		":flag_es:": "🇪🇸",
+		":flag_et:": "🇪🇹",
+		":flag_eu:": "🇪🇺",
+		":flag_fi:": "🇫🇮",
+		":flag_fj:": "🇫🇯",
+		":flag_fk:": "🇫🇰",
+		":flag_fm:": "🇫🇲",
+		":flag_fo:": "🇫🇴",
+		":flag_fr:": "🇫🇷",
+		":flag_ga:": "🇬🇦",
+		":flag_gb:": "🇬🇧",
+		":flag_gd:": "🇬🇩",
+		":flag_ge:": "🇬🇪",
+		":flag_gf:": "🇬🇫",
+		":flag_gg:": "🇬🇬",
+		":flag_gh:": "🇬🇭",
+		":flag_gi:": "🇬🇮",
+		":flag_gl:": "🇬🇱",
+		":flag_gm:": "🇬🇲",
+		":flag_gn:": "🇬🇳",
+		":flag_gp:": "🇬🇵",
+		":flag_gq:": "🇬🇶",
+		":flag_gr:": "🇬🇷",
+		":flag_gs:": "🇬🇸",
+		":flag_gt:": "🇬🇹",
+		":flag_gu:": "🇬🇺",
+		":flag_gw:": "🇬🇼",
+		":flag_gy:": "🇬🇾",
+		":flag_hk:": "🇭🇰",
+		":flag_hm:": "🇭🇲",
+		":flag_hn:": "🇭🇳",
+		":flag_hr:": "🇭🇷",
+		":flag_ht:": "🇭🇹",
+		":flag_hu:": "🇭🇺",
+		":flag_ic:": "🇮🇨",
+		":flag_id:": "🇮🇩",
+		":flag_ie:": "🇮🇪",
+		":flag_il:": "🇮🇱",
+		":flag_im:": "🇮🇲",
+		":flag_in:": "🇮🇳",
+		":flag_io:": "🇮🇴",
+		":flag_iq:": "🇮🇶",
+		":flag_ir:": "🇮🇷",
+		":flag_is:": "🇮🇸",
+		":flag_it:": "🇮🇹",
+		":flag_je:": "🇯🇪",
+		":flag_jm:": "🇯🇲",
+		":flag_jo:": "🇯🇴",
+		":flag_jp:": "🇯🇵",
+		":flag_ke:": "🇰🇪",
+		":flag_kg:": "🇰🇬",
+		":flag_kh:": "🇰🇭",
+		":flag_ki:": "🇰🇮",
+		":flag_km:": "🇰🇲",
+		":flag_kn:": "🇰🇳",
+		":flag_kp:": "🇰🇵",
+		":flag_kr:": "🇰🇷",
+		":flag_kw:": "🇰🇼",
+		":flag_ky:": "🇰🇾",
+		":flag_kz:": "🇰🇿",
+		":flag_la:": "🇱🇦",
+		":flag_lb:": "🇱🇧",
+		":flag_lc:": "🇱🇨",
+		":flag_li:": "🇱🇮",
+		":flag_lk:": "🇱🇰",
+		":flag_lr:": "🇱🇷",
+		":flag_ls:": "🇱🇸",
+		":flag_lt:": "🇱🇹",
+		":flag_lu:": "🇱🇺",
+		":flag_lv:": "🇱🇻",
+		":flag_ly:": "🇱🇾",
+		":flag_ma:": "🇲🇦",
+		":flag_mc:": "🇲🇨",
+		":flag_md:": "🇲🇩",
+		":flag_me:": "🇲🇪",
+		":flag_mf:": "🇲🇫",
+		":flag_mg:": "🇲🇬",
+		":flag_mh:": "🇲🇭",
+		":flag_mk:": "🇲🇰",
+		":flag_ml:": "🇲🇱",
+		":flag_mm:": "🇲🇲",
+		":flag_mn:": "🇲🇳",
+		":flag_mo:": "🇲🇴",
+		":flag_mp:": "🇲🇵",
+		":flag_mq:": "🇲🇶",
+		":flag_mr:": "🇲🇷",
+		":flag_ms:": "🇲🇸",
+		":flag_mt:": "🇲🇹",
+		":flag_mu:": "🇲🇺",
+		":flag_mv:": "🇲🇻",
+		":flag_mw:": "🇲🇼",
+		":flag_mx:": "🇲🇽",
+		":flag_my:": "🇲🇾",
+		":flag_mz:": "🇲🇿",
+		":flag_na:": "🇳🇦",
+		":flag_nc:": "🇳🇨",
+		":flag_ne:": "🇳🇪",
+		":flag_nf:": "🇳🇫",
+		":flag_ng:": "🇳🇬",
+		":flag_ni:": "🇳🇮",
+		":flag_nl:": "🇳🇱",
+		":flag_no:": "🇳🇴",
+		":flag_np:": "🇳🇵",
+		":flag_nr:": "🇳🇷",
+		":flag_nu:": "🇳🇺",
+		":flag_nz:": "🇳🇿",
+		":flag_om:": "🇴🇲",
+		":flag_pa:": "🇵🇦",
+		":flag_pe:": "🇵🇪",
+		":flag_pf:": "🇵🇫",
+		":flag_pg:": "🇵🇬",
+		":flag_ph:": "🇵🇭",
+		":flag_pk:": "🇵🇰",
+		":flag_pl:": "🇵🇱",
+		":flag_pm:": "🇵🇲",
+		":flag_pn:": "🇵🇳",
+		":flag_pr:": "🇵🇷",
+		":flag_ps:": "🇵🇸",
+		":flag_pt:": "🇵🇹",
+		":flag_pw:": "🇵🇼",
+		":flag_py:": "🇵🇾",
+		":flag_qa:": "🇶🇦",
+		":flag_re:": "🇷🇪",
+		":flag_ro:": "🇷🇴",
+		":flag_rs:": "🇷🇸",
+		":flag_ru:": "🇷🇺",
+		":flag_rw:": "🇷🇼",
+		":flag_sa:": "🇸🇦",
+		":flag_sb:": "🇸🇧",
+		":flag_sc:": "🇸🇨",
+		":flag_sd:": "🇸🇩",
+		":flag_se:": "🇸🇪",
+		":flag_sg:": "🇸🇬",
+		":flag_sh:": "🇸🇭",
+		":flag_si:": "🇸🇮",
+		":flag_sj:": "🇸🇯",
+		":flag_sk:": "🇸🇰",
+		":flag_sl:": "🇸🇱",
+		":flag_sm:": "🇸🇲",
+		":flag_sn:": "🇸🇳",
+		":flag_so:": "🇸🇴",
+		":flag_sr:": "🇸🇷",
+		":flag_ss:": "🇸🇸",
+		":flag_st:": "🇸🇹",
+		":flag_sv:": "🇸🇻",
+		":flag_sx:": "🇸🇽",
+		":flag_sy:": "🇸🇾",
+		":flag_sz:": "🇸🇿",
+		":flag_ta:": "🇹🇦",
+		":flag_tc:": "🇹🇨",
+		":flag_td:": "🇹🇩",
+		":flag_tf:": "🇹🇫",
+		":flag_tg:": "🇹🇬",
+		":flag_th:": "🇹🇭",
+		":flag_tj:": "🇹🇯",
+		":flag_tk:": "🇹🇰",
+		":flag_tl:": "🇹🇱",
+		":flag_tm:": "🇹🇲",
+		":flag_tn:": "🇹🇳",
+		":flag_to:": "🇹🇴",
+		":flag_tr:": "🇹🇷",
+		":flag_tt:": "🇹🇹",
+		":flag_tv:": "🇹🇻",
+		":flag_tw:": "🇹🇼",
+		":flag_tz:": "🇹🇿",
+		":flag_ua:": "🇺🇦",
+		":flag_ug:": "🇺🇬",
+		":flag_um:": "🇺🇲",
+		":flag_us:": "🇺🇸",
+		":flag_uy:": "🇺🇾",
+		":flag_uz:": "🇺🇿",
+		":flag_va:": "🇻🇦",
+		":flag_vc:": "🇻🇨",
+		":flag_ve:": "🇻🇪",
+		":flag_vg:": "🇻🇬",
+		":flag_vi:": "🇻🇮",
+		":flag_vn:": "🇻🇳",
+		":flag_vu:": "🇻🇺",
+		":flag_wf:": "🇼🇫",
+		":flag_white:": "🏳",
+		":flag_ws:": "🇼🇸",
+		":flag_xk:": "🇽🇰",
+		":flag_ye:": "🇾🇪",
+		":flag_yt:": "🇾🇹",
+		":flag_za:": "🇿🇦",
+		":flag_zm:": "🇿🇲",
+		":flag_zw:": "🇿🇼",
+		":flags:": "🎏",
+		":flame:": "🔥",
+		":flamingo:": "🦩",
+		":flan:": "🍮",
+		":flashlight:": "🔦",
+		":fleur-de-lis:": "⚜",
+		":floppy_disk:": "💾",
+		":flower_playing_cards:": "🎴",
+		":flushed:": "😳",
+		":flying_disc:": "🥏",
+		":flying_saucer:": "🛸",
+		":fm:": "🇫🇲",
+		":fo:": "🇫🇴",
+		":fog:": "🌫",
+		":foggy:": "🌁",
+		":foot:": "🦶",
+		":football:": "🏈",
+		":footprints:": "👣",
+		":fork_and_knife:": "🍴",
+		":fork_knife_plate:": "🍽",
+		":fortune_cookie:": "🥠",
+		":fountain:": "⛲",
+		":four:": "4⃣",
+		":four_leaf_clover:": "🍀",
+		":fox:": "🦊",
+		":fox_face:": "🦊",
+		":fr:": "🇫🇷",
+		":frame_photo:": "🖼",
+		":frame_with_picture:": "🖼",
+		":free:": "🆓",
+		":french_bread:": "🥖",
+		":fried_shrimp:": "🍤",
+		":fries:": "🍟",
+		":frog:": "🐸",
+		":frowning2:": "☹",
+		":frowning:": "😦",
+		":fuelpump:": "⛽",
+		":full_moon:": "🌕",
+		":funeral_urn:": "⚱",
+		":ga:": "🇬🇦",
+		":game_die:": "🎲",
+		":garlic:": "🧄",
+		":gay_pride_flag:": "🏳🌈",
+		":gb:": "🇬🇧",
+		":gd:": "🇬🇩",
+		":ge:": "🇬🇪",
+		":gear:": "⚙",
+		":gem:": "💎",
+		":gemini:": "♊",
+		":genie:": "🧞",
+		":gf:": "🇬🇫",
+		":gg:": "🇬🇬",
+		":gh:": "🇬🇭",
+		":ghost:": "👻",
+		":gi:": "🇬🇮",
+		":gift:": "🎁",
+		":gift_heart:": "💝",
+		":giraffe:": "🦒",
+		":girl:": "👧",
+		":gl:": "🇬🇱",
+		":glass_of_milk:": "🥛",
+		":globe_with_meridians:": "🌐",
+		":gloves:": "🧤",
+		":gm:": "🇬🇲",
+		":gn:": "🇬🇳",
+		":goal:": "🥅",
+		":goal_net:": "🥅",
+		":goat:": "🐐",
+		":goggles:": "🥽",
+		":golf:": "⛳",
+		":golfer:": "🏌",
+		":gorilla:": "🦍",
+		":gp:": "🇬🇵",
+		":gq:": "🇬🇶",
+		":gr:": "🇬🇷",
+		":grandma:": "👵",
+		":grapes:": "🍇",
+		":green_apple:": "🍏",
+		":green_book:": "📗",
+		":green_circle:": "🟢",
+		":green_heart:": "💚",
+		":green_salad:": "🥗",
+		":green_square:": "🟩",
+		":grey_exclamation:": "❕",
+		":grey_question:": "❔",
+		":grimacing:": "😬",
+		":grin:": "😁",
+		":grinning:": "😀",
+		":gs:": "🇬🇸",
+		":gt:": "🇬🇹",
+		":gu:": "🇬🇺",
+		":guard:": "💂",
+		":guardsman:": "💂",
+		":guide_dog:": "🦮",
+		":guitar:": "🎸",
+		":gun:": "🔫",
+		":gw:": "🇬🇼",
+		":gy:": "🇬🇾",
+		":haircut:": "💇",
+		":hamburger:": "🍔",
+		":hammer:": "🔨",
+		":hammer_and_pick:": "⚒",
+		":hammer_and_wrench:": "🛠",
+		":hammer_pick:": "⚒",
+		":hamster:": "🐹",
+		":hand_splayed:": "🖐",
+		":handbag:": "👜",
+		":handball:": "🤾",
+		":handshake:": "🤝",
+		":hankey:": "💩",
+		":hash:": "#⃣",
+		":hatched_chick:": "🐥",
+		":hatching_chick:": "🐣",
+		":head_bandage:": "🤕",
+		":headphones:": "🎧",
+		":hear_no_evil:": "🙉",
+		":heart:": "❤",
+		":heart_decoration:": "💟",
+		":heart_exclamation:": "❣",
+		":heart_eyes:": "😍",
+		":heart_eyes_cat:": "😻",
+		":heartbeat:": "💓",
+		":heartpulse:": "💗",
+		":hearts:": "♥",
+		":heavy_check_mark:": "✔",
+		":heavy_division_sign:": "➗",
+		":heavy_dollar_sign:": "💲",
+		":heavy_minus_sign:": "➖",
+		":heavy_multiplication_x:": "✖",
+		":heavy_plus_sign:": "➕",
+		":hedgehog:": "🦔",
+		":helicopter:": "🚁",
+		":helmet_with_cross:": "⛑",
+		":herb:": "🌿",
+		":hibiscus:": "🌺",
+		":high_brightness:": "🔆",
+		":high_heel:": "👠",
+		":hiking_boot:": "🥾",
+		":hindu_temple:": "🛕",
+		":hippopotamus:": "🦛",
+		":hk:": "🇭🇰",
+		":hm:": "🇭🇲",
+		":hn:": "🇭🇳",
+		":hockey:": "🏒",
+		":hole:": "🕳",
+		":homes:": "🏘",
+		":honey_pot:": "🍯",
+		":horse:": "🐴",
+		":horse_racing:": "🏇",
+		":hospital:": "🏥",
+		":hot_dog:": "🌭",
+		":hot_face:": "🥵",
+		":hot_pepper:": "🌶",
+		":hotdog:": "🌭",
+		":hotel:": "🏨",
+		":hotsprings:": "♨",
+		":hourglass:": "⌛",
+		":hourglass_flowing_sand:": "⏳",
+		":house:": "🏠",
+		":house_abandoned:": "🏚",
+		":house_buildings:": "🏘",
+		":house_with_garden:": "🏡",
+		":hr:": "🇭🇷",
+		":ht:": "🇭🇹",
+		":hu:": "🇭🇺",
+		":hugging:": "🤗",
+		":hugging_face:": "🤗",
+		":hushed:": "😯",
+		":ic:": "🇮🇨",
+		":ice_cream:": "🍨",
+		":ice_cube:": "🧊",
+		":ice_skate:": "⛸",
+		":icecream:": "🍦",
+		":id:": "🆔",
+		":ideograph_advantage:": "🉐",
+		":ie:": "🇮🇪",
+		":il:": "🇮🇱",
+		":im:": "🇮🇲",
+		":imp:": "👿",
+		":in:": "🇮🇳",
+		":inbox_tray:": "📥",
+		":incoming_envelope:": "📨",
+		":indonesia:": "🇮🇩",
+		":infinity:": "♾",
+		":information_desk_person:": "💁",
+		":information_source:": "ℹ",
+		":innocent:": "😇",
+		":interrobang:": "⁉",
+		":io:": "🇮🇴",
+		":iphone:": "📱",
+		":iq:": "🇮🇶",
+		":ir:": "🇮🇷",
+		":is:": "🇮🇸",
+		":island:": "🏝",
+		":it:": "🇮🇹",
+		":izakaya_lantern:": "🏮",
+		":jack_o_lantern:": "🎃",
+		":japan:": "🗾",
+		":japanese_castle:": "🏯",
+		":japanese_goblin:": "👺",
+		":japanese_ogre:": "👹",
+		":je:": "🇯🇪",
+		":jeans:": "👖",
+		":jigsaw:": "🧩",
+		":jm:": "🇯🇲",
+		":jo:": "🇯🇴",
+		":joy:": "😂",
+		":joy_cat:": "😹",
+		":joystick:": "🕹",
+		":jp:": "🇯🇵",
+		":juggler:": "🤹",
+		":juggling:": "🤹",
+		":kaaba:": "🕋",
+		":kangaroo:": "🦘",
+		":karate_uniform:": "🥋",
+		":kayak:": "🛶",
+		":ke:": "🇰🇪",
+		":key2:": "🗝",
+		":key:": "🔑",
+		":keyboard:": "⌨",
+		":keycap_asterisk:": "*⃣",
+		":keycap_ten:": "🔟",
+		":kg:": "🇰🇬",
+		":kh:": "🇰🇭",
+		":ki:": "🇰🇮",
+		":kimono:": "👘",
+		":kiss:": "💋",
+		":kiss_mm:": "👨❤💋👨",
+		":kiss_woman_man:": "👩❤💋👨",
+		":kiss_ww:": "👩❤💋👩",
+		":kissing:": "😗",
+		":kissing_cat:": "😽",
+		":kissing_closed_eyes:": "😚",
+		":kissing_heart:": "😘",
+		":kissing_smiling_eyes:": "😙",
+		":kite:": "🪁",
+		":kiwi:": "🥝",
+		":kiwifruit:": "🥝",
+		":km:": "🇰🇲",
+		":kn:": "🇰🇳",
+		":knife:": "🔪",
+		":koala:": "🐨",
+		":koko:": "🈁",
+		":kp:": "🇰🇵",
+		":kr:": "🇰🇷",
+		":kw:": "🇰🇼",
+		":ky:": "🇰🇾",
+		":kz:": "🇰🇿",
+		":la:": "🇱🇦",
+		":lab_coat:": "🥼",
+		":label:": "🏷",
+		":lacrosse:": "🥍",
+		":large_blue_diamond:": "🔷",
+		":large_orange_diamond:": "🔶",
+		":last_quarter_moon:": "🌗",
+		":latin_cross:": "✝",
+		":laughing:": "😆",
+		":lb:": "🇱🇧",
+		":lc:": "🇱🇨",
+		":leafy_green:": "🥬",
+		":leaves:": "🍃",
+		":ledger:": "📒",
+		":left_facing_fist:": "🤛",
+		":left_fist:": "🤛",
+		":left_luggage:": "🛅",
+		":left_right_arrow:": "↔",
+		":left_speech_bubble:": "🗨",
+		":leg:": "🦵",
+		":lemon:": "🍋",
+		":leo:": "♌",
+		":leopard:": "🐆",
+		":level_slider:": "🎚",
+		":levitate:": "🕴",
+		":li:": "🇱🇮",
+		":liar:": "🤥",
+		":libra:": "♎",
+		":lifter:": "🏋",
+		":light_rail:": "🚈",
+		":link:": "🔗",
+		":linked_paperclips:": "🖇",
+		":lion:": "🦁",
+		":lion_face:": "🦁",
+		":lips:": "👄",
+		":lipstick:": "💄",
+		":lizard:": "🦎",
+		":lk:": "🇱🇰",
+		":llama:": "🦙",
+		":lobster:": "🦞",
+		":lock:": "🔒",
+		":lollipop:": "🍭",
+		":loop:": "➿",
+		":loud_sound:": "🔊",
+		":loudspeaker:": "📢",
+		":love_hotel:": "🏩",
+		":love_letter:": "💌",
+		":love_you_gesture:": "🤟",
+		":low_brightness:": "🔅",
+		":lower_left_crayon:": "🖍",
+		":lower_left_paintbrush:": "🖌",
+		":lr:": "🇱🇷",
+		":ls:": "🇱🇸",
+		":lt:": "🇱🇹",
+		":lu:": "🇱🇺",
+		":luggage:": "🧳",
+		":lv:": "🇱🇻",
+		":ly:": "🇱🇾",
+		":lying_face:": "🤥",
+		":m:": "Ⓜ",
+		":ma:": "🇲🇦",
+		":mag:": "🔍",
+		":mag_right:": "🔎",
+		":mage:": "🧙",
+		":magnet:": "🧲",
+		":mahjong:": "🀄",
+		":mailbox:": "📫",
+		":mailbox_closed:": "📪",
+		":mailbox_with_mail:": "📬",
+		":male_dancer:": "🕺",
+		":male_sign:": "♂",
+		":man:": "👨",
+		":man_artist:": "👨🎨",
+		":man_astronaut:": "👨🚀",
+		":man_bald:": "👨🦲",
+		":man_biking:": "🚴♂",
+		":man_bouncing_ball:": "⛹♂",
+		":man_bowing:": "🙇♂",
+		":man_cartwheeling:": "🤸♂",
+		":man_climbing:": "🧗♂",
+		":man_construction_worker:": "👷♂",
+		":man_cook:": "👨🍳",
+		":man_curly_haired:": "👨🦱",
+		":man_dancing:": "🕺",
+		":man_detective:": "🕵♂",
+		":man_elf:": "🧝♂",
+		":man_facepalming:": "🤦♂",
+		":man_factory_worker:": "👨🏭",
+		":man_fairy:": "🧚♂",
+		":man_farmer:": "👨🌾",
+		":man_firefighter:": "👨🚒",
+		":man_frowning:": "🙍♂",
+		":man_genie:": "🧞♂",
+		":man_gesturing_no:": "🙅♂",
+		":man_gesturing_ok:": "🙆♂",
+		":man_getting_haircut:": "💇♂",
+		":man_golfing:": "🏌♂",
+		":man_guard:": "💂♂",
+		":man_health_worker:": "👨⚕",
+		":man_in_tuxedo:": "🤵",
+		":man_judge:": "👨⚖",
+		":man_juggling:": "🤹♂",
+		":man_kneeling:": "🧎♂",
+		":man_lifting_weights:": "🏋♂",
+		":man_mage:": "🧙♂",
+		":man_mechanic:": "👨🔧",
+		":man_mountain_biking:": "🚵♂",
+		":man_office_worker:": "👨💼",
+		":man_pilot:": "👨✈",
+		":man_playing_handball:": "🤾♂",
+		":man_police_officer:": "👮♂",
+		":man_pouting:": "🙎♂",
+		":man_raising_hand:": "🙋♂",
+		":man_red_haired:": "👨🦰",
+		":man_rowing_boat:": "🚣♂",
+		":man_running:": "🏃♂",
+		":man_scientist:": "👨🔬",
+		":man_shrugging:": "🤷♂",
+		":man_singer:": "👨🎤",
+		":man_standing:": "🧍♂",
+		":man_student:": "👨🎓",
+		":man_superhero:": "🦸♂",
+		":man_supervillain:": "🦹♂",
+		":man_surfing:": "🏄♂",
+		":man_swimming:": "🏊♂",
+		":man_teacher:": "👨🏫",
+		":man_technologist:": "👨💻",
+		":man_tipping_hand:": "💁♂",
+		":man_vampire:": "🧛♂",
+		":man_walking:": "🚶♂",
+		":man_wearing_turban:": "👳♂",
+		":man_white_haired:": "👨🦳",
+		":man_with_turban:": "👳",
+		":man_zombie:": "🧟♂",
+		":mango:": "🥭",
+		":mans_shoe:": "👞",
+		":mantlepiece_clock:": "🕰",
+		":manual_wheelchair:": "🦽",
+		":map:": "🗺",
+		":maple_leaf:": "🍁",
+		":martial_arts_uniform:": "🥋",
+		":mask:": "😷",
+		":massage:": "💆",
+		":mate:": "🧉",
+		":mc:": "🇲🇨",
+		":md:": "🇲🇩",
+		":me:": "🇲🇪",
+		":meat_on_bone:": "🍖",
+		":mechanical_arm:": "🦾",
+		":mechanical_leg:": "🦿",
+		":medal:": "🏅",
+		":medical_symbol:": "⚕",
+		":mega:": "📣",
+		":melon:": "🍈",
+		":memo:": "📝",
+		":men_wrestling:": "🤼♂",
+		":menorah:": "🕎",
+		":mens:": "🚹",
+		":mermaid:": "🧜♀",
+		":merman:": "🧜♂",
+		":merperson:": "🧜",
+		":metal:": "🤘",
+		":metro:": "🚇",
+		":mf:": "🇲🇫",
+		":mg:": "🇲🇬",
+		":mh:": "🇲🇭",
+		":microbe:": "🦠",
+		":microphone2:": "🎙",
+		":microphone:": "🎤",
+		":microscope:": "🔬",
+		":middle_finger:": "🖕",
+		":military_medal:": "🎖",
+		":milk:": "🥛",
+		":milky_way:": "🌌",
+		":minibus:": "🚐",
+		":minidisc:": "💽",
+		":mk:": "🇲🇰",
+		":ml:": "🇲🇱",
+		":mm:": "🇲🇲",
+		":mn:": "🇲🇳",
+		":mo:": "🇲🇴",
+		":mobile_phone_off:": "📴",
+		":money_mouth:": "🤑",
+		":money_mouth_face:": "🤑",
+		":money_with_wings:": "💸",
+		":moneybag:": "💰",
+		":monkey:": "🐒",
+		":monkey_face:": "🐵",
+		":monorail:": "🚝",
+		":moon_cake:": "🥮",
+		":mortar_board:": "🎓",
+		":mosque:": "🕌",
+		":mosquito:": "🦟",
+		":mother_christmas:": "🤶",
+		":motor_scooter:": "🛵",
+		":motorbike:": "🛵",
+		":motorboat:": "🛥",
+		":motorcycle:": "🏍",
+		":motorized_wheelchair:": "🦼",
+		":motorway:": "🛣",
+		":mount_fuji:": "🗻",
+		":mountain:": "⛰",
+		":mountain_bicyclist:": "🚵",
+		":mountain_cableway:": "🚠",
+		":mountain_railway:": "🚞",
+		":mountain_snow:": "🏔",
+		":mouse2:": "🐁",
+		":mouse:": "🐭",
+		":mouse_three_button:": "🖱",
+		":movie_camera:": "🎥",
+		":moyai:": "🗿",
+		":mp:": "🇲🇵",
+		":mq:": "🇲🇶",
+		":mr:": "🇲🇷",
+		":mrs_claus:": "🤶",
+		":ms:": "🇲🇸",
+		":mt:": "🇲🇹",
+		":mu:": "🇲🇺",
+		":muscle:": "💪",
+		":mushroom:": "🍄",
+		":musical_keyboard:": "🎹",
+		":musical_note:": "🎵",
+		":musical_score:": "🎼",
+		":mute:": "🔇",
+		":mv:": "🇲🇻",
+		":mw:": "🇲🇼",
+		":mx:": "🇲🇽",
+		":my:": "🇲🇾",
+		":mz:": "🇲🇿",
+		":na:": "🇳🇦",
+		":nail_care:": "💅",
+		":name_badge:": "📛",
+		":national_park:": "🏞",
+		":nauseated_face:": "🤢",
+		":nazar_amulet:": "🧿",
+		":nc:": "🇳🇨",
+		":ne:": "🇳🇪",
+		":necktie:": "👔",
+		":nerd:": "🤓",
+		":nerd_face:": "🤓",
+		":neutral_face:": "😐",
+		":new:": "🆕",
+		":new_moon:": "🌑",
+		":newspaper2:": "🗞",
+		":newspaper:": "📰",
+		":next_track:": "⏭",
+		":nf:": "🇳🇫",
+		":ng:": "🆖",
+		":ni:": "🇳🇮",
+		":nigeria:": "🇳🇬",
+		":night_with_stars:": "🌃",
+		":nine:": "9⃣",
+		":nl:": "🇳🇱",
+		":no:": "🇳🇴",
+		":no_bell:": "🔕",
+		":no_bicycles:": "🚳",
+		":no_entry:": "⛔",
+		":no_entry_sign:": "🚫",
+		":no_good:": "🙅",
+		":no_mobile_phones:": "📵",
+		":no_mouth:": "😶",
+		":no_pedestrians:": "🚷",
+		":no_smoking:": "🚭",
+		":non-potable_water:": "🚱",
+		":nose:": "👃",
+		":notebook:": "📓",
+		":notepad_spiral:": "🗒",
+		":notes:": "🎶",
+		":np:": "🇳🇵",
+		":nr:": "🇳🇷",
+		":nu:": "🇳🇺",
+		":nut_and_bolt:": "🔩",
+		":nz:": "🇳🇿",
+		":o2:": "🅾",
+		":o:": "⭕",
+		":ocean:": "🌊",
+		":octagonal_sign:": "🛑",
+		":octopus:": "🐙",
+		":oden:": "🍢",
+		":office:": "🏢",
+		":oil:": "🛢",
+		":oil_drum:": "🛢",
+		":ok:": "🆗",
+		":ok_hand:": "👌",
+		":ok_woman:": "🙆",
+		":old_key:": "🗝",
+		":older_adult:": "🧓",
+		":older_man:": "👴",
+		":older_woman:": "👵",
+		":om:": "🇴🇲",
+		":om_symbol:": "🕉",
+		":on:": "🔛",
+		":oncoming_automobile:": "🚘",
+		":oncoming_bus:": "🚍",
+		":oncoming_police_car:": "🚔",
+		":oncoming_taxi:": "🚖",
+		":one:": "1⃣",
+		":one_piece_swimsuit:": "🩱",
+		":onion:": "🧅",
+		":open_file_folder:": "📂",
+		":open_hands:": "👐",
+		":open_mouth:": "😮",
+		":ophiuchus:": "⛎",
+		":orange_book:": "📙",
+		":orange_circle:": "🟠",
+		":orange_heart:": "🧡",
+		":orange_square:": "🟧",
+		":orangutan:": "🦧",
+		":orthodox_cross:": "☦",
+		":otter:": "🦦",
+		":outbox_tray:": "📤",
+		":owl:": "🦉",
+		":ox:": "🐂",
+		":oyster:": "🦪",
+		":pa:": "🇵🇦",
+		":package:": "📦",
+		":paella:": "🥘",
+		":page_facing_up:": "📄",
+		":page_with_curl:": "📃",
+		":pager:": "📟",
+		":paintbrush:": "🖌",
+		":palm_tree:": "🌴",
+		":palms_up_together:": "🤲",
+		":pancakes:": "🥞",
+		":panda_face:": "🐼",
+		":paperclip:": "📎",
+		":paperclips:": "🖇",
+		":parachute:": "🪂",
+		":park:": "🏞",
+		":parking:": "🅿",
+		":parrot:": "🦜",
+		":part_alternation_mark:": "〽",
+		":partly_sunny:": "⛅",
+		":partying_face:": "🥳",
+		":passenger_ship:": "🛳",
+		":passport_control:": "🛂",
+		":pause_button:": "⏸",
+		":paw_prints:": "🐾",
+		":pe:": "🇵🇪",
+		":peace:": "☮",
+		":peace_symbol:": "☮",
+		":peach:": "🍑",
+		":peacock:": "🦚",
+		":peanuts:": "🥜",
+		":pear:": "🍐",
+		":pen_ballpoint:": "🖊",
+		":pen_fountain:": "🖋",
+		":pencil2:": "✏",
+		":pencil:": "📝",
+		":penguin:": "🐧",
+		":pensive:": "😔",
+		":people_holding_hands:": "🧑🤝🧑",
+		":people_wrestling:": "🤼",
+		":performing_arts:": "🎭",
+		":persevere:": "😣",
+		":person_biking:": "🚴",
+		":person_bouncing_ball:": "⛹",
+		":person_bowing:": "🙇",
+		":person_climbing:": "🧗",
+		":person_doing_cartwheel:": "🤸",
+		":person_facepalming:": "🤦",
+		":person_fencing:": "🤺",
+		":person_frowning:": "🙍",
+		":person_gesturing_no:": "🙅",
+		":person_gesturing_ok:": "🙆",
+		":person_getting_haircut:": "💇",
+		":person_getting_massage:": "💆",
+		":person_golfing:": "🏌",
+		":person_juggling:": "🤹",
+		":person_kneeling:": "🧎",
+		":person_lifting_weights:": "🏋",
+		":person_mountain_biking:": "🚵",
+		":person_playing_handball:": "🤾",
+		":person_pouting:": "🙎",
+		":person_raising_hand:": "🙋",
+		":person_rowing_boat:": "🚣",
+		":person_running:": "🏃",
+		":person_shrugging:": "🤷",
+		":person_standing:": "🧍",
+		":person_surfing:": "🏄",
+		":person_swimming:": "🏊",
+		":person_tipping_hand:": "💁",
+		":person_walking:": "🚶",
+		":person_wearing_turban:": "👳",
+		":person_with_ball:": "⛹",
+		":petri_dish:": "🧫",
+		":pf:": "🇵🇫",
+		":pg:": "🇵🇬",
+		":ph:": "🇵🇭",
+		":pick:": "⛏",
+		":pie:": "🥧",
+		":pig2:": "🐖",
+		":pig:": "🐷",
+		":pig_nose:": "🐽",
+		":pill:": "💊",
+		":pinching_hand:": "🤏",
+		":pineapple:": "🍍",
+		":ping_pong:": "🏓",
+		":pirate_flag:": "🏴☠",
+		":pisces:": "♓",
+		":pizza:": "🍕",
+		":pk:": "🇵🇰",
+		":pl:": "🇵🇱",
+		":place_of_worship:": "🛐",
+		":play_pause:": "⏯",
+		":pleading_face:": "🥺",
+		":pm:": "🇵🇲",
+		":pn:": "🇵🇳",
+		":point_down:": "👇",
+		":point_left:": "👈",
+		":point_right:": "👉",
+		":point_up:": "☝",
+		":point_up_2:": "👆",
+		":police_car:": "🚓",
+		":police_officer:": "👮",
+		":poo:": "💩",
+		":poodle:": "🐩",
+		":poop:": "💩",
+		":popcorn:": "🍿",
+		":post_office:": "🏣",
+		":postal_horn:": "📯",
+		":postbox:": "📮",
+		":potable_water:": "🚰",
+		":potato:": "🥔",
+		":pouch:": "👝",
+		":poultry_leg:": "🍗",
+		":pound:": "💷",
+		":pound_symbol:": "#",
+		":pouting_cat:": "😾",
+		":pr:": "🇵🇷",
+		":pray:": "🙏",
+		":prayer_beads:": "📿",
+		":pregnant_woman:": "🤰",
+		":pretzel:": "🥨",
+		":previous_track:": "⏮",
+		":prince:": "🤴",
+		":princess:": "👸",
+		":printer:": "🖨",
+		":probing_cane:": "🦯",
+		":projector:": "📽",
+		":ps:": "🇵🇸",
+		":pt:": "🇵🇹",
+		":pudding:": "🍮",
+		":punch:": "👊",
+		":purple_circle:": "🟣",
+		":purple_heart:": "💜",
+		":purple_square:": "🟪",
+		":purse:": "👛",
+		":pushpin:": "📌",
+		":pw:": "🇵🇼",
+		":py:": "🇵🇾",
+		":qa:": "🇶🇦",
+		":question:": "❓",
+		":rabbit2:": "🐇",
+		":rabbit:": "🐰",
+		":raccoon:": "🦝",
+		":race_car:": "🏎",
+		":racehorse:": "🐎",
+		":racing_car:": "🏎",
+		":racing_motorcycle:": "🏍",
+		":radio:": "📻",
+		":radio_button:": "🔘",
+		":radioactive:": "☢",
+		":radioactive_sign:": "☢",
+		":rage:": "😡",
+		":railroad_track:": "🛤",
+		":railway_car:": "🚃",
+		":railway_track:": "🛤",
+		":rainbow:": "🌈",
+		":rainbow_flag:": "🏳🌈",
+		":raised_hand:": "✋",
+		":raised_hands:": "🙌",
+		":raising_hand:": "🙋",
+		":ram:": "🐏",
+		":ramen:": "🍜",
+		":rat:": "🐀",
+		":razor:": "🪒",
+		":re:": "🇷🇪",
+		":receipt:": "🧾",
+		":record_button:": "⏺",
+		":recycle:": "♻",
+		":red_car:": "🚗",
+		":red_circle:": "🔴",
+		":red_envelope:": "🧧",
+		":red_haired:": "🦰",
+		":red_square:": "🟥",
+		":registered:": "®",
+		":relaxed:": "☺",
+		":relieved:": "😌",
+		":reminder_ribbon:": "🎗",
+		":repeat:": "🔁",
+		":repeat_one:": "🔂",
+		":restroom:": "🚻",
+		":revolving_hearts:": "💞",
+		":rewind:": "⏪",
+		":rhino:": "🦏",
+		":rhinoceros:": "🦏",
+		":ribbon:": "🎀",
+		":rice:": "🍚",
+		":rice_ball:": "🍙",
+		":rice_cracker:": "🍘",
+		":rice_scene:": "🎑",
+		":right_anger_bubble:": "🗯",
+		":right_facing_fist:": "🤜",
+		":right_fist:": "🤜",
+		":ring:": "💍",
+		":ringed_planet:": "🪐",
+		":ro:": "🇷🇴",
+		":robot:": "🤖",
+		":robot_face:": "🤖",
+		":rocket:": "🚀",
+		":rofl:": "🤣",
+		":roll_of_paper:": "🧻",
+		":rolled_up_newspaper:": "🗞",
+		":roller_coaster:": "🎢",
+		":rolling_eyes:": "🙄",
+		":rooster:": "🐓",
+		":rose:": "🌹",
+		":rosette:": "🏵",
+		":rotating_light:": "🚨",
+		":round_pushpin:": "📍",
+		":rowboat:": "🚣",
+		":rs:": "🇷🇸",
+		":ru:": "🇷🇺",
+		":rugby_football:": "🏉",
+		":runner:": "🏃",
+		":rw:": "🇷🇼",
+		":sa:": "🈂",
+		":safety_pin:": "🧷",
+		":safety_vest:": "🦺",
+		":sagittarius:": "♐",
+		":sailboat:": "⛵",
+		":sake:": "🍶",
+		":salad:": "🥗",
+		":salt:": "🧂",
+		":sandal:": "👡",
+		":sandwich:": "🥪",
+		":santa:": "🎅",
+		":sari:": "🥻",
+		":satellite:": "📡",
+		":satellite_orbital:": "🛰",
+		":satisfied:": "😆",
+		":saudi:": "🇸🇦",
+		":saudiarabia:": "🇸🇦",
+		":sauropod:": "🦕",
+		":saxophone:": "🎷",
+		":sb:": "🇸🇧",
+		":sc:": "🇸🇨",
+		":scales:": "⚖",
+		":scarf:": "🧣",
+		":school:": "🏫",
+		":school_satchel:": "🎒",
+		":scissors:": "✂",
+		":scooter:": "🛴",
+		":scorpion:": "🦂",
+		":scorpius:": "♏",
+		":scotland:": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+		":scream:": "😱",
+		":scream_cat:": "🙀",
+		":scroll:": "📜",
+		":sd:": "🇸🇩",
+		":se:": "🇸🇪",
+		":seat:": "💺",
+		":second_place:": "🥈",
+		":second_place_medal:": "🥈",
+		":secret:": "㊙",
+		":see_no_evil:": "🙈",
+		":seedling:": "🌱",
+		":selfie:": "🤳",
+		":service_dog:": "🐕🦺",
+		":seven:": "7⃣",
+		":sg:": "🇸🇬",
+		":sh:": "🇸🇭",
+		":shaking_hands:": "🤝",
+		":shamrock:": "☘",
+		":shark:": "🦈",
+		":shaved_ice:": "🍧",
+		":sheep:": "🐑",
+		":shell:": "🐚",
+		":shelled_peanut:": "🥜",
+		":shield:": "🛡",
+		":shinto_shrine:": "⛩",
+		":ship:": "🚢",
+		":shirt:": "👕",
+		":shit:": "💩",
+		":shopping_bags:": "🛍",
+		":shopping_cart:": "🛒",
+		":shopping_trolley:": "🛒",
+		":shorts:": "🩳",
+		":shower:": "🚿",
+		":shrimp:": "🦐",
+		":shrug:": "🤷",
+		":shushing_face:": "🤫",
+		":si:": "🇸🇮",
+		":sick:": "🤢",
+		":signal_strength:": "📶",
+		":six:": "6⃣",
+		":six_pointed_star:": "🔯",
+		":sj:": "🇸🇯",
+		":sk:": "🇸🇰",
+		":skateboard:": "🛹",
+		":skeleton:": "💀",
+		":ski:": "🎿",
+		":skier:": "⛷",
+		":skull:": "💀",
+		":skull_and_crossbones:": "☠",
+		":skull_crossbones:": "☠",
+		":skunk:": "🦨",
+		":sl:": "🇸🇱",
+		":sled:": "🛷",
+		":sleeping:": "😴",
+		":sleeping_accommodation:": "🛌",
+		":sleepy:": "😪",
+		":sleuth_or_spy:": "🕵",
+		":slight_frown:": "🙁",
+		":slight_smile:": "🙂",
+		":slightly_frowning_face:": "🙁",
+		":slightly_smiling_face:": "🙂",
+		":slot_machine:": "🎰",
+		":sloth:": "🦥",
+		":sm:": "🇸🇲",
+		":small_airplane:": "🛩",
+		":small_blue_diamond:": "🔹",
+		":small_orange_diamond:": "🔸",
+		":small_red_triangle:": "🔺",
+		":smile:": "😄",
+		":smile_cat:": "😸",
+		":smiley:": "😃",
+		":smiley_cat:": "😺",
+		":smiling_imp:": "😈",
+		":smirk:": "😏",
+		":smirk_cat:": "😼",
+		":smoking:": "🚬",
+		":sn:": "🇸🇳",
+		":snail:": "🐌",
+		":snake:": "🐍",
+		":sneeze:": "🤧",
+		":sneezing_face:": "🤧",
+		":snow_capped_mountain:": "🏔",
+		":snowboarder:": "🏂",
+		":snowflake:": "❄",
+		":snowman2:": "☃",
+		":snowman:": "⛄",
+		":so:": "🇸🇴",
+		":soap:": "🧼",
+		":sob:": "😭",
+		":soccer:": "⚽",
+		":socks:": "🧦",
+		":softball:": "🥎",
+		":soon:": "🔜",
+		":sos:": "🆘",
+		":sound:": "🔉",
+		":space_invader:": "👾",
+		":spades:": "♠",
+		":spaghetti:": "🍝",
+		":sparkle:": "❇",
+		":sparkler:": "🎇",
+		":sparkles:": "✨",
+		":sparkling_heart:": "💖",
+		":speak_no_evil:": "🙊",
+		":speaker:": "🔈",
+		":speaking_head:": "🗣",
+		":speech_balloon:": "💬",
+		":speech_left:": "🗨",
+		":speedboat:": "🚤",
+		":spider:": "🕷",
+		":spider_web:": "🕸",
+		":spiral_calendar_pad:": "🗓",
+		":spiral_note_pad:": "🗒",
+		":sponge:": "🧽",
+		":spoon:": "🥄",
+		":sports_medal:": "🏅",
+		":spy:": "🕵",
+		":squeeze_bottle:": "🧴",
+		":squid:": "🦑",
+		":sr:": "🇸🇷",
+		":ss:": "🇸🇸",
+		":st:": "🇸🇹",
+		":stadium:": "🏟",
+		":star2:": "🌟",
+		":star:": "⭐",
+		":star_and_crescent:": "☪",
+		":star_of_david:": "✡",
+		":star_struck:": "🤩",
+		":stars:": "🌠",
+		":station:": "🚉",
+		":statue_of_liberty:": "🗽",
+		":steam_locomotive:": "🚂",
+		":stethoscope:": "🩺",
+		":stew:": "🍲",
+		":stop_button:": "⏹",
+		":stop_sign:": "🛑",
+		":stopwatch:": "⏱",
+		":straight_ruler:": "📏",
+		":strawberry:": "🍓",
+		":stuck_out_tongue:": "😛",
+		":studio_microphone:": "🎙",
+		":stuffed_flatbread:": "🥙",
+		":stuffed_pita:": "🥙",
+		":sun_with_face:": "🌞",
+		":sunflower:": "🌻",
+		":sunglasses:": "😎",
+		":sunny:": "☀",
+		":sunrise:": "🌅",
+		":sunrise_over_mountains:": "🌄",
+		":superhero:": "🦸",
+		":supervillain:": "🦹",
+		":surfer:": "🏄",
+		":sushi:": "🍣",
+		":suspension_railway:": "🚟",
+		":sv:": "🇸🇻",
+		":swan:": "🦢",
+		":sweat:": "😓",
+		":sweat_drops:": "💦",
+		":sweat_smile:": "😅",
+		":sweet_potato:": "🍠",
+		":swimmer:": "🏊",
+		":sx:": "🇸🇽",
+		":sy:": "🇸🇾",
+		":symbols:": "🔣",
+		":synagogue:": "🕍",
+		":syringe:": "💉",
+		":sz:": "🇸🇿",
+		":t_rex:": "🦖",
+		":ta:": "🇹🇦",
+		":table_tennis:": "🏓",
+		":taco:": "🌮",
+		":tada:": "🎉",
+		":takeout_box:": "🥡",
+		":tanabata_tree:": "🎋",
+		":tangerine:": "🍊",
+		":taurus:": "♉",
+		":taxi:": "🚕",
+		":tc:": "🇹🇨",
+		":td:": "🇹🇩",
+		":tea:": "🍵",
+		":teddy_bear:": "🧸",
+		":telephone:": "☎",
+		":telephone_receiver:": "📞",
+		":telescope:": "🔭",
+		":tennis:": "🎾",
+		":tent:": "⛺",
+		":test_tube:": "🧪",
+		":tf:": "🇹🇫",
+		":tg:": "🇹🇬",
+		":th:": "🇹🇭",
+		":thermometer:": "🌡",
+		":thermometer_face:": "🤒",
+		":thinking:": "🤔",
+		":thinking_face:": "🤔",
+		":third_place:": "🥉",
+		":third_place_medal:": "🥉",
+		":thought_balloon:": "💭",
+		":thread:": "🧵",
+		":three:": "3⃣",
+		":three_button_mouse:": "🖱",
+		":thumbdown:": "👎",
+		":thumbsdown:": "👎",
+		":thumbsup:": "👍",
+		":thumbup:": "👍",
+		":thunder_cloud_rain:": "⛈",
+		":ticket:": "🎫",
+		":tickets:": "🎟",
+		":tiger2:": "🐅",
+		":tiger:": "🐯",
+		":timer:": "⏲",
+		":timer_clock:": "⏲",
+		":tired_face:": "😫",
+		":tj:": "🇹🇯",
+		":tk:": "🇹🇰",
+		":tl:": "🇹🇱",
+		":tm:": "™",
+		":tn:": "🇹🇳",
+		":to:": "🇹🇴",
+		":toilet:": "🚽",
+		":tokyo_tower:": "🗼",
+		":tomato:": "🍅",
+		":tongue:": "👅",
+		":toolbox:": "🧰",
+		":tools:": "🛠",
+		":tooth:": "🦷",
+		":top:": "🔝",
+		":tophat:": "🎩",
+		":tr:": "🇹🇷",
+		":track_next:": "⏭",
+		":track_previous:": "⏮",
+		":trackball:": "🖲",
+		":tractor:": "🚜",
+		":traffic_light:": "🚥",
+		":train2:": "🚆",
+		":train:": "🚋",
+		":tram:": "🚊",
+		":triangular_ruler:": "📐",
+		":trident:": "🔱",
+		":triumph:": "😤",
+		":trolleybus:": "🚎",
+		":trophy:": "🏆",
+		":tropical_drink:": "🍹",
+		":tropical_fish:": "🐠",
+		":truck:": "🚚",
+		":trumpet:": "🎺",
+		":tt:": "🇹🇹",
+		":tulip:": "🌷",
+		":tumbler_glass:": "🥃",
+		":turkey:": "🦃",
+		":turkmenistan:": "🇹🇲",
+		":turtle:": "🐢",
+		":tuvalu:": "🇹🇻",
+		":tv:": "📺",
+		":tw:": "🇹🇼",
+		":twisted_rightwards_arrows:": "🔀",
+		":two:": "2⃣",
+		":two_hearts:": "💕",
+		":tz:": "🇹🇿",
+		":u5272:": "🈹",
+		":u5408:": "🈴",
+		":u55b6:": "🈺",
+		":u6307:": "🈯",
+		":u6708:": "🈷",
+		":u6709:": "🈶",
+		":u6e80:": "🈵",
+		":u7121:": "🈚",
+		":u7533:": "🈸",
+		":u7981:": "🈲",
+		":u7a7a:": "🈳",
+		":ua:": "🇺🇦",
+		":ug:": "🇺🇬",
+		":um:": "🇺🇲",
+		":umbrella2:": "☂",
+		":umbrella:": "☔",
+		":umbrella_on_ground:": "⛱",
+		":unamused:": "😒",
+		":underage:": "🔞",
+		":unicorn:": "🦄",
+		":unicorn_face:": "🦄",
+		":united_nations:": "🇺🇳",
+		":unlock:": "🔓",
+		":up:": "🆙",
+		":upside_down:": "🙃",
+		":upside_down_face:": "🙃",
+		":urn:": "⚱",
+		":us:": "🇺🇸",
+		":uy:": "🇺🇾",
+		":uz:": "🇺🇿",
+		":v:": "✌",
+		":va:": "🇻🇦",
+		":vampire:": "🧛",
+		":vc:": "🇻🇨",
+		":ve:": "🇻🇪",
+		":vertical_traffic_light:": "🚦",
+		":vg:": "🇻🇬",
+		":vhs:": "📼",
+		":vi:": "🇻🇮",
+		":vibration_mode:": "📳",
+		":video_camera:": "📹",
+		":video_game:": "🎮",
+		":violin:": "🎻",
+		":virgo:": "♍",
+		":vn:": "🇻🇳",
+		":volcano:": "🌋",
+		":volleyball:": "🏐",
+		":vs:": "🆚",
+		":vu:": "🇻🇺",
+		":vulcan:": "🖖",
+		":waffle:": "🧇",
+		":wales:": "🏴󠁧󠁢󠁷󠁬󠁳󠁿",
+		":walking:": "🚶",
+		":waning_crescent_moon:": "🌘",
+		":waning_gibbous_moon:": "🌖",
+		":warning:": "⚠",
+		":wastebasket:": "🗑",
+		":watch:": "⌚",
+		":water_buffalo:": "🐃",
+		":water_polo:": "🤽",
+		":watermelon:": "🍉",
+		":wave:": "👋",
+		":waving_black_flag:": "🏴",
+		":waving_white_flag:": "🏳",
+		":wavy_dash:": "〰",
+		":waxing_crescent_moon:": "🌒",
+		":waxing_gibbous_moon:": "🌔",
+		":wc:": "🚾",
+		":weary:": "😩",
+		":wedding:": "💒",
+		":weight_lifter:": "🏋",
+		":wf:": "🇼🇫",
+		":whale2:": "🐋",
+		":whale:": "🐳",
+		":wheel_of_dharma:": "☸",
+		":wheelchair:": "♿",
+		":whisky:": "🥃",
+		":white_check_mark:": "✅",
+		":white_circle:": "⚪",
+		":white_flower:": "💮",
+		":white_frowning_face:": "☹",
+		":white_haired:": "🦳",
+		":white_heart:": "🤍",
+		":white_large_square:": "⬜",
+		":white_medium_square:": "◻",
+		":white_small_square:": "▫",
+		":white_square_button:": "🔳",
+		":white_sun_cloud:": "🌥",
+		":wilted_flower:": "🥀",
+		":wilted_rose:": "🥀",
+		":wind_blowing_face:": "🌬",
+		":wind_chime:": "🎐",
+		":wine_glass:": "🍷",
+		":wink:": "😉",
+		":wolf:": "🐺",
+		":woman:": "👩",
+		":woman_artist:": "👩🎨",
+		":woman_astronaut:": "👩🚀",
+		":woman_bald:": "👩🦲",
+		":woman_biking:": "🚴♀",
+		":woman_bouncing_ball:": "⛹♀",
+		":woman_bowing:": "🙇♀",
+		":woman_cartwheeling:": "🤸♀",
+		":woman_climbing:": "🧗♀",
+		":woman_construction_worker:": "👷♀",
+		":woman_cook:": "👩🍳",
+		":woman_curly_haired:": "👩🦱",
+		":woman_detective:": "🕵♀",
+		":woman_elf:": "🧝♀",
+		":woman_facepalming:": "🤦♀",
+		":woman_factory_worker:": "👩🏭",
+		":woman_fairy:": "🧚♀",
+		":woman_farmer:": "👩🌾",
+		":woman_firefighter:": "👩🚒",
+		":woman_frowning:": "🙍♀",
+		":woman_genie:": "🧞♀",
+		":woman_gesturing_no:": "🙅♀",
+		":woman_gesturing_ok:": "🙆♀",
+		":woman_getting_haircut:": "💇♀",
+		":woman_golfing:": "🏌♀",
+		":woman_guard:": "💂♀",
+		":woman_health_worker:": "👩⚕",
+		":woman_judge:": "👩⚖",
+		":woman_juggling:": "🤹♀",
+		":woman_kneeling:": "🧎♀",
+		":woman_lifting_weights:": "🏋♀",
+		":woman_mage:": "🧙♀",
+		":woman_mechanic:": "👩🔧",
+		":woman_mountain_biking:": "🚵♀",
+		":woman_office_worker:": "👩💼",
+		":woman_pilot:": "👩✈",
+		":woman_playing_handball:": "🤾♀",
+		":woman_police_officer:": "👮♀",
+		":woman_pouting:": "🙎♀",
+		":woman_raising_hand:": "🙋♀",
+		":woman_red_haired:": "👩🦰",
+		":woman_rowing_boat:": "🚣♀",
+		":woman_running:": "🏃♀",
+		":woman_scientist:": "👩🔬",
+		":woman_shrugging:": "🤷♀",
+		":woman_singer:": "👩🎤",
+		":woman_standing:": "🧍♀",
+		":woman_student:": "👩🎓",
+		":woman_superhero:": "🦸♀",
+		":woman_supervillain:": "🦹♀",
+		":woman_surfing:": "🏄♀",
+		":woman_swimming:": "🏊♀",
+		":woman_teacher:": "👩🏫",
+		":woman_technologist:": "👩💻",
+		":woman_tipping_hand:": "💁♀",
+		":woman_vampire:": "🧛♀",
+		":woman_walking:": "🚶♀",
+		":woman_wearing_turban:": "👳♀",
+		":woman_white_haired:": "👩🦳",
+		":woman_with_headscarf:": "🧕",
+		":woman_zombie:": "🧟♀",
+		":womans_clothes:": "👚",
+		":womans_flat_shoe:": "🥿",
+		":womans_hat:": "👒",
+		":women_wrestling:": "🤼♀",
+		":womens:": "🚺",
+		":woozy_face:": "🥴",
+		":world_map:": "🗺",
+		":worried:": "😟",
+		":worship_symbol:": "🛐",
+		":wrench:": "🔧",
+		":wrestlers:": "🤼",
+		":wrestling:": "🤼",
+		":writing_hand:": "✍",
+		":ws:": "🇼🇸",
+		":x:": "❌",
+		":xk:": "🇽🇰",
+		":yarn:": "🧶",
+		":yawning_face:": "🥱",
+		":ye:": "🇾🇪",
+		":yellow_circle:": "🟡",
+		":yellow_heart:": "💛",
+		":yellow_square:": "🟨",
+		":yen:": "💴",
+		":yin_yang:": "☯",
+		":yo_yo:": "🪀",
+		":yt:": "🇾🇹",
+		":yum:": "😋",
+		":za:": "🇿🇦",
+		":zany_face:": "🤪",
+		":zap:": "⚡",
+		":zebra:": "🦓",
+		":zero:": "0⃣",
+		":zipper_mouth:": "🤐",
+		":zipper_mouth_face:": "🤐",
+		":zm:": "🇿🇲",
+		":zombie:": "🧟",
+		":zw:": "🇿🇼",
+		":zzz:": "💤"
+	};
 
 	const constructorsTracked = [Object, Array, Map, Set, undefined /** Object.create(null) */];
 
@@ -3696,7 +6396,7 @@
 	 * @param {any} target
 	 */
 	const isMutationBlacklisted = target => constructorsBlacklist.has(target.constructor) || isGeneratorFunction(target);
-	const constructorsBlacklist = new Set(Object.getOwnPropertyNames(window).map(value => window[value]));
+	const constructorsBlacklist = new Set(Object.getOwnPropertyNames(window$1).map(value => window$1[value]));
 	constructorsTracked.forEach(value => constructorsBlacklist.delete(value));
 	const prototypeBlacklist = new Set([...constructorsTracked, ...constructorsBlacklist]);
 
@@ -3721,9 +6421,9 @@
 	/**
 	 * It returns all property descriptors for `target`.
 	 *
-	 * It checks for getters/setters of the prototype chain. The idea is that if the
-	 * prototype provides some getters/setters, then, we should be able to track
-	 * them too.
+	 * It checks for getters/setters of the prototype chain. The idea is
+	 * that if the prototype provides some getters/setters, then, we
+	 * should be able to track them too.
 	 */
 	function getPropertyDescriptors(target) {
 	  // blacklisted by default
@@ -3754,13 +6454,13 @@
 
 	/**
 	 * Returns a tracker for an object. A tracker is unique per object,
-	 * always the same tracker for the same object. Uses null-proto
-	 * object storage — number keys coerce to strings (matches array
-	 * index semantics).
+	 * always the same tracker for the same object. Uses null-proto object
+	 * storage — number keys coerce to strings (matches array index
+	 * semantics).
 	 *
 	 * For handler-private trackers that need identity-keyed storage
-	 * (Map/Set per-key reactivity), instantiate directly via
-	 * `new Track(true)`.
+	 * (Map/Set per-key reactivity), instantiate directly via `new
+	 * Track(true)`.
 	 *
 	 * @template T
 	 * @param {T} target
@@ -3795,9 +6495,9 @@
 	 * Track class — per-key reactive signal store.
 	 *
 	 * Use the `tracker(target)` factory for trackers memoized per target
-	 * (typical case: main proxy tracker). Instantiate directly via
-	 * `new Track(identity)` when the tracker is handler-private and
-	 * should NOT be memoized — e.g. Map/Set's `trackSlot`.
+	 * (typical case: main proxy tracker). Instantiate directly via `new
+	 * Track(identity)` when the tracker is handler-private and should NOT
+	 * be memoized — e.g. Map/Set's `trackSlot`.
 	 */
 	class Track {
 	  // id = Date.now()
@@ -3807,9 +6507,9 @@
 	   *
 	   * - Default (`isIdentity=false`): null-proto object. Numbers
 	   *   auto-coerce to strings, matching array index semantics.
-	   * - Identity (`isIdentity=true`): `Map`. Keys preserved by
-	   *   identity — required for Map/Set where object keys,
-	   *   number-vs-string, and boolean-vs-string distinctions matter.
+	   * - Identity (`isIdentity=true`): `Map`. Keys preserved by identity —
+	   *   required for Map/Set where object keys, number-vs-string, and
+	   *   boolean-vs-string distinctions matter.
 	   */
 	  #props;
 	  isIdentity;
@@ -4862,11 +7562,11 @@
 
 	/**
 	 * Proxy for Maps. Per-key `has` / `get` tracking goes through
-	 * `trackSlot` (the shared `Track` keys the #props Map by identity,
-	 * so object keys are tracked precisely). Iteration methods
-	 * (`forEach`, `keys`, `values`, `entries`) subscribe to the coarse
-	 * `valuesRead` / `keysRead` sentinels, plus per-key subscriptions at
-	 * each yield so partial iteration via `break` remains reactive.
+	 * `trackSlot` (the shared `Track` keys the #props Map by identity, so
+	 * object keys are tracked precisely). Iteration methods (`forEach`,
+	 * `keys`, `values`, `entries`) subscribe to the coarse `valuesRead` /
+	 * `keysRead` sentinels, plus per-key subscriptions at each yield so
+	 * partial iteration via `break` remains reactive.
 	 */
 	class ProxyHandlerMap extends ProxyHandlerObject {
 	  // type = 'Map'
@@ -5000,8 +7700,8 @@
 	/**
 	 * Proxy for Sets. Per-value `has` tracking goes through `trackSlot`
 	 * (the shared `Track` keys the #props Map by identity). Iteration
-	 * (`forEach`, `values`, etc.) subscribes to the coarse
-	 * `valuesRead()` sentinel.
+	 * (`forEach`, `values`, etc.) subscribes to the coarse `valuesRead()`
+	 * sentinel.
 	 */
 	class ProxyHandlerSet extends ProxyHandlerObject {
 	  // type = 'Set'
@@ -5407,58 +8107,28 @@
 	const getKeys = (keys, id) => undefined;
 
 	/**
-	 * Scrolls to an element
+	 * Provides a fallback till children promises resolve (recursively)
 	 *
-	 * @param {Element} item - Element to scroll to
+	 * @type {FlowComponent<{ fallback?: JSX.Element }>}
+	 * @url https://pota.quack.uy/Components/Suspense
 	 */
-	function scrollToElement(item) {
-	  /** Scroll children of element to the top */
-	  item.scrollTop = 0;
-
-	  /** Scroll to element */
-	  item.scrollIntoView(true);
-	}
-
-	/** Scrolls to `window.location.hash` */
-	const scrollToLocationHash = () => scrollToSelector(location$2.hash);
-
-	/**
-	 * Scrolls to element that matches the hash
-	 *
-	 * @param {string} selector - Hash to scroll to
-	 * @returns {boolean} True on success
-	 */
-	function scrollToSelector(selector) {
-	  if (selector) {
-	    try {
-	      // selector could be invalid
-	      const item = querySelector(document$1, selector);
-	      if (item) {
-	        scrollToElement(item);
-	        return true;
-	      }
-	    } catch (e) {}
-	  }
-	  return false;
-	}
-
-	/**
-	 * Scrolls to hash and in case isnt found it scrolls to the top
-	 *
-	 * @param {string} selector - Hash to scroll to
-	 */
-	function scrollToSelectorWithFallback(selector) {
-	  if (!scrollToSelector(selector)) scrollToTop();
-	}
-
-	/** Scrolls to the top of the window */
-	const scrollToTop = () => window.scrollTo({
-	  top: 0,
-	  behavior: 'auto'
+	const Suspense = props => useSuspense(new createSuspenseContext(), () => {
+	  const children = toHTMLFragment(props.children);
+	  const context = useSuspense();
+	  // for when `Suspense` was used with children that dont have promises
+	  return context.isEmpty() ? children : memo(() => context.s.read() ? children : props.fallback);
 	});
 
+	/**
+	 * Trims trailing punctuation that often appears in copied links.
+	 *
+	 * @param {string} v
+	 * @returns {string}
+	 */
+	const cleanLink = v => v.replace(/[\.,"]$/, '');
+
 	/** Re-export of the platform `encodeURIComponent`. */
-	const encodeURIComponent = window.encodeURIComponent;
+	const encodeURIComponent = window$1.encodeURIComponent;
 
 	/**
 	 * Safe guard. `decodeURIComponent` will fail with malformed strings:
@@ -5528,6 +8198,543 @@
 	params[b] !== undefined ? encodeURIComponent(params[b]) : a) : href;
 
 	/**
+	 * Audio player. `scroll` fires once the resource is playable, so the
+	 * surrounding layout can scroll it into view.
+	 *
+	 * @type {Component<{ url: string; scroll?: () => void }>}
+	 */
+	const Audio = props => Component('audio', {
+	  controls: true,
+	  src: cleanLink(props.url),
+	  title: props.url,
+	  'on:canplay': props.scroll,
+	  children: Component('source', {
+	    src: cleanLink(props.url)
+	  })
+	});
+
+	/**
+	 * Anchor with same-origin detection. Off-origin links open in a new
+	 * tab; explicit `blank` forces it.
+	 *
+	 * @type {Component<{
+	 * 	url: string
+	 * 	blank?: boolean
+	 * 	children?: JSX.Element
+	 * }>}
+	 */
+	const Link = props => Component('a', {
+	  href: cleanLink(props.url),
+	  title: props.url,
+	  target: props.blank || props.url.indexOf(window.location.protocol + '//' + window.location.host + '/') !== 0 ? '_blank' : undefined,
+	  rel: 'noopener external',
+	  children: props.children || props.url
+	});
+
+	/**
+	 * Image wrapped in a new-tab link to the source. `scroll` fires once
+	 * the image has loaded.
+	 *
+	 * @type {Component<{ url: string; scroll?: () => void }>}
+	 */
+	const Image = props => Component(Link, {
+	  url: props.url,
+	  blank: true,
+	  children: Component('img', {
+	    src: cleanLink(props.url),
+	    alt: '',
+	    title: props.url,
+	    'on:load': props.scroll
+	  })
+	});
+
+	/**
+	 * Inline-autoplay muted video, wrapped in a new-tab link to the
+	 * source. `scroll` fires once the video is playable.
+	 *
+	 * @type {Component<{ url: string; scroll?: () => void }>}
+	 */
+	const Video = props => Component(Link, {
+	  url: props.url,
+	  blank: true,
+	  children: Component('video', {
+	    loop: true,
+	    autoplay: true,
+	    muted: true,
+	    src: cleanLink(props.url),
+	    title: props.url,
+	    'on:canplay': props.scroll,
+	    children: Component('source', {
+	      src: cleanLink(props.url)
+	    })
+	  })
+	});
+
+	/**
+	 * Wraps a `data:`-URI in an object URL so the renderer hands native
+	 * media elements something compact. The object URL is revoked when
+	 * the surrounding scope tears down.
+	 *
+	 * @param {string} url
+	 */
+	function toObjectURL(url) {
+	  const link = mutable({
+	    url
+	  });
+	  /** @type {string | undefined} */
+	  let objectURL;
+	  fetch(url).then(r => r.blob()).then(blob => {
+	    objectURL = URL.createObjectURL(blob);
+	    link.url = objectURL;
+	  });
+	  cleanup(() => {
+	    if (objectURL) URL.revokeObjectURL(objectURL);
+	  });
+	  return link;
+	}
+
+	/**
+	 * Fallback path for `guessType`: HEAD/GET the URL to learn its
+	 * Content-Type, then re-enter `<Media>` with the resolved `type`.
+	 *
+	 * @param {string} url
+	 * @param {(() => void) | undefined} scroll
+	 */
+	async function toMediaLink(url, scroll) {
+	  const res = await fetch(url, {
+	    method: url.indexOf('blob:') === 0 ? 'GET' : 'HEAD'
+	  });
+	  const contentType = res.headers.get('Content-Type') ?? undefined;
+	  return Component(Media, {
+	    url,
+	    scroll,
+	    type: contentType
+	  });
+	}
+
+	/**
+	 * Routes a URL to the right media renderer. `data:` URIs are first
+	 * converted to object URLs (avoids gigantic `src` attributes). When
+	 * the extension is ambiguous and `guessType` is set, a `<Suspense>`
+	 * boundary fetches the Content-Type and re-routes.
+	 *
+	 * @type {Component<{
+	 * 	url: string
+	 * 	scroll?: () => void
+	 * 	type?: string
+	 * 	guessType?: boolean
+	 * }>}
+	 */
+	function Media(props) {
+	  const url = props.url;
+	  if (/^data:video\/(webm|mp4|mpg|ogv);base64/.test(url)) {
+	    const link = toObjectURL(url);
+	    return Component(Video, {
+	      url: link.url,
+	      scroll: props.scroll
+	    });
+	  }
+	  if (/^data:audio\/(wav|mp3|m4a|ogg|oga|opus);base64/.test(url)) {
+	    const link = toObjectURL(url);
+	    return Component(Audio, {
+	      url: link.url,
+	      scroll: props.scroll
+	    });
+	  }
+	  if (/^data:image\/(png|apng|jpg|jpeg|gif|svg|webp);base64/.test(url)) {
+	    const link = toObjectURL(url);
+	    return Component(Image, {
+	      url: link.url,
+	      scroll: props.scroll
+	    });
+	  }
+	  if (/^data:/.test(url)) {
+	    const link = toObjectURL(url);
+	    return Component(Link, {
+	      url: link.url
+	    });
+	  }
+	  if (/[\.\/](webm|mp4|mpg|ogv)/gi.test(props.type || url)) {
+	    return Component(Video, {
+	      url,
+	      scroll: props.scroll
+	    });
+	  }
+	  if (/[\.\/](wav|mp3|m4a|ogg|oga|opus)/gi.test(props.type || url)) {
+	    return Component(Audio, {
+	      url,
+	      scroll: props.scroll
+	    });
+	  }
+	  if (/[\.\/](png|apng|jpg|jpeg|gif|svg|webp)/gi.test(props.type || url)) {
+	    return Component(Image, {
+	      url,
+	      scroll: props.scroll
+	    });
+	  }
+	  if (props.type) {
+	    // `type` was set, so type-guessing already ran — render nothing
+	    // rather than recursing.
+	    return;
+	  }
+	  if (props.guessType && /^[^/]+\/\/[^/]+\/.+/.test(url)) {
+	    // Skip path-less URLs (origin-only). Show the link immediately
+	    // and swap to the resolved media once the HEAD/GET returns.
+	    return Component(Suspense, {
+	      fallback: Component(Link, {
+	        url
+	      }),
+	      children: () => toMediaLink(url, props.scroll)
+	    });
+	  }
+	  return Component(Link, {
+	    url
+	  });
+	}
+
+	/**
+	 * Inline-format parser. Produces a tree the renderer can walk to
+	 * assemble JSX. Pure logic — no DOM or JSX deps, so this file is
+	 * unit-testable.
+	 *
+	 * Markers (`*bold*`, `/italic/`, `_under_`, `-strike-`, `|spoiler|`,
+	 * `code`) nest freely except ```, which is atomic — its body stays
+	 * literal so the renderer can copy it verbatim.
+	 *
+	 * @typedef {{ kind: 'text'; s: string } | { kind: 'atom'; name:
+	 * string; s: string } | { kind: 'tag'; name: string; children: Node[]
+	 * }} Node
+	 */
+
+	/**
+	 * Tag char → 1 if the tag may span newlines, 0 if it closes at the
+	 * first newline. Membership in this object is also the "is a tag"
+	 * test (`name in tags`).
+	 *
+	 * @type {Record<string, 0 | 1>}
+	 */
+	const tags = {
+	  '*': 0,
+	  '/': 1,
+	  _: 1,
+	  '-': 0,
+	  '|': 1,
+	  '`': 1
+	};
+
+	/** Atomic tags: body stays literal, no nested parsing. */
+	const ATOMIC = '`';
+	const opener = /["'[({¡¿]/;
+	const closer = /[?!.,\])}"']/;
+
+	/** @param {string} c @param {string} s @param {number} i */
+	const canOpen = (c, s, i) => opener.test(c) ? /\s/.test(s[i - 1]) : /\s/.test(c);
+
+	/** @param {string} c @param {string} s @param {number} i */
+	const canClose = (c, s, i) => closer.test(c) ? i + 2 === s.length || /\s/.test(s[i + 2]) : i + 1 === s.length || /\s/.test(c);
+
+	/**
+	 * @param {string} input
+	 * @returns {Node[]}
+	 */
+	function tokenize(input) {
+	  return parse$1(' ' + (input || '').trim());
+	}
+
+	/**
+	 * Parses `s`. The caller prepends a leading space so an opening tag
+	 * at position 0 of the original input still satisfies `canOpen`. That
+	 * space is stripped from the first text node before return.
+	 *
+	 * @param {string} s
+	 * @returns {Node[]}
+	 */
+	function parse$1(s) {
+	  /** @type {Node[]} */
+	  const out = [];
+	  let buf = '';
+	  for (let i = 0; i < s.length; i++) {
+	    const name = s[i + 1];
+	    if (name in tags && canOpen(s[i], s, i)) {
+	      const close = findClose(name, tags[name], s, i + 1);
+	      if (close >= 0) {
+	        buf += s[i];
+	        if (buf) out.push({
+	          kind: 'text',
+	          s: buf
+	        });
+	        buf = '';
+	        const inner = s.substring(i + 2, close);
+	        out.push(ATOMIC.indexOf(name) >= 0 ? {
+	          kind: 'atom',
+	          name,
+	          s: inner
+	        } : {
+	          kind: 'tag',
+	          name,
+	          children: parse$1(' ' + inner)
+	        });
+	        i = close;
+	        continue;
+	      }
+	    }
+	    // `\*` etc. — drop the backslash so the tag char becomes literal.
+	    if (s[i] === '\\' && s[i + 1] in tags && canOpen(s[i - 1], s, i - 1)) {
+	      continue;
+	    }
+	    buf += s[i];
+	  }
+	  if (buf) out.push({
+	    kind: 'text',
+	    s: buf
+	  });
+	  // Strip the synthetic leading space (always exactly one char).
+	  if (out[0] && out[0].kind === 'text') {
+	    out[0].s = out[0].s.slice(1);
+	    if (!out[0].s) out.shift();
+	  }
+	  return out;
+	}
+
+	/**
+	 * @param {string} name
+	 * @param {0 | 1} nLine
+	 * @param {string} s
+	 * @param {number} i Position of the opening tag char
+	 * @returns {number} Index of closing char, or -1 if no match
+	 */
+	function findClose(name, nLine, s, i) {
+	  for (i += 1; i < s.length; i++) {
+	    if (s[i] === name && canClose(s[i + 1], s, i)) return i;
+	    if (!nLine && s[i] === '\n') return -1;
+	  }
+	  return -1;
+	}
+
+	/** @typedef {import('./tokenize.js').Node} Node */
+
+	/** @type {Record<string, string>} */
+	const EmojiMap = Emoji;
+	const separator = /(\s+)/;
+	const mediaURL = /^(https?|blob|data):.+/;
+
+	/** @param {PointerEvent} e */
+	const spoilerRemove = e => {
+	  const t = /** @type {HTMLElement} */e.currentTarget;
+	  t.style.backgroundColor = 'inherit';
+	  t.style.color = 'inherit';
+	};
+
+	/**
+	 * Tag-marker → component factory. Atomic markers (```) receive the
+	 * raw inner string so we can copy it to clipboard verbatim; the rest
+	 * receive the recursively-rendered children array.
+	 *
+	 * @type {Record<string, (c: any) => JSX.Element>}
+	 */
+	const wraps = {
+	  '*': c => Component('b', {
+	    children: c
+	  }),
+	  '/': c => Component('em', {
+	    children: c
+	  }),
+	  _: c => Component('u', {
+	    children: c
+	  }),
+	  '-': c => Component('s', {
+	    children: c
+	  }),
+	  '|': c => Component('span', {
+	    'data-linkify-type': 'spoiler',
+	    'on:click': spoilerRemove,
+	    children: c
+	  }),
+	  '`': s => Component('code', {
+	    'on:click': () => copyToClipboard(s),
+	    children: `\`${s}\``
+	  })
+	};
+
+	/**
+	 * Inline-formatter for chat-style text. Renders `*bold*`, `/italic/`,
+	 * `_under_`, `-strike-`, `|spoiler|` and `code` markers, recognises
+	 * media URLs, optionally substitutes `:emoji:` shortcodes, and can
+	 * highlight a `mark` term. A leading `>` makes the whole block a
+	 * quote; a leading `/ ` italicises it.
+	 *
+	 * @type {Component<{
+	 * 	text?: string
+	 * 	trim?: boolean
+	 * 	mark?: string | false
+	 * 	scroll?: () => void
+	 * 	guessType?: boolean
+	 * 	emoji?: boolean
+	 * }>}
+	 */
+	function Linkify(props) {
+	  const scroll = props.scroll || noop;
+	  /** @type {string | false} */
+	  const mark = props.mark ? props.mark.toLowerCase() : false;
+	  let s = (props.text || '').trim();
+	  if (props.trim) {
+	    s = (props.text || '').split('\n').map(m => m.trim()).join('\n').trim();
+	  }
+
+	  /** @type {(x: any) => JSX.Element} */
+	  let quote = x => x;
+	  /** @type {(x: any) => JSX.Element} */
+	  let italic = x => x;
+	  if (s.startsWith('>')) {
+	    s = s.replace(/^>\s*/, '').trim();
+	    quote = x => Component('q', {
+	      children: x
+	    });
+	  }
+	  if (s.startsWith('/ ')) {
+	    s = s.replace(/^\/\s+/, '').trim();
+	    italic = x => Component('em', {
+	      children: x
+	    });
+	  }
+	  const ctx = {
+	    emoji: !!props.emoji,
+	    mark,
+	    scroll,
+	    guessType: props.guessType
+	  };
+	  return quote(italic(render(tokenize(s), ctx)));
+	}
+
+	/**
+	 * @typedef {{
+	 * 	emoji: boolean
+	 * 	mark: string | false
+	 * 	scroll: () => void
+	 * 	guessType?: boolean
+	 * }} Ctx
+	 *
+	 * @param {Node[]} nodes
+	 * @param {Ctx} ctx
+	 */
+	function render(nodes, ctx) {
+	  /** @type {any[]} */
+	  const out = [];
+	  for (const n of nodes) {
+	    if (n.kind === 'text') appendText(n.s, ctx, out);else if (n.kind === 'atom') out.push(wraps[n.name](n.s));else out.push(wraps[n.name](render(n.children, ctx)));
+	  }
+	  return out;
+	}
+
+	/**
+	 * Splits a text run into words and substitutes emoji shortcodes,
+	 * media URLs, and the `mark` highlight. Adjacent literals coalesce
+	 * into one DOM text node.
+	 *
+	 * @param {string} s
+	 * @param {Ctx} ctx
+	 * @param {any[]} out
+	 */
+	function appendText(s, ctx, out) {
+	  for (const piece of s.split(separator)) {
+	    if (ctx.emoji && EmojiMap[piece]) {
+	      out.push(Component('span', {
+	        'data-linkify-type': 'emoji',
+	        children: piece[0] === '#' ? piece + ' ' + EmojiMap[piece] : EmojiMap[piece]
+	      }));
+	    } else if (mediaURL.test(piece)) {
+	      out.push(Component(Media, {
+	        url: piece,
+	        scroll: ctx.scroll,
+	        guessType: ctx.guessType
+	      }));
+	    } else if (ctx.mark !== false && ctx.mark === piece.toLowerCase()) {
+	      out.push(Component('mark', {
+	        children: piece
+	      }));
+	    } else if (ctx.emoji && !/[a-z0-9&*#]/i.test(piece) && isEmoji(piece)) {
+	      out.push(Component('span', {
+	        'data-linkify-type': 'emoji',
+	        children: piece
+	      }));
+	    } else if (typeof out[out.length - 1] === 'string') {
+	      out[out.length - 1] += piece;
+	    } else {
+	      out.push(piece);
+	    }
+	  }
+	}
+
+	/**
+	 * Renders children based on the `range` function arguments
+	 *
+	 * @type {FlowComponent<
+	 * 	{
+	 * 		start?: Accessor<number>
+	 * 		stop?: Accessor<number>
+	 * 		step?: Accessor<number>
+	 * 	},
+	 * 	Children<(item: number, index: number) => JSX.Element>
+	 * >}
+	 * @url https://pota.quack.uy/Components/Range
+	 */
+	const Range = props => Component(For, {
+	  each: () => toArray(range(getValue(props.start) ?? 0, getValue(props.stop) ?? 0, getValue(props.step) ?? 1)),
+	  children: props.children
+	});
+
+	/**
+	 * Scrolls to an element
+	 *
+	 * @param {Element} item - Element to scroll to
+	 */
+	function scrollToElement(item) {
+	  /** Scroll children of element to the top */
+	  item.scrollTop = 0;
+
+	  /** Scroll to element */
+	  item.scrollIntoView(true);
+	}
+
+	/** Scrolls to `window.location.hash` */
+	const scrollToLocationHash = () => scrollToSelector(location$2.hash);
+
+	/**
+	 * Scrolls to element that matches the hash
+	 *
+	 * @param {string} selector - Hash to scroll to
+	 * @returns {boolean} True on success
+	 */
+	function scrollToSelector(selector) {
+	  if (selector) {
+	    try {
+	      // selector could be invalid
+	      const item = querySelector(document$1, selector);
+	      if (item) {
+	        scrollToElement(item);
+	        return true;
+	      }
+	    } catch (e) {}
+	  }
+	  return false;
+	}
+
+	/**
+	 * Scrolls to hash and in case isnt found it scrolls to the top
+	 *
+	 * @param {string} selector - Hash to scroll to
+	 */
+	function scrollToSelectorWithFallback(selector) {
+	  if (!scrollToSelector(selector)) scrollToTop();
+	}
+
+	/** Scrolls to the top of the window */
+	const scrollToTop = () => window$1.scrollTo({
+	  top: 0,
+	  behavior: 'auto'
+	});
+
+	/**
 	 * Measures the execution time of a function.
 	 *
 	 * @param {() => void} fn
@@ -5571,8 +8778,8 @@
 	 * @returns {import('#type/Route.d.ts').Context}
 	 */
 	function create(props) {
-	  /** @type SignalObject<import('#type/Route.d.ts').Context[]> */
-	  const [children, _, updateChildren] = signal(/** @type {import('#type/Route.d.ts').Context[]} */[]);
+	  /** @type {SignalObject<import('#type/Route.d.ts').Context[]>} */
+	  const children = signal(/** @type {import('#type/Route.d.ts').Context[]} */[]);
 	  return {
 	    // the composed base route
 	    base: undefined,
@@ -5588,17 +8795,17 @@
 	    // elements to scroll
 	    // the children routes
 	    addChild(child) {
-	      updateChildren(children => {
-	        children.push(child);
-	        return [...children];
+	      children.update(prev => {
+	        prev.push(child);
+	        return [...prev];
 	      });
-	      cleanup(() => updateChildren(children => {
-	        removeFromArray(children, child);
-	        return [...children];
+	      cleanup(() => children.update(prev => {
+	        removeFromArray(prev, child);
+	        return [...prev];
 	      }));
 	    },
 	    shouldShowDefault: memo(() => {
-	      const child = children();
+	      const child = children.read();
 	      return (
 	        // when it has siblings, check if at least 1 rendered
 	        // `every` instead of `some`, needs to read the signal for tracking
@@ -5643,10 +8850,10 @@
 
 	// window.location signal
 
-	const [getLocation, setLocation] = signal(location$2.href);
+	const locationSignal = signal(location$2.href);
 
 	// only trigger on what changed
-	const locationObject = memo(() => new URL(removeNestedProtocol(getLocation())));
+	const locationObject = memo(() => new URL(removeNestedProtocol(locationSignal.read())));
 	const href = memo(() => locationObject().href);
 	const pathname = memo(() => locationObject().pathname);
 	// http://location/# reports hash to be empty
@@ -5676,8 +8883,8 @@
 	   * effect/mutable created here are owned by the caller's scope and
 	   * disposed automatically when that scope ends.
 	   *
-	   * Capture once at component setup (`const p = location.params`)
-	   * and read keys reactively from `p`. Do not call `location.params`
+	   * Capture once at component setup (`const p = location.params`) and
+	   * read keys reactively from `p`. Do not call `location.params`
 	   * inline inside a reactive expression — every access creates a
 	   * fresh effect+mutable. Must be called inside an owner scope, or
 	   * the inner effect is orphaned.
@@ -5750,7 +8957,7 @@
 	 */
 	function navigateInternal(href, options) {
 	  options.replace ? history.replaceState(null, '', href) : history.pushState(null, '', href);
-	  setLocation(location$2.href);
+	  locationSignal.write(location$2.href);
 	  if (optional(options.scroll)) {
 	    scrollToSelectorWithFallback(location$2.hash);
 	  }
@@ -5806,7 +9013,7 @@
 	 */
 	async function onLocationChange() {
 	  if (await canNavigate(location$2.href)) {
-	    setLocation(location$2.href);
+	    locationSignal.write(location$2.href);
 	  } else {
 	    history.pushState(null, '', location$1.href());
 	  }
@@ -5932,14 +9139,14 @@
 	  path === undefined ? '(|#.*)$' : path.replace(/\$$/, '(|#.*)$'), props.params);
 	  const route = new RegExp('^' + base.replace(paramsRegExp, '(?<$1>[^/#]+)'));
 	  let href = '';
-	  const [params, setParams] = signal(() => nothing);
+	  const params = signal(() => nothing);
 	  const show = memo(() => {
 	    const path = location$1.path();
 
 	    // console.log(path, route)
 
 	    if (route.test(path)) {
-	      setParams(() => route.exec(path)?.groups || nothing);
+	      params.write(() => route.exec(path)?.groups || nothing);
 	      if (href === '') {
 	        href = location$1.origin + path.replace(path.replace(route, ''), '');
 	      }
@@ -5950,7 +9157,7 @@
 	  const context = create({
 	    base,
 	    href: () => href,
-	    params,
+	    params: params.read,
 	    scroll: props.scroll,
 	    parent,
 	    show
@@ -6113,8 +9320,8 @@ class[data-dragging] {
 	  const offsetDim = orientation === 'vertical' ? 'offsetWidth' : 'offsetHeight';
 	  const stored = props.persist ? Number(localStorage.getItem(props.persist)) : 0;
 	  const initial = stored && Number.isFinite(stored) && stored > 0 ? stored : props.initial;
-	  const [size, setSize] = signal(initial ?? null);
-	  const [dragging, setDragging] = signal(false);
+	  const size = signal(initial ?? null);
+	  const dragging = signal(false);
 	  ready(() => {
 	    const node = handle();
 	    const target = /** @type {HTMLElement | null} */
@@ -6131,13 +9338,13 @@ class[data-dragging] {
 	        target.style.minHeight = px + 'px';
 	      }
 	    };
-	    if (size() != null) applySize(size());
+	    if (size.read() != null) applySize(size.read());
 	    let active = false;
 	    let startCoord = 0;
 	    let startSize = 0;
 	    const onPointerDown = e => {
 	      active = true;
-	      setDragging(true);
+	      dragging.write(true);
 	      startCoord = e[clientCoord];
 	      startSize = target[offsetDim];
 	      node.setPointerCapture(e.pointerId);
@@ -6150,20 +9357,20 @@ class[data-dragging] {
 	      const delta = e[clientCoord] - startCoord;
 	      const sign = targetSide === 'prev' ? 1 : -1;
 	      const next = Math.max(min, Math.min(max, startSize + delta * sign));
-	      setSize(next);
+	      size.write(next);
 	      applySize(next);
 	    };
 	    const onPointerUp = e => {
 	      if (!active) return;
 	      active = false;
-	      setDragging(false);
+	      dragging.write(false);
 	      try {
 	        node.releasePointerCapture(e.pointerId);
 	      } catch {}
 	      document.body.style.userSelect = '';
 	      document.body.style.cursor = '';
-	      if (props.persist && size() != null) {
-	        localStorage.setItem(props.persist, String(size()));
+	      if (props.persist && size.read() != null) {
+	        localStorage.setItem(props.persist, String(size.read()));
 	      }
 	    };
 	    node.addEventListener('pointerdown', onPointerDown);
@@ -6192,24 +9399,11 @@ class[data-dragging] {
 	    'use:css': splitterCSS,
 	    class: props.class,
 	    'data-orientation': orientation,
-	    'data-dragging': dragging,
+	    'data-dragging': dragging.read,
 	    role: 'separator',
 	    'aria-orientation': orientation
 	  });
 	};
-
-	/**
-	 * Provides a fallback till children promises resolve (recursively)
-	 *
-	 * @type {FlowComponent<{ fallback?: JSX.Element }>}
-	 * @url https://pota.quack.uy/Components/Suspense
-	 */
-	const Suspense = props => useSuspense(new createSuspenseContext(), () => {
-	  const children = toHTMLFragment(props.children);
-	  const context = useSuspense();
-	  // for when `Suspense` was used with children that dont have promises
-	  return context.isEmpty() ? children : memo(() => context.s.read() ? children : props.fallback);
-	});
 
 	/**
 	 * Renders the first child that matches the given `when` condition, or
@@ -6268,19 +9462,19 @@ class[data-dragging] {
 	 * 		children: JSX.Element
 	 * 	}
 	 * >} props
-	 *   - `children` is expected to be `Tabs.Label` elements. Not
-	 *       enforced by TypeScript: JSX expressions always resolve to
-	 *       `JSX.Element`, so the specific component identity cannot be
-	 *       constrained at the type level.
+	 *   - `children` is expected to be `Tabs.Label` elements. Not enforced by
+	 *       TypeScript: JSX expressions always resolve to `JSX.Element`,
+	 *       so the specific component identity cannot be constrained at
+	 *       the type level.
 	 *
 	 * @url https://pota.quack.uy/Components/Tabs
 	 */
 	function Labels(props) {
 	  const context = Context();
 	  const group = context.group;
-	  const [selected, setSelected] = context.selected;
+	  const selected = context.selected;
 	  function onTabClick(event, group, id, name, props) {
-	    setSelected({
+	    selected.write({
 	      id,
 	      name
 	    });
@@ -6317,7 +9511,7 @@ class[data-dragging] {
 	          // @ts-ignore
 	          ...rest
 	        } = props;
-	        if (defaultSelected || selected().id === id) setSelected({
+	        if (defaultSelected || selected.read().id === id) selected.write({
 	          id,
 	          name
 	        });
@@ -6326,7 +9520,7 @@ class[data-dragging] {
 	          children: Component('button', {
 	            id: `tab-${group}-${id}`,
 	            role: 'tab',
-	            'aria-selected': () => selected().id === id ? 'true' : 'false',
+	            'aria-selected': () => selected.read().id === id ? 'true' : 'false',
 	            'aria-controls': `tab-panel-${group}-${id}`,
 	            'on:click': e => onTabClick(e, group, id, name, props),
 	            ...rest,
@@ -6510,14 +9704,6 @@ class[data-dragging] {
 	  /* DOM API */
 
 	  /**
-	   * Shortcut for querySelector
-	   *
-	   * @param {string} query
-	   */
-	  query(query) {
-	    return querySelector(this, query);
-	  }
-	  /**
 	   * Shortcut for this.shadowRoot.innerHTML
 	   *
 	   * @param {string | Component} value
@@ -6530,32 +9716,16 @@ class[data-dragging] {
 	    }
 	  }
 
-	  /**
-	   * Toggles attribute `hidden`
-	   *
-	   * @param {boolean} value
-	   */
-	  set hidden(value) {
-	    value ? setAttribute$1(this, 'hidden', '') : removeAttribute(this, 'hidden');
-	  }
-
 	  /* EVENTS API */
 
 	  /**
 	   * Emits an event
 	   *
 	   * @param {string} eventName
-	   * @param {any} [data]
+	   * @param {CustomEventInit} [data]
 	   */
 	  emit(eventName, data) {
 	    emit(this, eventName, data);
-	  }
-
-	  /* SLOTS API */
-
-	  /** @param {string} name */
-	  hasSlot(name) {
-	    return this.query(`:scope [slot="${name}"]`);
 	  }
 	}
 
@@ -6568,6 +9738,7 @@ class[data-dragging] {
 		Errored: Errored,
 		For: For,
 		Head: Head,
+		Linkify: Linkify,
 		Match: Match,
 		Navigate: Navigate,
 		Normalize: Normalize,
@@ -6839,11 +10010,11 @@ class[data-dragging] {
 	function buildData(count) {
 	  const data = new Array(count);
 	  for (let i = 0; i < count; i++) {
-	    const [label,, update] = signal('elegant green keyboard');
+	    const label = signal('elegant green keyboard');
 	    data[i] = {
 	      id: idCounter++,
-	      label,
-	      update
+	      label: label.read,
+	      update: label.update
 	    };
 	  }
 	  return data;
@@ -6862,21 +10033,21 @@ class[data-dragging] {
 		/>
 	</div>`;
 	const App = () => {
-	  const [data, setData, updateData] = signal([]),
+	  const data = signal([]),
 	    run = () => {
 	      // debugger
-	      setData(buildData(10));
+	      data.write(buildData(10));
 	    },
 	    runLots = () => {
-	      setData(buildData(10000));
+	      data.write(buildData(10000));
 	    },
 	    bench = () => {
 	      //  console.clear()
 	      // warm
 	      // debugger
 	      for (let k = 0; k < 5; k++) {
-	        setData(buildData(1));
-	        setData([]);
+	        data.write(buildData(1));
+	        data.write([]);
 	      }
 	      let createLarge = 0;
 	      let clearLarge = 0;
@@ -6884,15 +10055,15 @@ class[data-dragging] {
 	      let clearSmall = 0;
 	      const results = [];
 	      for (let k = 0; k < 10; k++) {
-	        createLarge += timing(() => setData(buildData(10000)));
-	        clearLarge += timing(() => setData([]));
+	        createLarge += timing(() => data.write(buildData(10000)));
+	        clearLarge += timing(() => data.write([]));
 	        results.push(`
 					createLarge ${(createLarge / (k + 1)).toFixed(2)} clearLarge ${(clearLarge / (k + 1)).toFixed(2)}
 				`);
 	      }
 	      for (let k = 0; k < 10; k++) {
-	        createSmall += timing(() => setData(buildData(1000)));
-	        clearSmall += timing(() => setData([]));
+	        createSmall += timing(() => data.write(buildData(1000)));
+	        clearSmall += timing(() => data.write([]));
 	        results.push(`
 					createSmall ${(createSmall / (k + 1)).toFixed(2)} clearSmall ${(clearSmall / (k + 1)).toFixed(2)}
 				`);
@@ -6901,24 +10072,24 @@ class[data-dragging] {
 	      console.log('------------', version);
 	    },
 	    add = () => {
-	      updateData(d => [...d, ...buildData(1000)]);
+	      data.update(d => [...d, ...buildData(1000)]);
 	    },
 	    update = () => {
-	      const d = data();
+	      const d = data.read();
 	      for (let i = 0; i < d.length; i += 10) d[i].update(l => l + ' !!!');
 	    },
 	    swapRows = () => {
-	      const d = [...data()];
+	      const d = [...data.read()];
 	      const tmp = d[1];
 	      d[1] = d[998];
 	      d[998] = tmp;
-	      setData(d);
+	      data.write(d);
 	    },
 	    clear = () => {
-	      setData([]);
+	      data.write([]);
 	    },
 	    remove = id => {
-	      updateData(d => {
+	      data.update(d => {
 	        const idx = d.findIndex(datum => datum.id === id);
 	        d.splice(idx, 1);
 	        return [...d];
@@ -6992,7 +10163,7 @@ class[data-dragging] {
     }
   }}"
 			>
-				<For each="${data}">
+				<For each="${data.read}">
 					${row => xml`<tr>
 						<td
 							prop:textContent="${row.id}"
@@ -7024,7 +10195,7 @@ class[data-dragging] {
 		/>
 	</div>`;
 	};
-	render(App, document.getElementById('main'));
+	render$1(App, document.getElementById('main'));
 
 })();
 //# sourceMappingURL=main.js.map

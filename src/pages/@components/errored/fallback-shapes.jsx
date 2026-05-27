@@ -6,28 +6,28 @@ function Bomb() {
 }
 
 function App() {
-  const [which, setWhich] = signal('static')
+  const which = signal('static')
 
   return (
     <div>
-      <button on:click={() => setWhich('static')}>static jsx</button>
-      <button on:click={() => setWhich('value')}>plain value</button>
-      <button on:click={() => setWhich('function')}>
+      <button on:click={() => which.write('static')}>static jsx</button>
+      <button on:click={() => which.write('value')}>plain value</button>
+      <button on:click={() => which.write('function')}>
         function with reset
       </button>
 
       <Switch>
-        <Match when={() => which() === 'static'}>
+        <Match when={() => which.read() === 'static'}>
           <Errored fallback={<p>oh no, an error happened</p>}>
             <Bomb />
           </Errored>
         </Match>
-        <Match when={() => which() === 'value'}>
+        <Match when={() => which.read() === 'value'}>
           <Errored fallback="— ">
             <Bomb />
           </Errored>
         </Match>
-        <Match when={() => which() === 'function'}>
+        <Match when={() => which.read() === 'function'}>
           <Errored
             fallback={(err, reset) => (
               <div>

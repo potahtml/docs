@@ -2,18 +2,18 @@ import { ref, render, setAttribute, signal } from 'pota'
 
 function App() {
   const button = ref()
-  const [busy, , updateBusy] = signal(false)
+  const busy = signal(false)
 
   return (
     <div>
       <button
         use:ref={button}
-        on:click={() => updateBusy(b => !b)}
+        on:click={() => busy.update(b => !b)}
       >
         toggle
       </button>
       {() => {
-        setAttribute(button(), 'aria-busy', busy() ? 'true' : null)
+        setAttribute(button(), 'aria-busy', busy.read() ? 'true' : null)
       }}
     </div>
   )
