@@ -1,0 +1,11 @@
+.page {
+	max-width: var(--max);
+	margin: 0 auto;
+	padding: 32px 18px 80px;
+}
+
+/* the playground needs room for editor + preview side by side, so it
+   breaks out of the narrow reading column */
+.wide {
+	max-width: 1180px;
+}

@@ -1,0 +1,101 @@
+.bar {
+	display: flex;
+	align-items: center;
+	gap: 2px;
+	min-width: 0;
+	overflow-x: auto;
+	scrollbar-width: none;
+}
+.bar::-webkit-scrollbar {
+	display: none;
+}
+
+.tab {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	max-width: 160px;
+	padding: 2px 4px 2px 8px;
+	font-family: var(--font-mono);
+	font-size: 11px;
+	color: var(--fg-mute);
+	background: transparent;
+	border: 1px solid transparent;
+	border-radius: var(--radius-sm);
+	cursor: pointer;
+	white-space: nowrap;
+}
+
+.tab:hover {
+	color: var(--fg-soft);
+}
+
+/* a lone, undeletable tab has no × button; give its label the right
+   padding the × would otherwise provide so it isn't flush to the edge */
+.tab:not(:has(.close)) {
+	padding-right: 8px;
+}
+
+/* selected tab: subtle accent line along its bottom edge */
+.tab.active {
+	color: var(--fg);
+	background: var(--bg-elev);
+	border-color: var(--rule);
+	border-bottom-color: var(--accent);
+}
+
+.name,
+.nameInput {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 130px;
+}
+
+.nameInput {
+	outline: none;
+	color: var(--fg);
+	border-bottom: 1px solid var(--accent);
+	min-width: 24px;
+}
+
+.close {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 14px;
+	height: 14px;
+	padding: 0;
+	font-size: 12px;
+	line-height: 1;
+	color: var(--fg-faint);
+	background: transparent;
+	border: 0;
+	border-radius: var(--radius-sm);
+	cursor: pointer;
+	opacity: 0.5;
+}
+.close:hover {
+	opacity: 1;
+	color: var(--accent);
+	background: var(--bg);
+}
+
+/* + matches the tab buttons: same font, borderless, hover-tinted */
+.add {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex: 0 0 auto;
+	margin-left: -2px;
+	padding: 2px 8px;
+	font-family: var(--font-mono);
+	font-size: 12px;
+	color: var(--fg-mute);
+	background: transparent;
+	border: 1px solid transparent;
+	border-radius: var(--radius-sm);
+	cursor: pointer;
+}
+.add:hover {
+	color: var(--fg-soft);
+}

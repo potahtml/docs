@@ -1,0 +1,71 @@
+.snippet {
+	margin: var(--space-4) 0;
+	background: var(--bg-elev);
+	border: 1px solid var(--rule);
+	border-radius: var(--radius-lg);
+	overflow: hidden;
+}
+
+.head {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 6px 12px;
+	background: var(--bg);
+	border-bottom: 1px solid var(--rule);
+	font-size: 11px;
+	color: var(--fg-mute);
+}
+
+.dots {
+	display: inline-flex;
+	gap: 6px;
+}
+
+.dots span {
+	width: 11px;
+	height: 11px;
+	border-radius: 50%;
+}
+
+.close {
+	background: var(--win-close);
+}
+.min {
+	background: var(--win-min);
+}
+.max {
+	background: var(--win-max);
+}
+
+.tabs {
+	display: flex;
+	gap: 2px;
+	margin-left: 8px;
+}
+
+.tab {
+	padding: 2px 8px;
+	font-family: var(--font-mono);
+	font-size: 11px;
+	color: var(--fg-mute);
+	background: transparent;
+	border: 0;
+	border-radius: var(--radius-sm);
+	cursor: pointer;
+}
+
+.tab.active {
+	color: var(--fg);
+	background: var(--bg-elev);
+}
+
+.lang {
+	margin-left: auto;
+	color: var(--fg-faint);
+}
+
+/* host for the read-only CodeMirror editor */
+.body {
+	display: block;
+}

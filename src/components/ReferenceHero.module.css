@@ -1,0 +1,19 @@
+.hero {
+	margin-bottom: var(--space-6);
+}
+
+.hero h1 {
+	font-family: var(--font-sans);
+	font-size: 44px;
+	font-weight: 700;
+	margin: 0 0 var(--space-2);
+	letter-spacing: -0.02em;
+}
+
+.lede {
+	color: var(--fg-soft);
+	font-family: var(--font-sans);
+	font-size: 17px;
+	line-height: var(--prose-line);
+	margin: 0 0 var(--space-3);
+}

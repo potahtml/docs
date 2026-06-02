@@ -1,0 +1,33 @@
+.p {
+	color: var(--fg-soft);
+	font-family: var(--font-sans);
+	line-height: var(--prose-line);
+	margin: 0 0 calc(var(--space-3) * var(--prose-scale));
+}
+
+.p code,
+.list code {
+	font-family: var(--font-mono);
+	font-size: 0.9em;
+	padding: 1px 5px;
+	border-radius: var(--radius-sm);
+	background: var(--bg-elev);
+	color: var(--fg);
+}
+
+.p a,
+.list a {
+	color: var(--accent);
+}
+
+.list {
+	color: var(--fg-soft);
+	font-family: var(--font-sans);
+	line-height: var(--prose-line);
+	margin: 0 0 calc(var(--space-3) * var(--prose-scale));
+	padding-left: var(--space-4);
+}
+
+.list li {
+	margin: calc(var(--space-1) * var(--prose-scale)) 0;
+}

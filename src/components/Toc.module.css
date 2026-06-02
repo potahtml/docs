@@ -1,0 +1,28 @@
+.box {
+	padding: 10px 14px;
+	margin: var(--space-4) 0 var(--space-5);
+	background: var(--bg-elev);
+	border: 1px solid var(--rule);
+	border-radius: var(--radius);
+}
+
+.title {
+	font-size: 11px;
+	color: var(--fg-mute);
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	margin-bottom: var(--space-2);
+}
+
+.list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-1) var(--space-2);
+	font-size: 13px;
+}
+
+.note {
+	color: var(--fg-mute);
+	font-size: 12px;
+	margin-left: var(--space-2);
+}

@@ -1,0 +1,22 @@
+{
+	"compilerOptions": {
+		"noEmit": true,
+
+		"allowJs": true,
+		"checkJs": true,
+		"strict": true,
+		"noImplicitAny": false,
+		"strictNullChecks": false,
+		"skipLibCheck": true,
+
+		"module": "preserve",
+		"target": "ESNext",
+		"lib": ["ESNext", "DOM", "DOM.Iterable"],
+		"moduleResolution": "bundler",
+		"resolveJsonModule": true,
+
+		"jsx": "preserve",
+		"jsxImportSource": "pota"
+	},
+	"include": ["src/**/*", "types/**/*"]
+}

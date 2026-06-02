@@ -1,0 +1,67 @@
+.inline {
+	margin: 0;
+	line-height: 2;
+}
+
+.comma {
+	color: var(--fg-faint);
+}
+
+.list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.row {
+	padding: 6px 0;
+	border-bottom: 1px dashed var(--rule);
+}
+
+.row:last-child {
+	border-bottom: 0;
+}
+
+/* the whole row is one link in list mode */
+.rowLink {
+	display: grid;
+	grid-template-columns: minmax(160px, 200px) 1fr;
+	gap: 12px;
+	color: inherit;
+	text-decoration: none;
+}
+
+.rowLink:hover {
+	text-decoration: none;
+}
+
+.rowLink:hover .name {
+	color: var(--accent);
+}
+
+.name {
+	color: var(--fg);
+	font-weight: 600;
+}
+
+.name:hover {
+	color: var(--accent);
+	text-decoration: none;
+}
+
+.desc {
+	color: var(--fg-soft);
+	font-family: var(--font-sans);
+}
+
+.ang,
+.colon {
+	color: var(--fg-faint);
+}
+
+.mark {
+	background: color-mix(in srgb, var(--accent) 50%, transparent);
+	color: inherit;
+	border-radius: 2px;
+	padding: 0 1px;
+}

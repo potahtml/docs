@@ -1,0 +1,117 @@
+.group {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+}
+
+.gear {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: var(--control);
+	height: var(--control);
+	font-size: 15px;
+	line-height: 1;
+	color: var(--fg-mute);
+	background: var(--bg-elev);
+	border: 1px solid var(--rule);
+	border-radius: var(--radius);
+	cursor: pointer;
+}
+.gear:hover {
+	color: var(--fg);
+}
+
+/* ---- popover ---- */
+
+.panel {
+	position: absolute;
+	top: calc(100% + 6px);
+	right: 0;
+	z-index: 50;
+	width: 240px;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	padding: 12px;
+	background: var(--bg-elev);
+	border: 1px solid var(--rule);
+	border-radius: var(--radius-lg);
+	box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
+}
+
+.row {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.label {
+	font-family: var(--font-mono);
+	font-size: 10px;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: var(--fg-mute);
+}
+
+/* segmented theme control */
+.segs {
+	position: relative;
+	display: inline-flex;
+	border: 1px solid var(--rule);
+	border-radius: var(--radius);
+	overflow: hidden;
+}
+.seg {
+	flex: 1;
+	padding: 5px 8px;
+	font-family: var(--font-mono);
+	font-size: 11px;
+	color: var(--fg-mute);
+	background: var(--bg);
+	border: 0;
+	cursor: pointer;
+}
+.seg + .seg {
+	border-left: 1px solid var(--rule);
+}
+.seg:hover {
+	color: var(--fg);
+}
+.seg.active {
+	color: var(--accent);
+	background: var(--bg-elev);
+}
+
+/* accent picker — the native color input is hidden and opened by
+   clicking the "custom" segment; it stays in flow (no display:none) so
+   the picker anchors to the segmented control. */
+.colorInput {
+	position: absolute;
+	left: 0;
+	bottom: 0;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	border: 0;
+	opacity: 0;
+	pointer-events: none;
+}
+
+/* spacing slider */
+.rangeLine {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.range {
+	flex: 1;
+	accent-color: var(--accent);
+}
+.rangeVal {
+	font-family: var(--font-mono);
+	font-size: 10px;
+	color: var(--fg-mute);
+	min-width: 32px;
+	text-align: right;
+}

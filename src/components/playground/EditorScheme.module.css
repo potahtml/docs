@@ -1,0 +1,87 @@
+.group {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+}
+
+.trigger {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	padding: 2px 6px;
+	font-family: var(--font-mono);
+	font-size: 11px;
+	color: var(--fg-mute);
+	background: transparent;
+	border: 1px solid transparent;
+	border-radius: var(--radius-sm);
+	cursor: pointer;
+}
+.trigger:hover,
+.trigger.open {
+	color: var(--fg);
+	border-color: var(--rule);
+	background: var(--bg);
+}
+.caret {
+	font-size: 9px;
+	color: var(--fg-faint);
+}
+
+/* opens upward — the footer sits at the bottom of the playground window,
+   so the panel stays inside the window box (no overflow clip) */
+.panel {
+	position: absolute;
+	bottom: calc(100% + 6px);
+	right: 0;
+	z-index: 50;
+	min-width: 172px;
+	max-height: 240px;
+	overflow-y: auto;
+	/* slim, theme-driven scrollbar (Safari ignores these but its
+	   overlay scrollbar already follows color-scheme) */
+	scrollbar-width: thin;
+	scrollbar-color: var(--fg-faint) transparent;
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+	padding: 4px;
+	background: var(--bg-elev);
+	border: 1px solid var(--rule);
+	border-radius: var(--radius-lg);
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+}
+
+.item {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 5px 8px;
+	font-family: var(--font-mono);
+	font-size: 11px;
+	text-align: left;
+	white-space: nowrap;
+	color: var(--fg-soft);
+	background: transparent;
+	border: 0;
+	border-radius: var(--radius-sm);
+	cursor: pointer;
+}
+.item:hover {
+	color: var(--fg);
+	background: var(--bg);
+}
+.item.active {
+	color: var(--accent);
+}
+
+.swatches {
+	display: inline-flex;
+	gap: 3px;
+}
+.dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	box-shadow: inset 0 0 0 1px rgba(128, 128, 128, 0.25);
+}

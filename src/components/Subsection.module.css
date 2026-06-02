@@ -1,0 +1,10 @@
+.subsection {
+	margin: 0 0 var(--space-5);
+}
+
+.headRow {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: var(--space-3);
+}

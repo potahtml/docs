@@ -1,0 +1,138 @@
+.wrap {
+	margin: 0 0 var(--space-4);
+}
+
+.toolbar {
+	margin-bottom: var(--space-2);
+}
+
+.modes {
+	display: inline-flex;
+}
+
+.modeBtn {
+	font-family: var(--font-mono);
+	font-size: 11px;
+	color: var(--fg-mute);
+	background: var(--bg);
+	border: 1px solid var(--rule);
+	padding: 4px 10px;
+	cursor: pointer;
+	position: relative;
+}
+
+/* collapse the shared edge so the pair reads as one control */
+.modeBtn + .modeBtn {
+	margin-left: -1px;
+}
+
+.modeBtn:first-child {
+	border-radius: var(--radius) 0 0 var(--radius);
+}
+
+.modeBtn:last-child {
+	border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+/* one clean accent border on hover, like the "hide" button */
+.modeBtn:hover {
+	color: var(--fg);
+	border-color: var(--accent);
+	z-index: 1;
+}
+
+.modeBtn.active {
+	color: var(--fg);
+	background: var(--bg-elev);
+}
+
+/* table view */
+.table {
+	display: block;
+	width: 100%;
+	border-collapse: collapse;
+	overflow-x: auto;
+	font-family: var(--font-sans);
+	font-size: 13px;
+}
+
+.table th,
+.table td {
+	text-align: left;
+	vertical-align: top;
+	padding: 8px 12px;
+	border-bottom: 1px solid var(--rule);
+}
+
+.table th {
+	color: var(--fg-mute);
+	font-weight: 600;
+	font-size: 11px;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	white-space: nowrap;
+	border-bottom-color: var(--fg-faint);
+}
+
+.table td {
+	color: var(--fg-soft);
+}
+
+/* list view — each row as stacked labeled fields */
+.list {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3);
+}
+
+.row {
+	border: 1px solid var(--rule);
+	border-radius: var(--radius);
+	padding: var(--space-2) var(--space-3);
+}
+
+.field {
+	display: flex;
+	gap: var(--space-3);
+	padding: 4px 0;
+}
+
+.field + .field {
+	border-top: 1px solid var(--rule);
+}
+
+.label {
+	flex: none;
+	width: 10em;
+	color: var(--fg-mute);
+	font-family: var(--font-mono);
+	font-size: 11px;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	padding-top: 2px;
+}
+
+.value {
+	flex: 1;
+	min-width: 0;
+	color: var(--fg-soft);
+	font-family: var(--font-sans);
+	font-size: 13px;
+	line-height: 1.55;
+}
+
+/* inline code / links inside cells (both views) */
+.table code,
+.value code {
+	font-family: var(--font-mono);
+	font-size: 0.9em;
+	padding: 1px 5px;
+	border-radius: var(--radius-sm);
+	background: var(--bg-elev);
+	color: var(--fg);
+}
+
+.table a,
+.value a {
+	color: var(--accent);
+}

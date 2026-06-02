@@ -1,0 +1,64 @@
+/* Container + layout for the CodeMirror editor. Colors / syntax live in
+   highlight.js (JS theme, driven by --cm-* vars). This file only owns
+   sizing, padding and scrollbars. */
+
+.editor {
+	font-size: 12px;
+	min-width: 0;
+}
+
+.editor :global(.cm-editor) {
+	height: 100%;
+	background: transparent;
+}
+
+.editor :global(.cm-editor.cm-focused) {
+	outline: none;
+}
+
+.editor :global(.cm-scroller) {
+	overflow: auto;
+	scrollbar-width: thin;
+	scrollbar-color: var(--rule) transparent;
+}
+
+.editor :global(.cm-scroller)::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+.editor :global(.cm-scroller)::-webkit-scrollbar-thumb {
+	background: var(--rule);
+	border-radius: 4px;
+}
+.editor :global(.cm-scroller)::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.editor :global(.cm-content) {
+	padding: 12px 0;
+}
+.editor :global(.cm-line) {
+	padding: 0 16px;
+}
+.editor :global(.cm-gutters) {
+	padding-left: 6px;
+}
+
+/* read-only snippets grow with content up to a cap */
+.editor:not([data-editable]) :global(.cm-scroller) {
+	max-height: 360px;
+}
+
+/* editable playground fills the height its column is given */
+.editor[data-editable] {
+	height: 100%;
+}
+
+/* `fill` forces the full container height even when read-only — the
+   playground's transformed view, unlike a grow-with-content snippet */
+.editor[data-fill] {
+	height: 100%;
+}
+.editor[data-fill] :global(.cm-scroller) {
+	max-height: none;
+}

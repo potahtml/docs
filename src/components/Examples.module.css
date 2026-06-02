@@ -1,0 +1,169 @@
+.examples {
+	margin: var(--space-5) 0;
+}
+
+.head {
+	display: flex;
+	align-items: baseline;
+	gap: var(--space-3);
+	margin-bottom: var(--space-3);
+}
+
+.head h2 {
+	margin: 0;
+}
+
+.meta {
+	color: var(--fg-mute);
+	font-size: 12px;
+}
+
+.modes {
+	margin-left: auto;
+	display: inline-flex;
+}
+
+.modeBtn {
+	display: inline-flex;
+	align-items: center;
+	/* fixed line-height so the ⊞ / ☰ glyph metrics don't give the two
+	   buttons different heights */
+	line-height: 1;
+	font-family: var(--font-mono);
+	font-size: 11px;
+	color: var(--fg-mute);
+	background: var(--bg);
+	border: 1px solid var(--rule);
+	padding: 4px 10px;
+	cursor: pointer;
+	position: relative;
+}
+
+/* collapse the shared edge so the pair reads as one control */
+.modeBtn + .modeBtn {
+	margin-left: -1px;
+}
+
+.modeBtn:first-child {
+	border-radius: var(--radius) 0 0 var(--radius);
+}
+
+.modeBtn:last-child {
+	border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+/* one clean accent border on hover, like the "hide" button */
+.modeBtn:hover {
+	color: var(--fg);
+	border-color: var(--accent);
+	z-index: 1;
+}
+
+.modeBtn.active {
+	color: var(--fg);
+	background: var(--bg-elev);
+}
+
+/* selector buttons */
+.chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-2);
+	padding: var(--space-2) 0;
+	margin-bottom: var(--space-4);
+	border-top: 1px solid var(--rule);
+	border-bottom: 1px solid var(--rule);
+}
+
+.chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	/* fixed height so chips stay uniform regardless of their content:
+	   the 13px sans description (list mode) would otherwise make chips
+	   that have one taller than chips that don't, and taller than the
+	   11px inline chips — so toggling mode / selecting jumps */
+	min-height: 28px;
+	padding: 0 10px;
+	background: var(--bg);
+	border: 1px solid var(--rule);
+	border-radius: var(--radius);
+	color: var(--fg-soft);
+	font-family: var(--font-mono);
+	font-size: 11px;
+	cursor: pointer;
+	text-align: left;
+}
+
+.label {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.chip:hover {
+	border-color: var(--accent);
+}
+
+.chip.active {
+	color: var(--fg);
+	border-color: var(--accent);
+	background: var(--bg-elev);
+}
+
+.num {
+	color: var(--fg-faint);
+	font-weight: 600;
+}
+
+/* list layout: vertical buttons, each with its description */
+.listChips {
+	flex-direction: column;
+	flex-wrap: nowrap;
+	gap: var(--space-1);
+}
+
+.listChips .chip {
+	align-items: center;
+	width: 100%;
+	border-radius: var(--radius);
+	padding: 0 12px;
+}
+
+.listChips .label {
+	flex: none;
+}
+
+.chipDesc {
+	flex: 1;
+	min-width: 0;
+	color: var(--fg-mute);
+	font-family: var(--font-sans);
+	font-size: 13px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.chip.active .chipDesc {
+	color: var(--fg-soft);
+}
+
+/* single active panel — no border, flows with the page */
+.panel {
+	background: var(--bg);
+}
+
+.tag {
+	color: var(--fg-faint);
+	font-family: var(--font-mono);
+	font-size: 11px;
+	font-weight: 400;
+	margin-left: var(--space-2);
+}
+
+.desc {
+	color: var(--fg-soft);
+	font-family: var(--font-sans);
+	margin: 0 0 var(--space-2);
+}

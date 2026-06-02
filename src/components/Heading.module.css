@@ -1,0 +1,42 @@
+.heading {
+	font-family: var(--font-sans);
+	font-weight: 600;
+	letter-spacing: -0.01em;
+	/* clear the ~63px sticky header (.bar) + breathing room, so a
+	   scrolled-to heading isn't tucked under it */
+	scroll-margin-top: 80px;
+}
+
+.h1 {
+	font-size: 44px;
+	margin: 0 0 calc(var(--space-3) * var(--prose-scale));
+	letter-spacing: -0.02em;
+}
+
+.h2 {
+	font-size: 22px;
+	margin: calc(var(--space-5) * var(--prose-scale)) 0
+		calc(var(--space-3) * var(--prose-scale));
+}
+
+.h3 {
+	font-size: 17px;
+	margin: calc(var(--space-4) * var(--prose-scale)) 0
+		calc(var(--space-3) * var(--prose-scale));
+}
+
+.hash {
+	color: var(--fg-faint);
+	margin-right: var(--space-1);
+	font-weight: 400;
+}
+
+.anchor {
+	color: inherit;
+	text-decoration: none;
+}
+
+.anchor:hover {
+	text-decoration: none;
+	color: var(--accent);
+}

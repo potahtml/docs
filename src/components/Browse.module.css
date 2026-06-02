@@ -1,0 +1,72 @@
+.catalog {
+	margin-bottom: var(--space-5);
+}
+
+/* collapsed catalog — kept in the DOM (so crawlers still find every topic
+   link) but removed from layout. paired with the reveal button. */
+.collapsed {
+	display: none;
+}
+
+.controls {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+	padding: var(--space-2) 0;
+	border-top: 1px solid var(--rule);
+	border-bottom: 1px solid var(--rule);
+	margin-bottom: var(--space-5);
+	font-size: 12px;
+	color: var(--fg-mute);
+}
+
+.summary strong {
+	color: var(--fg);
+	font-weight: 600;
+}
+
+.hide {
+	font-family: var(--font-mono);
+	font-size: 11px;
+	color: var(--fg-mute);
+	background: var(--bg);
+	border: 1px solid var(--rule);
+	border-radius: var(--radius-sm);
+	padding: 3px 10px;
+	cursor: pointer;
+}
+
+.hide:hover {
+	border-color: var(--accent);
+	color: var(--fg);
+}
+
+/* collapsed state on doc pages — a slim bar above the content */
+.reveal {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	width: 100%;
+	padding: var(--space-2) 0;
+	margin-bottom: var(--space-4);
+	background: transparent;
+	border: 0;
+	border-bottom: 1px solid var(--rule);
+	color: var(--fg-mute);
+	font-family: var(--font-mono);
+	font-size: 12px;
+	cursor: pointer;
+}
+
+.reveal:hover {
+	color: var(--fg);
+}
+
+.revealChev {
+	color: var(--fg-faint);
+}
+
+.revealCount {
+	margin-left: auto;
+	color: var(--fg-faint);
+}

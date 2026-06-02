@@ -1,0 +1,48 @@
+{
+	"name": "pota docs",
+	"version": "0.1.5",
+	"author": "Tito Bouzout",
+	"type": "module",
+	"homepage": "https://pota.quack.uy/",
+	"private": true,
+	"scripts": {
+		"dev": "vite",
+		"build": "vite build",
+		"serve": "vite preview"
+	},
+	"devDependencies": {
+		"@rolldown/plugin-babel": "^0.2.3",
+		"marked": "^18.0.4",
+		"vite": "^8.0.10"
+	},
+	"dependencies": {
+		"@codemirror/autocomplete": "^6.20.2",
+		"@codemirror/commands": "^6.8.1",
+		"@codemirror/lang-css": "^6.3.1",
+		"@codemirror/lang-javascript": "^6.2.5",
+		"@codemirror/language": "^6.11.3",
+		"@codemirror/lint": "^6.9.6",
+		"@codemirror/state": "^6.6.0",
+		"@codemirror/view": "^6.41.0",
+		"@lezer/highlight": "^1.2.1",
+		"@typescript/vfs": "^1.6.4",
+		"codemirror": "^6.0.2",
+		"fflate": "^0.8.2",
+		"pota": "file:../../.."
+	},
+	"prettier": {
+		"printWidth": 70,
+		"useTabs": true,
+		"semi": false,
+		"singleQuote": true,
+		"quoteProps": "as-needed",
+		"jsxSingleQuote": false,
+		"trailingComma": "all",
+		"bracketSpacing": true,
+		"bracketSameLine": false,
+		"arrowParens": "avoid",
+		"proseWrap": "never",
+		"endOfLine": "lf",
+		"embeddedLanguageFormatting": "off"
+	}
+}

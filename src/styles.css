@@ -1,0 +1,128 @@
+/* globals only — tokens + reset + base typography.
+   per-component styles live in *.module.css next to each component. */
+
+:root {
+	/* tells the UA to render native controls (color/date pickers,
+	   scrollbars, form fields) light; the dark theme flips it */
+	color-scheme: light;
+	--bg: #fefefe;
+	--bg-elev: #f7f7f5;
+	--fg: #1a1a1a;
+	--fg-soft: #4a4a4a;
+	--fg-mute: #8a8a8a;
+	--fg-faint: #b8b8b8;
+	--rule: #e7e5e1;
+	--accent: #cc4400;
+	--match: #fff3d6;
+
+	--font-sans: 'Source Serif 4', Georgia, serif;
+	--font-mono:
+		'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+	--max: 880px;
+	--control: 32px;
+
+	/* corner radii */
+	--radius-sm: 4px;
+	--radius: 6px;
+	--radius-lg: 8px;
+
+	/* spacing scale — all block rhythm snaps to these */
+	--space-1: 4px;
+	--space-2: 8px;
+	--space-3: 12px;
+	--space-4: 16px;
+	--space-5: 24px;
+	--space-6: 36px;
+
+	/* prose-spacing multiplier — the Appearance slider overrides this
+	   inline on <html> to loosen/tighten paragraph + heading rhythm */
+	--prose-scale: 1;
+	/* prose line-height, driven by the same slider; used by body copy,
+	   lists and the page lede so they all loosen/tighten together */
+	--prose-line: calc(1.65 + (var(--prose-scale) - 1) * 0.5);
+	/* text-selection tint, follows the accent — shared by the page
+	   ::selection and the CodeMirror editor selection */
+	--select: color-mix(in srgb, var(--accent) 30%, transparent);
+
+	/* fake-OS window dots (theme-independent) */
+	--win-close: #ff5f57;
+	--win-min: #febc2e;
+	--win-max: #28c840;
+
+	/* CodeMirror syntax palette — light (One Light-ish) */
+	--cm-comment: #8a8a8a;
+	--cm-keyword: #a626a4;
+	--cm-string: #50a14f;
+	--cm-number: #b76b01;
+	--cm-function: #4078f2;
+	--cm-variable: #1a1a1a;
+	--cm-type: #c18401;
+	--cm-tag: #e45649;
+	--cm-attribute: #b76b01;
+	--cm-punctuation: #6a6a6a;
+}
+
+[data-theme='dark'] {
+	/* render native controls (color/date pickers, scrollbars, form
+	   fields) dark to match */
+	color-scheme: dark;
+	--bg: #14141a;
+	--bg-elev: #1c1c24;
+	--fg: #e8e8ea;
+	--fg-soft: #b0b0b4;
+	--fg-mute: #707074;
+	--fg-faint: #4a4a50;
+	--rule: #2a2a32;
+	--accent: #ff8c4a;
+	--match: #3a2a14;
+
+	/* CodeMirror syntax palette — dark (One Dark-ish) */
+	--cm-comment: #7f848e;
+	--cm-keyword: #c678dd;
+	--cm-string: #98c379;
+	--cm-number: #d19a66;
+	--cm-function: #61afef;
+	--cm-variable: #e8e8ea;
+	--cm-type: #e5c07b;
+	--cm-tag: #e06c75;
+	--cm-attribute: #d19a66;
+	--cm-punctuation: #abb2bf;
+}
+
+* {
+	box-sizing: border-box;
+}
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+body {
+	background: var(--bg);
+	color: var(--fg);
+	font-family: var(--font-mono);
+	font-size: 14px;
+	line-height: 1.65;
+}
+a {
+	color: var(--accent);
+	text-decoration: none;
+}
+a:hover {
+	text-decoration: underline;
+}
+
+/* text selection follows the theme accent; the search highlight (.mark)
+   reuses the same hue at a higher opacity so the two read as a family */
+::selection {
+	background: var(--select);
+}
+code {
+	font-family: var(--font-mono);
+	font-size: 0.95em;
+	color: var(--fg);
+	background: var(--bg-elev);
+	padding: 1px 5px;
+	border-radius: 3px;
+}

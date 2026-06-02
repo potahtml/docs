@@ -1,0 +1,290 @@
+.window {
+	margin: var(--space-4) 0;
+	background: var(--bg-elev);
+	border: 1px solid var(--rule);
+	border-radius: var(--radius-lg);
+	/* a small resting shadow so lifting into the zoomed state reads as a
+	   smooth deepening rather than a flat → elevated jump */
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+	overflow: hidden;
+	/* fixed-height window — head/foot fixed, body flexes. Clicking the
+	   editor zooms it open (see `.zoomed`). */
+	display: flex;
+	flex-direction: column;
+	height: 420px;
+	min-height: 220px;
+}
+
+/* the standalone /playground fills the viewport (minus the sticky header
+   and the page's vertical padding) instead of the fixed in-flow box used
+   for inline examples */
+.fullPage {
+	height: calc(100dvh - 220px);
+	min-height: 460px;
+	margin: var(--space-4) 0 0;
+}
+
+/* ---- zoom: click the editor to take over the viewport, click outside
+   (or Escape) to return ---- */
+
+/* the activated window is pinned to the viewport; its top/left/width/height
+   are driven inline (FLIP from the in-flow rect to a centred 95vh box) */
+.zoomed {
+	position: fixed;
+	z-index: 1001;
+	margin: 0;
+	/* the elevated shadow is set inline in open()/close() so it animates
+	   with the geometry — a CSS shadow here would snap during the FLIP
+	   pin step (transition: none) before the grow runs */
+	transition:
+		top 320ms ease,
+		left 320ms ease,
+		width 320ms ease,
+		height 320ms ease,
+		box-shadow 320ms ease;
+	will-change: top, left, width, height;
+}
+
+/* edge grips: only live while zoomed. Dragging either vertical edge
+   grows/shrinks the active window symmetrically about its centre (up to
+   the full viewport), so it can grow without defaulting to full width. */
+.resizeHandle {
+	display: none;
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	width: 10px;
+	z-index: 1002;
+	cursor: ew-resize;
+	touch-action: none;
+}
+.zoomed .resizeHandle {
+	display: block;
+}
+.resizeLeft {
+	left: 0;
+}
+.resizeRight {
+	right: 0;
+}
+/* a slim grip that lights up on hover so the affordance is discoverable */
+.resizeHandle::after {
+	content: '';
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	height: 40px;
+	width: 3px;
+	border-radius: 3px;
+	background: transparent;
+	transition: background 120ms ease;
+}
+.resizeLeft::after {
+	left: 3px;
+}
+.resizeRight::after {
+	right: 3px;
+}
+.resizeHandle:hover::after {
+	background: var(--accent);
+}
+
+/* dimmed page behind an active window; clicking it returns the window */
+.backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 1000;
+	background: rgba(0, 0, 0, 0);
+	transition: background 320ms ease;
+}
+.backdropOn {
+	background: rgba(0, 0, 0, 0.6);
+}
+
+/* ---- top bar (mirrors Snippet chrome) ---- */
+
+.head {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 6px 12px;
+	background: var(--bg);
+	border-bottom: 1px solid var(--rule);
+	font-size: 11px;
+	color: var(--fg-mute);
+}
+
+.dots {
+	display: inline-flex;
+	gap: 6px;
+}
+.dots span {
+	width: 11px;
+	height: 11px;
+	border-radius: 50%;
+	opacity: 0.85;
+}
+.close {
+	background: var(--win-close);
+}
+.min {
+	background: var(--win-min);
+}
+.max {
+	background: var(--win-max);
+}
+
+/* file tab bar grows to fill the slack between the dots and the actions */
+.tabbar {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+}
+
+/* run controls (autorun / re-run / open in blank), pinned top-right */
+.actions {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+}
+.actions a {
+	color: var(--fg-mute);
+}
+.actions a:hover {
+	color: var(--fg);
+}
+
+/* code / transformed toggle, sits bottom-left in the footer */
+.views {
+	display: flex;
+	gap: 2px;
+}
+.viewBtn {
+	padding: 2px 8px;
+	font-family: var(--font-mono);
+	font-size: 11px;
+	color: var(--fg-mute);
+	background: transparent;
+	border: 1px solid transparent;
+	border-radius: var(--radius-sm);
+	cursor: pointer;
+}
+.viewBtn.active {
+	color: var(--fg);
+	background: var(--bg-elev);
+	border-color: var(--rule);
+}
+
+/* ---- body: editor | preview ---- */
+
+/* flex row so the Splitter (a flex item) can pin the code pane's width */
+.body {
+	display: flex;
+	flex: 1;
+	min-height: 0;
+	overflow: hidden;
+}
+
+/* code pane defaults to 65%; the Splitter overrides its width on drag */
+.editorPane {
+	flex: 0 0 65%;
+	border-right: 1px solid var(--rule);
+	overflow: hidden;
+	min-width: 0;
+	height: 100%;
+}
+
+/* preview fills whatever the code pane leaves. The pane carries the
+   themed background so the pre-paint frame (and any gap) matches the site
+   theme instead of flashing a fixed color. */
+.previewPane {
+	flex: 1 1 0;
+	background: var(--bg);
+	min-width: 140px;
+	overflow: hidden;
+	height: 100%;
+}
+
+.previewPane iframe {
+	display: block;
+	width: 100%;
+	height: 100%;
+	border: 0;
+	background: transparent;
+}
+
+/* the Splitter styles its own grip via use:css; this just guarantees the
+   module class exists so the responsive rule below can target it */
+.splitter {
+	align-self: stretch;
+}
+
+@media (max-width: 720px) {
+	.body {
+		flex-direction: column;
+	}
+	.editorPane {
+		flex: 1 1 0;
+		height: auto;
+		border-right: 0;
+		border-bottom: 1px solid var(--rule);
+	}
+	.previewPane {
+		flex: 1 1 0;
+		height: auto;
+		min-width: 0;
+	}
+	/* a vertical (left/right) handle makes no sense when stacked */
+	.splitter {
+		display: none;
+	}
+}
+
+/* ---- footer ---- */
+
+.foot {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 6px 12px;
+	border-top: 1px solid var(--rule);
+	font-size: 11px;
+}
+.foot .right {
+	margin-left: auto;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+}
+.foot .lang {
+	color: var(--fg-faint);
+}
+
+/* small autorun toggle — a rounded chip whose dot lights up when enabled */
+.toggle {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	padding: 1px 8px 1px 6px;
+	font-family: var(--font-mono);
+	font-size: 11px;
+	color: var(--fg-mute);
+	background: transparent;
+	border: 1px solid var(--rule);
+	border-radius: var(--radius);
+	cursor: pointer;
+}
+.toggle::before {
+	content: '';
+	width: 7px;
+	height: 7px;
+	border-radius: 50%;
+	background: var(--fg-faint);
+}
+.toggle.on {
+	color: var(--fg);
+	border-color: transparent;
+}
+.toggle.on::before {
+	background: var(--accent);
+}

@@ -1,0 +1,35 @@
+.section {
+	margin-bottom: var(--space-5);
+}
+
+.head {
+	display: flex;
+	align-items: baseline;
+	gap: var(--space-3);
+	margin-bottom: var(--space-2);
+}
+
+.title {
+	font-family: var(--font-sans);
+	font-size: 22px;
+	font-weight: 600;
+	color: var(--fg);
+}
+
+.hash {
+	color: var(--fg-faint);
+	margin-right: var(--space-1);
+}
+
+.meta {
+	font-size: 11px;
+	color: var(--fg-faint);
+	font-family: var(--font-mono);
+}
+
+.count {
+	margin-left: auto;
+	font-size: 11px;
+	color: var(--fg-faint);
+	font-family: var(--font-mono);
+}

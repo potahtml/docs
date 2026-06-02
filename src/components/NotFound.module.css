@@ -1,0 +1,26 @@
+.notFound {
+	padding: var(--space-6) 0;
+}
+
+.notFound h1 {
+	font-family: var(--font-sans);
+	margin: 0 0 var(--space-3);
+}
+
+.hash {
+	color: var(--fg-faint);
+	margin-right: var(--space-2);
+}
+
+.notFound code {
+	font-family: var(--font-mono);
+	font-size: 0.9em;
+	padding: 1px 5px;
+	border-radius: var(--radius-sm);
+	background: var(--bg-elev);
+	color: var(--fg);
+}
+
+.notFound a {
+	color: var(--accent);
+}

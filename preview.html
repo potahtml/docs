@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<title>pota preview</title>
+		<meta name="robots" content="noindex, nofollow" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1"
+		/>
+
+		<!-- Resolves bare `pota` specifiers in user code. Injected at
+		     build time from generated/docs/importmap.json by
+		     vite-plugin-importmap.js (regenerate that file from the repo
+		     root with `npm run build:generate`). Do not hand-edit. -->
+		<!--POTA_IMPORTMAP-->
+
+		<script>
+			// Follow the docs theme passed by the parent: ?theme=dark|light
+			// picks the base palette, and the resolved --bg/--fg/--accent/
+			// --rule are passed too so custom-accent mode matches exactly and
+			// a standalone "open in blank" tab is themed as well.
+			;(function () {
+				const p = new URLSearchParams(location.search)
+				const root = document.documentElement
+				const theme = p.get('theme')
+				if (theme) root.dataset.theme = theme
+				for (const [param, name] of [
+					['bg', '--bg'],
+					['fg', '--fg'],
+					['accent', '--accent'],
+					['rule', '--rule'],
+				]) {
+					const v = p.get(param)
+					if (v) root.style.setProperty(name, v)
+				}
+			})()
+		</script>
+
+		<style>
+			:root {
+				--bg: #fefefe;
+				--fg: #1a1a1a;
+				--accent: #cc4400;
+				--rule: #d8d6d2;
+			}
+			:root[data-theme='dark'] {
+				--bg: #14141a;
+				--fg: #e8e8ea;
+				--accent: #ff8c4a;
+				--rule: #34343e;
+			}
+			* {
+				box-sizing: border-box;
+			}
+			html,
+			body {
+				margin: 0;
+				padding: 0;
+			}
+
+			/* match the docs' thin, themed scrollbars inside the frame */
+			html {
+				scrollbar-width: thin;
+				scrollbar-color: var(--rule) transparent;
+			}
+			::-webkit-scrollbar {
+				width: 10px;
+				height: 10px;
+			}
+			::-webkit-scrollbar-thumb {
+				background: var(--rule);
+				border-radius: 5px;
+			}
+			::-webkit-scrollbar-track {
+				background: transparent;
+			}
+			body {
+				/* themed surface so the preview matches the site in both
+				   light/dark/custom and when opened standalone in a new tab */
+				background: var(--bg);
+				color: var(--fg);
+				font-family:
+					'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo,
+					monospace;
+				font-size: 14px;
+				line-height: 1.55;
+				padding: 14px 16px;
+			}
+			.error {
+				white-space: pre-wrap;
+				color: #fff;
+				background: #b00020;
+				border-radius: 6px;
+				padding: 10px 12px;
+				font-size: 12px;
+			}
+		</style>
+	</head>
+	<body>
+		<script
+			type="module"
+			src="/src/components/playground/preview.js"
+		></script>
+	</body>
+</html>
