@@ -7,7 +7,7 @@ import { Content } from './Content.jsx'
 // Page copy lives in markdown under pages/ (parsed at build time by
 // vite-plugin-content). Edit pages/thanks.md to change the credits —
 // no JSX changes needed.
-import doc from '../../pages/thanks.md'
+import doc from '../pages/thanks.md'
 
 export function Thanks() {
 	return (
@@ -16,7 +16,7 @@ export function Thanks() {
 				<title>thanks — pota</title>
 			</Head>
 
-			<ReferenceHero title={doc.title} lede={doc.lede.join(' ')} />
+			<ReferenceHero title={doc.title} lede={doc.lede} />
 
 			<Content items={doc.content} />
 		</section>

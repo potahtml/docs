@@ -5,12 +5,12 @@ import { Content } from './Content.jsx'
 // markdown (parsed at build time by vite-plugin-content); edit
 // pages/home.md to change it, no JSX needed. The API catalog (Browse) is
 // rendered by the shell below this — see index.jsx.
-import doc from '../../pages/home.md'
+import doc from '../pages/home.md'
 
 export function Home() {
 	return (
 		<>
-			<ReferenceHero title={doc.title} lede={doc.lede.join(' ')} />
+			<ReferenceHero title={doc.title} lede={doc.lede} />
 			<Content items={doc.content} />
 		</>
 	)

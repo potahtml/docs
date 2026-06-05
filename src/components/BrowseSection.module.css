@@ -1,5 +1,8 @@
 .section {
 	margin-bottom: var(--space-5);
+	/* don't let a topic's header split from its list across a column break */
+	break-inside: avoid;
+	-webkit-column-break-inside: avoid;
 }
 
 .head {
@@ -11,14 +14,9 @@
 
 .title {
 	font-family: var(--font-sans);
-	font-size: 22px;
+	font-size: 18px;
 	font-weight: 600;
 	color: var(--fg);
-}
-
-.hash {
-	color: var(--fg-faint);
-	margin-right: var(--space-1);
 }
 
 .meta {

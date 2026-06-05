@@ -1,5 +1,6 @@
 import { signal, effect, ref, cleanup } from 'pota'
 import { Splitter } from 'pota/components'
+import { copyToClipboard } from 'pota/use/string'
 import styles from './Playground.module.css'
 import { mode, accent } from '../theme.js'
 import { Sep } from '../Sep.jsx'
@@ -376,10 +377,7 @@ export function Playground(props) {
 		buildPayload(current, entry).then(payload => {
 			if (id !== runId) return // a newer run superseded this one
 			const src =
-				'/preview.html' +
-				(query ? '?' + query : '') +
-				'#' +
-				payload
+				'/preview.html' + (query ? '?' + query : '') + '#' + payload
 			if (src === appliedSrc) {
 				f.contentWindow?.location.reload()
 			} else {
@@ -402,25 +400,20 @@ export function Playground(props) {
 
 	// Copy a shareable /playground link for the current editor state. Built
 	// fresh from `current` (not `location.href`) so it's correct even right
-	// after a keystroke, before PlaygroundPage's debounced hash write lands.
-	// The `{ entry, files }` payload matches what PlaygroundPage rehydrates.
+	// after a keystroke — and so an inline example (which never writes the
+	// hash itself) still yields a working link. Always targets the standalone
+	// /playground route, whose PlaygroundPage rehydrates the `{ entry, files }`
+	// payload from the hash; on /playground itself this matches the live URL.
 	const copied = signal(false)
 	let copiedTimer
 	const copyLink = () => {
 		const payload = compress({ entry, files: current })
-		const url =
-			window.location.origin +
-			window.location.pathname +
-			'#' +
-			payload
-		navigator.clipboard
-			?.writeText(url)
-			.then(() => {
-				copied.write(true)
-				clearTimeout(copiedTimer)
-				copiedTimer = setTimeout(() => copied.write(false), 1500)
-			})
-			.catch(() => {})
+		const url = window.location.origin + '/playground#' + payload
+		copyToClipboard(url).then(() => {
+			copied.write(true)
+			clearTimeout(copiedTimer)
+			copiedTimer = setTimeout(() => copied.write(false), 1500)
+		})
 	}
 	cleanup(() => clearTimeout(copiedTimer))
 
@@ -569,8 +562,7 @@ export function Playground(props) {
 					<button
 						type="button"
 						class={() =>
-							styles.toggle +
-							(autorun.read() ? ' ' + styles.on : '')
+							styles.toggle + (autorun.read() ? ' ' + styles.on : '')
 						}
 						aria-pressed={() => (autorun.read() ? 'true' : 'false')}
 						on:click={toggleAutorun}
@@ -585,14 +577,10 @@ export function Playground(props) {
 					<a href="javascript://" on:click={openInBlank}>
 						open in blank ↗
 					</a>
-					{props.fullPage && (
-						<>
-							<Sep />
-							<a href="javascript://" on:click={copyLink}>
-								{() => (copied.read() ? 'copied' : 'copy link')}
-							</a>
-						</>
-					)}
+					<Sep />
+					<a href="javascript://" on:click={copyLink}>
+						{() => (copied.read() ? 'copied' : 'copy link')}
+					</a>
 				</div>
 			</div>
 

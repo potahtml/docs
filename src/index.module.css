@@ -2,6 +2,11 @@
 	max-width: var(--max);
 	margin: 0 auto;
 	padding: 32px 18px 80px;
+	/* nothing in the reading column may scroll the page sideways on mobile
+	   (e.g. the playground if a child forces a width). `clip` rather than
+	   `hidden` so no scroll container is created — the sticky header is
+	   unaffected and the fixed-position zoomed playground still escapes. */
+	overflow-x: clip;
 }
 
 /* the playground needs room for editor + preview side by side, so it

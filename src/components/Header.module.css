@@ -38,6 +38,9 @@
 }
 
 .navLink {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
 	font-family: var(--font-mono);
 	font-size: 12px;
 	color: var(--fg-mute);
@@ -50,10 +53,31 @@
 	color: var(--accent);
 }
 
-/* on narrow screens the search field needs the room — drop the nav */
+.navIcon {
+	font-size: 9px;
+	line-height: 1;
+	color: var(--accent);
+}
+
+/* on narrow screens the bar wraps: brand + theme/github controls stay on
+   the top row (brand's auto margin pushes the controls to the right), and
+   the search drops to its own full-width row below. the nav is dropped to
+   keep the top row uncluttered. */
 @media (max-width: 720px) {
+	.inner {
+		flex-wrap: wrap;
+	}
 	.nav {
 		display: none;
+	}
+	.brand {
+		margin-right: auto;
+	}
+	.searchWrap {
+		order: 1;
+		flex-basis: 100%;
+		max-width: none;
+		margin-left: 0;
 	}
 }
 
@@ -114,10 +138,10 @@
 	width: var(--control);
 	height: var(--control);
 	background-color: var(--fg);
-	-webkit-mask: url(../assets/github-mark-white.png) center / 20px
-		20px no-repeat;
-	mask: url(../assets/github-mark-white.png) center / 20px 20px
-		no-repeat;
+	-webkit-mask:
+		url(../assets/github-mark-white.png) center / 20px 20px no-repeat;
+	mask:
+		url(../assets/github-mark-white.png) center / 20px 20px no-repeat;
 }
 
 .ext:hover {

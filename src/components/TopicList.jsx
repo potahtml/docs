@@ -1,57 +1,23 @@
-import { layout } from './ViewToggle.jsx'
 import { searchTerm } from '../search.js'
 import styles from './TopicList.module.css'
 
-// renders a list of {name, href, desc} either as a comma-separated
-// inline line, or as a vertical <li> list with descriptions.
+// renders a topic's exports as a vertical menu of name links. each
+// name's description shows as a native tooltip (title=) on hover, so
+// the menu stays compact and packs tightly into the catalog columns.
 //
-// mode source: `props.mode` (a string or a reader function) when
-// given, else the shared `layout` signal in ViewToggle.jsx. Passing
-// `mode` lets a consumer (e.g. search) drive its own layout
-// independently of the page toggle.
-//
-// while a search is active, the matched substring is highlighted in
-// both the name and the description.
+// while a search is active, the matched substring in the name is
+// highlighted.
 export function TopicList(props) {
 	const items = props.items || []
 
-	const readMode = () => {
-		const m = props.mode
-		if (m === undefined || m === null) return layout.read()
-		return typeof m === 'function' ? m() : m
-	}
-
 	return () => {
 		const term = searchTerm()
-
-		if (readMode() === 'inline') {
-			return (
-				<p class={styles.inline}>
-					{items.map((it, i) => (
-						<>
-							<a class={styles.name} href={it.href} title={it.desc}>
-								<ApiName name={it.name} term={term} />
-							</a>
-							{i < items.length - 1 && (
-								<span class={styles.comma}>, </span>
-							)}
-						</>
-					))}
-				</p>
-			)
-		}
 		return (
 			<ul class={styles.list}>
 				{items.map(it => (
 					<li class={styles.row}>
-						<a class={styles.rowLink} href={it.href}>
-							<span class={styles.name}>
-								<ApiName name={it.name} term={term} />
-							</span>
-							<span
-								class={styles.desc}
-								prop:innerHTML={highlightHtml(it.desc, term)}
-							/>
+						<a class={styles.name} href={it.href} title={it.desc}>
+							<ApiName name={it.name} term={term} />
 						</a>
 					</li>
 				))}

@@ -4,12 +4,13 @@ export function Footer() {
 	return (
 		<footer class={styles.footer}>
 			<div>
-				<span>docs prototype</span> ·{' '}
+				<span>docs</span> ·{' '}
 				<span>disclaimer: AI assisted documentation</span>
 			</div>
 			<span>
+				<a href="/thanks">thanks</a> ·{' '}
 				<a
-					href="https://pota.quack.uy/Articles/"
+					href="https://github.com/potahtml/pota/tree/master/documentation/content"
 					target="_blank"
 					rel="noopener"
 				>

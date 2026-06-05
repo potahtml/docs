@@ -21,10 +21,7 @@ export function BrowseSection(props) {
 		return (
 			<section class={styles.section} id={s.id}>
 				<header class={styles.head}>
-					<span class={styles.title}>
-						<span class={styles.hash}>#</span>
-						{s.title}
-					</span>
+					<span class={styles.title}>{s.title}</span>
 					<span class={styles.meta}>{s.subpath}</span>
 					<span class={styles.count}>{items.length}</span>
 				</header>

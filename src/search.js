@@ -1,7 +1,7 @@
 import { signal } from 'pota'
 
 // shared search query — the Header input writes it, the catalog
-// (Browse) reads it to reveal + filter. mirrors ViewToggle's `layout`.
+// (Browse) reads it to reveal + filter.
 export const query = signal('')
 
 export const searchTerm = () => query.read().trim().toLowerCase()

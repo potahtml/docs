@@ -1,5 +1,9 @@
 .window {
 	margin: var(--space-4) 0;
+	/* never exceed the page column — caps any stray child/inline width so
+	   the window can't push the page into horizontal scroll on mobile */
+	max-width: 100%;
+	min-width: 0;
 	background: var(--bg-elev);
 	border: 1px solid var(--rule);
 	border-radius: var(--radius-lg);
@@ -69,7 +73,7 @@
 }
 /* a slim grip that lights up on hover so the affordance is discoverable */
 .resizeHandle::after {
-	content: '';
+	content: "";
 	position: absolute;
 	top: 50%;
 	transform: translateY(-50%);
@@ -106,6 +110,10 @@
 .head {
 	display: flex;
 	align-items: center;
+	/* wrap when the dots + tabs + actions can't fit on one line (mobile):
+	   the tab bar keeps the top row and the actions drop below. `gap`
+	   doubles as the row gap, so wrapped rows stay spaced. */
+	flex-wrap: wrap;
 	gap: 10px;
 	padding: 6px 12px;
 	background: var(--bg);
@@ -141,10 +149,13 @@
 	display: flex;
 }
 
-/* run controls (autorun / re-run / open in blank), pinned top-right */
+/* run controls (autorun / re-run / open in blank), pinned top-right.
+   wraps internally too, so the links reflow on very narrow screens
+   rather than overflowing the (clipped) window. */
 .actions {
 	display: inline-flex;
 	align-items: center;
+	flex-wrap: wrap;
 	gap: 10px;
 }
 .actions a {
@@ -228,6 +239,13 @@
 		height: auto;
 		border-right: 0;
 		border-bottom: 1px solid var(--rule);
+		/* the vertical Splitter is desktop-only (hidden below). if it set an
+		   inline width on a wider viewport, drop it so the stacked editor
+		   fills the column instead of forcing the window wider than the
+		   screen (the inline style needs !important to override). */
+		width: auto !important;
+		min-width: 0 !important;
+		max-width: none !important;
 	}
 	.previewPane {
 		flex: 1 1 0;
@@ -275,7 +293,7 @@
 	cursor: pointer;
 }
 .toggle::before {
-	content: '';
+	content: "";
 	width: 7px;
 	height: 7px;
 	border-radius: 50%;

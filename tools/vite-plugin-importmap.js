@@ -14,10 +14,9 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const here = dirname(fileURLToPath(import.meta.url))
-// new-site/tools → new-site → projects → docs → <repo root>
+// docs/tools → docs → projects → <repo root>
 const importmapPath = join(
 	here,
-	'..',
 	'..',
 	'..',
 	'..',

@@ -1,7 +1,6 @@
 import { memo, signal } from 'pota'
 
 import styles from './Browse.module.css'
-import { ViewToggle } from './ViewToggle.jsx'
 import { BrowseSection } from './BrowseSection.jsx'
 import { filterSections, query, searchTerm } from '../search.js'
 
@@ -63,26 +62,25 @@ function Catalog(props) {
 
 	return (
 		<section class={styles.catalog} on:click={onClick}>
-			<div class={styles.controls}>
-				<span class={styles.summary}>
+			{/* the whole bar is the collapse toggle — clicking it hides the
+			    catalog (and clears any active search), mirroring the reveal
+			    button that expands it */}
+			<button class={styles.bar} on:click={props.onHide}>
+				<span class={styles.barChev}>▾</span> browse all apis
+				<span class={styles.barCount}>
 					<strong>{() => visible().length}</strong> topics ·{' '}
 					<strong>
 						{() => visible().reduce((a, s) => a + s.items.length, 0)}
 					</strong>{' '}
 					exports
 				</span>
-				<ViewToggle />
-				{/* the catalog is only visible when revealed or searching
-				    (collapsed via CSS otherwise), so the control is always
-				    available — to collapse it and/or clear the search */}
-				<button class={styles.hide} on:click={props.onHide}>
-					hide
-				</button>
-			</div>
+			</button>
 
-			{sections.map(s => (
-				<BrowseSection section={s} />
-			))}
+			<div class={styles.sections}>
+				{sections.map(s => (
+					<BrowseSection section={s} />
+				))}
+			</div>
 		</section>
 	)
 }

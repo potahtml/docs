@@ -22,11 +22,20 @@ import { manifest } from './manifest.js'
 // JSON. Lazy glob → each page is its own chunk, fetched on first
 // navigation and cached by the browser/Vite thereafter, so the initial
 // bundle carries no page bodies.
-const modules = import.meta.glob('./content/**/*.md')
+// content lives in the pota repo (documentation/content), outside this
+// project's src/ — see vite-plugin-content.js and server.fs.allow.
+const modules = import.meta.glob(
+	'../../../documentation/content/**/*.md',
+)
 const loaders = {}
 for (const path in modules) {
+	// keys arrive prefixed with the relative climb out of src/; keep
+	// only the part after documentation/content/ as the route
 	const route =
-		'/' + path.slice('./content/'.length).replace(/\.md$/, '')
+		'/' +
+		path
+			.replace(/^.*\/documentation\/content\//, '')
+			.replace(/\.md$/, '')
 	loaders[route] = modules[path]
 }
 

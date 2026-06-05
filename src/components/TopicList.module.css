@@ -1,57 +1,25 @@
-.inline {
-	margin: 0;
-	line-height: 2;
-}
-
-.comma {
-	color: var(--fg-faint);
-}
-
 .list {
 	margin: 0;
-	padding: 0;
+	/* indent the keyword list under its section title */
+	padding: 0 0 0 var(--space-5);
 	list-style: none;
 }
 
+/* compact menu rows — just the name link; the description shows as a
+   title= tooltip on hover */
 .row {
-	padding: 6px 0;
-	border-bottom: 1px dashed var(--rule);
-}
-
-.row:last-child {
-	border-bottom: 0;
-}
-
-/* the whole row is one link in list mode */
-.rowLink {
-	display: grid;
-	grid-template-columns: minmax(160px, 200px) 1fr;
-	gap: 12px;
-	color: inherit;
-	text-decoration: none;
-}
-
-.rowLink:hover {
-	text-decoration: none;
-}
-
-.rowLink:hover .name {
-	color: var(--accent);
+	padding: 2px 0;
 }
 
 .name {
-	color: var(--fg);
-	font-weight: 600;
+	/* dimmer than the section title (--fg) so the hierarchy reads */
+	color: var(--fg-soft);
+	text-decoration: none;
 }
 
 .name:hover {
 	color: var(--accent);
 	text-decoration: none;
-}
-
-.desc {
-	color: var(--fg-soft);
-	font-family: var(--font-sans);
 }
 
 .ang,

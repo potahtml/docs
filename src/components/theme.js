@@ -55,10 +55,27 @@ function store(key, value) {
 	} catch (e) {}
 }
 
-export const mode = signal(read(MODE_KEY, 'light'))
+// OS-level light/dark preference, used as the default when the visitor
+// hasn't explicitly picked a theme.
+function systemMode() {
+	try {
+		return matchMedia('(prefers-color-scheme: dark)').matches
+			? 'dark'
+			: 'light'
+	} catch (e) {
+		return 'light'
+	}
+}
+
+// null when nothing is stored yet — in that case we follow the OS
+// preference (and keep following it live, below) until the visitor makes
+// an explicit choice.
+const storedMode = read(MODE_KEY, null)
+
+export const mode = signal(storedMode || systemMode())
 export const seed = signal(read(SEED_KEY, '#cc4400'))
 export const spacing = signal(Number(read(SPACE_KEY, '1')) || 1)
-export const editorScheme = signal(read(SCHEME_KEY, 'auto'))
+export const editorScheme = signal(read(SCHEME_KEY, 'gruvbox'))
 
 const schemeById = new Map(schemes.map(s => [s.id, s]))
 
@@ -132,10 +149,10 @@ function customPalette(hex) {
 	}
 }
 
-function applyBase(m) {
+function applyBase(m, persist = true) {
 	for (const t of CUSTOM_TOKENS) root.style.removeProperty(t)
 	root.dataset.theme = m
-	store(MODE_KEY, m)
+	if (persist) store(MODE_KEY, m)
 	syncAccent(
 		getComputedStyle(root).getPropertyValue('--accent').trim() ||
 			'#cc4400',
@@ -204,7 +221,22 @@ export function setEditorScheme(id) {
 	applyEditorScheme()
 }
 
-// apply persisted state on load
+// apply persisted state on load. when the mode wasn't explicitly chosen
+// (nothing stored) we don't persist it, so the site keeps tracking the OS
+// preference on later visits and via the listener below.
 if (mode.read() === 'custom') applyCustom(seed.read())
-else applyBase(mode.read())
+else applyBase(mode.read(), storedMode != null)
 applySpacing(spacing.read())
+
+// follow OS light/dark changes live, until the visitor picks a theme
+try {
+	matchMedia('(prefers-color-scheme: dark)').addEventListener(
+		'change',
+		e => {
+			if (read(MODE_KEY, null) == null) {
+				mode.write(e.matches ? 'dark' : 'light')
+				applyBase(mode.read(), false)
+			}
+		},
+	)
+} catch (e) {}

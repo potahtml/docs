@@ -7,7 +7,15 @@
 //   include — explicit page refs (id, title, or an export name), kept
 //             in the order written. Enables cross-cutting topics like
 //             CSS that pull from several topics.
-//   topic   — every page whose frontmatter `topic` matches.
+//   module  — every page whose `subpath` equals this import path
+//             (e.g. `pota/use/dom`), overview page first. Promotes a
+//             single many-export use/* module into its own section.
+//             The subpath is owned EXCLUSIVELY by its module section:
+//             those pages are dropped from the generic `topic` buckets,
+//             so a big module (dom, test, string, …) does not also
+//             appear under its old home (Internals, Utilities, …).
+//   topic   — every page whose frontmatter `topic` matches, minus any
+//             page already owned by a `module` section.
 //
 // A page may appear in MORE THAN ONE topic. Cross-cutting topics
 // (CSS, Lifecycles) intentionally re-list pages that also live in a
@@ -97,6 +105,12 @@ export const topics = [
 		title: 'Routing',
 		subpath: 'pota/components',
 		topic: 'Routing',
+	},
+	{
+		id: 'url',
+		title: 'URL',
+		subpath: 'pota/use/url',
+		module: 'pota/use/url',
 	},
 	{
 		id: 'store',
@@ -207,6 +221,36 @@ export const topics = [
 		topic: 'Utilities',
 	},
 	{
+		id: 'string',
+		title: 'String',
+		subpath: 'pota/use/string',
+		module: 'pota/use/string',
+	},
+	{
+		id: 'color',
+		title: 'Color',
+		subpath: 'pota/use/color',
+		module: 'pota/use/color',
+	},
+	{
+		id: 'time',
+		title: 'Time',
+		subpath: 'pota/use/time',
+		module: 'pota/use/time',
+	},
+	{
+		id: 'dom',
+		title: 'DOM',
+		subpath: 'pota/use/dom',
+		module: 'pota/use/dom',
+	},
+	{
+		id: 'test',
+		title: 'Test',
+		subpath: 'pota/use/test',
+		module: 'pota/use/test',
+	},
+	{
 		id: 'internals',
 		title: 'Internals',
 		subpath: 'pota/use/*',
@@ -240,6 +284,13 @@ export function buildManifest(pages) {
 	const sections = []
 	const reached = new Set()
 
+	// Subpaths promoted to their own `module` section own those pages
+	// exclusively: drop them from the generic `topic` buckets so a
+	// many-export use/* module does not also list under its old home.
+	const owned = new Set(
+		topics.filter(t => t.module).map(t => t.module),
+	)
+
 	for (const topic of topics) {
 		// Dedupe within a single topic; a page may still appear in
 		// other topics — cross-cutting duplication is intentional.
@@ -257,9 +308,15 @@ export function buildManifest(pages) {
 				claim(pages.find(p => matches(p, entry)))
 			}
 		}
+		if (topic.module) {
+			pages
+				.filter(p => p.subpath === topic.module)
+				.sort(byModuleOrder)
+				.forEach(claim)
+		}
 		if (topic.topic) {
 			pages
-				.filter(p => p.topic === topic.topic)
+				.filter(p => p.topic === topic.topic && !owned.has(p.subpath))
 				.sort(byTitle)
 				.forEach(claim)
 		}
@@ -268,7 +325,7 @@ export function buildManifest(pages) {
 			sections.push({
 				id: topic.id,
 				title: topic.title,
-				subpath: topic.subpath || '',
+				subpath: topic.subpath || topic.module || '',
 				items: picked.flatMap(itemsForPage),
 			})
 		}
@@ -289,3 +346,10 @@ export function buildManifest(pages) {
 }
 
 const byTitle = (a, b) => a.title.localeCompare(b.title)
+
+// Within a `module` section the overview page (`use/dom`) leads, then
+// its exports alphabetically. The overview's id has one fewer path
+// segment than its sub-pages (`use/dom` vs `use/dom/body`), so order by
+// id depth first.
+const depth = p => p.id.split('/').length
+const byModuleOrder = (a, b) => depth(a) - depth(b) || byTitle(a, b)

@@ -1,6 +1,6 @@
 // Vite plugin that turns the docs markdown into data at build time.
 //
-//   import doc from './content/render.md'   → parsed DocPage object
+//   import doc from 'documentation/content/render.md' → DocPage object
 //   import { manifest } from 'virtual:manifest'
 //       → { sections } built from every page's frontmatter, grouped by
 //         the curated taxonomy in topics.js
@@ -9,20 +9,20 @@
 // client bundle.
 
 import { readdirSync, readFileSync } from 'node:fs'
-import { dirname, join, relative } from 'node:path'
+import { basename, dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { parseDoc, parseMeta, parsePage } from './content-parser.js'
 import { buildManifest } from './topics.js'
 
-// this plugin lives in new-site/tools/, so project paths are one up
+// this plugin lives in docs/tools/, so the docs project root is one up
+// and the pota repo root two more (docs is a gitignored sibling app)
 const here = dirname(fileURLToPath(import.meta.url))
 const root = join(here, '..')
-const contentDir = join(root, 'src', 'content')
-// editorial page copy, kept apart from the API-reference content/ tree
-// so page prose is easy to find and edit
-const pagesDir = join(root, 'pages')
-
+const repoRoot = join(root, '..', '..')
+// API-reference markdown lives in the pota repo under documentation/,
+// outside this project — the dev server reaches it via server.fs.allow
+const contentDir = join(repoRoot, 'documentation', 'content')
 const VIRTUAL_ID = 'virtual:manifest'
 const RESOLVED_ID = '\0' + VIRTUAL_ID
 
@@ -30,14 +30,15 @@ const stripQuery = id => id.split('?')[0]
 const isContentMd = id =>
 	stripQuery(id).endsWith('.md') &&
 	stripQuery(id).startsWith(contentDir)
+// editorial page copy is the markdown imported directly by components
+// (home/thanks from src/pages, the cheatsheet from the repo's
+// documentation/ root) — any imported .md that isn't API content.
+// load() only fires for ids actually imported, so a stray .md elsewhere
+// is never misread as a page.
 const isPageMd = id =>
-	stripQuery(id).endsWith('.md') &&
-	stripQuery(id).startsWith(pagesDir)
+	stripQuery(id).endsWith('.md') && !isContentMd(id)
 
-const pageId = file =>
-	relative(pagesDir, stripQuery(file))
-		.replace(/\\/g, '/')
-		.replace(/\.md$/, '')
+const pageId = file => basename(stripQuery(file), '.md')
 
 const routeId = file =>
 	relative(contentDir, stripQuery(file))

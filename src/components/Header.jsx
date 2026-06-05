@@ -1,15 +1,13 @@
-import { version, cleanup } from 'pota'
+import { version } from 'pota'
 import { location } from 'pota/use/location'
+import { isMac } from 'pota/use/browser'
+import { globalShortcut } from 'pota/use/keyboard'
 import styles from './Header.module.css'
 import { Logo } from './Logo.jsx'
 import { ThemeToggle } from './ThemeToggle.jsx'
 import { query } from '../search.js'
 
-const NAV = [
-	{ href: '/playground', label: 'playground' },
-	{ href: '/cheatsheet', label: 'cheatsheet' },
-	{ href: '/thanks', label: 'thanks' },
-]
+const NAV = [{ href: '/playground', label: 'playground', icon: '▶' }]
 
 export function Header() {
 	let input
@@ -18,20 +16,11 @@ export function Header() {
 		styles.navLink +
 		(location.pathname() === href ? ' ' + styles.active : '')
 
-	// Ctrl/Cmd-K from anywhere focuses the filter (matches the kbd hint).
-	const onKey = e => {
-		if (
-			(e.metaKey || e.ctrlKey) &&
-			!e.altKey &&
-			e.key.toLowerCase() === 'k'
-		) {
-			e.preventDefault()
-			input?.focus()
-			input?.select()
-		}
+	// Mod-K from anywhere focuses the filter (matches the kbd hint).
+	const focusFilter = () => {
+		input?.focus()
+		input?.select()
 	}
-	window.addEventListener('keydown', onKey)
-	cleanup(() => window.removeEventListener('keydown', onKey))
 
 	return (
 		<header class={styles.bar}>
@@ -44,6 +33,11 @@ export function Header() {
 				<nav class={styles.nav}>
 					{NAV.map(item => (
 						<a class={navClass(item.href)} href={item.href}>
+							{item.icon && (
+								<span class={styles.navIcon} aria-hidden="true">
+									{item.icon}
+								</span>
+							)}
 							{item.label}
 						</a>
 					))}
@@ -54,15 +48,16 @@ export function Header() {
 						type="text"
 						placeholder="/ filter — signal…"
 						prop:value={query.read}
-						use:ref={el => (input = el)}
+						use:ref={[
+							el => (input = el),
+							globalShortcut('mod+k', focusFilter),
+						]}
 						on:input={e => query.write(e.currentTarget.value)}
 						on:keydown={e => {
 							window.scrollTo(0, 0)
 						}}
 					/>
-					<kbd class={styles.kbd}>
-						{navigator.platform.startsWith('Mac') ? '⌘' : 'Ctrl'} K
-					</kbd>
+					<kbd class={styles.kbd}>{isMac ? '⌘' : 'Ctrl'} K</kbd>
 				</div>
 				<ThemeToggle />
 				<a

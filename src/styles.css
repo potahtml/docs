@@ -15,9 +15,9 @@
 	--accent: #cc4400;
 	--match: #fff3d6;
 
-	--font-sans: 'Source Serif 4', Georgia, serif;
+	--font-sans: "Source Serif 4", Georgia, serif;
 	--font-mono:
-		'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+		"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
 	--max: 880px;
 	--control: 32px;
@@ -63,7 +63,7 @@
 	--cm-punctuation: #6a6a6a;
 }
 
-[data-theme='dark'] {
+[data-theme="dark"] {
 	/* render native controls (color/date pickers, scrollbars, form
 	   fields) dark to match */
 	color-scheme: dark;

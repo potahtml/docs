@@ -25,9 +25,7 @@ export function Tabs(props) {
 						active={() => props.activeFile() === file.name}
 						canDelete={props.canDelete}
 						on:select={() => props['on:select']?.(file.name)}
-						on:rename={next =>
-							props['on:rename']?.(file.name, next)
-						}
+						on:rename={next => props['on:rename']?.(file.name, next)}
 						on:delete={() => props['on:delete']?.(file.name)}
 					/>
 				)}

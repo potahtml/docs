@@ -29,7 +29,8 @@ addEventListener('message', e => {
 	const root = document.documentElement
 	if (msg.theme) root.dataset.theme = msg.theme
 	if (msg.vars) {
-		for (const name in msg.vars) root.style.setProperty(name, msg.vars[name])
+		for (const name in msg.vars)
+			root.style.setProperty(name, msg.vars[name])
 	}
 })
 
@@ -232,9 +233,7 @@ async function runMulti(entry, modules) {
 // ---------- dispatch ----------
 
 const hashed = window.location.hash.substring(1)
-const payload = hashed
-	? uncompress(decodeURIComponent(hashed))
-	: ''
+const payload = hashed ? uncompress(decodeURIComponent(hashed)) : ''
 
 if (payload && typeof payload === 'object' && payload.modules) {
 	runMulti(payload.entry, payload.modules)

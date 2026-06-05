@@ -4,10 +4,11 @@ import styles from './Cheatsheet.module.css'
 import { ReferenceHero } from './ReferenceHero.jsx'
 import { Content } from './Content.jsx'
 
-// Page copy lives in markdown under pages/ (parsed at build time by
-// vite-plugin-content). Edit pages/cheatsheet.md to change the heading,
-// blurb, or the cheatsheet itself — no JSX changes needed.
-import doc from '../../pages/cheatsheet.md'
+// Page copy lives in the pota repo at documentation/cheatsheet.md
+// (parsed at build time by vite-plugin-content). Edit that file to
+// change the heading, blurb, or the cheatsheet itself — no JSX changes
+// needed. It sits outside this Vite root; see server.fs.allow.
+import doc from '../../../../documentation/cheatsheet.md'
 
 export function Cheatsheet() {
 	return (
@@ -16,7 +17,7 @@ export function Cheatsheet() {
 				<title>cheatsheet — pota</title>
 			</Head>
 
-			<ReferenceHero title={doc.title} lede={doc.lede.join(' ')} />
+			<ReferenceHero title={doc.title} lede={doc.lede} />
 
 			<Content items={doc.content} />
 		</section>

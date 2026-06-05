@@ -28,7 +28,7 @@
 		"@typescript/vfs": "^1.6.4",
 		"codemirror": "^6.0.2",
 		"fflate": "^0.8.2",
-		"pota": "file:../../.."
+		"pota": "file:../.."
 	},
 	"prettier": {
 		"printWidth": 70,

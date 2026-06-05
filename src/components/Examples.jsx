@@ -10,8 +10,7 @@ import styles from './Examples.module.css'
 // active panel below — never more than one example on screen at once.
 // steps: [{ slug, title, content }] (see content-parser.js).
 //
-// the inline/list button toggles the selector layout, mirroring
-// TopicList:
+// the inline/list button toggles the selector layout:
 //   inline — buttons sit in a compact row (title only)
 //   list   — buttons stack vertically, each with a short description
 export function Examples(props) {
@@ -139,9 +138,13 @@ export function Examples(props) {
 }
 
 // first paragraph of a step, as plain text — used as the chip
-// description in list mode.
+// description in list mode. Round-trips through the DOM so inline tags
+// drop and entities (e.g. &#39;) decode; a bare regex strip would leave
+// the escaped entities to surface as literal text in the chip.
 function stepDesc(step) {
 	const para = (step.content || []).find(c => c.type === 'paragraph')
 	if (!para) return ''
-	return para.html.replace(/<[^>]*>/g, '')
+	const el = document.createElement('div')
+	el.innerHTML = para.html
+	return el.textContent || ''
 }

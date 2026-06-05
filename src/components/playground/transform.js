@@ -76,9 +76,9 @@ function loadJsPlugins() {
 let cssPluginPromise
 function loadCssPlugin() {
 	if (!cssPluginPromise) {
-		cssPluginPromise = dynImport(PRETTIER + '/plugins/postcss.mjs').then(
-			m => [m.default],
-		)
+		cssPluginPromise = dynImport(
+			PRETTIER + '/plugins/postcss.mjs',
+		).then(m => [m.default])
 	}
 	return cssPluginPromise
 }
