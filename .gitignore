@@ -1,7 +1,4 @@
 node_modules
 dist
 
-extracted/*
-localhost.zip
 .wrangler/*
-chrome/*

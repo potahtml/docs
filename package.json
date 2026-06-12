@@ -10,7 +10,7 @@
 		"build": "vite build",
 		"build-watch": "vite build --watch",
 		"serve": "vite preview",
-		"publish": "./publish.sh"
+		"publish": "git add --all; git commit -m 'update docs'; git push; npm run build && wrangler pages deploy dist --project-name=potahtml"
 	},
 	"devDependencies": {
 		"@rolldown/plugin-babel": "^0.2.3",
@@ -31,7 +31,6 @@
 		"@typescript/vfs": "^1.6.4",
 		"codemirror": "^6.0.2",
 		"fflate": "^0.8.2",
-		"mpa-archive": "^3.0.24",
 		"pota": "file:../..",
 		"wrangler": "^4.100.0"
 	},
