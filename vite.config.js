@@ -32,6 +32,10 @@ export default defineConfig({
 		// root is an ancestor of src/, so this covers project files too.
 		fs: { allow: [resolve('../..')] },
 	},
+	preview: {
+		port: 1341,
+		strictPort: true,
+	},
 	optimizeDeps: {
 		rolldownOptions: {
 			transform: {
