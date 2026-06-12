@@ -7,6 +7,10 @@
 	color-scheme: light;
 	--bg: #fefefe;
 	--bg-elev: #f7f7f5;
+	/* editor tooltips/popups — a half-step darker than --bg-elev (the
+	   pane they float over) but lighter than --rule so their border
+	   still reads; dark steps toward --bg instead */
+	--bg-tooltip: #efeeeb;
 	--fg: #1a1a1a;
 	--fg-soft: #4a4a4a;
 	--fg-mute: #8a8a8a;
@@ -69,6 +73,7 @@
 	color-scheme: dark;
 	--bg: #14141a;
 	--bg-elev: #1c1c24;
+	--bg-tooltip: #18181f;
 	--fg: #e8e8ea;
 	--fg-soft: #b0b0b4;
 	--fg-mute: #707074;
@@ -104,6 +109,17 @@ body {
 	font-family: var(--font-mono);
 	font-size: 14px;
 	line-height: 1.65;
+}
+
+/* Appearance → Ligatures off: kill JetBrains Mono's programming
+   ligatures (=>, !==, >= …) site-wide. Both properties inherit, so the
+   root switch reaches the CodeMirror editor too — `calt` covers the
+   contextual ligatures, `liga` the standard ones. */
+html[data-ligatures="off"] {
+	font-variant-ligatures: none;
+	font-feature-settings:
+		"liga" 0,
+		"calt" 0;
 }
 a {
 	color: var(--accent);

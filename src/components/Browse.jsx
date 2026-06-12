@@ -6,6 +6,15 @@ import { filterSections, query, searchTerm } from '../search.js'
 
 const searching = () => searchTerm().length > 0
 
+// the catalog cross-lists some pages in several topics (see
+// tools/topics.js) — count each export once, not once per listing.
+const countUnique = sections => {
+	const keys = new Set()
+	for (const s of sections)
+		for (const it of s.items) keys.add(it.name + '|' + it.href)
+	return keys.size
+}
+
 // the API catalog. collapsed to a slim reveal button by default on every
 // page — including the index — so the page content comes first; it
 // expands while searching or when manually revealed.
@@ -17,7 +26,7 @@ export function Browse(props) {
 	// whole catalog — only its inner counts / sections react.
 	const show = memo(() => searching() || expanded.read())
 
-	const total = sections.reduce((a, s) => a + s.items.length, 0)
+	const total = countUnique(sections)
 
 	// The catalog is always rendered so every topic link stays in the DOM
 	// for crawlers; collapsing only hides it with CSS (display:none) rather
@@ -54,9 +63,21 @@ function Catalog(props) {
 	const sections = props.sections
 	const visible = () => filterSections(sections)
 
-	// clicking a topic/subtopic link navigates — collapse the catalog and
-	// clear the search (via onHide) so the destination page shows content.
+	// clicking a topic link navigates (via pota's global link handler) —
+	// collapse the catalog and clear the search (via onHide) so the
+	// destination page shows content. The catalog's display:none rides the
+	// page's view transition, fading out with the swap. Modified /
+	// non-primary clicks (open in new tab, etc.) are left untouched.
 	const onClick = e => {
+		if (
+			e.defaultPrevented ||
+			e.button !== 0 ||
+			e.metaKey ||
+			e.altKey ||
+			e.ctrlKey ||
+			e.shiftKey
+		)
+			return
 		if (e.target.closest('a')) props.onHide()
 	}
 
@@ -69,10 +90,7 @@ function Catalog(props) {
 				<span class={styles.barChev}>▾</span> browse all apis
 				<span class={styles.barCount}>
 					<strong>{() => visible().length}</strong> topics ·{' '}
-					<strong>
-						{() => visible().reduce((a, s) => a + s.items.length, 0)}
-					</strong>{' '}
-					exports
+					<strong>{() => countUnique(visible())}</strong> exports
 				</span>
 			</button>
 

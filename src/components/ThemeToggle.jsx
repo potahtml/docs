@@ -7,9 +7,11 @@ import {
 	mode,
 	seed,
 	spacing,
+	ligatures,
 	setMode,
 	setSeed,
 	setSpacing,
+	setLigatures,
 } from './theme.js'
 
 const MODES = [
@@ -27,6 +29,9 @@ export function ThemeToggle() {
 
 	const segCls = m => () =>
 		styles.seg + (mode.read() === m ? ' ' + styles.active : '')
+
+	const ligCls = on => () =>
+		styles.seg + (ligatures.read() === on ? ' ' + styles.active : '')
 
 	// "custom" doubles as the accent picker: selecting it switches the
 	// theme and pops the native color picker — no separate accent row.
@@ -101,6 +106,26 @@ export function ThemeToggle() {
 							<span class={styles.rangeVal}>
 								{() => spacing.read().toFixed(2) + '×'}
 							</span>
+						</div>
+					</div>
+
+					<div class={styles.row}>
+						<span class={styles.label}>Ligatures</span>
+						<div class={styles.segs} role="group">
+							<button
+								type="button"
+								class={ligCls(true)}
+								on:click={() => setLigatures(true)}
+							>
+								on
+							</button>
+							<button
+								type="button"
+								class={ligCls(false)}
+								on:click={() => setLigatures(false)}
+							>
+								off
+							</button>
 						</div>
 					</div>
 				</div>

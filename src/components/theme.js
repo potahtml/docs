@@ -22,6 +22,7 @@ const MODE_KEY = 'pota-theme' // 'light' | 'dark' | 'custom'
 const SEED_KEY = 'pota-accent' // hex seed for the custom palette
 const SPACE_KEY = 'pota-spacing' // prose-spacing multiplier
 const SCHEME_KEY = 'pota-editor' // editor color scheme id
+const LIG_KEY = 'pota-ligatures' // '1' on, '0' off (JetBrains Mono)
 
 const root = document.documentElement
 
@@ -32,6 +33,7 @@ const root = document.documentElement
 const CUSTOM_TOKENS = [
 	'--bg',
 	'--bg-elev',
+	'--bg-tooltip',
 	'--rule',
 	'--fg-faint',
 	'--fg-mute',
@@ -76,6 +78,7 @@ export const mode = signal(storedMode || systemMode())
 export const seed = signal(read(SEED_KEY, '#cc4400'))
 export const spacing = signal(Number(read(SPACE_KEY, '1')) || 1)
 export const editorScheme = signal(read(SCHEME_KEY, 'gruvbox'))
+export const ligatures = signal(read(LIG_KEY, '1') !== '0')
 
 const schemeById = new Map(schemes.map(s => [s.id, s]))
 
@@ -138,6 +141,12 @@ function customPalette(hex) {
 		vars: {
 			'--bg': n[i.bg],
 			'--bg-elev': n[i.elev],
+			// half-step darker than elev: toward bg in dark (bg is the
+			// darkest end), toward rule in light (bg is the lightest)
+			'--bg-tooltip': scale(
+				[n[i.elev], n[dark ? i.bg : i.rule]],
+				3,
+			)[1],
 			'--rule': n[i.rule],
 			'--fg-faint': n[i.faint],
 			'--fg-mute': n[i.mute],
@@ -175,6 +184,16 @@ function applyCustom(hex) {
 function applySpacing(v) {
 	root.style.setProperty('--prose-scale', String(v))
 	store(SPACE_KEY, String(v))
+}
+
+// Programming ligatures are on by default (JetBrains Mono renders `=>`,
+// `!==`, `>=` … as glyphs). Off flips a root attribute that styles.css
+// turns into `font-variant-ligatures: none` + `font-feature-settings`,
+// both inherited so the switch reaches the editor too.
+function applyLigatures(on) {
+	if (on) delete root.dataset.ligatures
+	else root.dataset.ligatures = 'off'
+	store(LIG_KEY, on ? '1' : '0')
 }
 
 // Overlay the chosen scheme's `--cm-*` syntax tokens inline (inline beats
@@ -215,6 +234,12 @@ export function setSpacing(v) {
 	applySpacing(v)
 }
 
+/** @param {boolean} on */
+export function setLigatures(on) {
+	ligatures.write(on)
+	applyLigatures(on)
+}
+
 /** @param {string} id */
 export function setEditorScheme(id) {
 	editorScheme.write(id)
@@ -227,6 +252,7 @@ export function setEditorScheme(id) {
 if (mode.read() === 'custom') applyCustom(seed.read())
 else applyBase(mode.read(), storedMode != null)
 applySpacing(spacing.read())
+applyLigatures(ligatures.read())
 
 // follow OS light/dark changes live, until the visitor picks a theme
 try {

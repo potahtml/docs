@@ -13,6 +13,7 @@
 //     elsewhere are static snippets
 
 import { marked } from 'marked'
+import jsYaml from 'js-yaml'
 
 const slug = s =>
 	String(s)
@@ -78,26 +79,28 @@ function pushContent(arr, item) {
 	arr.push(item)
 }
 
-function parseFrontmatter(raw) {
+function parseFrontmatter(raw, id = '') {
 	const m = /^---\n([\s\S]*?)\n---\n?/.exec(raw)
 	if (!m) return { data: {}, body: raw }
 
-	const data = {}
-	for (const line of m[1].split('\n')) {
-		const mm = /^([\w-]+):\s*(.*)$/.exec(line)
-		if (!mm) continue
-		let v = mm[2].trim()
-		if (v.startsWith('[') && v.endsWith(']')) {
-			v = v
-				.slice(1, -1)
-				.split(',')
-				.map(s => s.trim())
-				.filter(Boolean)
-		} else {
-			v = v.replace(/^['"]|['"]$/g, '')
-		}
-		data[mm[1]] = v
+	// Parse the frontmatter block with a real YAML parser so folded /
+	// multi-line / quoted scalars all resolve correctly. A hand-rolled
+	// line reader silently dropped folded values — e.g. a long `desc:`
+	// that Prettier wrapped across lines — and parseMeta then fell back
+	// to the first body paragraph instead of the authored description.
+	let data
+	try {
+		data = jsYaml.load(m[1])
+	} catch (err) {
+		throw new Error(
+			`Invalid YAML frontmatter in ${id || 'content'}: ${err.message}`,
+		)
 	}
+	if (data == null) data = {}
+	if (typeof data !== 'object' || Array.isArray(data))
+		throw new Error(
+			`Frontmatter in ${id || 'content'} must be a mapping`,
+		)
 	return { data, body: raw.slice(m[0].length) }
 }
 
@@ -143,7 +146,7 @@ function tokenToItem(t, live) {
 }
 
 export function parseDoc(raw, id) {
-	const { data, body } = parseFrontmatter(raw)
+	const { data, body } = parseFrontmatter(raw, id)
 	const tokens = marked.lexer(body)
 
 	const lede = []
@@ -227,7 +230,7 @@ export function parseDoc(raw, id) {
 // A code fence tagged `live` (```jsx live) becomes a live Playground;
 // other fences are static snippets.
 export function parsePage(raw, id) {
-	const { data, body } = parseFrontmatter(raw)
+	const { data, body } = parseFrontmatter(raw, id)
 	const tokens = marked.lexer(body)
 
 	let title = data.title || ''
@@ -267,7 +270,7 @@ export function parsePage(raw, id) {
 }
 
 export function parseMeta(raw, id) {
-	const { data, body } = parseFrontmatter(raw)
+	const { data, body } = parseFrontmatter(raw, id)
 
 	let descSource = ''
 	for (const t of marked.lexer(body)) {
@@ -279,7 +282,9 @@ export function parseMeta(raw, id) {
 		}
 	}
 
-	let desc = data.desc || data.tagline || plain(descSource)
+	let desc = String(
+		data.desc || data.tagline || plain(descSource) || '',
+	)
 	const sentence = desc.split(/(?<=[.!?])\s/)[0] || desc
 	desc =
 		sentence.length > 120 ? sentence.slice(0, 117) + '…' : sentence

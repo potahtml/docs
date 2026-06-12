@@ -71,6 +71,196 @@ const partToCm = {
 	moduleName: 'type',
 }
 
+// --- signature formatting ------------------------------------------
+//
+// Quick-info display parts arrive as one long line (TS only pre-breaks
+// object-literal types), so long signatures soft-wrap at the tooltip
+// edge mid-token. Reflow them: drop the `(alias)` prefix and trailing
+// `import X` line (every import alias carries them — noise here), and
+// when a line overflows the tooltip, expand its widest bracket group
+// one item per line (params, object members) or stack union members.
+// Operates on parts, not text, so syntax coloring is preserved.
+
+// ~520px tooltip at 12px JetBrains Mono (0.6em advance) ≈ 70 chars.
+const SIG_WIDTH = 68
+const SIG_INDENT = '    ' // match TS's own pre-broken indentation
+const SIG_OPEN = { '(': ')', '[': ']', '{': '}', '<': '>' }
+
+const partsWidth = parts =>
+	parts.reduce((w, p) => w + p.text.length, 0)
+
+const trimSpaceParts = parts => {
+	let a = 0
+	let b = parts.length
+	while (a < b && parts[a].kind === 'space') a++
+	while (b > a && parts[b - 1].kind === 'space') b--
+	return parts.slice(a, b)
+}
+
+// Widest complete bracket pair in `tokens` (every bracket is its own
+// punctuation part; `=>` is a single part, so it never miscounts).
+function widestGroup(tokens) {
+	const stack = []
+	let widest = null
+	for (let i = 0; i < tokens.length; i++) {
+		const t = tokens[i].text
+		if (SIG_OPEN[t]) {
+			stack.push({ open: i, close: SIG_OPEN[t] })
+		} else if (stack.length && t === stack[stack.length - 1].close) {
+			const g = stack.pop()
+			const width = partsWidth(tokens.slice(g.open + 1, i))
+			if (!widest || width > widest.width) {
+				widest = { open: g.open, close: i, width }
+			}
+		}
+	}
+	return widest
+}
+
+// Indices of depth-0 `|` parts — union members to stack when too long.
+function topLevelPipes(tokens) {
+	const pipes = []
+	const stack = []
+	for (let i = 0; i < tokens.length; i++) {
+		const t = tokens[i].text
+		if (SIG_OPEN[t]) stack.push(SIG_OPEN[t])
+		else if (stack.length && t === stack[stack.length - 1]) stack.pop()
+		else if (!stack.length && t === '|') pipes.push(i)
+	}
+	return pipes
+}
+
+// Split group contents at depth-0 `,` / `;`, separator kept with item.
+function splitItems(tokens) {
+	const items = []
+	const stack = []
+	let start = 0
+	for (let i = 0; i < tokens.length; i++) {
+		const t = tokens[i].text
+		if (SIG_OPEN[t]) stack.push(SIG_OPEN[t])
+		else if (stack.length && t === stack[stack.length - 1]) stack.pop()
+		else if (!stack.length && (t === ',' || t === ';')) {
+			items.push(tokens.slice(start, i + 1))
+			start = i + 1
+		}
+	}
+	if (start < tokens.length) items.push(tokens.slice(start))
+	return items
+}
+
+/** @returns {{ indent: string, tokens: any[] }[]} */
+function breakLine(tokens, indent) {
+	if (indent.length + partsWidth(tokens) <= SIG_WIDTH) {
+		return [{ indent, tokens }]
+	}
+	// a small group isn't what overflows — don't split `(+2 overloads)`
+	const group = widestGroup(tokens)
+	if (group && group.width >= 24) {
+		const head = trimSpaceParts(tokens.slice(0, group.open + 1))
+		const items = splitItems(
+			tokens.slice(group.open + 1, group.close),
+		)
+		const tail = trimSpaceParts(tokens.slice(group.close))
+		return [
+			...breakLine(head, indent),
+			...items.flatMap(item => {
+				// content ending in a separator leaves a space-only
+				// remainder — dropping it avoids a blank line before `}`
+				item = trimSpaceParts(item)
+				return item.length
+					? breakLine(item, indent + SIG_INDENT)
+					: []
+			}),
+			...breakLine(tail, indent),
+		]
+	}
+	const pipes = topLevelPipes(tokens)
+	if (pipes.length) {
+		const segments = []
+		let start = 0
+		for (const p of pipes) {
+			segments.push(tokens.slice(start, p))
+			start = p
+		}
+		segments.push(tokens.slice(start))
+		const lines = []
+		for (const seg of segments) {
+			const tokens = trimSpaceParts(seg)
+			if (tokens.length) {
+				lines.push(
+					...breakLine(
+						tokens,
+						lines.length ? indent + SIG_INDENT : indent,
+					),
+				)
+			}
+		}
+		return lines
+	}
+	return [{ indent, tokens }]
+}
+
+// Drop the `(alias) ` prefix and the trailing `import X` line(s) that
+// quick info appends to every import alias.
+function stripAliasNoise(parts) {
+	if (
+		parts.length > 3 &&
+		parts[0].text === '(' &&
+		parts[1].text === 'alias' &&
+		parts[2].text === ')'
+	) {
+		parts = trimSpaceParts(parts.slice(3))
+	}
+	for (;;) {
+		let last = -1
+		for (let i = 0; i < parts.length; i++) {
+			if (parts[i].kind === 'lineBreak') last = i
+		}
+		if (last <= 0) break
+		const after = trimSpaceParts(parts.slice(last + 1))
+		if (
+			after.length &&
+			after[0].kind === 'keyword' &&
+			(after[0].text === 'import' || after[0].text === 'export')
+		) {
+			parts = parts.slice(0, last)
+		} else {
+			break
+		}
+	}
+	return parts
+}
+
+export function formatSignatureParts(parts) {
+	parts = stripAliasNoise(parts || [])
+
+	// Flatten TS's own pre-breaks (it multi-lines object-literal types
+	// but leaves params crammed on the first line) so the whole
+	// signature lays out under the one rule below — otherwise an
+	// import hover and a call-site hover of the same symbol format
+	// differently.
+	const flat = []
+	for (let i = 0; i < parts.length; i++) {
+		if (parts[i].kind === 'lineBreak') {
+			flat.push({ text: ' ', kind: 'space' })
+			while (i + 1 < parts.length && parts[i + 1].kind === 'space') {
+				i++
+			}
+		} else {
+			flat.push(parts[i])
+		}
+	}
+
+	const out = []
+	for (const line of breakLine(trimSpaceParts(flat), '')) {
+		if (out.length) {
+			out.push({ text: '\n' + line.indent, kind: 'space' })
+		}
+		out.push(...line.tokens)
+	}
+	return out
+}
+
 // Render TypeScript `displayParts` into `host` as syntax-colored spans,
 // reusing the editor's --cm-* palette so the hover matches the code.
 function renderParts(parts, host) {
@@ -87,15 +277,26 @@ function renderParts(parts, host) {
 	}
 }
 
-// Append text to `host`, turning bare http(s) URLs into real links.
-// Trailing sentence punctuation is kept outside the anchor.
-const URL_RE = /https?:\/\/[^\s<>")']+/g
+// Append text to `host`, turning markdown `[label](url)` links (lib.dom
+// docs are full of `[MDN Reference](…)`) and bare http(s) URLs into real
+// links. Trailing sentence punctuation on bare URLs is kept outside the
+// anchor.
+const URL_RE =
+	/\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)|https?:\/\/[^\s<>")']+/g
 function appendText(text, host) {
 	let last = 0
 	for (const m of text.matchAll(URL_RE)) {
-		let url = m[0]
-		const trail = /[.,;:]+$/.exec(url)
-		if (trail) url = url.slice(0, -trail[0].length)
+		let url = m[2] || m[0]
+		let label = m[1] || ''
+		let trail = ''
+		if (!label) {
+			const t = /[.,;:]+$/.exec(url)
+			if (t) {
+				trail = t[0]
+				url = url.slice(0, -trail.length)
+			}
+			label = url
+		}
 		if (m.index > last) {
 			host.append(document.createTextNode(text.slice(last, m.index)))
 		}
@@ -103,9 +304,9 @@ function appendText(text, host) {
 		a.href = url
 		a.target = '_blank'
 		a.rel = 'noreferrer noopener'
-		a.textContent = url
+		a.textContent = label
 		host.append(a)
-		if (trail) host.append(document.createTextNode(trail[0]))
+		if (trail) host.append(document.createTextNode(trail))
 		last = m.index + m[0].length
 	}
 	if (last < text.length) {
@@ -227,6 +428,15 @@ function loadTsCore() {
 				jsxImportSource: 'pota',
 				noEmit: true,
 				types: ['pota'],
+				// Match pota's own tsconfig.json so live examples are held
+				// to the same bar as the source, not a stricter one.
+				// @typescript/vfs forces `strict: true`; pota keeps strict
+				// but disables these two, so re-disable them here — otherwise
+				// every idiomatic example shows implicit-any / nullability
+				// squiggles that pota itself never flags.
+				strict: true,
+				strictNullChecks: false,
+				noImplicitAny: false,
 			}
 			const libMap = await createDefaultMapFromCDN(
 				compilerOptions,
@@ -334,7 +544,7 @@ export async function createTsEnvironment() {
 
 				const sig = document.createElement('div')
 				sig.className = 'cm-ts-hover-sig'
-				renderParts(info.displayParts, sig)
+				renderParts(formatSignatureParts(info.displayParts), sig)
 				dom.append(sig)
 
 				if (info.documentation && info.documentation.length) {

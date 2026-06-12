@@ -3,7 +3,9 @@
 }
 
 /* collapsed catalog — kept in the DOM (so crawlers still find every topic
-   link) but removed from layout. paired with the reveal button. */
+   link) but removed from layout. paired with the reveal button. The
+   display:none is captured by the page's view transition, so the catalog
+   fades out together with the page swap. */
 .collapsed {
 	display: none;
 }

@@ -12,6 +12,7 @@
 	},
 	"devDependencies": {
 		"@rolldown/plugin-babel": "^0.2.3",
+		"js-yaml": "^4.2.0",
 		"marked": "^18.0.4",
 		"vite": "^8.0.10"
 	},

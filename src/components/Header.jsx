@@ -46,7 +46,7 @@ export function Header() {
 					<input
 						class={styles.search}
 						type="text"
-						placeholder="/ filter — signal…"
+						placeholder="filter — search…"
 						prop:value={query.read}
 						use:ref={[
 							el => (input = el),

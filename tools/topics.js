@@ -2,6 +2,9 @@
 // inside the Vite plugin. The full page index is generated from the
 // markdown frontmatter (see content-parser.js → parseMeta); this file
 // only decides how those pages are grouped, ordered, and labeled.
+// Array order is the catalog's section order — roughly core
+// primitives → components → use/* grouped topics → standalone
+// modules.
 //
 // Each topic resolves to a list of pages via, in priority order:
 //   include — explicit page refs (id, title, or an export name), kept
@@ -11,47 +14,65 @@
 //             (e.g. `pota/use/dom`), overview page first. Promotes a
 //             single many-export use/* module into its own section.
 //             The subpath is owned EXCLUSIVELY by its module section:
-//             those pages are dropped from the generic `topic` buckets,
-//             so a big module (dom, test, string, …) does not also
-//             appear under its old home (Internals, Utilities, …).
+//             those pages are dropped from the generic `topic`
+//             buckets, so a big module (dom, test, random, …) does
+//             not also list under the topic its pages carry in
+//             frontmatter (Utilities, Internals, …) — that topic
+//             value may then map to no entry at all.
 //   topic   — every page whose frontmatter `topic` matches, minus any
 //             page already owned by a `module` section.
 //
-// A page may appear in MORE THAN ONE topic. Cross-cutting topics
-// (CSS, Lifecycles) intentionally re-list pages that also live in a
-// home topic (Props, Reactive core, Renderer) so related APIs are
-// discoverable from every angle. Within a single topic a page is
-// listed once: `include` matches first (in written order), then
-// topic-matched pages by title.
+// `subpath` is the section header's import-path label (' · '
+// separates mixed sources). Display only — never used for matching;
+// module sections fall back to their module path.
 //
-// There is no "More" bucket. Every frontmatter `topic` value must map
-// to a topic entry (or be pulled in by an `include`); buildManifest
-// warns at build time if any page is unreachable, so nothing is
-// silently dropped.
+// A page may appear in MORE THAN ONE topic. Cross-cutting topics
+// (CSS, Lifecycles, Async) intentionally re-list pages that also live
+// in a home topic (Props, Reactive core, Renderer) so related APIs
+// are discoverable from every angle. Within a single topic a page is
+// listed once: `include` matches first (in written order), then
+// topic-matched pages by title. The catalog UI counts a cross-listed
+// page once (see Browse.jsx → countUnique).
+//
+// There is no "More" bucket. Every page must be reachable through
+// some entry — its `topic`, an `include`, or a `module` section;
+// buildManifest warns at build time if any page is unreachable, so
+// nothing is silently dropped. Exception: guide pages (subpath
+// `guide`) live in the homepage prose (src/pages/home.md), not in the
+// catalog — the catalog is APIs only.
 
 export const topics = [
 	{
-		id: 'getting-started',
-		title: 'Getting started',
-		subpath: 'guide',
-		include: ['Usage', 'TypeScript', 'attributes / properties'],
+		id: 'reactive-core',
+		title: 'Reactive core',
+		subpath: 'pota',
+		topic: 'Reactive core',
 	},
 	{
-		id: 'lifecycles',
-		title: 'Lifecycles',
+		id: 'rendering',
+		title: 'Rendering',
+		subpath: 'pota · pota/xml',
+		topic: 'Renderer',
+		include: ['xml'],
+	},
+	{
+		id: 'props',
+		title: 'Props',
 		subpath: 'pota',
-		include: [
-			'use:ref',
-			'use:connected',
-			'use:disconnected',
-			'ready',
-			'cleanup',
-		],
+		topic: 'Props',
+		include: ['prop:__'],
+	},
+	{
+		id: 'events',
+		title: 'Events',
+		subpath: 'pota · pota/use/*',
+		topic: 'Events',
+		include: ['on:__'],
 	},
 	{
 		id: 'css',
 		title: 'CSS',
-		subpath: 'pota',
+		subpath: 'pota · pota/use/css',
 		include: [
 			'style:__',
 			'class:__',
@@ -62,37 +83,17 @@ export const topics = [
 		],
 	},
 	{
-		id: 'styling',
-		title: 'Styling',
-		subpath: 'pota/use/*',
-		topic: 'Styling',
-	},
-	{
-		id: 'events',
-		title: 'Events',
+		id: 'lifecycles',
+		title: 'Lifecycles',
 		subpath: 'pota',
-		topic: 'Events',
-		include: ['on:__'],
-	},
-	{
-		id: 'props',
-		title: 'Props',
-		subpath: 'pota',
-		topic: 'Props',
-		include: ['prop:__'],
-	},
-	{
-		id: 'reactive-core',
-		title: 'Reactive core',
-		subpath: 'pota',
-		topic: 'Reactive core',
-	},
-	{
-		id: 'rendering',
-		title: 'Rendering',
-		subpath: 'pota',
-		topic: 'Renderer',
-		include: ['xml'],
+		include: [
+			'use:ref',
+			'use:connected',
+			'use:disconnected',
+			'ready',
+			'readyAsync',
+			'cleanup',
+		],
 	},
 	{
 		id: 'flow',
@@ -101,9 +102,16 @@ export const topics = [
 		topic: 'Flow',
 	},
 	{
+		id: 'async',
+		title: 'Async',
+		subpath: 'pota · pota/components',
+		topic: 'Async',
+		include: ['Suspense', 'asyncEffect', 'readyAsync', 'isResolved'],
+	},
+	{
 		id: 'routing',
 		title: 'Routing',
-		subpath: 'pota/components',
+		subpath: 'pota/components · pota/use/location',
 		topic: 'Routing',
 	},
 	{
@@ -117,12 +125,6 @@ export const topics = [
 		title: 'Store',
 		subpath: 'pota/store',
 		topic: 'Store',
-	},
-	{
-		id: 'async',
-		title: 'Async',
-		subpath: 'pota/components',
-		topic: 'Async',
 	},
 	{
 		id: 'custom-elements',
@@ -147,6 +149,12 @@ export const topics = [
 		title: 'Layout',
 		subpath: 'pota/components',
 		topic: 'Layout',
+	},
+	{
+		id: 'stylesheets',
+		title: 'Stylesheets',
+		subpath: 'pota/use/css',
+		module: 'pota/use/css',
 	},
 	{
 		id: 'forms',
@@ -199,26 +207,32 @@ export const topics = [
 	{
 		id: 'animation',
 		title: 'Animation',
-		subpath: 'pota/use/*',
-		topic: 'Animation',
+		subpath: 'pota/use/animate',
+		module: 'pota/use/animate',
 	},
 	{
 		id: 'environment',
 		title: 'Environment',
-		subpath: 'pota/use/*',
-		topic: 'Environment',
+		subpath: 'pota/use/browser',
+		module: 'pota/use/browser',
 	},
 	{
 		id: 'reactive-helpers',
 		title: 'Reactive helpers',
-		subpath: 'pota/use/*',
-		topic: 'Reactive helpers',
+		subpath: 'pota/use/selector',
+		module: 'pota/use/selector',
 	},
 	{
 		id: 'utilities',
 		title: 'Utilities',
 		subpath: 'pota',
 		topic: 'Utilities',
+	},
+	{
+		id: 'random',
+		title: 'Random',
+		subpath: 'pota/use/random',
+		module: 'pota/use/random',
 	},
 	{
 		id: 'string',
@@ -249,12 +263,6 @@ export const topics = [
 		title: 'Test',
 		subpath: 'pota/use/test',
 		module: 'pota/use/test',
-	},
-	{
-		id: 'internals',
-		title: 'Internals',
-		subpath: 'pota/use/*',
-		topic: 'Internals',
 	},
 ]
 
@@ -334,7 +342,11 @@ export function buildManifest(pages) {
 	// No "More" bucket: every page must be reachable from a topic.
 	// Warn (rather than silently drop) if the taxonomy falls behind
 	// the content — e.g. a new page introduces an uncovered `topic`.
-	const unreached = pages.filter(p => !reached.has(p.id))
+	// Guide pages are exempt: they are linked from the homepage prose
+	// (src/pages/home.md), not from the catalog.
+	const unreached = pages.filter(
+		p => !reached.has(p.id) && p.subpath !== 'guide',
+	)
 	if (unreached.length) {
 		console.warn(
 			`[topics] ${unreached.length} page(s) not in any topic — add a topic entry or include:\n  ` +

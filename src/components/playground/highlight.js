@@ -125,7 +125,7 @@ const editorTheme = EditorView.theme({
 
 	// tooltips (TS hover quick-info) + autocomplete dropdown
 	'.cm-tooltip': {
-		background: 'var(--bg-elev)',
+		background: 'var(--bg-tooltip)',
 		border: '1px solid var(--rule)',
 		borderRadius: 'var(--radius)',
 		color: 'var(--fg)',
@@ -147,6 +147,13 @@ const editorTheme = EditorView.theme({
 		color: 'var(--fg-mute)',
 		fontStyle: 'italic',
 	},
+	// when the tooltip doesn't fit the viewport, CM sets an explicit
+	// height on this host — flex makes the section below actually
+	// shrink to it instead of poking out of the box
+	'.cm-tooltip.cm-tooltip-hover': {
+		display: 'flex',
+		flexDirection: 'column',
+	},
 	'.cm-ts-hover': {
 		padding: '6px 8px',
 		fontFamily: 'var(--font-mono)',
@@ -154,6 +161,28 @@ const editorTheme = EditorView.theme({
 		lineHeight: '1.5',
 		maxWidth: '520px',
 		whiteSpace: 'pre-wrap',
+		// tall quick-info (lib.dom symbols like addEventListener) scrolls
+		// instead of overflowing; scrollbar matches the editor scroller.
+		// only vertically — anything too wide wraps (overflow-wrap
+		// inherits into the sig/doc/code children)
+		maxHeight: 'min(60vh, 400px)',
+		minHeight: 0,
+		overflowY: 'auto',
+		overflowX: 'hidden',
+		overflowWrap: 'anywhere',
+		overscrollBehavior: 'contain',
+		scrollbarWidth: 'thin',
+		scrollbarColor: 'var(--rule) transparent',
+	},
+	'.cm-ts-hover::-webkit-scrollbar': {
+		width: '8px',
+	},
+	'.cm-ts-hover::-webkit-scrollbar-thumb': {
+		background: 'var(--rule)',
+		borderRadius: '4px',
+	},
+	'.cm-ts-hover::-webkit-scrollbar-track': {
+		background: 'transparent',
 	},
 	// syntax-colored signature at the top of the tooltip
 	'.cm-ts-hover-sig': {
@@ -179,7 +208,7 @@ const editorTheme = EditorView.theme({
 	'.cm-ts-hover-tagname': {
 		color: 'var(--cm-keyword)',
 	},
-	// @example body
+	// @example body — wraps rather than scrolling sideways
 	'.cm-ts-hover-code': {
 		margin: '4px 0 0',
 		padding: '6px 8px',
@@ -187,8 +216,7 @@ const editorTheme = EditorView.theme({
 		border: '1px solid var(--rule)',
 		borderRadius: 'var(--radius-sm)',
 		color: 'var(--fg)',
-		whiteSpace: 'pre',
-		overflowX: 'auto',
+		whiteSpace: 'pre-wrap',
 	},
 	'.cm-ts-hover a': {
 		color: 'var(--accent)',

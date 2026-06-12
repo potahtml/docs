@@ -1,7 +1,7 @@
 # Thanks
 
 pota is a research and personal project built on top of other people's
-hard work. A few of the shoulders it stands on.
+hard work.
 
 ## Solid
 
@@ -27,7 +27,10 @@ The logo was kindly designed and provided by
 
 ## Contributors
 
-Everyone who has filed an issue, sent a fix, or improved the docs —
-see the
+Thanks to everyone that directly or indirectly took of their time to
+help on this project: [@trusktr](https://github.com/trusktr),
+[@fabiospampinato](https://github.com/fabiospampinato), Ryan, Erika,
+kilo, Javier, Paty, [@bigmistqke](https://github.com/bigmistqke),
+among others — see also
 [contributors](https://github.com/potahtml/pota/graphs/contributors).
-Thank you.
+Thank you!
