@@ -17,4 +17,6 @@ unzip localhost.zip -d ./extracted
 
 rm mpa/state.json
 
+cp src/preview.html extracted/
+
 npx wrangler pages deploy extracted --project-name=potahtml
