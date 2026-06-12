@@ -1,3 +1,4 @@
+import { Head } from 'pota/components'
 import styles from './DocPage.module.css'
 import { DocHero } from './DocHero.jsx'
 import { Subsection } from './Subsection.jsx'
@@ -16,8 +17,28 @@ export function DocPage(props) {
 	const sections = doc.sections || []
 	const examples = doc.examples || []
 
+	const desc = doc.lede
+		?.map(s => s.replace(/<[^>]*>/g, ''))
+		.join(' ')
+		.replace(/\s+/g, ' ')
+		.trim()
+
 	return (
 		<article class={styles.page}>
+			<Head>
+				<title>{doc.title} — pota</title>
+				{desc && (
+					<>
+						<meta property="og:title" content={doc.title} />
+						<meta name="description" content={desc} />
+						<meta
+							property="og:description"
+							content={desc}
+						/>
+					</>
+				)}
+			</Head>
+
 			<DocHero
 				title={doc.title}
 				syntax={doc.syntax}
