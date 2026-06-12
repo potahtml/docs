@@ -16,17 +16,34 @@
 //
 // Scope is deliberately limited to `/node_modules/pota/` so Vite keeps
 // handling everything else it pre-bundles (e.g. `/node_modules/.vite/`).
-// The deployed site is produced by scraping a running server, so the same
-// URLs resolve there too.
+// The deployed site is a scrape of the preview server, which only
+// captures URLs the crawler happened to hit — so on build the plugin
+// also copies the runtime files into dist/node_modules/pota, and
+// publish.sh ships that copy instead of trusting the crawl.
 
-import { createReadStream, statSync } from 'node:fs'
-import { dirname, join, normalize, sep } from 'node:path'
+import { cpSync, createReadStream, existsSync, statSync } from 'node:fs'
+import { dirname, join, normalize, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const here = dirname(fileURLToPath(import.meta.url))
 // docs/tools → docs/node_modules
 const nodeModulesDir = join(here, '..', 'node_modules')
 const PREFIX = '/node_modules/'
+
+// Everything the playground loads from /node_modules/pota/ at runtime,
+// relative to node_modules/pota: `src` backs the preview iframe's
+// importmap (user code may import any subpath, so the whole tree goes),
+// plus the Babel standalone bundle, the editor's type bundle, and the
+// ESM build of color-bits (src/use/color.js's only bare dependency).
+// node_modules/pota is a symlink to the repo root — copying the whole
+// package would drag in .git, node_modules and projects/ (recursively,
+// dist/ included), so keep this list targeted.
+const RUNTIME_PATHS = [
+	'src',
+	'generated/babel-preset-standalone.js',
+	'generated/docs/types.json',
+	'generated/docs/color-bits',
+]
 
 const MIME = {
 	'.js': 'text/javascript',
@@ -74,15 +91,44 @@ function potaMiddleware(nmDir) {
 }
 
 export function nodeModulesPlugin() {
+	let outDir
 	return {
 		name: 'pota-docs-node-modules',
 		enforce: 'pre',
+
+		configResolved(config) {
+			// closeBundle also fires when the dev server shuts down — only
+			// resolve outDir (and so only copy) for real builds.
+			if (config.command === 'build') {
+				outDir = resolve(config.root, config.build.outDir)
+			}
+		},
 
 		configureServer(server) {
 			server.middlewares.use(potaMiddleware(nodeModulesDir))
 		},
 		configurePreviewServer(server) {
 			server.middlewares.use(potaMiddleware(nodeModulesDir))
+		},
+
+		// dev and preview serve these through the middleware above; a
+		// static deploy of dist/ has no middleware, so physically copy the
+		// runtime files into the build output.
+		closeBundle() {
+			if (!outDir) return
+			for (const rel of RUNTIME_PATHS) {
+				const from = join(nodeModulesDir, 'pota', rel)
+				if (!existsSync(from)) {
+					throw new Error(
+						`[node-modules] ${from} is missing — generate it from the ` +
+							`repo root first (npm run dev, or build:babel-preset + ` +
+							`build:generate), or the deployed playground cannot run.`,
+					)
+				}
+				cpSync(from, join(outDir, 'node_modules', 'pota', rel), {
+					recursive: true,
+				})
+			}
 		},
 	}
 }
