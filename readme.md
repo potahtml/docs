@@ -10,6 +10,10 @@ https://pota.quack.uy/
 To dev the docs and pota located on a subfolder of the parent
 directory: `npm run dev`
 
+The dev server must run on its fixed port (1340) — docs generation
+depends on that exact origin, so `strictPort` makes Vite fail instead
+of drifting to a free port. Free the port rather than changing it.
+
 ## See also
 
 - https://pota.quack.uy/

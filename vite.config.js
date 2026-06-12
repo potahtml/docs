@@ -22,7 +22,10 @@ export default defineConfig({
 		}),
 	],
 	server: {
+		// docs generation depends on this exact origin — refuse to start
+		// on a drifted port (1341, …) when 1340 is already taken.
 		port: 1340,
+		strictPort: true,
 		open: '/',
 		// content markdown lives in the pota repo (documentation/content),
 		// outside this Vite root; allow the dev server to read it. The repo

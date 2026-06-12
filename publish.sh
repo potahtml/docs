@@ -10,7 +10,7 @@ git push
 rm -f localhost.zip
 rm -f extracted
 
-mpa http://localhost:47341/
+mpa http://localhost:1340/
 
 unzip localhost.zip -d ./extracted
 npx wrangler pages deploy extracted --project-name=potahtml
