@@ -8,7 +8,8 @@
 	"scripts": {
 		"dev": "vite",
 		"build": "vite build",
-		"serve": "vite preview"
+		"serve": "vite preview",
+		"publish": "./publish.sh"
 	},
 	"devDependencies": {
 		"@rolldown/plugin-babel": "^0.2.3",
@@ -29,7 +30,9 @@
 		"@typescript/vfs": "^1.6.4",
 		"codemirror": "^6.0.2",
 		"fflate": "^0.8.2",
-		"pota": "file:../.."
+		"mpa-archive": "^3.0.24",
+		"pota": "file:../..",
+		"wrangler": "^4.100.0"
 	},
 	"prettier": {
 		"printWidth": 70,

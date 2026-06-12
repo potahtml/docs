@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 
 # save source changes
 
@@ -8,9 +9,12 @@ git push
 # publish to pota.quack.uy
 
 rm -f localhost.zip
-rm -f extracted
+rm -Rf extracted/
 
-mpa http://localhost:1340/
+npx mpa http://localhost:1340/
 
 unzip localhost.zip -d ./extracted
+
+rm mpa/state.json
+
 npx wrangler pages deploy extracted --project-name=potahtml
