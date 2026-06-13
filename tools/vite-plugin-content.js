@@ -22,7 +22,8 @@ const root = join(here, '..')
 const repoRoot = join(root, '..', '..')
 // API-reference markdown lives in the pota repo under documentation/,
 // outside this project — the dev server reaches it via server.fs.allow
-const contentDir = join(repoRoot, 'documentation', 'content')
+// (exported, with listMarkdown/routeId, for vite-plugin-static-pages)
+export const contentDir = join(repoRoot, 'documentation', 'content')
 const VIRTUAL_ID = 'virtual:manifest'
 const RESOLVED_ID = '\0' + VIRTUAL_ID
 
@@ -40,12 +41,12 @@ const isPageMd = id =>
 
 const pageId = file => basename(stripQuery(file), '.md')
 
-const routeId = file =>
+export const routeId = file =>
 	relative(contentDir, stripQuery(file))
 		.replace(/\\/g, '/')
 		.replace(/\.md$/, '')
 
-function listMarkdown(dir) {
+export function listMarkdown(dir) {
 	const out = []
 	for (const entry of readdirSync(dir, { withFileTypes: true })) {
 		const full = join(dir, entry.name)

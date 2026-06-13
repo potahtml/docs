@@ -79,7 +79,7 @@ function pushContent(arr, item) {
 	arr.push(item)
 }
 
-function parseFrontmatter(raw, id = '') {
+export function parseFrontmatter(raw, id = '') {
 	const m = /^---\n([\s\S]*?)\n---\n?/.exec(raw)
 	if (!m) return { data: {}, body: raw }
 

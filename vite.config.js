@@ -5,6 +5,7 @@ import babel from '@rolldown/plugin-babel'
 import { contentPlugin } from './tools/vite-plugin-content.js'
 import { importmapPlugin } from './tools/vite-plugin-importmap.js'
 import { nodeModulesPlugin } from './tools/vite-plugin-node-modules.js'
+import { staticPagesPlugin } from './tools/vite-plugin-static-pages.js'
 
 const resolve = p => fileURLToPath(new URL(p, import.meta.url))
 
@@ -17,6 +18,7 @@ export default defineConfig({
 		nodeModulesPlugin(),
 		contentPlugin(),
 		importmapPlugin(),
+		staticPagesPlugin(),
 		babel({
 			presets: [['pota/babel-preset']],
 		}),
