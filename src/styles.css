@@ -130,9 +130,6 @@ html[data-ligatures="off"] {
 }
 a {
 	color: var(--accent);
-	text-decoration: none;
-}
-a:hover {
 	text-decoration: underline;
 }
 
