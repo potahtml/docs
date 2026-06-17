@@ -10,7 +10,7 @@
 		"build": "vite build",
 		"build-watch": "vite build --watch",
 		"serve": "vite preview",
-		"publish": "git add --all; git commit -m 'update docs'; git push; npm run build && wrangler pages deploy dist --project-name=potahtml"
+		"publish": "git add --all; git commit -m 'update docs'; git push; npm run build && wrangler pages deploy dist --branch=main --project-name=potahtml"
 	},
 	"devDependencies": {
 		"@rolldown/plugin-babel": "^0.2.3",
