@@ -48,6 +48,8 @@ render(Counter)
   conventions that follow.
 - [cheatsheet](/cheatsheet) — the whole main public surface at a
   glance, one usage note per export.
+- [AI usage](/ai-usage) — the two skills pota ships for AI tools, and
+  how AI was used on the docs and the project.
 
 ## Some of the differences with SolidJS
 

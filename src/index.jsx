@@ -14,6 +14,7 @@ import { NotFound } from './components/NotFound.jsx'
 import { PlaygroundPage } from './components/playground/PlaygroundPage.jsx'
 import { Cheatsheet } from './components/Cheatsheet.jsx'
 import { Thanks } from './components/Thanks.jsx'
+import { AiUsage } from './components/AiUsage.jsx'
 
 import { manifest } from './manifest.js'
 
@@ -105,6 +106,7 @@ function App() {
 					{() => <Cheatsheet />}
 				</Route>
 				<Route path="/thanks$">{() => <Thanks />}</Route>
+				<Route path="/ai-usage$">{() => <AiUsage />}</Route>
 				<Route.Default>
 					{() => {
 						// Render the doc page from a signal, committed by an

@@ -8,8 +8,8 @@
 // boot, and until then (and without JS) it's real, indexable page
 // content. The app's <Head> blocks set the same head values — the
 // per-page fields below MIRROR those blocks (DocPage.jsx, Home.jsx,
-// Thanks.jsx, Cheatsheet.jsx, PlaygroundPage.jsx, NotFound.jsx);
-// change both together.
+// Thanks.jsx, AiUsage.jsx, Cheatsheet.jsx, PlaygroundPage.jsx,
+// NotFound.jsx); change both together.
 //
 // Cloudflare Pages serves /components/For from components/For.html
 // (clean URLs), and the 404.html written here replaces its blanket
@@ -96,6 +96,12 @@ function pageList() {
 		url: '/thanks',
 		title: 'thanks — pota',
 		prerender: mdHtml(readMd(root, 'src', 'pages', 'thanks.md')),
+	})
+	pages.push({
+		out: 'ai-usage.html',
+		url: '/ai-usage',
+		title: 'AI usage — pota',
+		prerender: mdHtml(readMd(root, 'src', 'pages', 'ai-usage.md')),
 	})
 	pages.push({
 		out: 'cheatsheet.html',

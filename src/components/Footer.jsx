@@ -9,7 +9,7 @@ export function Footer() {
 		<footer class={styles.footer}>
 			<div>
 				<span>docs</span> ·{' '}
-				<span>disclaimer: AI assisted documentation</span>
+				<a href="/ai-usage">disclaimer: AI assisted documentation</a>
 			</div>
 			<span>
 				<a href="/thanks">thanks</a> ·{' '}
