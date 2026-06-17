@@ -1,3 +1,4 @@
+
 import { effect, render, signal } from 'pota'
 import { Route } from 'pota/components'
 import { location } from 'pota/use/location'
@@ -77,6 +78,8 @@ const mainClass = () =>
 	(location.pathname() === '/playground' ? ' ' + styles.wide : '')
 
 function App() {
+
+
 	return (
 		<>
 			<Header />

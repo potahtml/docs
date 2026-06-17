@@ -103,6 +103,13 @@ body {
 	margin: 0;
 	padding: 0;
 }
+/* the <html> canvas must match the page bg: during a view-transition
+   root cross-fade the old/new page snapshots can differ in height, and
+   the strip behind them falls back to this canvas — left unset it
+   flashes white at the edge in dark mode mid-transition. */
+html {
+	background: var(--bg);
+}
 body {
 	background: var(--bg);
 	color: var(--fg);
