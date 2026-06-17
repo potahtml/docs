@@ -8,11 +8,10 @@ documentation and the project itself.
 
 ## Skills shipped with pota
 
-pota ships two [Claude Code](https://claude.com/claude-code) skills
-inside the npm package, under `node_modules/pota/.claude/skills/`. AI
-coding tools that follow the skill convention discover them
-automatically once pota is a dependency — there is nothing to install
-or configure. Both are consumer-facing: they help you build _with_
+pota ships two skills inside the npm package, under
+`node_modules/pota/.claude/skills/`. AI coding tools that follow the
+skill convention discover them automatically once pota is a dependency
+— there is nothing to install or configure. Both are consumer-facing: they help you build _with_
 pota and contain nothing about developing pota itself.
 
 - **`pota` — write idiomatic pota.** The day-to-day conventions for
