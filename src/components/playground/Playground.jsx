@@ -284,6 +284,11 @@ export function Playground(props) {
 		timer = setTimeout(finishClose, DURATION + 30)
 	}
 
+	// the window dots double as a focus toggle: zoom in, or — when already
+	// zoomed — return the window to its spot. Gives mobile a reliable way
+	// out, where the backdrop sliver is hard to tap and there's no Escape.
+	const toggleZoom = () => (isOpen ? close() : open())
+
 	// ---- horizontal resize: drag either vertical edge to grow/shrink the
 	// zoomed window symmetrically about its centre — both sides move at
 	// once, so it stays centred (down to MIN_ZOOM_WIDTH, up to the full
@@ -540,7 +545,20 @@ export function Playground(props) {
 			/>
 
 			<div class={styles.head}>
-				<span class={styles.dots}>
+				<span
+					class={styles.dots}
+					role="button"
+					tabindex="0"
+					title="Toggle fullscreen"
+					aria-label="Toggle fullscreen"
+					on:click={toggleZoom}
+					on:keydown={e => {
+						if (e.key === 'Enter' || e.key === ' ') {
+							e.preventDefault()
+							toggleZoom()
+						}
+					}}
+				>
 					<span class={styles.close} />
 					<span class={styles.min} />
 					<span class={styles.max} />

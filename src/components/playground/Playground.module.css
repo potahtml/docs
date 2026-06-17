@@ -125,6 +125,20 @@
 .dots {
 	display: inline-flex;
 	gap: 6px;
+	/* the dots double as a fullscreen toggle (esp. for mobile, where the
+	   thin backdrop is hard to tap); grow the hit area without shifting
+	   the dots, and signal they're interactive */
+	cursor: pointer;
+	padding: 6px 3px;
+	margin: -6px -3px;
+}
+.dots:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 2px;
+	border-radius: var(--radius-sm);
+}
+.dots:hover span {
+	opacity: 1;
 }
 .dots span {
 	width: 11px;
