@@ -25,7 +25,7 @@ globalThis.process.env = globalThis.process.env || {}
 
 const TS_URL =
 	'https://cdn.jsdelivr.net/npm/typescript@5.6.3/lib/typescript.js'
-const TYPES_URL = '/node_modules/pota/generated/docs/types.json'
+const TYPES_URL = '/modules/pota/generated/docs/types.json'
 
 const toPath = name => (name.startsWith('/') ? name : '/' + name)
 
@@ -446,6 +446,12 @@ function loadTsCore() {
 			)
 			const typeRoots = []
 			for (const t of types) {
+				// Virtual-FS path for the TS language service, NOT an HTTP
+				// URL. TypeScript resolves bare specifiers (`import 'pota'`)
+				// by walking `node_modules/`, so these in-memory entries must
+				// stay under `/node_modules/` even though the runtime assets
+				// are served from `/modules/` (TYPES_URL above fetches the
+				// bundle itself; this only keys it for the editor).
 				const path = '/node_modules/' + t.f
 				libMap.set(path, t.c)
 				typeRoots.push(path)

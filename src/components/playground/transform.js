@@ -11,7 +11,7 @@
 const dynImport = new Function('u', 'return import(u)')
 
 const BABEL_URL =
-	'/node_modules/pota/generated/babel-preset-standalone.js'
+	'/modules/pota/generated/babel-preset-standalone.js'
 
 const PRETTIER = 'https://unpkg.com/prettier@3.3.3'
 

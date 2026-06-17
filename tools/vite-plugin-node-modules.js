@@ -1,25 +1,34 @@
-// Serves `/node_modules/pota/*` from the docs project's node_modules in
-// dev and preview. Vite's `root` is `src/` (see vite.config.js), so its
-// static file server only serves files under `src/` — a request for
-// `/node_modules/...` has no `src/node_modules` to match and falls
-// through to a 404 (or the SPA html fallback, depending on the request's
-// Accept header).
+// Serves pota's runtime to the playground at `/modules/pota/*`, reading
+// from the docs project's on-disk `node_modules/pota` (a symlink to the
+// repo root). Vite's `root` is `src/` (see vite.config.js), so its static
+// file server only serves files under `src/` — a request for `/modules/…`
+// has no match there and falls through to a 404 (or the SPA html
+// fallback, depending on the request's Accept header), hence this
+// middleware.
 //
-// The playground hard-codes `/node_modules/pota/...` URLs in two places,
-// both because `pota` lives in node_modules (a symlink to the repo root):
+// Why `/modules/` and not the natural `/node_modules/`: the deployed site
+// is the built `dist/` shipped as-is via `wrangler pages deploy`, and
+// Cloudflare Pages hard-ignores any directory named `node_modules` (a
+// non-overridable entry in wrangler's deploy ignore list — see the
+// `validate()` IGNORE_LIST, `**/node_modules`). A folder literally called
+// node_modules is silently dropped from the upload, so the runtime is
+// served — and copied into the build — under `modules/` instead.
+//
+// The playground hard-codes `/modules/pota/...` URLs in three places:
 //   - the preview iframe's importmap (generated/docs/importmap.json),
-//     which resolves bare `pota` specifiers in user code, and
+//     which resolves bare `pota` specifiers in user code,
 //   - the Babel standalone `<script>` in
-//     src/components/playground/transform.js.
-// Without this middleware neither resolves and the playground can't load
-// Babel or run any example.
+//     src/components/playground/transform.js (BABEL_URL), and
+//   - the editor's type-bundle fetch in
+//     src/components/playground/ts-service.js (TYPES_URL).
+// Without this middleware none resolve and the playground can't load
+// Babel, the types, or run any example. (The TS language service's own
+// virtual FS still keys types under `/node_modules/` — that's an
+// in-memory resolution detail, not an HTTP path; see ts-service.js.)
 //
-// Scope is deliberately limited to `/node_modules/pota/` so Vite keeps
-// handling everything else it pre-bundles (e.g. `/node_modules/.vite/`).
-// The deployed site is a scrape of the preview server, which only
-// captures URLs the crawler happened to hit — so on build the plugin
-// also copies the runtime files into dist/node_modules/pota, and
-// publish.sh ships that copy instead of trusting the crawl.
+// Scope is deliberately limited to `/modules/pota/`. On build there is no
+// middleware, so closeBundle() copies the runtime files into
+// dist/modules/pota and publish.sh ships that copy.
 
 import { cpSync, createReadStream, existsSync, statSync } from 'node:fs'
 import { dirname, join, normalize, resolve, sep } from 'node:path'
@@ -28,9 +37,9 @@ import { fileURLToPath } from 'node:url'
 const here = dirname(fileURLToPath(import.meta.url))
 // docs/tools → docs/node_modules
 const nodeModulesDir = join(here, '..', 'node_modules')
-const PREFIX = '/node_modules/'
+const PREFIX = '/modules/'
 
-// Everything the playground loads from /node_modules/pota/ at runtime,
+// Everything the playground loads from /modules/pota/ at runtime,
 // relative to node_modules/pota: `src` backs the preview iframe's
 // importmap (user code may import any subpath, so the whole tree goes),
 // plus the Babel standalone bundle, the editor's type bundle, and the
@@ -125,7 +134,7 @@ export function nodeModulesPlugin() {
 							`build:generate), or the deployed playground cannot run.`,
 					)
 				}
-				cpSync(from, join(outDir, 'node_modules', 'pota', rel), {
+				cpSync(from, join(outDir, 'modules', 'pota', rel), {
 					recursive: true,
 				})
 			}
