@@ -3,10 +3,12 @@
 // shell. dist/index.html (home) is rewritten in place; every other URL
 // — each documentation/content/**/*.md plus the standalone pages —
 // gets a mirror of it with the per-page <title>, description / OG
-// tags, and the page's markdown rendered inside <div id="root"> —
-// index.jsx renders with {clear: true}, so the app replaces it on
-// boot, and until then (and without JS) it's real, indexable page
-// content. The app's <Head> blocks set the same head values — the
+// tags, and the page's markdown — followed by the full API catalog
+// (browseNavHtml) so every page links to every other — rendered inside
+// <div id="root">. index.jsx renders with {clear: true}, so the app
+// replaces it on boot, and until then (and without JS) it's real,
+// indexable page content. The app's <Head> blocks set the same head
+// values — the
 // per-page fields below MIRROR those blocks (DocPage.jsx, Home.jsx,
 // Thanks.jsx, AiUsage.jsx, Cheatsheet.jsx, PlaygroundPage.jsx,
 // NotFound.jsx); change both together.
@@ -22,7 +24,8 @@ import { fileURLToPath } from 'node:url'
 
 import { marked } from 'marked'
 
-import { parseDoc, parseFrontmatter } from './content-parser.js'
+import { parseDoc, parseFrontmatter, parseMeta } from './content-parser.js'
+import { buildManifest } from './topics.js'
 import {
 	contentDir,
 	listMarkdown,
@@ -73,10 +76,37 @@ const mdHtml = raw => marked.parse(parseFrontmatter(raw).body)
 
 const readMd = (...path) => readFileSync(join(...path), 'utf8')
 
+// The full API index — every export linked to its page, grouped by the
+// same topics.js taxonomy the runtime "browse all APIs" catalog uses
+// (buildManifest, fed the same page metadata as virtual:manifest). It is
+// appended to the bottom of every page's root div so crawlers and no-JS
+// readers can reach the whole site from any page; the app clears #root on
+// boot ({clear:true}), so JS readers get the live <Browse> catalog
+// instead and never see this duplicated. Identical on every page, so the
+// caller builds it once.
+function browseNavHtml() {
+	const pages = listMarkdown(contentDir).map(file =>
+		parseMeta(readFileSync(file, 'utf8'), routeId(file)),
+	)
+	const { sections } = buildManifest(pages)
+	const sectionsHtml = sections
+		.map(section => {
+			const links = section.items
+				.map(
+					it =>
+						`<li><a href="${escapeHtml(it.href)}">${escapeHtml(it.name)}</a></li>`,
+				)
+				.join('')
+			return `<section><h3>${escapeHtml(section.title)}</h3><ul>${links}</ul></section>`
+		})
+		.join('')
+	return `<nav aria-label="Browse all APIs"><h2>Browse all APIs</h2>${sectionsHtml}</nav>`
+}
+
 // One descriptor per URL. `desc` undefined = keep the template's
 // default description/og:description (matches runtime pages that don't
-// override them); `prerender` undefined = leave the root div empty
-// (the playground has no markdown body).
+// override them); `prerender` undefined = no markdown body (e.g. the
+// playground) — the root div still gets the API catalog appended below.
 function pageList() {
 	const pages = []
 
@@ -149,7 +179,7 @@ const setMetaContent = (html, attr, key, value) =>
 		(_, open, close) => open + escapeHtml(value) + close,
 	)
 
-function renderPage(template, page) {
+function renderPage(template, page, browseNav) {
 	let html = template
 	html = html.replace(
 		/<title>[\s\S]*?<\/title>/,
@@ -168,12 +198,13 @@ function renderPage(template, page) {
 			page.desc,
 		)
 	}
-	if (page.prerender !== undefined) {
-		html = html.replace(
-			'<div id="root"></div>',
-			() => `<div id="root">${page.prerender}</div>`,
-		)
-	}
+	// Markdown body (when the page has one) followed by the API catalog,
+	// both inside #root so the app's {clear:true} render wipes them on boot.
+	const body = (page.prerender || '') + browseNav
+	html = html.replace(
+		'<div id="root"></div>',
+		() => `<div id="root">${body}</div>`,
+	)
 	return html
 }
 
@@ -190,10 +221,11 @@ export function staticPagesPlugin() {
 		closeBundle() {
 			const template = readFileSync(join(outDir, 'index.html'), 'utf8')
 			const pages = pageList()
+			const browseNav = browseNavHtml()
 			for (const page of pages) {
 				const file = join(outDir, page.out)
 				mkdirSync(dirname(file), { recursive: true })
-				writeFileSync(file, renderPage(template, page))
+				writeFileSync(file, renderPage(template, page, browseNav))
 			}
 			console.log(`[static-pages] wrote ${pages.length} pages`)
 		},

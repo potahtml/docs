@@ -27,6 +27,19 @@ export function ThemeToggle() {
 	const open = signal(false)
 	let colorInput
 
+	// The panel is anchored bottom-center of the gear (CSS). Near a screen
+	// edge that center would push it off-screen, so once it's connected we
+	// measure it and set `--shift` to slide it back within an 8px margin.
+	const keepOnScreen = el => {
+		const margin = 8
+		const r = el.getBoundingClientRect()
+		const vw = document.documentElement.clientWidth
+		let shift = 0
+		if (r.left < margin) shift = margin - r.left
+		else if (r.right > vw - margin) shift = vw - margin - r.right
+		if (shift) el.style.setProperty('--shift', shift + 'px')
+	}
+
 	const segCls = m => () =>
 		styles.seg + (mode.read() === m ? ' ' + styles.active : '')
 
@@ -64,6 +77,7 @@ export function ThemeToggle() {
 					class={styles.panel}
 					role="dialog"
 					aria-label="Appearance"
+					use:connected={keepOnScreen}
 				>
 					<div class={styles.row}>
 						<span class={styles.label}>Theme</span>
