@@ -15,24 +15,24 @@
 	"devDependencies": {
 		"@rolldown/plugin-babel": "^0.2.3",
 		"js-yaml": "^4.2.0",
-		"marked": "^18.0.4",
-		"vite": "^8.0.10"
+		"marked": "^18.0.5",
+		"vite": "^8.0.16"
 	},
 	"dependencies": {
-		"@codemirror/autocomplete": "^6.20.2",
-		"@codemirror/commands": "^6.8.1",
+		"@codemirror/autocomplete": "^6.20.3",
+		"@codemirror/commands": "^6.10.3",
 		"@codemirror/lang-css": "^6.3.1",
 		"@codemirror/lang-javascript": "^6.2.5",
-		"@codemirror/language": "^6.11.3",
-		"@codemirror/lint": "^6.9.6",
+		"@codemirror/language": "^6.12.3",
+		"@codemirror/lint": "^6.9.7",
 		"@codemirror/state": "^6.6.0",
-		"@codemirror/view": "^6.41.0",
-		"@lezer/highlight": "^1.2.1",
+		"@codemirror/view": "^6.43.1",
+		"@lezer/highlight": "^1.2.3",
 		"@typescript/vfs": "^1.6.4",
 		"codemirror": "^6.0.2",
-		"fflate": "^0.8.2",
+		"fflate": "^0.8.3",
 		"pota": "file:../..",
-		"wrangler": "^4.100.0"
+		"wrangler": "^4.101.0"
 	},
 	"prettier": {
 		"printWidth": 70,
